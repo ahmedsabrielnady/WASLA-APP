@@ -36,7 +36,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <!-- Top Announcement & Status Bar -->
+    <!-- Top Announcement Bar -->
     <div class="bg-gradient-to-r from-waslaDark via-whatsappGreen to-waslaDark text-white text-[11px] py-2 px-4 text-center font-bold tracking-wide flex justify-between items-center shadow-inner">
         <div class="max-w-7xl mx-auto w-full flex justify-between items-center">
             <span><i class="fa-solid fa-star text-waslaGold ml-1"></i> المنظومة الطبية الأولى الموحدة لمدينة وقرى شبين القناطر (طحانوب، كفر حمزة، منية شبين)</span>
@@ -64,7 +64,7 @@
             <!-- Navigation Tabs -->
             <nav class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1">
                 <button onclick="navigateTab('patient')" id="nav-patient" class="bg-waslaGreen text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-md whitespace-nowrap">
-                    <i class="fa-solid fa-hospital-user"></i> بوابة المرضى
+                    <i class="fa-solid fa-hospital-user"></i> بوابة المرضى والتأمين
                 </button>
                 <button onclick="navigateTab('triage')" id="nav-triage" class="bg-slate-800 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
                     <i class="fa-solid fa-headset text-waslaGreen"></i> غرفة الفرز والعملاء
@@ -82,14 +82,14 @@
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
 
-        <!-- ================= 1. PATIENT PORTAL ================= -->
+        <!-- ================= 1. PATIENT PORTAL & INSURANCE ================= -->
         <section id="tab-patient-view" class="space-y-6">
             <!-- Hero Banner -->
             <div class="bg-gradient-to-r from-waslaDark via-slate-900 to-waslaGreen text-white rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border border-slate-800">
                 <div class="relative z-10 max-w-2xl space-y-3">
                     <span class="bg-waslaGreen text-white text-xs px-3.5 py-1 rounded-full font-extrabold inline-block shadow">تغطية طبية شاملة لجميع أهالي شبين القناطر والقرى (طحانوب، كفر حمزة، منية شبين)</span>
                     <h2 class="text-2xl sm:text-4xl font-black leading-tight">طبيبك وتأمينك الطبي في شبين القناطر.. في خطوة واحدة دون سفر للقاهرة</h2>
-                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">منصة "وصلة" توفر لك معرفة نسبة تحملَك لكشف كبار الأطباء والاستشاريين، والخصم المعتمَد في كبرى معامل التحاليل والمستشفيات، مع استخراج الموافقات الطبية عبر واتساب فوراً وبدون تعقيد[span_13](start_span)[span_13](end_span).</p>
+                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">منصة "وصلة" توفر لك معرفة نسبة تحملَك لكشف كبار الأطباء والاستشاريين، والخصم المعتمَد في كبرى معامل التحاليل والمستشفيات، مع استخراج الموافقات الطبية عبر واتساب فوراً.</p>
                     <div class="flex flex-wrap gap-2 pt-2">
                         <a href="https://wa.me/201068990089?text=السلام%20عليكم%20عايز%20أحجز%20كشف" target="_blank" class="bg-whatsappGreen text-white px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2 hover:opacity-90">
                             <i class="fa-brands fa-whatsapp text-base"></i> تواصل فوري مع منسق وصلة (01068990089)
@@ -107,7 +107,7 @@
                     <span class="text-xs text-waslaGreen font-bold bg-waslaLightGreen px-3 py-1 rounded-full">فحص التأمين الفوري</span>
                 </div>
                 
-                <!-- Insurance Company Logos Selector -->
+                <!-- Insurance Company Selection Grid -->
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
                     <button onclick="selectInsCompany('GlobeMed')" class="p-3 border rounded-2xl text-center text-xs font-bold hover:border-waslaGreen transition bg-slate-50 flex flex-col items-center gap-1">
                         <i class="fa-solid fa-square-check text-waslaGreen text-base"></i> جلوب ميد (GlobeMed)
@@ -135,8 +135,6 @@
                             <option value="MedRight">ميد رايت (MedRight Healthcare)</option>
                             <option value="AXA">أكسا مصر (AXA Insurance)</option>
                             <option value="Bupa">بوبا مصر (Bupa Egypt)</option>
-                            <option value="CarePlus">كير بلس (Care Plus)</option>
-                            <option value="MisrInsurance">مصر للتأمين التكافلي الطبي</option>
                         </select>
                     </div>
                     <div>
@@ -158,7 +156,7 @@
                     <label class="block text-xs font-bold text-slate-600 mb-1">ابحث باسم الطبيب أو المركز أو التخصص:</label>
                     <div class="relative">
                         <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3 text-slate-400 text-xs"></i>
-                        <input type="text" id="patient-search-query" oninput="renderPatientDoctors()" placeholder="مثال: باطنة، عظام، أسنان، تحليل..." class="w-full pr-10 pl-3 py-2 border rounded-xl text-xs font-bold focus:outline-none focus:border-waslaGreen">
+                        <input type="text" id="patient-search-query" oninput="renderPatientDoctors()" placeholder="مثال: باطنة، عظام، أسنان..." class="w-full pr-10 pl-3 py-2 border rounded-xl text-xs font-bold focus:outline-none focus:border-waslaGreen">
                     </div>
                 </div>
                 <div>
@@ -184,26 +182,24 @@
                 </div>
             </div>
 
-            <!-- Doctors and Centers List Grid -->
+            <!-- Doctors Grid -->
             <div id="patient-doctors-grid" class="space-y-4"></div>
         </section>
 
-        <!-- ================= 2. TRIAGE & OPERATIONS (AI TRIAGE) ================= -->
+        <!-- ================= 2. AI TRIAGE & OPERATIONS ================= -->
         <section id="tab-triage-view" class="hidden space-y-6">
             <div class="bg-waslaDark text-white p-6 rounded-3xl shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-slate-800">
                 <div>
                     <span class="bg-emerald-500/20 text-emerald-400 text-xs px-3 py-1 rounded-full font-bold border border-emerald-500/30 mb-2 inline-block"><i class="fa-solid fa-signal ml-1"></i> غرفة الفرز والوجهة الميدانية - مركز شبين القناطر</span>
-                    <h2 class="text-xl font-black">إدارة تدفقات الواتساب الطبية، التوجيه الذكي للعليات ومعامل التمريض المنزلي</h2>
-                    <p class="text-xs text-slate-400">رقم الواتساب التشغيلي: 01068990089 | Google Sheets Live: Sheet #ops-2025[span_14](start_span)[span_14](end_span)</p>
+                    <h2 class="text-xl font-black">إدارة تدفقات الواتساب الطبية، التوجيه الذكي للعيادات ومعامل التمريض المنزلي</h2>
+                    <p class="text-xs text-slate-400">رقم الواتساب التشغيلي: 01068990089 | Google Sheets Live Sync: Active</p>
                 </div>
-                <div class="flex gap-2">
-                    <a href="https://wa.me/201068990089" target="_blank" class="bg-whatsappGreen text-white px-4 py-2 rounded-2xl text-xs font-bold flex items-center gap-2 shadow">
-                        <i class="fa-brands fa-whatsapp"></i> صندوق الواتساب المباشر
-                    </a>
-                </div>
+                <a href="https://wa.me/201068990089" target="_blank" class="bg-whatsappGreen text-white px-4 py-2 rounded-2xl text-xs font-bold flex items-center gap-2 shadow">
+                    <i class="fa-brands fa-whatsapp"></i> صندوق الواتساب المباشر
+                </a>
             </div>
 
-            <!-- Triage Quick Metrics -->
+            <!-- Metrics -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
                     <span class="text-slate-400 text-[11px] font-bold block mb-1">محادثات الواتساب اليوم</span>
@@ -223,9 +219,8 @@
                 </div>
             </div>
 
-            <!-- Triage Dispatcher Interactive Panel -->
+            <!-- Voice Triage Simulator Box -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Voice Triage Item -->
                 <div class="lg:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-4">
                     <div class="flex justify-between items-center border-b pb-3">
                         <h3 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
@@ -255,13 +250,12 @@
                     </div>
                 </div>
 
-                <!-- Emergency Dispatcher Widget -->
                 <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-4">
                     <h3 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
                         <i class="fa-solid fa-triangle-exclamation text-waslaRed"></i> إطلاق تنبيه طارئ فوري لقرى شبين
                     </h3>
                     <div class="p-3 bg-red-50 rounded-2xl border border-red-200 space-y-3 text-xs">
-                        <p class="text-red-900 font-bold">تنبيه ذكي: رصد إشارات خطورة محتملة بالحالة النشطة للحاج عاطف المليجي (نسبة السكر 260 mg/dl مع دوخة مستمرة).</p>
+                        <p class="text-red-900 font-bold">تنبيه ذكي: رصد إشارات خطورة محتملة للحالة النشطة للحاج عاطف المليجي (نسبة السكر 260 mg/dl).</p>
                         <button onclick="alert('🚨 تم إرسال إشعار الطوارئ لفريق التمريض المنزلي وسيارة الإسعاف بقرية طحانوب بنجاح!')" class="w-full bg-waslaRed text-white py-2.5 rounded-xl font-black shadow hover:opacity-90 transition">
                             <i class="fa-solid fa-ambulance ml-1"></i> إرسال إشعار الطوارئ فوراً
                         </button>
@@ -275,21 +269,19 @@
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <span class="bg-waslaLightGreen text-waslaGreen text-xs px-3.5 py-1 rounded-full font-black inline-block mb-1">سجل التسوِية والمالي P&L للأطباء والعيادات</span>
-                    <h2 class="text-xl font-black text-slate-800">سجل عمليات شبين القناطر الميداني 2025</h2>
-                    <p class="text-xs text-slate-500 font-bold">ربط سحابي نشط: Google Cloud API v4 & Webhook 24/7 | الرقم الرسمي: 01068990089[span_15](start_span)[span_15](end_span)</p>
+                    <h2 class="text-xl font-black text-slate-800">سجل عمليات شبين القناطر الميداني 2025-2026</h2>
+                    <p class="text-xs text-slate-500 font-bold">ربط سحابي نشط: Google Sheets API & Webhook 24/7 | الرقم الرسمي: 01068990089[span_3](start_span)[span_3](end_span)</p>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="alert('✅ تم مزامنة Google Sheets بنجاح فوراً!')" class="bg-waslaDark text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow flex items-center gap-2">
-                        <i class="fa-solid fa-rotate"></i> مزامنة فورية (Google Sheets)
-                    </button>
-                </div>
+                <button onclick="alert('✅ تم مزامنة Google Sheets بنجاح فوراً!')" class="bg-waslaDark text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow flex items-center gap-2">
+                    <i class="fa-solid fa-rotate"></i> مزامنة فورية (Google Sheets)
+                </button>
             </div>
 
-            <!-- Financial Metrics Cards -->
+            <!-- Financial Metrics -->
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
                     <span class="text-slate-400 text-xs font-bold block mb-1">إجمالي الإيرادات اليومية</span>
-                    <h3 class="text-2xl font-black text-slate-800">18,450 <span class="text-xs font-bold text-waslaGreen">+18.2%</span></h3>
+                    <h3 class="text-2xl font-black text-slate-800">18,450 ج.م</h3>
                 </div>
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
                     <span class="text-slate-400 text-xs font-bold block mb-1">صافي أرباح وصلة (15%)</span>
@@ -305,7 +297,7 @@
                 </div>
             </div>
 
-            <!-- Doctors Settlements Table -->
+            <!-- Settlements Table -->
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80 space-y-4">
                 <div class="flex justify-between items-center">
                     <h3 class="font-extrabold text-slate-800 text-base">حسابات الأطباء ومستحقات العيادات (106 صف)</h3>
@@ -378,7 +370,7 @@
 
     </main>
 
-    <!-- Modal Booking (مع تفاصيل الحجز وتذكرة الباركود ورابط الواتساب) -->
+    <!-- Modal Booking -->
     <div id="modal-booking" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button onclick="closeModal('modal-booking')" class="absolute left-4 top-4 text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -389,10 +381,10 @@
     <!-- Footer -->
     <footer class="bg-waslaDark text-slate-400 py-6 border-t border-slate-800 text-xs">
         <div class="max-w-7xl mx-auto px-4 text-center space-y-3">
-            <p class="font-bold text-slate-300">جميع الحقوق محفوظة © 2025-2026 لمنصة وصلة الرقمية - شبين القناطر[span_16](start_span)[span_16](end_span)</p>
+            <p class="font-bold text-slate-300">جميع الحقوق محفوظة © 2025-2026 لمنصة وصلة الرقمية - شبين القناطر</p>
             <div class="flex justify-center items-center gap-2">
                 <a href="https://wa.me/201068990089" target="_blank" class="bg-whatsappGreen text-white px-4 py-2 rounded-xl font-black text-xs inline-flex items-center gap-2 shadow">
-                    <i class="fa-brands fa-whatsapp text-sm"></i> الدعم الفني والواتساب المباشر: 01068990089[span_17](start_span)[span_17](end_span)
+                    <i class="fa-brands fa-whatsapp text-sm"></i> الدعم الفني والواتساب المباشر: 01068990089
                 </a>
             </div>
         </div>
