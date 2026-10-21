@@ -3,446 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة وصلة | شبكة الرعاية الطبية الذكية - شبين القناطر</title>
-    <!-- Tailwind CSS CDN -->
+    <title>وصلة | شبكة الرعاية الطبية الذكية - شبين القناطر</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        waslaGreen: '#0A8754',
-                        waslaLightGreen: '#E6F4ED',
-                        waslaDark: '#0F172A',
-                        waslaSky: '#0284C7',
-                        waslaGold: '#D97706',
-                        waslaRed: '#E11D48',
-                        whatsappGreen: '#25D366'
+                        wasla: {
+                            green: '#0A8754',
+                            light: '#E6F4ED',
+                            dark: '#0B1120',
+                            sky: '#0284C7',
+                            gold: '#D97706',
+                            red: '#E11D48',
+                        }
+                    },
+                    fontFamily: { sans: ['Cairo', 'sans-serif'] },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.5s ease-out',
+                        'pulse-slow': 'pulse 3s infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
                     }
                 }
             }
         }
     </script>
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Cairo Font -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Cairo', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        body { font-family: 'Cairo', sans-serif; background-color: #F8FAFC; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .glass-dark { background: rgba(11, 17, 32, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #0A8754; border-radius: 4px; }
+        .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="text-slate-800 antialiased min-h-screen flex flex-col selection:bg-wasla-green selection:text-white">
 
-    <!-- Top Announcement Bar -->
-    <div class="bg-gradient-to-r from-waslaDark via-whatsappGreen to-waslaDark text-white text-[11px] py-2 px-4 text-center font-bold tracking-wide flex justify-between items-center shadow-inner">
+    <!-- Top Bar -->
+    <div class="bg-wasla-dark text-slate-300 text-[11px] py-2 px-4 text-center font-bold tracking-wide flex justify-between items-center border-b border-slate-700">
         <div class="max-w-7xl mx-auto w-full flex justify-between items-center">
-            <span><i class="fa-solid fa-star text-waslaGold ml-1"></i> المنظومة الطبية الأولى الموحدة لمدينة وقرى شبين القناطر (طحانوب، كفر حمزة، منية شبين)</span>
-            <a href="https://wa.me/201068990089?text=السلام%20عليكم%20منصة%20وصلة،%20عايز%20أستفسر%20عن%20حجز%20طبيب" target="_blank" class="bg-white text-whatsappGreen px-3 py-1 rounded-full font-black flex items-center gap-1 shadow hover:bg-slate-100 transition">
-                <i class="fa-brands fa-whatsapp text-sm"></i> 01068990089 (الواتساب الرسمي للمركز)
+            <span><i class="fa-solid fa-location-dot text-wasla-green ml-1"></i> المنظومة الطبية الأولى الموحدة لشبين القناطر والقرى</span>
+            <a href="https://wa.me/201068990089" target="_blank" class="bg-wasla-green text-white px-3 py-1 rounded-full font-black flex items-center gap-1 shadow hover:bg-emerald-600 transition">
+                <i class="fa-brands fa-whatsapp"></i> 01068990089
             </a>
         </div>
     </div>
 
-    <!-- Header Navigation -->
-    <header class="bg-waslaDark text-white sticky top-0 z-50 shadow-2xl border-b border-slate-800">
+    <!-- Header -->
+    <header class="glass-dark text-white sticky top-0 z-50 shadow-lg border-b border-slate-700/50">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="bg-waslaGreen text-white p-2.5 rounded-2xl font-black text-2xl flex items-center justify-center shadow-lg shadow-waslaGreen/30">
+                <div class="bg-wasla-green text-white p-2.5 rounded-2xl font-black text-2xl flex items-center justify-center shadow-lg shadow-wasla-green/30">
                     <i class="fa-solid fa-heart-pulse"></i>
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-xl font-black tracking-wide text-white">وَصْلَة <span class="text-waslaGreen text-xs font-bold bg-waslaGreen/20 px-2 py-0.5 rounded-md border border-waslaGreen/30">شبين القناطر</span></h1>
-                    </div>
-                    <p class="text-[11px] text-slate-400">شبكة الرعاية الصحية والتأمين الطبي الذكي</p>
+                    <h1 class="text-xl font-black tracking-wide text-white">وَصْلَة <span class="text-wasla-green text-[10px] font-bold bg-wasla-green/20 px-2 py-0.5 rounded-md border border-wasla-green/30">شبين القناطر</span></h1>
+                    <p class="text-[10px] text-slate-400 font-semibold">شبكة الرعاية الصحية الذكية</p>
                 </div>
             </div>
 
-            <!-- Navigation Tabs -->
-            <nav class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1">
-                <button onclick="navigateTab('patient')" id="nav-patient" class="bg-waslaGreen text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-md whitespace-nowrap">
-                    <i class="fa-solid fa-hospital-user"></i> بوابة المرضى والتأمين
+            <nav class="flex items-center gap-1.5 overflow-x-auto py-1 custom-scrollbar">
+                <button onclick="navigateTab('patient')" id="nav-patient" class="bg-wasla-green text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-md whitespace-nowrap">
+                    <i class="fa-solid fa-hospital-user"></i> بوابة المرضى
                 </button>
-                <button onclick="navigateTab('triage')" id="nav-triage" class="bg-slate-800 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
-                    <i class="fa-solid fa-headset text-waslaGreen"></i> غرفة الفرز والعملاء
+                <button onclick="navigateTab('triage')" id="nav-triage" class="bg-slate-800/50 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-headset text-wasla-green"></i> الفرز
                 </button>
-                <button onclick="navigateTab('financial')" id="nav-financial" class="bg-slate-800 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
-                    <i class="fa-solid fa-chart-pie text-waslaGold"></i> التسويات والماليات P&L
+                <button onclick="navigateTab('financial')" id="nav-financial" class="bg-slate-800/50 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-chart-pie text-wasla-gold"></i> الماليات
                 </button>
-                <button onclick="navigateTab('admin')" id="nav-admin" class="bg-slate-800 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
-                    <i class="fa-solid fa-gears text-waslaSky"></i> إدارة العيادات
+                <button onclick="navigateTab('admin')" id="nav-admin" class="bg-slate-800/50 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-gears text-wasla-sky"></i> الإدارة
                 </button>
             </nav>
         </div>
     </header>
 
-    <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
 
-        <!-- ================= 1. PATIENT PORTAL & INSURANCE ================= -->
-        <section id="tab-patient-view" class="space-y-6">
-            <!-- Hero Banner -->
-            <div class="bg-gradient-to-r from-waslaDark via-slate-900 to-waslaGreen text-white rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border border-slate-800">
-                <div class="relative z-10 max-w-2xl space-y-3">
-                    <span class="bg-waslaGreen text-white text-xs px-3.5 py-1 rounded-full font-extrabold inline-block shadow">تغطية طبية شاملة لجميع أهالي شبين القناطر والقرى (طحانوب، كفر حمزة، منية شبين)</span>
-                    <h2 class="text-2xl sm:text-4xl font-black leading-tight">طبيبك وتأمينك الطبي في شبين القناطر.. في خطوة واحدة دون سفر للقاهرة</h2>
-                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">منصة "وصلة" توفر لك معرفة نسبة تحملَك لكشف كبار الأطباء والاستشاريين، والخصم المعتمَد في كبرى معامل التحاليل والمستشفيات، مع استخراج الموافقات الطبية عبر واتساب فوراً.</p>
+        <!-- Patient Portal -->
+        <section id="tab-patient-view" class="space-y-6 animate-fade-in-up">
+            <!-- Hero -->
+            <div class="glass-dark rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden border border-slate-700">
+                <div class="absolute inset-0 bg-gradient-to-l from-wasla-green/20 to-transparent"></div>
+                <div class="relative z-10 max-w-2xl space-y-4">
+                    <span class="bg-wasla-green/20 text-wasla-green border border-wasla-green/30 text-xs px-3.5 py-1 rounded-full font-extrabold inline-block">تغطية طبية شاملة لشبين القناطر</span>
+                    <h2 class="text-2xl sm:text-4xl font-black leading-tight text-white">طبيبك وتأمينك في <span class="text-wasla-green">خطوة واحدة</span> دون سفر للقاهرة</h2>
+                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">اعرف نسبة تحملك، احجز مع كبار الأطباء، واستخرج موافقاتك عبر واتساب فوراً.</p>
                     <div class="flex flex-wrap gap-2 pt-2">
-                        <a href="https://wa.me/201068990089?text=السلام%20عليكم%20عايز%20أحجز%20كشف" target="_blank" class="bg-whatsappGreen text-white px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2 hover:opacity-90">
-                            <i class="fa-brands fa-whatsapp text-base"></i> تواصل فوري مع منسق وصلة (01068990089)
+                        <a href="https://wa.me/201068990089?text=السلام%20عليكم%20عايز%20أحجز%20كشف" target="_blank" class="bg-wasla-green text-white px-5 py-2.5 rounded-xl text-xs font-black shadow-lg hover:scale-105 transition flex items-center gap-2">
+                            <i class="fa-brands fa-whatsapp text-base"></i> تواصل فوري
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Instant Insurance Checker Widget -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80 space-y-4">
+            <!-- Insurance Checker -->
+            <div class="glass rounded-3xl p-6 shadow-sm border border-slate-200/60 space-y-4">
                 <div class="flex items-center justify-between">
-                    <h3 class="font-extrabold text-slate-800 text-sm sm:text-base flex items-center gap-2">
-                        <i class="fa-solid fa-shield-halved text-waslaGreen text-lg"></i> تعرف على نسبة تحملَك لدى أطباء ومعامل شبين القناطر
+                    <h3 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-wasla-green"></i> تعرف على نسبة تحملَك
                     </h3>
-                    <span class="text-xs text-waslaGreen font-bold bg-waslaLightGreen px-3 py-1 rounded-full">فحص التأمين الفوري</span>
+                    <span class="text-[10px] text-wasla-green font-bold bg-wasla-light px-3 py-1 rounded-full">فحص فوري</span>
                 </div>
-                
-                <!-- Insurance Company Selection Grid -->
-                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-                    <button onclick="selectInsCompany('GlobeMed')" class="p-3 border rounded-2xl text-center text-xs font-bold hover:border-waslaGreen transition bg-slate-50 flex flex-col items-center gap-1">
-                        <i class="fa-solid fa-square-check text-waslaGreen text-base"></i> جلوب ميد (GlobeMed)
-                    </button>
-                    <button onclick="selectInsCompany('MetLife')" class="p-3 border rounded-2xl text-center text-xs font-bold hover:border-waslaGreen transition bg-slate-50 flex flex-col items-center gap-1">
-                        <i class="fa-solid fa-shield text-blue-600 text-base"></i> ميتلايف أليكو (MetLife)
-                    </button>
-                    <button onclick="selectInsCompany('MedRight')" class="p-3 border rounded-2xl text-center text-xs font-bold hover:border-waslaGreen transition bg-slate-50 flex flex-col items-center gap-1">
-                        <i class="fa-solid fa-heart-pulse text-emerald-600 text-base"></i> ميد رايت (MedRight)
-                    </button>
-                    <button onclick="selectInsCompany('AXA')" class="p-3 border rounded-2xl text-center text-xs font-bold hover:border-waslaGreen transition bg-slate-50 flex flex-col items-center gap-1">
-                        <i class="fa-solid fa-plus text-red-600 text-base"></i> أكسا مصر (AXA)
-                    </button>
-                    <button onclick="selectInsCompany('Bupa')" class="p-3 border rounded-2xl text-center text-xs font-bold hover:border-waslaGreen transition bg-slate-50 flex flex-col items-center gap-1">
-                        <i class="fa-solid fa-star text-amber-600 text-base"></i> بوبا مصر (Bupa)
-                    </button>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    <button onclick="selectInsCompany('GlobeMed')" class="p-2.5 border rounded-xl text-[11px] font-bold hover:border-wasla-green transition bg-white/50 flex flex-col items-center gap-1 hover-lift"><i class="fa-solid fa-square-check text-wasla-green"></i> جلوب ميد</button>
+                    <button onclick="selectInsCompany('MetLife')" class="p-2.5 border rounded-xl text-[11px] font-bold hover:border-wasla-green transition bg-white/50 flex flex-col items-center gap-1 hover-lift"><i class="fa-solid fa-shield text-blue-600"></i> ميتلايف</button>
+                    <button onclick="selectInsCompany('MedRight')" class="p-2.5 border rounded-xl text-[11px] font-bold hover:border-wasla-green transition bg-white/50 flex flex-col items-center gap-1 hover-lift"><i class="fa-solid fa-heart-pulse text-emerald-600"></i> ميد رايت</button>
+                    <button onclick="selectInsCompany('AXA')" class="p-2.5 border rounded-xl text-[11px] font-bold hover:border-wasla-green transition bg-white/50 flex flex-col items-center gap-1 hover-lift"><i class="fa-solid fa-plus text-red-600"></i> أكسا</button>
+                    <button onclick="selectInsCompany('Bupa')" class="p-2.5 border rounded-xl text-[11px] font-bold hover:border-wasla-green transition bg-white/50 flex flex-col items-center gap-1 hover-lift"><i class="fa-solid fa-star text-amber-600"></i> بوبا</button>
                 </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">شركة التأمين المختارة:</label>
-                        <select id="ins-company-select" class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:border-waslaGreen bg-slate-50">
-                            <option value="GlobeMed">جلوب ميد (GlobeMed Egypt)</option>
-                            <option value="MetLife">ميتلايف أليكو (MetLife Alico)</option>
-                            <option value="MedRight">ميد رايت (MedRight Healthcare)</option>
-                            <option value="AXA">أكسا مصر (AXA Insurance)</option>
-                            <option value="Bupa">بوبا مصر (Bupa Egypt)</option>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">شركة التأمين:</label>
+                        <select id="ins-company-select" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-wasla-green/50 bg-white/70">
+                            <option value="GlobeMed">جلوب ميد (GlobeMed)</option>
+                            <option value="MetLife">ميتلايف أليكو (MetLife)</option>
+                            <option value="MedRight">ميد رايت (MedRight)</option>
+                            <option value="AXA">أكسا مصر (AXA)</option>
+                            <option value="Bupa">بوبا مصر (Bupa)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">رقم الكارنيه الطبي أو كود المشترك:</label>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">رقم الكارنيه:</label>
                         <div class="flex gap-2">
-                            <input type="text" id="ins-card-number" placeholder="مثال: WASLA-8849-2024" class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:border-waslaGreen bg-slate-50">
-                            <button onclick="verifyInsuranceCard()" class="bg-waslaGreen text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow hover:opacity-90 whitespace-nowrap">
-                                <i class="fa-solid fa-magnifying-glass ml-1"></i> تحقق فوري
-                            </button>
+                            <input type="text" id="ins-card-number" placeholder="WASLA-8849" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-wasla-green/50 bg-white/70">
+                            <button onclick="verifyInsuranceCard()" class="bg-wasla-green text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow hover:bg-emerald-700 transition whitespace-nowrap">تحقق</button>
                         </div>
                     </div>
                 </div>
-                <div id="insurance-result-box" class="hidden p-4 rounded-2xl text-xs font-bold border bg-emerald-50 text-emerald-900 border-emerald-200"></div>
+                <div id="insurance-result-box" class="hidden p-4 rounded-2xl text-xs font-bold border animate-fade-in-up"></div>
             </div>
 
-            <!-- Search and Filter Bar -->
-            <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200/80 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">ابحث باسم الطبيب أو المركز أو التخصص:</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3 text-slate-400 text-xs"></i>
-                        <input type="text" id="patient-search-query" oninput="renderPatientDoctors()" placeholder="مثال: باطنة، عظام، أسنان..." class="w-full pr-10 pl-3 py-2 border rounded-xl text-xs font-bold focus:outline-none focus:border-waslaGreen">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">قرى وقطاعات شبين القناطر:</label>
-                    <select id="patient-area-filter" onchange="renderPatientDoctors()" class="w-full px-3 py-2 border rounded-xl text-xs font-bold focus:outline-none focus:border-waslaGreen">
-                        <option value="">جميع قطاعات وقرى شبين القناطر</option>
-                        <option value="شارع بورسعيد">شارع بورسعيد - وسط المدينة</option>
-                        <option value="ميدان المحطة">ميدان المحطة والأطباء</option>
-                        <option value="طحانوب">قرية طحانوب</option>
-                        <option value="كفر حمزة">قرية كفر حمزة</option>
-                        <option value="منية شبين">قرية منية شبين</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">التخصص الطبي:</label>
-                    <select id="patient-spec-filter" onchange="renderPatientDoctors()" class="w-full px-3 py-2 border rounded-xl text-xs font-bold focus:outline-none focus:border-waslaGreen">
-                        <option value="">جميع التخصصات الطبية</option>
-                        <option value="باطنة وكبد وسكر">باطنة وكبد وسكر</option>
-                        <option value="جراحة العظام والمفاصل">جراحة العظام والمفاصل</option>
-                        <option value="أطفال وحديثي الولادة">أطفال وحديثي الولادة</option>
-                        <option value="معمل تحاليل">معمل تحاليل طبية</option>
-                    </select>
-                </div>
+            <!-- Search -->
+            <div class="glass rounded-3xl p-4 shadow-sm border border-slate-200/60 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input type="text" id="patient-search-query" oninput="renderPatientDoctors()" placeholder="ابحث باسم الطبيب أو التخصص..." class="w-full px-4 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-wasla-green/50 bg-white/70">
+                <select id="patient-area-filter" onchange="renderPatientDoctors()" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-wasla-green/50 bg-white/70">
+                    <option value="">جميع القطاعات</option>
+                    <option value="شارع بورسعيد">شارع بورسعيد</option>
+                    <option value="ميدان المحطة">ميدان المحطة</option>
+                    <option value="طحانوب">طحانوب</option>
+                    <option value="كفر حمزة">كفر حمزة</option>
+                    <option value="منية شبين">منية شبين</option>
+                </select>
+                <select id="patient-spec-filter" onchange="renderPatientDoctors()" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-wasla-green/50 bg-white/70">
+                    <option value="">جميع التخصصات</option>
+                    <option value="باطنة">باطنة</option>
+                    <option value="عظام">عظام</option>
+                    <option value="أطفال">أطفال</option>
+                </select>
             </div>
 
-            <!-- Doctors Grid -->
             <div id="patient-doctors-grid" class="space-y-4"></div>
         </section>
 
-        <!-- ================= 2. AI TRIAGE & OPERATIONS ================= -->
+        <!-- Triage (مختصر للتركيز على الوظائف الأساسية) -->
         <section id="tab-triage-view" class="hidden space-y-6">
-            <div class="bg-waslaDark text-white p-6 rounded-3xl shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-slate-800">
-                <div>
-                    <span class="bg-emerald-500/20 text-emerald-400 text-xs px-3 py-1 rounded-full font-bold border border-emerald-500/30 mb-2 inline-block"><i class="fa-solid fa-signal ml-1"></i> غرفة الفرز والوجهة الميدانية - مركز شبين القناطر</span>
-                    <h2 class="text-xl font-black">إدارة تدفقات الواتساب الطبية، التوجيه الذكي للعيادات ومعامل التمريض المنزلي</h2>
-                    <p class="text-xs text-slate-400">رقم الواتساب التشغيلي: 01068990089 | Google Sheets Live Sync: Active</p>
-                </div>
-                <a href="https://wa.me/201068990089" target="_blank" class="bg-whatsappGreen text-white px-4 py-2 rounded-2xl text-xs font-bold flex items-center gap-2 shadow">
-                    <i class="fa-brands fa-whatsapp"></i> صندوق الواتساب المباشر
-                </a>
-            </div>
-
-            <!-- Metrics -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                    <span class="text-slate-400 text-[11px] font-bold block mb-1">محادثات الواتساب اليوم</span>
-                    <h3 class="text-xl font-black text-slate-800">184 <span class="text-xs text-waslaGreen font-bold">28 صوتية جديدة</span></h3>
-                </div>
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                    <span class="text-slate-400 text-[11px] font-bold block mb-1">متوسط سرعة الرد والتوجيه</span>
-                    <h3 class="text-xl font-black text-waslaSky">1.4 <span class="text-xs text-slate-500">دقيقة</span></h3>
-                </div>
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                    <span class="text-slate-400 text-[11px] font-bold block mb-1">إسناد عيادات مؤكد</span>
-                    <h3 class="text-xl font-black text-waslaGreen">94 <span class="text-xs text-slate-500">شارع بورسعيد والمحطة</span></h3>
-                </div>
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                    <span class="text-slate-400 text-[11px] font-bold block mb-1">تمريض وزيارات منزلية جارية</span>
-                    <h3 class="text-xl font-black text-waslaGold">12 <span class="text-xs text-slate-500">كفر حمزة ومنية شبين</span></h3>
-                </div>
-            </div>
-
-            <!-- Voice Triage Simulator Box -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-4">
-                    <div class="flex justify-between items-center border-b pb-3">
-                        <h3 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-microphone-lines text-waslaGreen"></i> المساعد الذكي لتفريغ الرسائل الصوتية الطبية (AI Triage)
-                        </h3>
-                        <span class="bg-amber-100 text-amber-800 text-[10px] px-2.5 py-1 rounded-full font-bold">الحاج عاطف المليجي (طحانوب)</span>
-                    </div>
-
-                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-                        <div class="flex items-center justify-between text-xs font-bold text-slate-600">
-                            <span>مدة الفويس: 0:42 دقيقة | وارد عبر الواتساب</span>
-                            <span class="text-waslaGreen">دقة الفرز 98.4%</span>
-                        </div>
-                        <div class="bg-white p-3 rounded-xl border text-xs text-slate-800 space-y-1">
-                            <span class="font-black text-waslaGreen">التفريغ النصي التلقائي:</span>
-                            <p>"السلام عليكم يا جماعة وصلة.. أنا عاطف المليجي من طحانوب، السكر قسسته الصبح لقيته 260 وتعبان شوية وعندي دوخة خفيفة.. الدكتور محمد الشريف ببورسعيد شغال النهاردة؟ عاوز أحجز معاه أو كشف منزلي لو سمحتوا."</p>
-                        </div>
-                        <div class="flex flex-wrap gap-2 pt-1">
-                            <span class="bg-red-50 text-red-700 text-[10px] px-2.5 py-1 rounded-lg font-bold">سكر مرتفع: 260 mg/dl</span>
-                            <span class="bg-blue-50 text-blue-700 text-[10px] px-2.5 py-1 rounded-lg font-bold">العيادة المستهدفة: د. محمد الشريف (باطنة)</span>
-                        </div>
-                        <div class="pt-2 flex justify-end">
-                            <a href="https://wa.me/201068990089?text=أهلاً%20يا%20حاج%20عاطف،%20تم%20تأكيد%20حجزك%20بميعاد%20مع%20د.%20محمد%20الشريف%20اليوم%20الساعة%205%20مساءً." target="_blank" class="bg-whatsappGreen text-white px-4 py-2 rounded-xl text-xs font-black shadow flex items-center gap-2">
-                                <i class="fa-brands fa-whatsapp text-sm"></i> تأكيد الحجز وإرسال التذكرة بالباركود واتساب
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-4">
-                    <h3 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-triangle-exclamation text-waslaRed"></i> إطلاق تنبيه طارئ فوري لقرى شبين
-                    </h3>
-                    <div class="p-3 bg-red-50 rounded-2xl border border-red-200 space-y-3 text-xs">
-                        <p class="text-red-900 font-bold">تنبيه ذكي: رصد إشارات خطورة محتملة للحالة النشطة للحاج عاطف المليجي (نسبة السكر 260 mg/dl).</p>
-                        <button onclick="alert('🚨 تم إرسال إشعار الطوارئ لفريق التمريض المنزلي وسيارة الإسعاف بقرية طحانوب بنجاح!')" class="w-full bg-waslaRed text-white py-2.5 rounded-xl font-black shadow hover:opacity-90 transition">
-                            <i class="fa-solid fa-ambulance ml-1"></i> إرسال إشعار الطوارئ فوراً
-                        </button>
+            <div class="glass rounded-3xl p-6 shadow-sm border border-slate-200/60">
+                <h2 class="text-lg font-black text-slate-800 mb-2"><i class="fa-solid fa-microphone-lines text-wasla-green ml-2"></i>غرفة الفرز الذكية</h2>
+                <div class="p-4 bg-white/50 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                    <p class="font-bold text-slate-700">التفريغ النصي التلقائي (محاكاة):</p>
+                    <p class="text-slate-600">"أنا عاطف من طحانوب، السكر 260 وعايز دكتور باطنة..."</p>
+                    <div class="flex gap-2">
+                        <span class="bg-red-50 text-red-700 px-2 py-1 rounded-lg font-bold text-[10px]">سكر مرتفع</span>
+                        <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg font-bold text-[10px]">باطنة</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ================= 3. FINANCIAL LEDGER (P&L) ================= -->
+        <!-- Financial (مختصر) -->
         <section id="tab-financial-view" class="hidden space-y-6">
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <span class="bg-waslaLightGreen text-waslaGreen text-xs px-3.5 py-1 rounded-full font-black inline-block mb-1">سجل التسوِية والمالي P&L للأطباء والعيادات</span>
-                    <h2 class="text-xl font-black text-slate-800">سجل عمليات شبين القناطر الميداني 2025-2026</h2>
-                    <p class="text-xs text-slate-500 font-bold">ربط سحابي نشط: Google Sheets API & Webhook 24/7 | الرقم الرسمي: 01068990089[span_3](start_span)[span_3](end_span)</p>
-                </div>
-                <button onclick="alert('✅ تم مزامنة Google Sheets بنجاح فوراً!')" class="bg-waslaDark text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow flex items-center gap-2">
-                    <i class="fa-solid fa-rotate"></i> مزامنة فورية (Google Sheets)
-                </button>
-            </div>
-
-            <!-- Financial Metrics -->
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
-                    <span class="text-slate-400 text-xs font-bold block mb-1">إجمالي الإيرادات اليومية</span>
-                    <h3 class="text-2xl font-black text-slate-800">18,450 ج.م</h3>
-                </div>
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
-                    <span class="text-slate-400 text-xs font-bold block mb-1">صافي أرباح وصلة (15%)</span>
-                    <h3 class="text-2xl font-black text-waslaGreen">3,690 ج.م</h3>
-                </div>
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
-                    <span class="text-slate-400 text-xs font-bold block mb-1">مستحقات عيادات شبين</span>
-                    <h3 class="text-2xl font-black text-waslaGold">14,760 ج.م</h3>
-                </div>
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
-                    <span class="text-slate-400 text-xs font-bold block mb-1">نسبة التحصيل الرقمي</span>
-                    <h3 class="text-2xl font-black text-waslaSky">62% <span class="text-xs text-slate-500">InstaPay / كاش</span></h3>
-                </div>
-            </div>
-
-            <!-- Settlements Table -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80 space-y-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-extrabold text-slate-800 text-base">حسابات الأطباء ومستحقات العيادات (106 صف)</h3>
-                    <button onclick="executePayouts()" class="bg-waslaGreen text-white px-4 py-2 rounded-xl text-xs font-bold shadow">تحويل مجمع (InstaPay)</button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-right text-xs">
-                        <thead>
-                            <tr class="border-b bg-slate-50 text-slate-600 font-bold">
-                                <th class="p-3.5">الطبيب والمركز الطبي</th>
-                                <th class="p-3.5">التخصص والمقر بشبين</th>
-                                <th class="p-3.5">الكشوفات</th>
-                                <th class="p-3.5">إجمالي التحصيل</th>
-                                <th class="p-3.5">خصم المريض</th>
-                                <th class="p-3.5">صافي المستحق</th>
-                                <th class="p-3.5">وسيلة الدفع والحساب</th>
-                                <th class="p-3.5">حالة التسوية</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 font-bold">
-                            <tr class="hover:bg-slate-50">
-                                <td class="p-3.5 text-slate-800">د. محمد الشريف<br><span class="text-[10px] text-waslaGreen">استشاري الباطنة والسكر</span></td>
-                                <td class="p-3.5">شارع بورسعيد - شبين</td>
-                                <td class="p-3.5">32 حجز</td>
-                                <td class="p-3.5">6,400 ج.م</td>
-                                <td class="p-3.5 text-red-600">-960 ج.م (15%)</td>
-                                <td class="p-3.5 font-black text-slate-900">4,360 ج.م</td>
-                                <td class="p-3.5">InstaPay: sherif.clinic@instapay</td>
-                                <td class="p-3.5"><span class="bg-emerald-100 text-emerald-800 text-[10px] px-2.5 py-1 rounded-full">جاهز للصرف الأسبوعي</span></td>
-                            </tr>
-                            <tr class="hover:bg-slate-50">
-                                <td class="p-3.5 text-slate-800">د. أحمد فؤاد النجار<br><span class="text-[10px] text-waslaGreen">استشاري العظام</span></td>
-                                <td class="p-3.5">مجمع العظام - المحطة</td>
-                                <td class="p-3.5">24 حجز</td>
-                                <td class="p-3.5">7,200 ج.م</td>
-                                <td class="p-3.5 text-red-600">-1,440 ج.م (20%)</td>
-                                <td class="p-3.5 font-black text-slate-900">4,608 ج.م</td>
-                                <td class="p-3.5">محفظة فودافون كاش: 01019283746</td>
-                                <td class="p-3.5"><span class="bg-blue-100 text-blue-800 text-[10px] px-2.5 py-1 rounded-full">تم التحويل (إشعار واتساب)</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="glass rounded-3xl p-6 shadow-sm border border-slate-200/60">
+                <h2 class="text-lg font-black text-slate-800">التسويات المالية</h2>
+                <p class="text-xs text-slate-500 mt-1">إجمالي الإيرادات: 18,450 ج.م | صافي وصلة: 3,690 ج.م</p>
             </div>
         </section>
 
-        <!-- ================= 4. SYSTEM ADMIN ================= -->
+        <!-- Admin (مختصر) -->
         <section id="tab-admin-view" class="hidden space-y-6">
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80 flex justify-between items-center">
-                <div>
-                    <h2 class="text-lg font-black text-slate-800"><i class="fa-solid fa-sliders text-waslaGreen ml-2"></i>إدارة العيادات والأطباء بشبين القناطر</h2>
-                    <p class="text-xs text-slate-500 font-bold">إدارة الجداول، أسعار الكشوفات، وتفعيل الربط بالرقم 01068990089.</p>
-                </div>
-                <button onclick="openAddDoctorModal()" class="bg-waslaGreen text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow">تسجيل عيادة جديدة</button>
-            </div>
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80">
-                <table class="w-full text-right text-xs">
-                    <thead>
-                        <tr class="border-b bg-slate-50 text-slate-600 font-bold">
-                            <th class="p-3.5">الطبيب / المركز</th>
-                            <th class="p-3.5">التخصص والعنوان</th>
-                            <th class="p-3.5">الكشف الأصلي / وصلة</th>
-                            <th class="p-3.5">التحكم</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-doctors-table" class="divide-y divide-slate-100 font-bold"></tbody>
-                </table>
+            <div class="glass rounded-3xl p-6 shadow-sm border border-slate-200/60">
+                <h2 class="text-lg font-black text-slate-800 mb-4">إدارة العيادات (Supabase)</h2>
+                <div id="admin-doctors-table" class="space-y-2"></div>
+                <p class="text-[10px] text-slate-400 mt-4">البيانات محفوظة في Supabase Storage/DB.</p>
             </div>
         </section>
 
     </main>
 
-    <!-- Modal Booking -->
+    <!-- Booking Modal -->
     <div id="modal-booking" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <button onclick="closeModal('modal-booking')" class="absolute left-4 top-4 text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar animate-fade-in-up">
+            <button onclick="closeModal('modal-booking')" class="absolute left-4 top-4 text-slate-400 hover:text-slate-800"><i class="fa-solid fa-xmark text-xl"></i></button>
             <div id="modal-booking-body"></div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-waslaDark text-slate-400 py-6 border-t border-slate-800 text-xs">
-        <div class="max-w-7xl mx-auto px-4 text-center space-y-3">
-            <p class="font-bold text-slate-300">جميع الحقوق محفوظة © 2025-2026 لمنصة وصلة الرقمية - شبين القناطر</p>
-            <div class="flex justify-center items-center gap-2">
-                <a href="https://wa.me/201068990089" target="_blank" class="bg-whatsappGreen text-white px-4 py-2 rounded-xl font-black text-xs inline-flex items-center gap-2 shadow">
-                    <i class="fa-brands fa-whatsapp text-sm"></i> الدعم الفني والواتساب المباشر: 01068990089
-                </a>
-            </div>
-        </div>
+    <footer class="bg-wasla-dark text-slate-400 py-8 border-t border-slate-800 text-xs text-center">
+        <p class="font-bold text-slate-300">© 2026 منصة وصلة الرقمية - شبين القناطر</p>
+        <a href="https://wa.me/201068990089" target="_blank" class="bg-wasla-green text-white px-5 py-2 rounded-xl font-black inline-flex items-center gap-2 shadow mt-2 hover:bg-emerald-600 transition">
+            <i class="fa-brands fa-whatsapp"></i> 01068990089
+        </a>
     </footer>
 
-    <!-- JavaScript Execution Engine -->
     <script>
+        // ==================== Supabase Config ====================
+        // 1. اعمل حساب مجاني على supabase.com
+        // 2. أنشئ مشروع جديد
+        // 3. روح لـ Project Settings -> API
+        // 4. انسخ URL و anon key وحطهم هنا:
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
+
+        let supabase = null;
+        if (SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY_HERE') {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+
+        // ==================== Data Layer ====================
         const initialDoctors = [
-            {
-                id: 1,
-                name: "د. محمد الشريف",
-                specialty: "باطنة وكبد وسكر",
-                address: "شارع بورسعيد - أعلى صيدلية النور - شبين القناطر",
-                price: 200,
-                waslaPrice: 170,
-                insuranceCo: "جلوب ميد (GlobeMed)",
-                discount: "15% المريض يدفع 30 ج.م",
-                code: "WASLA-GLB-7741",
-                slots: ['5:00 مساءً', '5:30 مساءً', '6:00 مساءً']
-            },
-            {
-                id: 2,
-                name: "د. أحمد فؤاد النجار",
-                specialty: "جراحة العظام والمفاصل",
-                address: "ميدان المحطة - برج الأطباء - شبين القناطر",
-                price: 250,
-                waslaPrice: 210,
-                insuranceCo: "ميتلايف أليكو (MetLife)",
-                discount: "20% المريض يدفع 50 ج.م",
-                code: "WASLA-MTL-8819",
-                slots: ['4:00 عصراً', '5:00 مساءً']
-            },
-            {
-                id: 3,
-                name: "د. سارة عبد الرحمن",
-                specialty: "أطفال وحديثي الولادة",
-                address: "شارع المستشفى - شبين القناطر",
-                price: 200,
-                waslaPrice: 180,
-                insuranceCo: "ميد رايت (MedRight)",
-                discount: "10% المريض يدفع 20 ج.م",
-                code: "WASLA-MDR-9821",
-                slots: ['3:00 عصراً', '6:00 مساءً']
-            }
+            { id: 1, name: "د. محمد الشريف", specialty: "باطنة وكبد وسكر", address: "شارع بورسعيد - أعلى صيدلية النور", price: 200, waslaPrice: 170, insuranceCo: "GlobeMed", discount: "15% (تدفع 30 ج.م)", slots: ['5:00 م', '5:30 م', '6:00 م'] },
+            { id: 2, name: "د. أحمد فؤاد النجار", specialty: "جراحة العظام", address: "ميدان المحطة - برج الأطباء", price: 250, waslaPrice: 210, insuranceCo: "MetLife", discount: "20% (تدفع 50 ج.م)", slots: ['4:00 م', '5:00 م'] },
+            { id: 3, name: "د. سارة عبد الرحمن", specialty: "أطفال", address: "شارع المستشفى", price: 200, waslaPrice: 180, insuranceCo: "MedRight", discount: "10% (تدفع 20 ج.م)", slots: ['3:00 م', '6:00 م'] }
         ];
 
-        let doctorsState = JSON.parse(localStorage.getItem('wasla_pro_docs')) || initialDoctors;
+        let doctorsState = [...initialDoctors];
 
+        async function loadDoctorsFromDB() {
+            if (!supabase) { console.warn('Supabase not configured, using local data.'); return; }
+            const { data, error } = await supabase.from('doctors').select('*');
+            if (error) { console.error('Error loading doctors:', error); return; }
+            if (data && data.length > 0) doctorsState = data;
+            else {
+                // Seed initial data if table is empty
+                await supabase.from('doctors').insert(initialDoctors);
+            }
+        }
+
+        async function saveBookingToDB(booking) {
+            if (!supabase) { console.warn('Supabase not configured, booking not saved.'); return; }
+            const { error } = await supabase.from('bookings').insert([booking]);
+            if (error) console.error('Error saving booking:', error);
+        }
+
+        // ==================== UI Logic ====================
         function navigateTab(tabName) {
             ['patient', 'triage', 'financial', 'admin'].forEach(t => {
                 document.getElementById(`tab-${t}-view`).classList.add('hidden');
-                document.getElementById(`nav-${t}`).className = "bg-slate-800 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap";
+                const nav = document.getElementById(`nav-${t}`);
+                nav.className = "bg-slate-800/50 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap";
             });
             document.getElementById(`tab-${tabName}-view`).classList.remove('hidden');
-            document.getElementById(`nav-${tabName}`).className = "bg-waslaGreen text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-md whitespace-nowrap";
+            const activeNav = document.getElementById(`nav-${tabName}`);
+            activeNav.className = "bg-wasla-green text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-md whitespace-nowrap";
 
-            if(tabName === 'patient') renderPatientDoctors();
-            if(tabName === 'admin') renderAdminTable();
+            if (tabName === 'patient') renderPatientDoctors();
+            if (tabName === 'admin') renderAdminTable();
         }
 
         function selectInsCompany(coName) {
@@ -451,10 +280,11 @@
         }
 
         function verifyInsuranceCard() {
-            const num = document.getElementById('ins-card-number').value.trim() || 'WASLA-8849-2024';
+            const num = document.getElementById('ins-card-number').value.trim() || 'WASLA-DEMO';
             const box = document.getElementById('insurance-result-box');
             box.classList.remove('hidden');
-            box.innerHTML = `<i class="fa-solid fa-circle-check ml-1"></i> الكارنيه ساري بنجاح! نسبة التحمل المعتمدة لشبكة أطباء شبين القناطر هي <strong>15% خصم فوري</strong>. للتواصل السريع مع منسق وصلة: <a href="https://wa.me/201068990089?text=استعلام%20تأمين%20رقم%20${num}" target="_blank" class="underline font-black">راسلنا على الواتساب 01068990089</a>`;
+            box.className = "p-4 rounded-2xl text-xs font-bold border animate-fade-in-up bg-emerald-50 text-emerald-900 border-emerald-200";
+            box.innerHTML = `<i class="fa-solid fa-circle-check ml-1"></i> الكارنيه ساري! نسبة التحمل المعتمدة هي <strong>15% خصم فوري</strong>. <a href="https://wa.me/201068990089?text=استعلام%20تأمين%20رقم%20${num}" target="_blank" class="underline font-black">راسلنا لتأكيد الحجز</a>`;
         }
 
         function renderPatientDoctors() {
@@ -471,25 +301,30 @@
                 return matchQ && matchArea && matchSpec;
             });
 
+            if (filtered.length === 0) {
+                grid.innerHTML = `<p class="text-center text-slate-400 text-sm py-8">لا توجد نتائج مطابقة.</p>`;
+                return;
+            }
+
             filtered.forEach(doc => {
                 grid.innerHTML += `
-                    <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:shadow-md transition">
+                    <div class="glass rounded-3xl p-5 shadow-sm border border-slate-200/60 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover-lift animate-fade-in-up">
                         <div class="space-y-1">
-                            <span class="bg-waslaLightGreen text-waslaGreen text-[11px] px-3 py-1 rounded-full font-black inline-block">${doc.specialty}</span>
+                            <span class="bg-wasla-light text-wasla-green text-[10px] px-3 py-1 rounded-full font-black inline-block">${doc.specialty}</span>
                             <h3 class="font-black text-slate-800 text-lg">${doc.name}</h3>
-                            <p class="text-xs text-slate-500 font-bold"><i class="fa-solid fa-location-dot text-waslaGreen ml-1"></i>${doc.address}</p>
-                            <div class="flex items-center gap-2 pt-1 text-[11px] text-slate-600 font-bold">
-                                <span class="bg-slate-100 px-2 py-0.5 rounded text-waslaSky">تأمين: ${doc.insuranceCo}</span>
-                                <span class="text-emerald-700 font-black">${doc.discount}</span>
+                            <p class="text-xs text-slate-500 font-bold"><i class="fa-solid fa-location-dot text-wasla-green ml-1"></i>${doc.address}</p>
+                            <div class="flex items-center gap-2 pt-1 text-[10px] text-slate-600 font-bold">
+                                <span class="bg-slate-100 px-2 py-0.5 rounded text-wasla-sky">${doc.insuranceCo}</span>
+                                <span class="text-emerald-700">${doc.discount}</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0">
                             <div class="text-left">
-                                <span class="text-xs text-slate-400 line-through font-bold">${doc.price} ج.م</span>
-                                <div class="text-waslaGreen font-black text-xl">${doc.waslaPrice} ج.م</div>
+                                <span class="text-[10px] text-slate-400 line-through font-bold">${doc.price} ج.م</span>
+                                <div class="text-wasla-green font-black text-xl">${doc.waslaPrice} ج.م</div>
                             </div>
-                            <button onclick="openBookingModal(${doc.id})" class="bg-waslaGreen text-white px-5 py-2.5 rounded-2xl text-xs font-black shadow hover:opacity-90 transition">
-                                <i class="fa-solid fa-calendar-check ml-1"></i> حجز موعد
+                            <button onclick="openBookingModal(${doc.id})" class="bg-wasla-green text-white px-5 py-2.5 rounded-2xl text-xs font-black shadow hover:scale-105 transition">
+                                <i class="fa-solid fa-calendar-check ml-1"></i> حجز
                             </button>
                         </div>
                     </div>
@@ -500,34 +335,38 @@
         function openBookingModal(id) {
             const doc = doctorsState.find(d => d.id === id);
             const body = document.getElementById('modal-booking-body');
-            let slotsHtml = doc.slots.map(s => `<label class="flex items-center justify-between p-2.5 border rounded-xl cursor-pointer bg-slate-50 font-bold text-xs"><div class="flex items-center gap-2"><input type="radio" name="slot" value="${s}"><span>${s}</span></div><span class="text-waslaGreen">متاح</span></label>`).join('');
+            let slotsHtml = doc.slots.map(s => `<label class="flex items-center justify-between p-2.5 border rounded-xl cursor-pointer bg-slate-50 font-bold text-xs hover:border-wasla-green"><div class="flex items-center gap-2"><input type="radio" name="slot" value="${s}"><span>${s}</span></div><span class="text-wasla-green">متاح</span></label>`).join('');
 
             body.innerHTML = `
-                <h3 class="font-black text-slate-800 text-base mb-1">حجز موعد لدى ${doc.name}</h3>
-                <p class="text-xs text-slate-500 font-bold mb-3">${doc.address} - الكشف بـ <strong class="text-waslaGreen">${doc.waslaPrice} ج.م</strong></p>
-                <form onsubmit="confirmWhatsAppBooking(event, '${doc.name}', ${doc.waslaPrice})" class="space-y-3 text-xs">
+                <h3 class="font-black text-slate-800 text-base mb-1">حجز لدى ${doc.name}</h3>
+                <p class="text-xs text-slate-500 font-bold mb-3">${doc.address} - <strong class="text-wasla-green">${doc.waslaPrice} ج.م</strong></p>
+                <form onsubmit="confirmBooking(event, '${doc.name}', ${doc.waslaPrice})" class="space-y-3 text-xs">
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">اختر الموعد المتاح:</label>
+                        <label class="block font-bold text-slate-700 mb-1">الموعد:</label>
                         <div class="space-y-2">${slotsHtml}</div>
                     </div>
-                    <div><input type="text" id="patient-name" required placeholder="اسم المريض الثلاثي" class="w-full px-3.5 py-2.5 border rounded-xl font-bold"></div>
-                    <div><input type="text" id="patient-phone" required placeholder="رقم الواتساب (مثال: 01068990089)" class="w-full px-3.5 py-2.5 border rounded-xl font-bold"></div>
-                    <button type="submit" class="w-full bg-whatsappGreen text-white py-3 rounded-2xl font-black text-sm shadow flex items-center justify-center gap-2">
-                        <i class="fa-brands fa-whatsapp text-lg"></i> تأكيد الحجز وإرسال تذكرة الباركود واتساب (01068990089)
+                    <input type="text" id="patient-name" required placeholder="اسم المريض" class="w-full px-3.5 py-2.5 border rounded-xl font-bold focus:ring-2 focus:ring-wasla-green/50 outline-none">
+                    <input type="text" id="patient-phone" required placeholder="رقم الواتساب" class="w-full px-3.5 py-2.5 border rounded-xl font-bold focus:ring-2 focus:ring-wasla-green/50 outline-none">
+                    <button type="submit" class="w-full bg-whatsapp text-white py-3 rounded-2xl font-black text-sm shadow flex items-center justify-center gap-2 hover:bg-emerald-600 transition" style="background-color:#25D366;">
+                        <i class="fa-brands fa-whatsapp text-lg"></i> تأكيد وإرسال واتساب
                     </button>
                 </form>
             `;
             document.getElementById('modal-booking').classList.remove('hidden');
         }
 
-        function confirmWhatsAppBooking(e, docName, price) {
+        async function confirmBooking(e, docName, price) {
             e.preventDefault();
             const name = document.getElementById('patient-name').value;
             const phone = document.getElementById('patient-phone').value;
+            const slot = document.querySelector('input[name="slot"]:checked')?.value || 'غير محدد';
             const ticketId = 'WASLA-' + Math.floor(1000 + Math.random() * 9000);
-            
+
+            // حفظ في Supabase
+            await saveBookingToDB({ ticket_id: ticketId, doctor_name: docName, patient_name: name, patient_phone: phone, slot, price, created_at: new Date().toISOString() });
+
             closeModal('modal-booking');
-            const msg = encodeURIComponent(`📌 *تذكرة حجز مؤكدة - منصة وصلة*\n\n🎫 رقم التذكرة: ${ticketId}\n👨‍⚕️ الطبيب: ${docName}\n👤 المريض: ${name}\n📱 هاتف الواتساب: ${phone}\n💰 الكشف المحسوب: ${price} ج.م\n\n_برجاء الحضور قبل الموعد بـ 10 دقائق._`);
+            const msg = encodeURIComponent(`📌 *تذكرة حجز - وصلة*\n\n🎫 ${ticketId}\n👨‍⚕️ ${docName}\n👤 ${name}\n🕐 ${slot}\n💰 ${price} ج.م`);
             window.open(`https://wa.me/201068990089?text=${msg}`, '_blank');
         }
 
@@ -536,26 +375,27 @@
             tbody.innerHTML = '';
             doctorsState.forEach(d => {
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50">
-                        <td class="p-3.5">${d.name}</td>
-                        <td class="p-3.5">${d.specialty} - ${d.address}</td>
-                        <td class="p-3.5">${d.waslaPrice} ج.م <span class="text-slate-400 line-through">${d.price} ج.م</span></td>
-                        <td class="p-3.5"><button onclick="deleteDoc(${d.id})" class="text-red-500 font-bold"><i class="fa-solid fa-trash"></i> حذف</button></td>
-                    </tr>
+                    <div class="flex justify-between items-center p-3 bg-white/50 rounded-xl border text-xs font-bold">
+                        <span>${d.name} - ${d.specialty} (${d.waslaPrice} ج.م)</span>
+                        <button onclick="deleteDoc(${d.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    </div>
                 `;
             });
         }
 
-        function deleteDoc(id) {
+        async function deleteDoc(id) {
             doctorsState = doctorsState.filter(d => d.id !== id);
-            localStorage.setItem('wasla_pro_docs', JSON.stringify(doctorsState));
+            if (supabase) await supabase.from('doctors').delete().eq('id', id);
             renderAdminTable();
         }
 
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function executePayouts() { alert('✅ تم تحويل مستحقات الأطباء بنجاح عبر InstaPay للمركز الرئيسي!'); }
 
-        window.onload = () => renderPatientDoctors();
+        // Initialize
+        window.onload = async () => {
+            await loadDoctorsFromDB();
+            renderPatientDoctors();
+        };
     </script>
 </body>
 </html>
