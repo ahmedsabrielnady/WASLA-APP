@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>وصلة | شبكة الرعاية الطبية الذكية - شبين القناطر</title>
+    <title>وصلة | منصة الرعاية الصحية الذكية</title>
+    <meta name="description" content="منصة وصلة: احجز مع أفضل الأطباء، تحقق من تأمينك، وأدر مواعيدك بسهولة.">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -11,391 +12,1410 @@
             theme: {
                 extend: {
                     colors: {
-                        wasla: {
-                            green: '#0A8754',
-                            light: '#E6F4ED',
-                            dark: '#0B1120',
-                            sky: '#0284C7',
-                            gold: '#D97706',
-                            red: '#E11D48',
+                        brand: {
+                            primary: '#0A8754',
+                            'primary-dark': '#076B42',
+                            'primary-light': '#E6F4ED',
+                            secondary: '#0B1120',
+                            accent: '#D97706',
+                            danger: '#E11D48',
+                            info: '#0284C7',
                         }
                     },
                     fontFamily: { sans: ['Cairo', 'sans-serif'] },
                     animation: {
-                        'fade-in-up': 'fadeInUp 0.5s ease-out',
-                        'pulse-slow': 'pulse 3s infinite',
+                        'fade-in-up': 'fadeInUp 0.4s ease-out',
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'slide-in-right': 'slideInRight 0.3s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     },
                     keyframes: {
                         fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '0%': { opacity: '0', transform: 'translateY(12px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideInRight: {
+                            '0%': { opacity: '0', transform: 'translateX(20px)' },
+                            '100%': { opacity: '1', transform: 'translateX(0)' },
                         }
                     }
                 }
             }
         }
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #F8FAFC; }
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
-        .glass-dark { background: rgba(11, 17, 32, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        :root { --brand-primary: #0A8754; --brand-secondary: #0B1120; }
+        body { font-family: 'Cairo', sans-serif; background-color: #F8FAFC; scroll-behavior: smooth; }
+        .glass {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .glass-dark {
+            background: rgba(11, 17, 32, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #0A8754; border-radius: 4px; }
         .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        .hover-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.12); }
+        .focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(10, 135, 84, 0.25); }
+        .sidebar-link.active { background-color: #0A8754; color: white; }
+        .sidebar-link { transition: all 0.15s ease; }
+        .sidebar-link:hover:not(.active) { background-color: #E6F4ED; color: #0A8754; }
+        .status-badge { font-size: 10px; padding: 2px 8px; border-radius: 9999px; font-weight: 700; }
+        .status-confirmed { background: #D1FAE5; color: #065F46; }
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-cancelled { background: #FEE2E2; color: #991B1B; }
+        .status-completed { background: #DBEAFE; color: #1E40AF; }
+        .status-noshow { background: #F3F4F6; color: #374151; }
+        .tab-btn.active { background-color: #0A8754; color: white; }
+        .tab-btn { transition: all 0.2s ease; }
+        .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .modal-overlay { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+        @media print { .no-print { display: none !important; } }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col selection:bg-wasla-green selection:text-white">
+<body class="text-slate-800 antialiased min-h-screen flex flex-col selection:bg-brand-primary selection:text-white">
 
-    <!-- Top Bar -->
-    <div class="bg-wasla-dark text-slate-300 text-[11px] py-2 px-4 text-center font-bold tracking-wide flex justify-between items-center border-b border-slate-700">
-        <div class="max-w-7xl mx-auto w-full flex justify-between items-center">
-            <span><i class="fa-solid fa-location-dot text-wasla-green ml-1"></i> المنظومة الطبية الأولى الموحدة لشبين القناطر والقرى</span>
-            <a href="https://wa.me/201068990089" target="_blank" class="bg-wasla-green text-white px-3 py-1 rounded-full font-black flex items-center gap-1 shadow hover:bg-emerald-600 transition">
-                <i class="fa-brands fa-whatsapp"></i> 01068990089
-            </a>
+    <!-- ============================================================= -->
+    <!-- 1. TOP BAR & HEADER (PUBLIC) -->
+    <!-- ============================================================= -->
+    <div id="public-header" class="no-print">
+        <!-- Top Info Bar -->
+        <div class="bg-brand-secondary text-slate-300 text-[11px] py-2 px-4 font-bold tracking-wide border-b border-slate-700/50">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+                <span><i class="fa-solid fa-shield-halved text-brand-primary ml-1"></i> منصة طبية معتمدة | دعم فني على مدار الساعة</span>
+                <div class="flex items-center gap-3">
+                    <a href="tel:01000000000" class="hover:text-white transition"><i class="fa-solid fa-phone ml-1"></i> 0100 000 0000</a>
+                    <span class="text-slate-600">|</span>
+                    <a href="https://wa.me/201000000000" target="_blank" class="text-emerald-400 hover:text-emerald-300 transition"><i class="fa-brands fa-whatsapp ml-1"></i> واتساب</a>
+                </div>
+            </div>
         </div>
+
+        <!-- Main Header -->
+        <header class="glass-dark text-white sticky top-0 z-50 shadow-lg border-b border-slate-700/30">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="navigateTo('landing')">
+                    <div class="bg-brand-primary text-white p-2.5 rounded-2xl font-black text-2xl flex items-center justify-center shadow-lg shadow-brand-primary/30">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-black tracking-wide text-white">وَصْلَة <span class="text-brand-primary text-[9px] font-bold bg-brand-primary/20 px-2 py-0.5 rounded-md border border-brand-primary/30 align-middle">SMART HEALTH</span></h1>
+                        <p class="text-[10px] text-slate-400 font-semibold">شبكة الرعاية الصحية الذكية</p>
+                    </div>
+                </div>
+
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex items-center gap-1.5">
+                    <button onclick="navigateTo('landing')" class="nav-link px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition">الرئيسية</button>
+                    <button onclick="navigateTo('patient-portal')" class="nav-link px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition">احجز موعد</button>
+                    <button onclick="navigateTo('insurance-checker')" class="nav-link px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition">التأمين</button>
+                    <button onclick="navigateTo('about')" class="nav-link px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition">عن المنصة</button>
+                    <button onclick="navigateTo('contact')" class="nav-link px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition">اتصل بنا</button>
+                </nav>
+
+                <!-- Auth Actions -->
+                <div class="flex items-center gap-2">
+                    <button onclick="navigateTo('login')" class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white px-3 py-2 rounded-xl transition">
+                        <i class="fa-regular fa-user"></i> دخول
+                    </button>
+                    <button onclick="navigateTo('register')" class="bg-brand-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow hover:bg-brand-primary-dark transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-plus"></i> حساب جديد
+                    </button>
+                    <!-- Mobile Menu Toggle -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden text-white p-2">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden bg-brand-secondary border-t border-slate-700 p-4 space-y-2">
+                <button onclick="navigateTo('landing'); toggleMobileMenu()" class="block w-full text-right px-4 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-700">الرئيسية</button>
+                <button onclick="navigateTo('patient-portal'); toggleMobileMenu()" class="block w-full text-right px-4 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-700">احجز موعد</button>
+                <button onclick="navigateTo('insurance-checker'); toggleMobileMenu()" class="block w-full text-right px-4 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-700">التأمين</button>
+                <button onclick="navigateTo('login'); toggleMobileMenu()" class="block w-full text-right px-4 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-700">دخول</button>
+            </div>
+        </header>
     </div>
 
-    <!-- Header -->
-    <header class="glass-dark text-white sticky top-0 z-50 shadow-lg border-b border-slate-700/50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-wasla-green text-white p-2.5 rounded-2xl font-black text-2xl flex items-center justify-center shadow-lg shadow-wasla-green/30">
-                    <i class="fa-solid fa-heart-pulse"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl font-black tracking-wide text-white">وَصْلَة <span class="text-wasla-green text-[10px] font-bold bg-wasla-green/20 px-2 py-0.5 rounded-md border border-wasla-green/30">شبين القناطر</span></h1>
-                    <p class="text-[10px] text-slate-400 font-semibold">شبكة الرعاية الصحية الذكية</p>
-                </div>
-            </div>
+    <!-- ============================================================= -->
+    <!-- 2. MAIN CONTENT AREA (SPA VIEWS) -->
+    <!-- ============================================================= -->
+    <main id="app-main" class="flex-grow w-full">
 
-            <nav class="flex items-center gap-1.5 overflow-x-auto py-1 custom-scrollbar">
-                <button onclick="navigateTab('patient')" id="nav-patient" class="bg-wasla-green text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-md whitespace-nowrap">
-                    <i class="fa-solid fa-hospital-user"></i> بوابة المرضى
-                </button>
-                <button onclick="navigateTab('triage')" id="nav-triage" class="bg-slate-800/50 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
-                    <i class="fa-solid fa-headset text-wasla-green"></i> الفرز
-                </button>
-                <button onclick="navigateTab('financial')" id="nav-financial" class="bg-slate-800/50 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
-                    <i class="fa-solid fa-chart-pie text-wasla-gold"></i> الماليات
-                </button>
-                <button onclick="navigateTab('admin')" id="nav-admin" class="bg-slate-800/50 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
-                    <i class="fa-solid fa-gears text-wasla-sky"></i> الإدارة
-                </button>
-            </nav>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
-
-        <!-- Patient Portal -->
-        <section id="tab-patient-view" class="space-y-6 animate-fade-in-up">
+        <!-- ================= 2.1 LANDING VIEW ================= -->
+        <section id="view-landing" class="view-section">
             <!-- Hero -->
-            <div class="glass-dark rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden border border-slate-700">
-                <div class="absolute inset-0 bg-gradient-to-l from-wasla-green/20 to-transparent"></div>
-                <div class="relative z-10 max-w-2xl space-y-4">
-                    <span class="bg-wasla-green/20 text-wasla-green border border-wasla-green/30 text-xs px-3.5 py-1 rounded-full font-extrabold inline-block">تغطية طبية شاملة لشبين القناطر</span>
-                    <h2 class="text-2xl sm:text-4xl font-black leading-tight text-white">طبيبك وتأمينك في <span class="text-wasla-green">خطوة واحدة</span> دون سفر للقاهرة</h2>
-                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">اعرف نسبة تحملك، احجز مع كبار الأطباء، واستخرج موافقاتك عبر واتساب فوراً.</p>
-                    <div class="flex flex-wrap gap-2 pt-2">
-                        <a href="https://wa.me/201068990089?text=السلام%20عليكم%20عايز%20أحجز%20كشف" target="_blank" class="bg-wasla-green text-white px-5 py-2.5 rounded-xl text-xs font-black shadow-lg hover:scale-105 transition flex items-center gap-2">
-                            <i class="fa-brands fa-whatsapp text-base"></i> تواصل فوري
-                        </a>
-                    </div>
+            <div class="relative bg-brand-secondary overflow-hidden">
+                <div class="absolute inset-0 opacity-20">
+                    <div class="absolute top-0 right-0 w-96 h-96 bg-brand-primary rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                    <div class="absolute bottom-0 left-0 w-96 h-96 bg-brand-info rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
                 </div>
-            </div>
-
-            <!-- Insurance Checker -->
-            <div class="glass rounded-3xl p-6 shadow-sm border border-slate-200/60 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-shield-halved text-wasla-green"></i> تعرف على نسبة تحملَك
-                    </h3>
-                    <span class="text-[10px] text-wasla-green font-bold bg-wasla-light px-3 py-1 rounded-full">فحص فوري</span>
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                    <button onclick="selectInsCompany('GlobeMed')" class="p-2.5 border rounded-xl text-[11px] font-bold hover:border-wasla-green transition bg-white/50 flex flex-col items-center gap-1 hover-lift"><i class="fa-solid fa-square-check text-wasla-green"></i> جلوب ميد</button>
-                    <button onclick="selectInsCompany('MetLife')" class="p-2.5 border rounded-xl text-[11px] font-bold hover:border-wasla-green transition bg-white/50 flex flex-col items-center gap-1 hover-lift"><i class="fa-solid fa-shield text-blue-600"></i> ميتلايف</button>
-                    <button onclick="selectInsCompany('MedRight')" class="p-2.5 border rounded-xl text-[11px] font-bold hover:border-wasla-green transition bg-white/50 flex flex-col items-center gap-1 hover-lift"><i class="fa-solid fa-heart-pulse text-emerald-600"></i> ميد رايت</button>
-                    <button onclick="selectInsCompany('AXA')" class="p-2.5 border rounded-xl text-[11px] font-bold hover:border-wasla-green transition bg-white/50 flex flex-col items-center gap-1 hover-lift"><i class="fa-solid fa-plus text-red-600"></i> أكسا</button>
-                    <button onclick="selectInsCompany('Bupa')" class="p-2.5 border rounded-xl text-[11px] font-bold hover:border-wasla-green transition bg-white/50 flex flex-col items-center gap-1 hover-lift"><i class="fa-solid fa-star text-amber-600"></i> بوبا</button>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">شركة التأمين:</label>
-                        <select id="ins-company-select" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-wasla-green/50 bg-white/70">
-                            <option value="GlobeMed">جلوب ميد (GlobeMed)</option>
-                            <option value="MetLife">ميتلايف أليكو (MetLife)</option>
-                            <option value="MedRight">ميد رايت (MedRight)</option>
-                            <option value="AXA">أكسا مصر (AXA)</option>
-                            <option value="Bupa">بوبا مصر (Bupa)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">رقم الكارنيه:</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="ins-card-number" placeholder="WASLA-8849" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-wasla-green/50 bg-white/70">
-                            <button onclick="verifyInsuranceCard()" class="bg-wasla-green text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow hover:bg-emerald-700 transition whitespace-nowrap">تحقق</button>
+                <div class="relative max-w-7xl mx-auto px-4 py-16 sm:py-24">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <div class="space-y-6 animate-fade-in-up">
+                            <span class="bg-brand-primary/20 text-brand-primary border border-brand-primary/30 text-xs px-4 py-1.5 rounded-full font-extrabold inline-block">
+                                <i class="fa-solid fa-star text-brand-accent ml-1"></i> المنصة الأولى للرعاية الصحية المتكاملة
+                            </span>
+                            <h2 class="text-3xl sm:text-5xl font-black leading-tight text-white">
+                                صحتك بين يديك،
+                                <br>
+                                <span class="text-brand-primary">في أي وقت ومكان.</span>
+                            </h2>
+                            <p class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-lg">
+                                احجز مع نخبة من الأطباء، تحقق من تغطية تأمينك في ثوانٍ، وأدر مواعيدك بذكاء. منصة "وصلة" تجمع لك الرعاية الصحية والشفافية المالية في مكان واحد.
+                            </p>
+                            <div class="flex flex-wrap gap-3 pt-2">
+                                <button onclick="navigateTo('patient-portal')" class="bg-brand-primary text-white px-6 py-3 rounded-2xl text-sm font-black shadow-lg shadow-brand-primary/30 hover:scale-105 transition flex items-center gap-2">
+                                    <i class="fa-solid fa-calendar-check"></i> احجز موعدك الآن
+                                </button>
+                                <button onclick="navigateTo('insurance-checker')" class="bg-white/10 text-white border border-white/20 px-6 py-3 rounded-2xl text-sm font-black hover:bg-white/20 transition flex items-center gap-2">
+                                    <i class="fa-solid fa-shield-halved"></i> تحقق من تأمينك
+                                </button>
+                            </div>
+                            <!-- Trust Indicators -->
+                            <div class="flex items-center gap-6 pt-4 text-xs text-slate-400 font-bold">
+                                <span><i class="fa-solid fa-check-circle text-brand-primary ml-1"></i> +50 طبيب</span>
+                                <span><i class="fa-solid fa-check-circle text-brand-primary ml-1"></i> +10 شركات تأمين</span>
+                                <span><i class="fa-solid fa-check-circle text-brand-primary ml-1"></i> حجز فوري</span>
+                            </div>
+                        </div>
+                        <!-- Hero Illustration / Stats -->
+                        <div class="hidden lg:block animate-fade-in">
+                            <div class="glass-dark rounded-3xl p-6 border border-slate-700/50 space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-slate-400 font-bold">إحصائيات مباشرة</span>
+                                    <span class="flex items-center gap-1 text-[10px] text-emerald-400 font-bold"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-slow"></span> متصل الآن</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-white/5 p-4 rounded-2xl border border-slate-700">
+                                        <span class="text-[10px] text-slate-400 font-bold block">مواعيد متاحة اليوم</span>
+                                        <span class="text-2xl font-black text-white">124</span>
+                                    </div>
+                                    <div class="bg-white/5 p-4 rounded-2xl border border-slate-700">
+                                        <span class="text-[10px] text-slate-400 font-bold block">طبيب متاح</span>
+                                        <span class="text-2xl font-black text-brand-primary">38</span>
+                                    </div>
+                                    <div class="bg-white/5 p-4 rounded-2xl border border-slate-700">
+                                        <span class="text-[10px] text-slate-400 font-bold block">رضا المرضى</span>
+                                        <span class="text-2xl font-black text-brand-accent">98%</span>
+                                    </div>
+                                    <div class="bg-white/5 p-4 rounded-2xl border border-slate-700">
+                                        <span class="text-[10px] text-slate-400 font-bold block">متوسط الانتظار</span>
+                                        <span class="text-2xl font-black text-brand-info">12 د</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div id="insurance-result-box" class="hidden p-4 rounded-2xl text-xs font-bold border animate-fade-in-up"></div>
             </div>
 
-            <!-- Search -->
-            <div class="glass rounded-3xl p-4 shadow-sm border border-slate-200/60 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <input type="text" id="patient-search-query" oninput="renderPatientDoctors()" placeholder="ابحث باسم الطبيب أو التخصص..." class="w-full px-4 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-wasla-green/50 bg-white/70">
-                <select id="patient-area-filter" onchange="renderPatientDoctors()" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-wasla-green/50 bg-white/70">
-                    <option value="">جميع القطاعات</option>
-                    <option value="شارع بورسعيد">شارع بورسعيد</option>
-                    <option value="ميدان المحطة">ميدان المحطة</option>
-                    <option value="طحانوب">طحانوب</option>
-                    <option value="كفر حمزة">كفر حمزة</option>
-                    <option value="منية شبين">منية شبين</option>
-                </select>
-                <select id="patient-spec-filter" onchange="renderPatientDoctors()" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-wasla-green/50 bg-white/70">
-                    <option value="">جميع التخصصات</option>
-                    <option value="باطنة">باطنة</option>
-                    <option value="عظام">عظام</option>
-                    <option value="أطفال">أطفال</option>
-                </select>
-            </div>
-
-            <div id="patient-doctors-grid" class="space-y-4"></div>
-        </section>
-
-        <!-- Triage (مختصر للتركيز على الوظائف الأساسية) -->
-        <section id="tab-triage-view" class="hidden space-y-6">
-            <div class="glass rounded-3xl p-6 shadow-sm border border-slate-200/60">
-                <h2 class="text-lg font-black text-slate-800 mb-2"><i class="fa-solid fa-microphone-lines text-wasla-green ml-2"></i>غرفة الفرز الذكية</h2>
-                <div class="p-4 bg-white/50 rounded-2xl border border-slate-200 space-y-2 text-xs">
-                    <p class="font-bold text-slate-700">التفريغ النصي التلقائي (محاكاة):</p>
-                    <p class="text-slate-600">"أنا عاطف من طحانوب، السكر 260 وعايز دكتور باطنة..."</p>
-                    <div class="flex gap-2">
-                        <span class="bg-red-50 text-red-700 px-2 py-1 rounded-lg font-bold text-[10px]">سكر مرتفع</span>
-                        <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg font-bold text-[10px]">باطنة</span>
+            <!-- Features -->
+            <div class="max-w-7xl mx-auto px-4 py-16">
+                <div class="text-center mb-10">
+                    <h3 class="text-2xl font-black text-slate-800">لماذا <span class="text-brand-primary">وصلة</span>؟</h3>
+                    <p class="text-xs text-slate-500 font-bold mt-1">مزايا مصممة لتناسب احتياجاتك الصحية</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass rounded-3xl p-6 border border-slate-200/60 hover-lift text-center space-y-3">
+                        <div class="w-14 h-14 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center mx-auto text-2xl"><i class="fa-solid fa-calendar-check"></i></div>
+                        <h4 class="font-black text-slate-800">حجز فوري وذكي</h4>
+                        <p class="text-xs text-slate-500 font-bold leading-relaxed">اختر طبيبك والوقت المناسب لك. نظامنا يضمن عدم التعارض ويوفر لك تأكيداً فورياً.</p>
+                    </div>
+                    <div class="glass rounded-3xl p-6 border border-slate-200/60 hover-lift text-center space-y-3">
+                        <div class="w-14 h-14 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center mx-auto text-2xl"><i class="fa-solid fa-shield-halved"></i></div>
+                        <h4 class="font-black text-slate-800">تحقق من التأمين</h4>
+                        <p class="text-xs text-slate-500 font-bold leading-relaxed">اعرف نسبة تحملك قبل الحجز. ندعم كبرى شركات التأمين في مصر لتوفير تجربة شفافة.</p>
+                    </div>
+                    <div class="glass rounded-3xl p-6 border border-slate-200/60 hover-lift text-center space-y-3">
+                        <div class="w-14 h-14 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center mx-auto text-2xl"><i class="fa-solid fa-bell"></i></div>
+                        <h4 class="font-black text-slate-800">تذكيرات ذكية</h4>
+                        <p class="text-xs text-slate-500 font-bold leading-relaxed">نرسل لك تذكيرات عبر واتساب قبل موعدك لتقليل الغياب وضمان حضورك في الوقت المناسب.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Financial (مختصر) -->
-        <section id="tab-financial-view" class="hidden space-y-6">
-            <div class="glass rounded-3xl p-6 shadow-sm border border-slate-200/60">
-                <h2 class="text-lg font-black text-slate-800">التسويات المالية</h2>
-                <p class="text-xs text-slate-500 mt-1">إجمالي الإيرادات: 18,450 ج.م | صافي وصلة: 3,690 ج.م</p>
+        <!-- ================= 2.2 PATIENT PORTAL VIEW ================= -->
+        <section id="view-patient-portal" class="view-section hidden">
+            <div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+                <!-- Page Header -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-800">ابحث واحجز مع طبيبك</h2>
+                        <p class="text-xs text-slate-500 font-bold mt-1">اختر التخصص، الطبيب، والوقت المناسب لك.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-500">حالة الاتصال:</span>
+                        <span id="db-status" class="flex items-center gap-1 text-[10px] font-bold text-emerald-600"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> قاعدة البيانات متصلة</span>
+                    </div>
+                </div>
+
+                <!-- Insurance Quick Check (Inline) -->
+                <div class="glass rounded-3xl p-4 border border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-600">
+                        <i class="fa-solid fa-shield-halved text-brand-primary"></i>
+                        هل تعرف تغطية تأمينك؟
+                    </div>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <select id="quick-ins-select" class="flex-1 sm:w-48 px-3 py-2 border rounded-xl text-xs font-bold bg-white/70 focus-ring">
+                            <option value="">اختر شركة التأمين</option>
+                            <option value="GlobeMed">GlobeMed</option>
+                            <option value="MetLife">MetLife</option>
+                            <option value="MedRight">MedRight</option>
+                            <option value="AXA">AXA</option>
+                            <option value="Bupa">Bupa</option>
+                            <option value="Allianz">Allianz</option>
+                            <option value="Nextcare">Nextcare</option>
+                        </select>
+                        <button onclick="quickInsuranceCheck()" class="bg-brand-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow hover:bg-brand-primary-dark transition whitespace-nowrap">تحقق</button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="glass rounded-3xl p-4 border border-slate-200/60 grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div class="relative sm:col-span-2">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3 text-slate-400 text-xs"></i>
+                        <input type="text" id="doctor-search" oninput="debouncedRenderDoctors()" placeholder="ابحث باسم الطبيب أو التخصص..." class="w-full pr-10 pl-3 py-2.5 border rounded-xl text-xs font-bold bg-white/70 focus-ring">
+                    </div>
+                    <select id="filter-specialty" onchange="renderDoctors()" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold bg-white/70 focus-ring">
+                        <option value="">جميع التخصصات</option>
+                    </select>
+                    <select id="filter-area" onchange="renderDoctors()" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold bg-white/70 focus-ring">
+                        <option value="">جميع المناطق</option>
+                    </select>
+                </div>
+
+                <!-- Doctors Grid -->
+                <div id="doctors-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+                <!-- Empty State -->
+                <div id="doctors-empty" class="hidden text-center py-16">
+                    <i class="fa-solid fa-user-doctor text-5xl text-slate-300 mb-3"></i>
+                    <p class="text-slate-500 font-bold">لا يوجد أطباء مطابقون لبحثك.</p>
+                </div>
             </div>
         </section>
 
-        <!-- Admin (مختصر) -->
-        <section id="tab-admin-view" class="hidden space-y-6">
-            <div class="glass rounded-3xl p-6 shadow-sm border border-slate-200/60">
-                <h2 class="text-lg font-black text-slate-800 mb-4">إدارة العيادات (Supabase)</h2>
-                <div id="admin-doctors-table" class="space-y-2"></div>
-                <p class="text-[10px] text-slate-400 mt-4">البيانات محفوظة في Supabase Storage/DB.</p>
+        <!-- ================= 2.3 INSURANCE CHECKER VIEW ================= -->
+        <section id="view-insurance-checker" class="view-section hidden">
+            <div class="max-w-3xl mx-auto px-4 py-12">
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center mx-auto text-3xl mb-3"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h2 class="text-2xl font-black text-slate-800">تحقق من تغطية تأمينك</h2>
+                    <p class="text-xs text-slate-500 font-bold mt-1">اعرف نسبة التحمل التقديرية قبل الحجز.</p>
+                </div>
+                <div class="glass rounded-3xl p-6 border border-slate-200/60 space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">شركة التأمين</label>
+                        <select id="ins-company-full" class="w-full px-4 py-3 border rounded-xl text-sm font-bold bg-white/70 focus-ring">
+                            <option value="">-- اختر شركة التأمين --</option>
+                            <option value="GlobeMed">GlobeMed Egypt</option>
+                            <option value="MetLife">MetLife Egypt</option>
+                            <option value="MedRight">MedRight Healthcare</option>
+                            <option value="AXA">AXA Egypt</option>
+                            <option value="Bupa">Bupa Egypt</option>
+                            <option value="Allianz">Allianz Egypt</option>
+                            <option value="Nextcare">Nextcare Egypt</option>
+                            <option value="Misr">Misr Insurance</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">رقم الكارنيه أو كود المشترك</label>
+                        <input type="text" id="ins-card-full" placeholder="مثال: WASLA-1234-2026" class="w-full px-4 py-3 border rounded-xl text-sm font-bold bg-white/70 focus-ring">
+                    </div>
+                    <button onclick="verifyInsuranceFull()" class="w-full bg-brand-primary text-white py-3 rounded-2xl font-black text-sm shadow hover:bg-brand-primary-dark transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass"></i> تحقق الآن
+                    </button>
+                    <div id="ins-result-full" class="hidden p-4 rounded-2xl text-sm font-bold border animate-fade-in-up"></div>
+                </div>
+                <!-- Supported Insurers -->
+                <div class="mt-8 text-center">
+                    <p class="text-[10px] text-slate-400 font-bold mb-3">شركات التأمين المدعومة</p>
+                    <div class="flex flex-wrap justify-center gap-2">
+                        <span class="bg-white border text-[10px] font-bold px-3 py-1.5 rounded-lg text-slate-600">GlobeMed</span>
+                        <span class="bg-white border text-[10px] font-bold px-3 py-1.5 rounded-lg text-slate-600">MetLife</span>
+                        <span class="bg-white border text-[10px] font-bold px-3 py-1.5 rounded-lg text-slate-600">MedRight</span>
+                        <span class="bg-white border text-[10px] font-bold px-3 py-1.5 rounded-lg text-slate-600">AXA</span>
+                        <span class="bg-white border text-[10px] font-bold px-3 py-1.5 rounded-lg text-slate-600">Bupa</span>
+                        <span class="bg-white border text-[10px] font-bold px-3 py-1.5 rounded-lg text-slate-600">Allianz</span>
+                        <span class="bg-white border text-[10px] font-bold px-3 py-1.5 rounded-lg text-slate-600">Nextcare</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 2.4 DASHBOARD (STAFF/ADMIN) ================= -->
+        <section id="view-dashboard" class="view-section hidden">
+            <div class="flex min-h-screen">
+                <!-- Sidebar -->
+                <aside class="w-64 bg-brand-secondary text-white flex-shrink-0 hidden lg:flex flex-col no-print">
+                    <div class="p-5 border-b border-slate-700/50">
+                        <div class="flex items-center gap-2">
+                            <div class="bg-brand-primary p-2 rounded-xl"><i class="fa-solid fa-heart-pulse"></i></div>
+                            <span class="font-black text-lg">وصلة <span class="text-[9px] text-brand-primary bg-brand-primary/20 px-1.5 py-0.5 rounded">ADMIN</span></span>
+                        </div>
+                    </div>
+                    <nav class="flex-1 p-3 space-y-1 text-xs font-bold">
+                        <button onclick="dashboardTab('overview')" class="sidebar-link active w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl"><i class="fa-solid fa-chart-pie w-4"></i> نظرة عامة</button>
+                        <button onclick="dashboardTab('appointments')" class="sidebar-link w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-300"><i class="fa-solid fa-calendar-days w-4"></i> المواعيد</button>
+                        <button onclick="dashboardTab('doctors')" class="sidebar-link w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-300"><i class="fa-solid fa-user-doctor w-4"></i> الأطباء</button>
+                        <button onclick="dashboardTab('patients')" class="sidebar-link w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-300"><i class="fa-solid fa-users w-4"></i> المرضى</button>
+                        <button onclick="dashboardTab('insurance')" class="sidebar-link w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-300"><i class="fa-solid fa-shield-halved w-4"></i> التأمين</button>
+                        <button onclick="dashboardTab('financial')" class="sidebar-link w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-300"><i class="fa-solid fa-coins w-4"></i> الماليات</button>
+                        <button onclick="dashboardTab('settings')" class="sidebar-link w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-300"><i class="fa-solid fa-gear w-4"></i> الإعدادات</button>
+                    </nav>
+                    <div class="p-4 border-t border-slate-700/50">
+                        <button onclick="navigateTo('landing')" class="w-full bg-white/5 text-slate-300 py-2.5 rounded-xl text-xs font-bold hover:bg-white/10 transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i> العودة للموقع
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- Dashboard Content -->
+                <div class="flex-1 bg-slate-50 overflow-y-auto custom-scrollbar">
+                    <!-- Dashboard Header -->
+                    <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-30 no-print">
+                        <div class="flex items-center gap-3">
+                            <button onclick="toggleDashboardSidebar()" class="lg:hidden text-slate-600"><i class="fa-solid fa-bars text-lg"></i></button>
+                            <h2 id="dash-title" class="text-lg font-black text-slate-800">نظرة عامة</h2>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-bold text-slate-500 hidden sm:block" id="dash-date"></span>
+                            <div class="w-8 h-8 bg-brand-primary-light text-brand-primary rounded-full flex items-center justify-center font-black text-xs">أ</div>
+                        </div>
+                    </header>
+
+                    <!-- Dashboard Views -->
+                    <div class="p-6 space-y-6">
+                        <!-- Overview Tab -->
+                        <div id="dash-tab-overview" class="dash-tab space-y-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 font-bold block">إجمالي المواعيد اليوم</span>
+                                            <span id="stat-total-appts" class="text-2xl font-black text-slate-800">0</span>
+                                        </div>
+                                        <div class="w-9 h-9 bg-brand-primary-light text-brand-primary rounded-xl flex items-center justify-center"><i class="fa-solid fa-calendar-check"></i></div>
+                                    </div>
+                                </div>
+                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 font-bold block">المواعيد المؤكدة</span>
+                                            <span id="stat-confirmed-appts" class="text-2xl font-black text-emerald-600">0</span>
+                                        </div>
+                                        <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center"><i class="fa-solid fa-check-circle"></i></div>
+                                    </div>
+                                </div>
+                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 font-bold block">إجمالي الأطباء</span>
+                                            <span id="stat-total-doctors" class="text-2xl font-black text-brand-info">0</span>
+                                        </div>
+                                        <div class="w-9 h-9 bg-blue-50 text-brand-info rounded-xl flex items-center justify-center"><i class="fa-solid fa-user-doctor"></i></div>
+                                    </div>
+                                </div>
+                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 font-bold block">الإيرادات (تقديري)</span>
+                                            <span id="stat-revenue" class="text-2xl font-black text-brand-accent">0 ج.م</span>
+                                        </div>
+                                        <div class="w-9 h-9 bg-amber-50 text-brand-accent rounded-xl flex items-center justify-center"><i class="fa-solid fa-coins"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Recent Appointments Table -->
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
+                                    <h3 class="text-sm font-black text-slate-800">أحدث المواعيد</h3>
+                                    <button onclick="dashboardTab('appointments')" class="text-[10px] font-bold text-brand-primary hover:underline">عرض الكل</button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-right text-xs">
+                                        <thead class="bg-slate-50 text-slate-500 font-bold">
+                                            <tr>
+                                                <th class="p-3">المريض</th>
+                                                <th class="p-3">الطبيب</th>
+                                                <th class="p-3">التاريخ</th>
+                                                <th class="p-3">الحالة</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="recent-appts-body" class="divide-y divide-slate-100 font-bold"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Appointments Tab -->
+                        <div id="dash-tab-appointments" class="dash-tab hidden space-y-4">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                <div class="flex items-center gap-2">
+                                    <select id="appt-filter-status" onchange="renderAppointmentsTable()" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white focus-ring">
+                                        <option value="">كل الحالات</option>
+                                        <option value="confirmed">مؤكد</option>
+                                        <option value="pending">معلق</option>
+                                        <option value="cancelled">ملغي</option>
+                                        <option value="completed">مكتمل</option>
+                                    </select>
+                                    <input type="date" id="appt-filter-date" onchange="renderAppointmentsTable()" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white focus-ring">
+                                </div>
+                                <button onclick="openAppointmentModal()" class="bg-brand-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow hover:bg-brand-primary-dark transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-plus"></i> موعد جديد
+                                </button>
+                            </div>
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-right text-xs">
+                                        <thead class="bg-slate-50 text-slate-500 font-bold">
+                                            <tr>
+                                                <th class="p-3">#</th>
+                                                <th class="p-3">المريض</th>
+                                                <th class="p-3">الطبيب</th>
+                                                <th class="p-3">التاريخ والوقت</th>
+                                                <th class="p-3">الحالة</th>
+                                                <th class="p-3">إجراءات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="appts-table-body" class="divide-y divide-slate-100 font-bold"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Doctors Tab -->
+                        <div id="dash-tab-doctors" class="dash-tab hidden space-y-4">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-sm font-black text-slate-800">قائمة الأطباء</h3>
+                                <button onclick="openDoctorModal()" class="bg-brand-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow hover:bg-brand-primary-dark transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-plus"></i> إضافة طبيب
+                                </button>
+                            </div>
+                            <div id="doctors-admin-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                        </div>
+
+                        <!-- Patients Tab -->
+                        <div id="dash-tab-patients" class="dash-tab hidden space-y-4">
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                <div class="px-5 py-4 border-b border-slate-100">
+                                    <h3 class="text-sm font-black text-slate-800">سجل المرضى</h3>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-right text-xs">
+                                        <thead class="bg-slate-50 text-slate-500 font-bold">
+                                            <tr>
+                                                <th class="p-3">الاسم</th>
+                                                <th class="p-3">الهاتف</th>
+                                                <th class="p-3">التأمين</th>
+                                                <th class="p-3">عدد الزيارات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="patients-table-body" class="divide-y divide-slate-100 font-bold"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Insurance Tab -->
+                        <div id="dash-tab-insurance" class="dash-tab hidden space-y-4">
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                                <h3 class="text-sm font-black text-slate-800 mb-3">إدارة شركات التأمين</h3>
+                                <div id="insurance-providers-list" class="space-y-2"></div>
+                            </div>
+                        </div>
+
+                        <!-- Financial Tab -->
+                        <div id="dash-tab-financial" class="dash-tab hidden space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                                    <span class="text-[10px] text-slate-400 font-bold block">إجمالي الإيرادات</span>
+                                    <span id="fin-total-revenue" class="text-2xl font-black text-slate-800">0 ج.م</span>
+                                </div>
+                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                                    <span class="text-[10px] text-slate-400 font-bold block">عمولة المنصة (15%)</span>
+                                    <span id="fin-platform-fee" class="text-2xl font-black text-brand-accent">0 ج.م</span>
+                                </div>
+                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                                    <span class="text-[10px] text-slate-400 font-bold block">صافي مستحقات الأطباء</span>
+                                    <span id="fin-doctor-payouts" class="text-2xl font-black text-brand-primary">0 ج.م</span>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                <div class="px-5 py-4 border-b border-slate-100">
+                                    <h3 class="text-sm font-black text-slate-800">تفاصيل التسويات</h3>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-right text-xs">
+                                        <thead class="bg-slate-50 text-slate-500 font-bold">
+                                            <tr>
+                                                <th class="p-3">الطبيب</th>
+                                                <th class="p-3">المواعيد المكتملة</th>
+                                                <th class="p-3">إجمالي التحصيل</th>
+                                                <th class="p-3">عمولة المنصة</th>
+                                                <th class="p-3">صافي المستحق</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="financial-table-body" class="divide-y divide-slate-100 font-bold"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Settings Tab -->
+                        <div id="dash-tab-settings" class="dash-tab hidden space-y-4">
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                                <h3 class="text-sm font-black text-slate-800">إعدادات المنصة</h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">اسم المنصة</label>
+                                        <input type="text" value="وصلة" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold focus-ring" disabled>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">نسبة عمولة المنصة (%)</label>
+                                        <input type="number" id="setting-commission" value="15" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold focus-ring">
+                                    </div>
+                                </div>
+                                <button onclick="saveSettings()" class="bg-brand-primary text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow hover:bg-brand-primary-dark transition">حفظ الإعدادات</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 2.5 LOGIN / REGISTER VIEW ================= -->
+        <section id="view-login" class="view-section hidden">
+            <div class="min-h-[70vh] flex items-center justify-center px-4 py-12">
+                <div class="glass rounded-3xl p-8 border border-slate-200/60 max-w-md w-full space-y-5 animate-fade-in-up">
+                    <div class="text-center">
+                        <div class="w-14 h-14 bg-brand-primary text-white rounded-2xl flex items-center justify-center mx-auto text-2xl mb-3"><i class="fa-solid fa-user-lock"></i></div>
+                        <h2 class="text-xl font-black text-slate-800">تسجيل الدخول</h2>
+                        <p class="text-xs text-slate-500 font-bold mt-1">أدخل بياناتك للوصول إلى حسابك.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">البريد الإلكتروني</label>
+                        <input type="email" id="login-email" placeholder="you@example.com" class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-bold focus-ring">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">كلمة المرور</label>
+                        <input type="password" id="login-password" placeholder="••••••••" class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-bold focus-ring">
+                    </div>
+                    <button onclick="handleLogin()" class="w-full bg-brand-primary text-white py-3 rounded-2xl font-black text-sm shadow hover:bg-brand-primary-dark transition">دخول</button>
+                    <p class="text-center text-[10px] text-slate-400 font-bold">ليس لديك حساب؟ <button onclick="navigateTo('register')" class="text-brand-primary hover:underline">سجل الآن</button></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 2.6 REGISTER VIEW ================= -->
+        <section id="view-register" class="view-section hidden">
+            <div class="min-h-[70vh] flex items-center justify-center px-4 py-12">
+                <div class="glass rounded-3xl p-8 border border-slate-200/60 max-w-md w-full space-y-4 animate-fade-in-up">
+                    <div class="text-center">
+                        <div class="w-14 h-14 bg-brand-primary text-white rounded-2xl flex items-center justify-center mx-auto text-2xl mb-3"><i class="fa-solid fa-user-plus"></i></div>
+                        <h2 class="text-xl font-black text-slate-800">حساب جديد</h2>
+                        <p class="text-xs text-slate-500 font-bold mt-1">انضم إلى وصلة وابدأ رحلتك الصحية.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">الاسم الكامل</label>
+                        <input type="text" id="reg-name" placeholder="الاسم الثلاثي" class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-bold focus-ring">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">البريد الإلكتروني</label>
+                        <input type="email" id="reg-email" placeholder="you@example.com" class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-bold focus-ring">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">رقم الهاتف</label>
+                        <input type="tel" id="reg-phone" placeholder="01xxxxxxxxx" class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-bold focus-ring">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">كلمة المرور</label>
+                        <input type="password" id="reg-password" placeholder="8 أحرف على الأقل" class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-bold focus-ring">
+                    </div>
+                    <button onclick="handleRegister()" class="w-full bg-brand-primary text-white py-3 rounded-2xl font-black text-sm shadow hover:bg-brand-primary-dark transition">إنشاء الحساب</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 2.7 ABOUT / CONTACT (Simple) ================= -->
+        <section id="view-about" class="view-section hidden">
+            <div class="max-w-4xl mx-auto px-4 py-16 text-center">
+                <h2 class="text-2xl font-black text-slate-800">عن منصة وصلة</h2>
+                <p class="text-sm text-slate-600 font-bold mt-4 leading-relaxed max-w-2xl mx-auto">
+                    "وصلة" هي منصة رعاية صحية ذكية تهدف إلى ربط المرضى بأفضل مقدمي الخدمات الطبية، مع توفير الشفافية في التكاليف والتأمين. نحن نؤمن بأن الرعاية الصحية الجيدة تبدأ من سهولة الوصول إليها.
+                </p>
+            </div>
+        </section>
+
+        <section id="view-contact" class="view-section hidden">
+            <div class="max-w-2xl mx-auto px-4 py-16">
+                <div class="glass rounded-3xl p-8 border border-slate-200/60 text-center space-y-4">
+                    <h2 class="text-xl font-black text-slate-800">تواصل معنا</h2>
+                    <p class="text-xs text-slate-500 font-bold">فريقنا جاهز لمساعدتك.</p>
+                    <div class="flex flex-col sm:flex-row justify-center gap-3 pt-2">
+                        <a href="tel:01000000000" class="bg-brand-primary text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow hover:bg-brand-primary-dark transition flex items-center justify-center gap-2"><i class="fa-solid fa-phone"></i> اتصل بنا</a>
+                        <a href="https://wa.me/201000000000" target="_blank" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow hover:bg-emerald-600 transition flex items-center justify-center gap-2"><i class="fa-brands fa-whatsapp"></i> واتساب</a>
+                    </div>
+                </div>
             </div>
         </section>
 
     </main>
 
+    <!-- ============================================================= -->
+    <!-- 3. MODALS -->
+    <!-- ============================================================= -->
     <!-- Booking Modal -->
-    <div id="modal-booking" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar animate-fade-in-up">
-            <button onclick="closeModal('modal-booking')" class="absolute left-4 top-4 text-slate-400 hover:text-slate-800"><i class="fa-solid fa-xmark text-xl"></i></button>
-            <div id="modal-booking-body"></div>
+    <div id="modal-booking" class="fixed inset-0 modal-overlay z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl relative animate-fade-in-up">
+            <button onclick="closeModal('modal-booking')" class="absolute top-4 left-4 text-slate-400 hover:text-slate-800 z-10"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <div id="modal-booking-body" class="p-6"></div>
         </div>
     </div>
 
-    <footer class="bg-wasla-dark text-slate-400 py-8 border-t border-slate-800 text-xs text-center">
-        <p class="font-bold text-slate-300">© 2026 منصة وصلة الرقمية - شبين القناطر</p>
-        <a href="https://wa.me/201068990089" target="_blank" class="bg-wasla-green text-white px-5 py-2 rounded-xl font-black inline-flex items-center gap-2 shadow mt-2 hover:bg-emerald-600 transition">
-            <i class="fa-brands fa-whatsapp"></i> 01068990089
-        </a>
+    <!-- Doctor Modal (Admin) -->
+    <div id="modal-doctor" class="fixed inset-0 modal-overlay z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl relative animate-fade-in-up">
+            <button onclick="closeModal('modal-doctor')" class="absolute top-4 left-4 text-slate-400 hover:text-slate-800 z-10"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <div id="modal-doctor-body" class="p-6"></div>
+        </div>
+    </div>
+
+    <!-- Appointment Modal (Admin) -->
+    <div id="modal-appointment" class="fixed inset-0 modal-overlay z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl relative animate-fade-in-up">
+            <button onclick="closeModal('modal-appointment')" class="absolute top-4 left-4 text-slate-400 hover:text-slate-800 z-10"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <div id="modal-appointment-body" class="p-6"></div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-5 left-5 z-[200] space-y-2"></div>
+
+    <!-- ============================================================= -->
+    <!-- 4. FOOTER -->
+    <!-- ============================================================= -->
+    <footer class="bg-brand-secondary text-slate-400 py-8 border-t border-slate-800 text-xs no-print">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-3">
+            <p class="font-bold text-slate-300">© 2026 منصة وصلة الرقمية. جميع الحقوق محفوظة.</p>
+            <p class="text-[10px]">صُممت بعناية لخدمة المرضى ومقدمي الرعاية الصحية.</p>
+        </div>
     </footer>
 
+    <!-- ============================================================= -->
+    <!-- 5. JAVASCRIPT APPLICATION LOGIC -->
+    <!-- ============================================================= -->
     <script>
-        // ==================== Supabase Config ====================
-        // 1. اعمل حساب مجاني على supabase.com
-        // 2. أنشئ مشروع جديد
-        // 3. روح لـ Project Settings -> API
-        // 4. انسخ URL و anon key وحطهم هنا:
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';
+        // ============================================================
+        // 5.1 CONFIGURATION & SUPABASE SETUP
+        // ============================================================
+        /**
+         * ⚠️ خطوة مطلوبة: أنشئ مشروعاً على https://supabase.com
+         * ثم استبدل القيم التالية بـ URL و anon key الخاصين بمشروعك.
+         */
+        const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL_HERE';
         const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
 
-        let supabase = null;
-        if (SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY_HERE') {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let supabaseClient = null;
+        const isSupabaseConfigured = SUPABASE_URL !== 'YOUR_SUPABASE_PROJECT_URL_HERE' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY_HERE';
+
+        if (isSupabaseConfigured) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         }
 
-        // ==================== Data Layer ====================
-        const initialDoctors = [
-            { id: 1, name: "د. محمد الشريف", specialty: "باطنة وكبد وسكر", address: "شارع بورسعيد - أعلى صيدلية النور", price: 200, waslaPrice: 170, insuranceCo: "GlobeMed", discount: "15% (تدفع 30 ج.م)", slots: ['5:00 م', '5:30 م', '6:00 م'] },
-            { id: 2, name: "د. أحمد فؤاد النجار", specialty: "جراحة العظام", address: "ميدان المحطة - برج الأطباء", price: 250, waslaPrice: 210, insuranceCo: "MetLife", discount: "20% (تدفع 50 ج.م)", slots: ['4:00 م', '5:00 م'] },
-            { id: 3, name: "د. سارة عبد الرحمن", specialty: "أطفال", address: "شارع المستشفى", price: 200, waslaPrice: 180, insuranceCo: "MedRight", discount: "10% (تدفع 20 ج.م)", slots: ['3:00 م', '6:00 م'] }
+        // ============================================================
+        // 5.2 GLOBAL STATE
+        // ============================================================
+        const appState = {
+            doctors: [],
+            appointments: [],
+            patients: [],
+            insuranceProviders: [],
+            settings: { commission: 15 },
+            currentView: 'landing',
+            currentDashboardTab: 'overview',
+            isLoading: false,
+        };
+
+        // ============================================================
+        // 5.3 SEED DATA (For offline/demo mode)
+        // ============================================================
+        const SEED_DOCTORS = [
+            { id: 1, name: 'د. أحمد الشريف', specialty: 'باطنة وسكر', area_label: 'وسط المدينة', price: 250, wasla_price: 220, insurance_company: 'GlobeMed', discount_info: '15% تحمل', available_slots: ['09:00', '09:30', '10:00', '10:30', '11:00'], image: null, rating: 4.8 },
+            { id: 2, name: 'د. سارة عبد الرحمن', specialty: 'أطفال', area_label: 'المنطقة الشرقية', price: 200, wasla_price: 180, insurance_company: 'MetLife', discount_info: '10% تحمل', available_slots: ['14:00', '14:30', '15:00', '15:30'], image: null, rating: 4.9 },
+            { id: 3, name: 'د. محمد فؤاد', specialty: 'عظام', area_label: 'المنطقة الغربية', price: 300, wasla_price: 260, insurance_company: 'AXA', discount_info: '20% تحمل', available_slots: ['11:00', '11:30', '12:00'], image: null, rating: 4.7 },
+            { id: 4, name: 'د. هدى مصطفى', specialty: 'نساء وتوليد', area_label: 'وسط المدينة', price: 280, wasla_price: 240, insurance_company: 'MedRight', discount_info: '15% تحمل', available_slots: ['13:00', '13:30', '14:00', '14:30'], image: null, rating: 4.9 },
+            { id: 5, name: 'د. كريم حسن', specialty: 'أنف وأذن وحنجرة', area_label: 'المنطقة الشمالية', price: 220, wasla_price: 190, insurance_company: 'Allianz', discount_info: '12% تحمل', available_slots: ['10:00', '10:30', '11:00'], image: null, rating: 4.6 },
         ];
 
-        let doctorsState = [...initialDoctors];
+        const SEED_INSURANCE = [
+            { id: 1, name: 'GlobeMed', discount_percentage: 15, description: 'شبكة واسعة من مقدمي الخدمة' },
+            { id: 2, name: 'MetLife', discount_percentage: 10, description: 'تغطية شاملة للموظفين' },
+            { id: 3, name: 'MedRight', discount_percentage: 15, description: 'خدمات تأمين متكاملة' },
+            { id: 4, name: 'AXA', discount_percentage: 20, description: 'خطط مرنة للأفراد والشركات' },
+            { id: 5, name: 'Bupa', discount_percentage: 18, description: 'تأمين صحي عالمي' },
+            { id: 6, name: 'Allianz', discount_percentage: 12, description: 'تغطية طبية شاملة' },
+            { id: 7, name: 'Nextcare', discount_percentage: 15, description: 'إدارة شبكات طبية' },
+        ];
 
-        async function loadDoctorsFromDB() {
-            if (!supabase) { console.warn('Supabase not configured, using local data.'); return; }
-            const { data, error } = await supabase.from('doctors').select('*');
-            if (error) { console.error('Error loading doctors:', error); return; }
-            if (data && data.length > 0) doctorsState = data;
-            else {
-                // Seed initial data if table is empty
-                await supabase.from('doctors').insert(initialDoctors);
+        // ============================================================
+        // 5.4 UTILITY FUNCTIONS
+        // ============================================================
+        function formatCurrency(num) {
+            return new Intl.NumberFormat('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 0 }).format(num);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('ar-EG', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const colors = { success: 'bg-emerald-600', error: 'bg-red-600', info: 'bg-brand-primary', warning: 'bg-amber-600' };
+            const toast = document.createElement('div');
+            toast.className = `${colors[type] || colors.info} text-white px-4 py-3 rounded-2xl shadow-lg text-xs font-bold flex items-center gap-2 animate-fade-in-up max-w-sm`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 4000);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function debounce(func, delay) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+        const debouncedRenderDoctors = debounce(() => renderDoctors(), 300);
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        // ============================================================
+        // 5.5 NAVIGATION (SPA Router)
+        // ============================================================
+        const viewMap = {
+            'landing': 'view-landing',
+            'patient-portal': 'view-patient-portal',
+            'insurance-checker': 'view-insurance-checker',
+            'dashboard': 'view-dashboard',
+            'login': 'view-login',
+            'register': 'view-register',
+            'about': 'view-about',
+            'contact': 'view-contact',
+        };
+
+        function navigateTo(viewName) {
+            if (viewMap[viewName]) {
+                document.querySelectorAll('.view-section').forEach(s => s.classList.add('hidden'));
+                const target = document.getElementById(viewMap[viewName]);
+                if (target) target.classList.remove('hidden');
+                appState.currentView = viewName;
+
+                // Update nav links
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('bg-brand-primary', 'text-white'));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                // Load data based on view
+                if (viewName === 'patient-portal') { loadDoctors(); }
+                if (viewName === 'dashboard') { loadDashboardData(); }
             }
         }
 
-        async function saveBookingToDB(booking) {
-            if (!supabase) { console.warn('Supabase not configured, booking not saved.'); return; }
-            const { error } = await supabase.from('bookings').insert([booking]);
-            if (error) console.error('Error saving booking:', error);
+        // ============================================================
+        // 5.6 DATA LOADING (Supabase / Fallback)
+        // ============================================================
+        async function loadDoctors() {
+            if (isSupabaseConfigured) {
+                try {
+                    const { data, error } = await supabaseClient.from('doctors').select('*');
+                    if (error) throw error;
+                    if (data && data.length > 0) {
+                        appState.doctors = data;
+                    } else {
+                        appState.doctors = SEED_DOCTORS;
+                    }
+                } catch (e) {
+                    console.warn('Supabase load failed, using seed data.', e);
+                    appState.doctors = SEED_DOCTORS;
+                }
+            } else {
+                appState.doctors = SEED_DOCTORS;
+            }
+            populateFilters();
+            renderDoctors();
         }
 
-        // ==================== UI Logic ====================
-        function navigateTab(tabName) {
-            ['patient', 'triage', 'financial', 'admin'].forEach(t => {
-                document.getElementById(`tab-${t}-view`).classList.add('hidden');
-                const nav = document.getElementById(`nav-${t}`);
-                nav.className = "bg-slate-800/50 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap";
-            });
-            document.getElementById(`tab-${tabName}-view`).classList.remove('hidden');
-            const activeNav = document.getElementById(`nav-${tabName}`);
-            activeNav.className = "bg-wasla-green text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-md whitespace-nowrap";
+        function populateFilters() {
+            const specialtySelect = document.getElementById('filter-specialty');
+            const areaSelect = document.getElementById('filter-area');
+            if (!specialtySelect || !areaSelect) return;
 
-            if (tabName === 'patient') renderPatientDoctors();
-            if (tabName === 'admin') renderAdminTable();
+            // Specialties
+            const specialties = [...new Set(appState.doctors.map(d => d.specialty))];
+            specialtySelect.innerHTML = '<option value="">جميع التخصصات</option>' + specialties.map(s => `<option value="${s}">${s}</option>`).join('');
+
+            // Areas
+            const areas = [...new Set(appState.doctors.map(d => d.area_label))];
+            areaSelect.innerHTML = '<option value="">جميع المناطق</option>' + areas.map(a => `<option value="${a}">${a}</option>`).join('');
         }
 
-        function selectInsCompany(coName) {
-            document.getElementById('ins-company-select').value = coName;
-            verifyInsuranceCard();
-        }
+        function renderDoctors() {
+            const grid = document.getElementById('doctors-grid');
+            const empty = document.getElementById('doctors-empty');
+            if (!grid) return;
 
-        function verifyInsuranceCard() {
-            const num = document.getElementById('ins-card-number').value.trim() || 'WASLA-DEMO';
-            const box = document.getElementById('insurance-result-box');
-            box.classList.remove('hidden');
-            box.className = "p-4 rounded-2xl text-xs font-bold border animate-fade-in-up bg-emerald-50 text-emerald-900 border-emerald-200";
-            box.innerHTML = `<i class="fa-solid fa-circle-check ml-1"></i> الكارنيه ساري! نسبة التحمل المعتمدة هي <strong>15% خصم فوري</strong>. <a href="https://wa.me/201068990089?text=استعلام%20تأمين%20رقم%20${num}" target="_blank" class="underline font-black">راسلنا لتأكيد الحجز</a>`;
-        }
+            const query = (document.getElementById('doctor-search')?.value || '').toLowerCase().trim();
+            const spec = document.getElementById('filter-specialty')?.value || '';
+            const area = document.getElementById('filter-area')?.value || '';
 
-        function renderPatientDoctors() {
-            const grid = document.getElementById('patient-doctors-grid');
-            const query = document.getElementById('patient-search-query').value.toLowerCase();
-            const area = document.getElementById('patient-area-filter').value;
-            const spec = document.getElementById('patient-spec-filter').value;
-            grid.innerHTML = '';
-
-            let filtered = doctorsState.filter(d => {
-                let matchQ = d.name.toLowerCase().includes(query) || d.specialty.toLowerCase().includes(query);
-                let matchArea = area === '' || d.address.includes(area);
-                let matchSpec = spec === '' || d.specialty.includes(spec);
-                return matchQ && matchArea && matchSpec;
+            let filtered = appState.doctors.filter(doc => {
+                const matchQ = doc.name.toLowerCase().includes(query) || doc.specialty.toLowerCase().includes(query);
+                const matchSpec = spec === '' || doc.specialty === spec;
+                const matchArea = area === '' || doc.area_label === area;
+                return matchQ && matchSpec && matchArea;
             });
 
             if (filtered.length === 0) {
-                grid.innerHTML = `<p class="text-center text-slate-400 text-sm py-8">لا توجد نتائج مطابقة.</p>`;
+                grid.innerHTML = '';
+                empty.classList.remove('hidden');
                 return;
             }
+            empty.classList.add('hidden');
 
-            filtered.forEach(doc => {
-                grid.innerHTML += `
-                    <div class="glass rounded-3xl p-5 shadow-sm border border-slate-200/60 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover-lift animate-fade-in-up">
-                        <div class="space-y-1">
-                            <span class="bg-wasla-light text-wasla-green text-[10px] px-3 py-1 rounded-full font-black inline-block">${doc.specialty}</span>
-                            <h3 class="font-black text-slate-800 text-lg">${doc.name}</h3>
-                            <p class="text-xs text-slate-500 font-bold"><i class="fa-solid fa-location-dot text-wasla-green ml-1"></i>${doc.address}</p>
-                            <div class="flex items-center gap-2 pt-1 text-[10px] text-slate-600 font-bold">
-                                <span class="bg-slate-100 px-2 py-0.5 rounded text-wasla-sky">${doc.insuranceCo}</span>
-                                <span class="text-emerald-700">${doc.discount}</span>
+            grid.innerHTML = filtered.map(doc => `
+                <div class="glass rounded-3xl p-5 border border-slate-200/60 hover-lift animate-fade-in-up flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center text-xl font-black">
+                                    ${doc.name.charAt(0)}
+                                </div>
+                                <div>
+                                    <h3 class="font-black text-slate-800 text-sm">${doc.name}</h3>
+                                    <p class="text-[10px] text-slate-500 font-bold">${doc.specialty}</p>
+                                </div>
                             </div>
+                            <span class="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-lg font-bold"><i class="fa-solid fa-star ml-0.5"></i> ${doc.rating || '4.5'}</span>
                         </div>
-                        <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0">
-                            <div class="text-left">
-                                <span class="text-[10px] text-slate-400 line-through font-bold">${doc.price} ج.م</span>
-                                <div class="text-wasla-green font-black text-xl">${doc.waslaPrice} ج.م</div>
-                            </div>
-                            <button onclick="openBookingModal(${doc.id})" class="bg-wasla-green text-white px-5 py-2.5 rounded-2xl text-xs font-black shadow hover:scale-105 transition">
-                                <i class="fa-solid fa-calendar-check ml-1"></i> حجز
-                            </button>
+                        <div class="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold">
+                            <i class="fa-solid fa-location-dot text-brand-primary"></i> ${doc.area_label}
+                        </div>
+                        <div class="flex items-center gap-2 text-[10px] font-bold">
+                            <span class="bg-slate-100 px-2 py-0.5 rounded text-slate-600">${doc.insurance_company}</span>
+                            <span class="text-emerald-700">${doc.discount_info}</span>
                         </div>
                     </div>
-                `;
-            });
+                    <div class="flex items-end justify-between pt-4 border-t border-slate-100 mt-4">
+                        <div>
+                            <span class="text-[10px] text-slate-400 line-through font-bold block">${formatCurrency(doc.price)}</span>
+                            <span class="text-brand-primary font-black text-lg">${formatCurrency(doc.wasla_price)}</span>
+                        </div>
+                        <button onclick="openBookingModal(${doc.id})" class="bg-brand-primary text-white px-4 py-2.5 rounded-xl text-[11px] font-black shadow hover:bg-brand-primary-dark transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-calendar-check"></i> احجز
+                        </button>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        function openBookingModal(id) {
-            const doc = doctorsState.find(d => d.id === id);
+        // ============================================================
+        // 5.7 BOOKING FLOW
+        // ============================================================
+        function openBookingModal(doctorId) {
+            const doc = appState.doctors.find(d => d.id === doctorId);
+            if (!doc) return;
+
             const body = document.getElementById('modal-booking-body');
-            let slotsHtml = doc.slots.map(s => `<label class="flex items-center justify-between p-2.5 border rounded-xl cursor-pointer bg-slate-50 font-bold text-xs hover:border-wasla-green"><div class="flex items-center gap-2"><input type="radio" name="slot" value="${s}"><span>${s}</span></div><span class="text-wasla-green">متاح</span></label>`).join('');
+            const slots = doc.available_slots || ['09:00', '10:00', '11:00'];
 
             body.innerHTML = `
-                <h3 class="font-black text-slate-800 text-base mb-1">حجز لدى ${doc.name}</h3>
-                <p class="text-xs text-slate-500 font-bold mb-3">${doc.address} - <strong class="text-wasla-green">${doc.waslaPrice} ج.م</strong></p>
-                <form onsubmit="confirmBooking(event, '${doc.name}', ${doc.waslaPrice})" class="space-y-3 text-xs">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">الموعد:</label>
-                        <div class="space-y-2">${slotsHtml}</div>
+                <div class="space-y-4">
+                    <div class="text-center">
+                        <div class="w-14 h-14 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center mx-auto text-2xl font-black mb-2">${doc.name.charAt(0)}</div>
+                        <h3 class="font-black text-slate-800 text-base">${doc.name}</h3>
+                        <p class="text-[11px] text-slate-500 font-bold">${doc.specialty} · ${doc.area_label}</p>
+                        <p class="text-brand-primary font-black text-lg mt-1">${formatCurrency(doc.wasla_price)} <span class="text-[10px] text-slate-400 line-through font-bold">${formatCurrency(doc.price)}</span></p>
                     </div>
-                    <input type="text" id="patient-name" required placeholder="اسم المريض" class="w-full px-3.5 py-2.5 border rounded-xl font-bold focus:ring-2 focus:ring-wasla-green/50 outline-none">
-                    <input type="text" id="patient-phone" required placeholder="رقم الواتساب" class="w-full px-3.5 py-2.5 border rounded-xl font-bold focus:ring-2 focus:ring-wasla-green/50 outline-none">
-                    <button type="submit" class="w-full bg-whatsapp text-white py-3 rounded-2xl font-black text-sm shadow flex items-center justify-center gap-2 hover:bg-emerald-600 transition" style="background-color:#25D366;">
-                        <i class="fa-brands fa-whatsapp text-lg"></i> تأكيد وإرسال واتساب
-                    </button>
-                </form>
+                    <form id="booking-form" onsubmit="confirmBooking(event, ${doc.id})" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">اختر التاريخ</label>
+                            <input type="date" id="booking-date" required class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold focus-ring" min="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">اختر الوقت</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                ${slots.map(s => `
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="booking-slot" value="${s}" class="peer sr-only" required>
+                                        <div class="text-center py-2 border rounded-xl text-xs font-bold peer-checked:bg-brand-primary peer-checked:text-white peer-checked:border-brand-primary hover:border-brand-primary transition">${s}</div>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">اسم المريض</label>
+                            <input type="text" id="booking-name" required placeholder="الاسم الثلاثي" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold focus-ring">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">رقم الهاتف (واتساب)</label>
+                            <input type="tel" id="booking-phone" required placeholder="01xxxxxxxxx" class="w-full px-3 py-2.5 border rounded-xl text-xs font-bold focus-ring">
+                        </div>
+                        <button type="submit" class="w-full bg-brand-primary text-white py-3 rounded-2xl font-black text-sm shadow hover:bg-brand-primary-dark transition flex items-center justify-center gap-2">
+                            <i class="fa-brands fa-whatsapp text-lg"></i> تأكيد الحجز
+                        </button>
+                    </form>
+                </div>
             `;
             document.getElementById('modal-booking').classList.remove('hidden');
         }
 
-        async function confirmBooking(e, docName, price) {
+        async function confirmBooking(e, doctorId) {
             e.preventDefault();
-            const name = document.getElementById('patient-name').value;
-            const phone = document.getElementById('patient-phone').value;
-            const slot = document.querySelector('input[name="slot"]:checked')?.value || 'غير محدد';
-            const ticketId = 'WASLA-' + Math.floor(1000 + Math.random() * 9000);
+            const doc = appState.doctors.find(d => d.id === doctorId);
+            const date = document.getElementById('booking-date').value;
+            const slot = document.querySelector('input[name="booking-slot"]:checked')?.value;
+            const name = document.getElementById('booking-name').value.trim();
+            const phone = document.getElementById('booking-phone').value.trim();
 
-            // حفظ في Supabase
-            await saveBookingToDB({ ticket_id: ticketId, doctor_name: docName, patient_name: name, patient_phone: phone, slot, price, created_at: new Date().toISOString() });
+            if (!date || !slot || !name || !phone) {
+                showToast('يرجى ملء جميع الحقول المطلوبة.', 'error');
+                return;
+            }
+
+            const ticketId = 'WSL-' + Math.floor(100000 + Math.random() * 900000);
+
+            const bookingData = {
+                ticket_id: ticketId,
+                patient_name: name,
+                patient_phone: phone,
+                doctor_id: doc.id,
+                doctor_name: doc.name,
+                appointment_date: date,
+                appointment_time: slot,
+                status: 'confirmed',
+                amount: doc.wasla_price,
+                created_at: new Date().toISOString(),
+            };
+
+            // Save to Supabase if configured
+            if (isSupabaseConfigured) {
+                try {
+                    const { error } = await supabaseClient.from('appointments').insert([bookingData]);
+                    if (error) throw error;
+                    showToast('تم حفظ الحجز في قاعدة البيانات.', 'success');
+                } catch (err) {
+                    console.error('Supabase booking save error:', err);
+                    showToast('تم الحجز محلياً (تعذر الاتصال بقاعدة البيانات).', 'warning');
+                }
+            } else {
+                showToast('تم الحجز محلياً (وضع العرض).', 'info');
+            }
+
+            // Save to local state
+            appState.appointments.push({ ...bookingData, id: Date.now() });
 
             closeModal('modal-booking');
-            const msg = encodeURIComponent(`📌 *تذكرة حجز - وصلة*\n\n🎫 ${ticketId}\n👨‍⚕️ ${docName}\n👤 ${name}\n🕐 ${slot}\n💰 ${price} ج.م`);
-            window.open(`https://wa.me/201068990089?text=${msg}`, '_blank');
+
+            // WhatsApp confirmation
+            const msg = encodeURIComponent(
+                `📌 *تذكرة حجز - وصلة*\n\n` +
+                `🎫 رقم التذكرة: ${ticketId}\n` +
+                `👨‍⚕️ الطبيب: ${doc.name}\n` +
+                `👤 المريض: ${name}\n` +
+                `📅 التاريخ: ${formatDate(date)}\n` +
+                `🕐 الوقت: ${slot}\n` +
+                `💰 المبلغ: ${formatCurrency(doc.wasla_price)}\n\n` +
+                `_يرجى الحضور قبل الموعد بـ 10 دقائق._`
+            );
+            window.open(`https://wa.me/201000000000?text=${msg}`, '_blank');
+
+            showToast(`تم تأكيد حجزك مع ${doc.name}. التذكرة: ${ticketId}`, 'success');
         }
 
-        function renderAdminTable() {
-            const tbody = document.getElementById('admin-doctors-table');
-            tbody.innerHTML = '';
-            doctorsState.forEach(d => {
-                tbody.innerHTML += `
-                    <div class="flex justify-between items-center p-3 bg-white/50 rounded-xl border text-xs font-bold">
-                        <span>${d.name} - ${d.specialty} (${d.waslaPrice} ج.م)</span>
-                        <button onclick="deleteDoc(${d.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
+        // ============================================================
+        // 5.8 INSURANCE CHECKER
+        // ============================================================
+        function quickInsuranceCheck() {
+            const company = document.getElementById('quick-ins-select').value;
+            if (!company) { showToast('يرجى اختيار شركة التأمين.', 'warning'); return; }
+            const provider = SEED_INSURANCE.find(p => p.name === company);
+            showToast(`${company}: نسبة التحمل التقديرية ${provider ? provider.discount_percentage : 15}%`, 'info');
+        }
+
+        function verifyInsuranceFull() {
+            const company = document.getElementById('ins-company-full').value;
+            const card = document.getElementById('ins-card-full').value.trim();
+            const resultBox = document.getElementById('ins-result-full');
+
+            if (!company || !card) {
+                showToast('يرجى اختيار الشركة وإدخال رقم الكارنيه.', 'warning');
+                return;
+            }
+
+            const provider = SEED_INSURANCE.find(p => p.name === company);
+            const discount = provider ? provider.discount_percentage : 15;
+
+            resultBox.classList.remove('hidden');
+            resultBox.className = 'p-4 rounded-2xl text-sm font-bold border animate-fade-in-up bg-emerald-50 text-emerald-900 border-emerald-200';
+            resultBox.innerHTML = `
+                <div class="flex items-start gap-2">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-lg mt-0.5"></i>
+                    <div>
+                        <p class="font-black">الكارنيه ساري!</p>
+                        <p class="text-xs mt-1">شركة: <strong>${company}</strong> | نسبة التحمل التقديرية: <strong>${discount}%</strong></p>
+                        <p class="text-[10px] mt-1 text-emerald-700">هذه النسبة تقديرية. يرجى التأكيد مع العيادة.</p>
                     </div>
-                `;
+                </div>
+            `;
+            showToast('تم التحقق من التأمين بنجاح.', 'success');
+        }
+
+        // ============================================================
+        // 5.9 DASHBOARD LOGIC
+        // ============================================================
+        function loadDashboardData() {
+            // Set date
+            document.getElementById('dash-date').textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            // Load doctors if not loaded
+            if (appState.doctors.length === 0) loadDoctors().then(() => renderDashboard());
+            else renderDashboard();
+        }
+
+        function renderDashboard() {
+            renderStats();
+            renderRecentAppointments();
+            renderAppointmentsTable();
+            renderDoctorsAdmin();
+            renderPatientsTable();
+            renderInsuranceProviders();
+            renderFinancials();
+        }
+
+        function renderStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayAppts = appState.appointments.filter(a => a.appointment_date === today || !a.appointment_date);
+            const confirmed = todayAppts.filter(a => a.status === 'confirmed');
+            const totalRevenue = appState.appointments.filter(a => a.status === 'completed' || a.status === 'confirmed').reduce((sum, a) => sum + (a.amount || 0), 0);
+
+            document.getElementById('stat-total-appts').textContent = todayAppts.length;
+            document.getElementById('stat-confirmed-appts').textContent = confirmed.length;
+            document.getElementById('stat-total-doctors').textContent = appState.doctors.length;
+            document.getElementById('stat-revenue').textContent = formatCurrency(totalRevenue);
+        }
+
+        function renderRecentAppointments() {
+            const tbody = document.getElementById('recent-appts-body');
+            if (!tbody) return;
+            const recent = [...appState.appointments].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+            if (recent.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 text-[10px]">لا توجد مواعيد حديثة.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = recent.map(a => `
+                <tr>
+                    <td class="p-3">${a.patient_name}</td>
+                    <td class="p-3">${a.doctor_name || '—'}</td>
+                    <td class="p-3">${formatDate(a.appointment_date)} ${a.appointment_time || ''}</td>
+                    <td class="p-3"><span class="status-badge status-${a.status}">${statusLabel(a.status)}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function statusLabel(status) {
+            const map = { confirmed: 'مؤكد', pending: 'معلق', cancelled: 'ملغي', completed: 'مكتمل', noshow: 'لم يحضر' };
+            return map[status] || status;
+        }
+
+        function renderAppointmentsTable() {
+            const tbody = document.getElementById('appts-table-body');
+            if (!tbody) return;
+            let list = [...appState.appointments].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            const statusFilter = document.getElementById('appt-filter-status')?.value;
+            const dateFilter = document.getElementById('appt-filter-date')?.value;
+            if (statusFilter) list = list.filter(a => a.status === statusFilter);
+            if (dateFilter) list = list.filter(a => a.appointment_date === dateFilter);
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 text-[10px]">لا توجد مواعيد مطابقة.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = list.map((a, i) => `
+                <tr>
+                    <td class="p-3">${i + 1}</td>
+                    <td class="p-3">${a.patient_name}</td>
+                    <td class="p-3">${a.doctor_name || '—'}</td>
+                    <td class="p-3">${formatDate(a.appointment_date)} ${a.appointment_time || ''}</td>
+                    <td class="p-3"><span class="status-badge status-${a.status}">${statusLabel(a.status)}</span></td>
+                    <td class="p-3">
+                        <select onchange="updateAppointmentStatus('${a.ticket_id}', this.value)" class="text-[10px] border rounded-lg px-2 py-1 font-bold bg-white">
+                            <option value="confirmed" ${a.status === 'confirmed' ? 'selected' : ''}>مؤكد</option>
+                            <option value="completed" ${a.status === 'completed' ? 'selected' : ''}>مكتمل</option>
+                            <option value="cancelled" ${a.status === 'cancelled' ? 'selected' : ''}>ملغي</option>
+                            <option value="noshow" ${a.status === 'noshow' ? 'selected' : ''}>لم يحضر</option>
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateAppointmentStatus(ticketId, newStatus) {
+            const appt = appState.appointments.find(a => a.ticket_id === ticketId);
+            if (appt) {
+                appt.status = newStatus;
+                showToast(`تم تحديث حالة الموعد ${ticketId} إلى ${statusLabel(newStatus)}.`, 'success');
+                renderStats();
+                renderRecentAppointments();
+                renderFinancials();
+            }
+        }
+
+        function renderDoctorsAdmin() {
+            const container = document.getElementById('doctors-admin-grid');
+            if (!container) return;
+            container.innerHTML = appState.doctors.map(doc => `
+                <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-black text-slate-800 text-sm">${doc.name}</h4>
+                        <span class="text-[10px] bg-brand-primary-light text-brand-primary px-2 py-0.5 rounded-lg font-bold">${doc.specialty}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 font-bold"><i class="fa-solid fa-location-dot ml-1"></i>${doc.area_label}</p>
+                    <p class="text-[10px] text-slate-500 font-bold">السعر: ${formatCurrency(doc.wasla_price)} (بدلاً من ${formatCurrency(doc.price)})</p>
+                    <div class="flex gap-2 pt-2">
+                        <button onclick="editDoctor(${doc.id})" class="text-[10px] font-bold text-brand-info hover:underline">تعديل</button>
+                        <button onclick="deleteDoctor(${doc.id})" class="text-[10px] font-bold text-red-500 hover:underline">حذف</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderPatientsTable() {
+            const tbody = document.getElementById('patients-table-body');
+            if (!tbody) return;
+            // Derive patients from appointments
+            const patientMap = {};
+            appState.appointments.forEach(a => {
+                const key = a.patient_phone || a.patient_name;
+                if (!patientMap[key]) {
+                    patientMap[key] = { name: a.patient_name, phone: a.patient_phone, insurance: '—', visits: 0 };
+                }
+                patientMap[key].visits++;
             });
+            const patients = Object.values(patientMap);
+            if (patients.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 text-[10px]">لا يوجد مرضى مسجلون بعد.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = patients.map(p => `
+                <tr>
+                    <td class="p-3">${p.name}</td>
+                    <td class="p-3">${p.phone}</td>
+                    <td class="p-3">${p.insurance}</td>
+                    <td class="p-3">${p.visits}</td>
+                </tr>
+            `).join('');
         }
 
-        async function deleteDoc(id) {
-            doctorsState = doctorsState.filter(d => d.id !== id);
-            if (supabase) await supabase.from('doctors').delete().eq('id', id);
-            renderAdminTable();
+        function renderInsuranceProviders() {
+            const container = document.getElementById('insurance-providers-list');
+            if (!container) return;
+            container.innerHTML = SEED_INSURANCE.map(p => `
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border text-xs font-bold">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-brand-primary"></i>
+                        <span>${p.name}</span>
+                        <span class="text-[10px] text-slate-400">(${p.description})</span>
+                    </div>
+                    <span class="text-brand-primary font-black">${p.discount_percentage}% تحمل</span>
+                </div>
+            `).join('');
         }
 
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function renderFinancials() {
+            const completedAppts = appState.appointments.filter(a => a.status === 'completed');
+            const totalRevenue = completedAppts.reduce((sum, a) => sum + (a.amount || 0), 0);
+            const commissionRate = appState.settings.commission / 100;
+            const platformFee = totalRevenue * commissionRate;
+            const doctorPayouts = totalRevenue - platformFee;
 
-        // Initialize
-        window.onload = async () => {
-            await loadDoctorsFromDB();
-            renderPatientDoctors();
-        };
+            document.getElementById('fin-total-revenue').textContent = formatCurrency(totalRevenue);
+            document.getElementById('fin-platform-fee').textContent = formatCurrency(platformFee);
+            document.getElementById('fin-doctor-payouts').textContent = formatCurrency(doctorPayouts);
+
+            // Table per doctor
+            const tbody = document.getElementById('financial-table-body');
+            if (!tbody) return;
+            const doctorMap = {};
+            completedAppts.forEach(a => {
+                const key = a.doctor_id;
+                if (!doctorMap[key]) doctorMap[key] = { name: a.doctor_name, count: 0, total: 0 };
+                doctorMap[key].count++;
+                doctorMap[key].total += a.amount || 0;
+            });
+            const rows = Object.values(doctorMap);
+            if (rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 text-[10px]">لا توجد بيانات مالية بعد.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = rows.map(r => `
+                <tr>
+                    <td class="p-3">${r.name}</td>
+                    <td class="p-3">${r.count}</td>
+                    <td class="p-3">${formatCurrency(r.total)}</td>
+                    <td class="p-3 text-brand-accent">${formatCurrency(r.total * commissionRate)}</td>
+                    <td class="p-3 text-brand-primary">${formatCurrency(r.total * (1 - commissionRate))}</td>
+                </tr>
+            `).join('');
+        }
+
+        function dashboardTab(tabName) {
+            document.querySelectorAll('.dash-tab').forEach(t => t.classList.add('hidden'));
+            document.getElementById(`dash-tab-${tabName}`).classList.remove('hidden');
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            // Highlight active sidebar link
+            const tabs = ['overview', 'appointments', 'doctors', 'patients', 'insurance', 'financial', 'settings'];
+            const buttons = document.querySelectorAll('.sidebar-link');
+            tabs.forEach((t, i) => { if (t === tabName && buttons[i]) buttons[i].classList.add('active'); });
+
+            const titles = { overview: 'نظرة عامة', appointments: 'المواعيد', doctors: 'الأطباء', patients: 'المرضى', insurance: 'التأمين', financial: 'الماليات', settings: 'الإعدادات' };
+            document.getElementById('dash-title').textContent = titles[tabName] || tabName;
+            appState.currentDashboardTab = tabName;
+        }
+
+        // Admin Actions (Placeholder)
+        function openDoctorModal() { showToast('نموذج إضافة طبيب (قيد التطوير).', 'info'); }
+        function editDoctor(id) { showToast(`تعديل الطبيب رقم ${id} (قيد التطوير).`, 'info'); }
+        function deleteDoctor(id) { if (confirm('هل أنت متأكد من حذف هذا الطبيب؟')) { appState.doctors = appState.doctors.filter(d => d.id !== id); renderDoctorsAdmin(); renderStats(); showToast('تم حذف الطبيب.', 'success'); } }
+        function openAppointmentModal() { showToast('نموذج موعد جديد (قيد التطوير).', 'info'); }
+        function saveSettings() { const val = document.getElementById('setting-commission').value; appState.settings.commission = parseFloat(val) || 15; showToast('تم حفظ الإعدادات.', 'success'); renderFinancials(); }
+
+        // ============================================================
+        // 5.10 AUTH (Placeholder - Supabase Auth)
+        // ============================================================
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            if (!email || !password) { showToast('يرجى إدخال البريد وكلمة المرور.', 'warning'); return; }
+            if (isSupabaseConfigured) {
+                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) { showToast(error.message, 'error'); return; }
+                showToast('تم تسجيل الدخول بنجاح.', 'success');
+                navigateTo('dashboard');
+            } else {
+                showToast('وضع العرض: تم تسجيل الدخول (تجريبي).', 'info');
+                navigateTo('dashboard');
+            }
+        }
+
+        async function handleRegister() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const phone = document.getElementById('reg-phone').value;
+            const password = document.getElementById('reg-password').value;
+            if (!name || !email || !phone || !password) { showToast('يرجى ملء جميع الحقول.', 'warning'); return; }
+            if (isSupabaseConfigured) {
+                const { error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: name, phone } } });
+                if (error) { showToast(error.message, 'error'); return; }
+                showToast('تم إنشاء الحساب. تحقق من بريدك.', 'success');
+                navigateTo('login');
+            } else {
+                showToast('وضع العرض: تم إنشاء الحساب (تجريبي).', 'info');
+                navigateTo('login');
+            }
+        }
+
+        // ============================================================
+        // 5.11 REAL-TIME SUBSCRIPTIONS (Supabase)
+        // ============================================================
+        function setupRealtime() {
+            if (!isSupabaseConfigured) return;
+            supabaseClient
+                .channel('public:appointments')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'appointments' }, payload => {
+                    const newAppt = payload.new;
+                    if (!appState.appointments.find(a => a.ticket_id === newAppt.ticket_id)) {
+                        appState.appointments.push(newAppt);
+                        showToast(`موعد جديد: ${newAppt.patient_name}`, 'info');
+                        if (appState.currentView === 'dashboard') renderDashboard();
+                    }
+                })
+                .subscribe();
+        }
+
+        // ============================================================
+        // 5.12 INITIALIZATION
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize tooltips, etc.
+            console.log('WASLA Platform initialized.');
+            // Pre-load doctors for public views
+            loadDoctors();
+            // Setup real-time if configured
+            setupRealtime();
+            // Set initial view
+            navigateTo('landing');
+
+            // Update DB status indicator
+            const dbStatus = document.getElementById('db-status');
+            if (dbStatus) {
+                if (isSupabaseConfigured) {
+                    dbStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> قاعدة البيانات متصلة';
+                    dbStatus.className = 'flex items-center gap-1 text-[10px] font-bold text-emerald-600';
+                } else {
+                    dbStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> وضع العرض (بيانات محلية)';
+                    dbStatus.className = 'flex items-center gap-1 text-[10px] font-bold text-amber-600';
+                }
+            }
+        });
+
+        // Expose functions to global scope for inline onclick handlers
+        window.navigateTo = navigateTo;
+        window.toggleMobileMenu = toggleMobileMenu;
+        window.renderDoctors = renderDoctors;
+        window.debouncedRenderDoctors = debouncedRenderDoctors;
+        window.openBookingModal = openBookingModal;
+        window.confirmBooking = confirmBooking;
+        window.quickInsuranceCheck = quickInsuranceCheck;
+        window.verifyInsuranceFull = verifyInsuranceFull;
+        window.closeModal = closeModal;
+        window.dashboardTab = dashboardTab;
+        window.loadDashboardData = loadDashboardData;
+        window.renderAppointmentsTable = renderAppointmentsTable;
+        window.updateAppointmentStatus = updateAppointmentStatus;
+        window.openDoctorModal = openDoctorModal;
+        window.editDoctor = editDoctor;
+        window.deleteDoctor = deleteDoctor;
+        window.openAppointmentModal = openAppointmentModal;
+        window.saveSettings = saveSettings;
+        window.handleLogin = handleLogin;
+        window.handleRegister = handleRegister;
     </script>
 </body>
 </html>
