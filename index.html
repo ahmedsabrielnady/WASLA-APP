@@ -7,7 +7,7 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js (للرسوم البيانية) -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
@@ -21,10 +21,12 @@
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-out',
                         'fade-in-up': 'fadeInUp 0.4s ease-out',
+                        'marquee': 'marquee 20s linear infinite',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
                         fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        marquee: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(100%)' } }
                     }
                 }
             }
@@ -43,12 +45,12 @@
         
         .desktop-nav { display: none; }
         @media (min-width: 1024px) { .desktop-nav { display: flex; } }
-        .modal-overlay { background: rgba(11, 17, 32, 0.7); backdrop-filter: blur(6px); }
         
+        .modal-overlay { background: rgba(11, 17, 32, 0.7); backdrop-filter: blur(6px); }
         .status-badge { font-size: 11px; padding: 4px 10px; border-radius: 9999px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
         .status-confirmed { background: #D1FAE5; color: #065F46; }
         .status-completed { background: #DBEAFE; color: #1E40AF; }
-        
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #0A8754; border-radius: 4px; }
@@ -56,11 +58,11 @@
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <!-- TOP BAR -->
+    <!-- TOP BAR (Announcements) -->
     <div class="bg-brand-secondary text-white text-[11px] py-2 border-b border-slate-700/50 overflow-hidden relative">
         <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
             <div class="flex items-center gap-2 text-brand-primary font-bold"><i class="fa-solid fa-bullhorn animate-pulse"></i><span>إعلانات المنصة:</span></div>
-            <div class="flex-grow overflow-hidden relative mx-4"><div id="announcement-ticker" class="whitespace-nowrap flex gap-8 items-center font-bold text-slate-300"></div></div>
+            <div class="flex-grow overflow-hidden relative mx-4"><div id="announcement-ticker" class="whitespace-nowrap flex gap-8 items-center font-bold text-brand-accent"></div></div>
             <div class="flex items-center gap-3"><a href="tel:01000000000" class="hover:text-brand-primary transition"><i class="fa-solid fa-phone"></i> الدعم</a></div>
         </div>
     </div>
@@ -70,7 +72,7 @@
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3 cursor-pointer" onclick="App.navigate('landing')">
                 <div class="bg-brand-primary p-2.5 rounded-2xl text-2xl shadow-lg shadow-brand-primary/30"><i class="fa-solid fa-heart-pulse"></i></div>
-                <div><h1 class="text-2xl font-black leading-tight">وَصْلَة</h1><p class="text-[10px] text-brand-primary font-bold tracking-wider">منصة شبين القناطر</p></div>
+                <div><h1 class="text-2xl font-black leading-tight">وَصْلَة</h1><p class="text-[10px] text-brand-primary font-bold tracking-wider">شبين القناطر</p></div>
             </div>
             <nav id="desktop-nav" class="desktop-nav items-center gap-1"></nav>
             <div class="flex items-center gap-2">
@@ -115,10 +117,16 @@
                 { id: 'p1', name: 'محمود المريض', phone: '01022222222', pass: '123', role: 'patient', permissions: [] }
             ],
             doctors: [
-                { id: 'd1', name: 'د. أحمد الشريف', spec: 'باطنة وسكر', area: 'شارع بورسعيد', clinicFee: 150, homeFee: 300, slotDuration: 15, workingHours: { start: '09:00', end: '14:00' } }
+                { id: 'd1', name: 'د. أحمد الشريف', spec: 'باطنة وسكر', area: 'شارع بورسعيد', clinicFee: 150, homeFee: 300, slotDuration: 15, workingHours: { start: '09:00', end: '14:00' } },
+                { id: 'd2', name: 'د. سارة عبد الرحمن', spec: 'أطفال', area: 'الشرقية', clinicFee: 150, homeFee: 300, slotDuration: 15, workingHours: { start: '14:00', end: '20:00' } }
             ],
-            appointments: [],
-            emr: [],
+            appointments: [
+                { id: 'A1', refNum: 'WS-1001', patient: 'علي حسن', phone: '01011111111', docId: 'd1', docName: 'د. أحمد الشريف', date: '2026-10-25', time: '10:00', status: 'confirmed', amount: 150, type: 'clinic' },
+                { id: 'A2', refNum: 'WS-1002', patient: 'محمود المريض', phone: '01022222222', docId: 'd1', docName: 'د. أحمد الشريف', date: '2026-10-26', time: '11:30', status: 'completed', amount: 150, type: 'clinic' }
+            ],
+            emr: [
+                { id: 'E1', patientName: 'محمود المريض', patientPhone: '01022222222', docName: 'د. أحمد الشريف', date: '2026-10-26', type: 'روشتة طبية', notes: 'أموكسيسيلين 500 مجم - كبسولة كل 8 ساعات لمدة 5 أيام.' }
+            ],
             services: {
                 nursing: [
                     { id: 'n1', name: 'تمريض - حقن ومحاليل', desc: 'زيارة ممرض معتمد لإعطاء الحقن والمحاليل.' },
@@ -135,11 +143,11 @@
             }
         };
 
-        if (!localStorage.getItem('wasla_db_v5')) {
-            localStorage.setItem('wasla_db_v5', JSON.stringify(DB_SEED));
+        if (!localStorage.getItem('wasla_db_final')) {
+            localStorage.setItem('wasla_db_final', JSON.stringify(DB_SEED));
         }
-        const DB = JSON.parse(localStorage.getItem('wasla_db_v5'));
-        const saveDB = () => localStorage.setItem('wasla_db_v5', JSON.stringify(DB));
+        const DB = JSON.parse(localStorage.getItem('wasla_db_final'));
+        const saveDB = () => localStorage.setItem('wasla_db_final', JSON.stringify(DB));
         const sanitize = (str) => {
             const temp = document.createElement('div');
             temp.textContent = str;
@@ -149,7 +157,7 @@
         // 2. المحرك الأساسي
         window.App = {
             state: {
-                user: JSON.parse(localStorage.getItem('wasla_session_v5')) || null,
+                user: JSON.parse(localStorage.getItem('wasla_session_final')) || null,
                 currentView: 'landing'
             },
 
@@ -161,7 +169,11 @@
 
             renderAnnouncements() {
                 const ticker = document.getElementById('announcement-ticker');
-                if (ticker) ticker.innerHTML = `<span>${sanitize(DB.configs.announcementText)}</span>`;
+                if (ticker) {
+                    ticker.innerHTML = `<span class="mx-4">${sanitize(DB.configs.announcementText)}</span>`;
+                    // إضافة تأثير الحركة
+                    ticker.style.animation = 'marquee 15s linear infinite';
+                }
             },
 
             navigate(view) {
@@ -178,7 +190,6 @@
                     container.innerHTML = window.Views[view]();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     
-                    // تفعيل الرسوم البيانية لو دخلنا صفحة التحليلات
                     if (view === 'adminDashboard') {
                         setTimeout(() => this.renderCharts(), 200);
                     }
@@ -249,7 +260,7 @@
                 const user = DB.users.find(u => u.phone === phone && u.pass === pass);
                 if (user) {
                     this.state.user = user;
-                    localStorage.setItem('wasla_session_v5', JSON.stringify(user));
+                    localStorage.setItem('wasla_session_final', JSON.stringify(user));
                     this.toast('تم تسجيل الدخول بنجاح', 'success');
                     if (user.role === 'patient') this.navigate('patientPortal');
                     else if (user.role === 'doctor') this.navigate('doctorDashboard');
@@ -279,7 +290,7 @@
 
             logout() {
                 this.state.user = null;
-                localStorage.removeItem('wasla_session_v5');
+                localStorage.removeItem('wasla_session_final');
                 this.navigate('landing');
                 this.toast('تم تسجيل الخروج.', 'info');
             },
@@ -568,22 +579,101 @@
 
         // 3. الواجهات (Views)
         window.Views = {
+            // الصفحة الرئيسية المبهرة
             landing: () => `
+                <!-- Hero Section -->
                 <div class="relative bg-brand-secondary rounded-[2.5rem] p-8 sm:p-16 text-white mb-12 overflow-hidden shadow-2xl animate-fade-in">
-                    <div class="absolute inset-0 overflow-hidden"><div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-primary rounded-full blur-[100px] opacity-30 -translate-y-1/2 translate-x-1/4"></div></div>
-                    <div class="relative z-10 max-w-2xl">
-                        <span class="inline-flex items-center gap-2 bg-brand-primary/20 text-brand-primary border border-brand-primary/30 text-xs px-4 py-1.5 rounded-full font-black mb-6"><i class="fa-solid fa-star text-brand-accent"></i> منصة شبين القناطر الذكية</span>
-                        <h1 class="text-4xl sm:text-6xl font-black leading-tight mb-6">احجز موعدك مع أفضل الأطباء<br><span class="text-brand-primary">في ثواني.</span></h1>
-                        <p class="text-sm sm:text-lg text-slate-300 font-bold leading-relaxed mb-8">وفر وقتك ومجهودك. احجز في العيادة أو اطلب كشف منزلي، وتابع دورك برقم مرجعي.</p>
-                        <button onclick="App.navigate('doctors')" class="bg-brand-primary text-white px-8 py-4 rounded-2xl text-sm font-black shadow-lg shadow-brand-primary/40 hover:scale-105 transition flex items-center gap-2"><i class="fa-solid fa-calendar-check text-lg"></i> احجز موعدك الآن</button>
+                    <div class="absolute inset-0 overflow-hidden">
+                        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-primary rounded-full blur-[100px] opacity-30 -translate-y-1/2 translate-x-1/4"></div>
+                        <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-info rounded-full blur-[100px] opacity-20 translate-y-1/2 -translate-x-1/4"></div>
+                    </div>
+                    <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <div class="space-y-6">
+                            <span class="inline-flex items-center gap-2 bg-brand-primary/20 text-brand-primary border border-brand-primary/30 text-xs px-4 py-1.5 rounded-full font-black mb-6"><i class="fa-solid fa-star text-brand-accent"></i> المنصة الأولى للرعاية الصحية المتكاملة</span>
+                            <h1 class="text-4xl sm:text-6xl font-black leading-tight mb-6">احجز موعدك مع أفضل الأطباء<br><span class="text-brand-primary">في ثواني.</span></h1>
+                            <p class="text-sm sm:text-lg text-slate-300 font-bold leading-relaxed mb-8">وفر وقتك ومجهودك. احجز في العيادة أو اطلب كشف منزلي، وتابع دورك برقم مرجعي.</p>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="App.navigate('doctors')" class="bg-brand-primary text-white px-8 py-4 rounded-2xl text-sm font-black shadow-lg shadow-brand-primary/40 hover:scale-105 transition flex items-center gap-2"><i class="fa-solid fa-calendar-check text-lg"></i> احجز موعدك الآن</button>
+                                <button onclick="App.navigate('nursing')" class="bg-white/10 border border-white/20 text-white px-8 py-4 rounded-2xl text-sm font-black hover:bg-white/20 transition flex items-center gap-2"><i class="fa-solid fa-user-nurse text-lg"></i> تمريض منزلي</button>
+                            </div>
+                            <div class="flex items-center gap-6 pt-6 text-xs text-slate-400 font-bold">
+                                <span class="flex items-center gap-1"><i class="fa-solid fa-circle-check text-brand-primary"></i> +50 طبيب</span>
+                                <span class="flex items-center gap-1"><i class="fa-solid fa-circle-check text-brand-primary"></i> +10 شركات تأمين</span>
+                                <span class="flex items-center gap-1"><i class="fa-solid fa-circle-check text-brand-primary"></i> حجز فوري</span>
+                            </div>
+                        </div>
+                        <div class="hidden lg:block">
+                            <div class="glass-dark p-6 rounded-3xl border border-slate-700/50 w-full max-w-sm space-y-4 relative z-10 animate-float">
+                                <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+                                    <span class="text-sm font-bold">إحصائيات مباشرة</span>
+                                    <span class="flex items-center gap-1 text-[10px] text-emerald-400 font-bold"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Live</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-white/5 p-4 rounded-2xl border border-slate-700/50"><span class="text-[10px] text-slate-400 font-bold block mb-1">مواعيد اليوم</span><span class="text-2xl font-black text-white">124</span></div>
+                                    <div class="bg-white/5 p-4 rounded-2xl border border-slate-700/50"><span class="text-[10px] text-slate-400 font-bold block mb-1">أطباء متاحون</span><span class="text-2xl font-black text-brand-primary">38</span></div>
+                                    <div class="bg-white/5 p-4 rounded-2xl border border-slate-700/50"><span class="text-[10px] text-slate-400 font-bold block mb-1">رضا المرضى</span><span class="text-2xl font-black text-brand-accent">98%</span></div>
+                                    <div class="bg-white/5 p-4 rounded-2xl border border-slate-700/50"><span class="text-[10px] text-slate-400 font-bold block mb-1">متوسط الانتظار</span><span class="text-2xl font-black text-brand-info">12د</span></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+                <!-- Features Section -->
+                <div class="mb-16">
+                    <div class="text-center mb-10">
+                        <h2 class="text-3xl font-black text-slate-800">لماذا <span class="text-brand-primary">وصلة</span>؟</h2>
+                        <p class="text-sm text-slate-500 font-bold mt-2">مزايا مصممة لتسهيل رحلتك العلاجية</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="glass p-6 rounded-3xl border border-slate-200 hover-lift text-center space-y-3">
+                            <div class="w-16 h-16 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center mx-auto text-3xl"><i class="fa-solid fa-calendar-check"></i></div>
+                            <h3 class="font-black text-slate-800">حجز فوري وذكي</h3>
+                            <p class="text-xs text-slate-500 font-bold leading-relaxed">اختر طبيبك والوقت المناسب. نظامنا يضمن عدم التعارض ويوفر تأكيداً فورياً.</p>
+                        </div>
+                        <div class="glass p-6 rounded-3xl border border-slate-200 hover-lift text-center space-y-3">
+                            <div class="w-16 h-16 bg-blue-100 text-brand-info rounded-2xl flex items-center justify-center mx-auto text-3xl"><i class="fa-solid fa-shield-halved"></i></div>
+                            <h3 class="font-black text-slate-800">تأمين شفاف</h3>
+                            <p class="text-xs text-slate-500 font-bold leading-relaxed">اعرف نسبة تحملك قبل الحجز. ندعم كبرى شركات التأمين في مصر لتوفير تجربة شفافة.</p>
+                        </div>
+                        <div class="glass p-6 rounded-3xl border border-slate-200 hover-lift text-center space-y-3">
+                            <div class="w-16 h-16 bg-amber-100 text-brand-accent rounded-2xl flex items-center justify-center mx-auto text-3xl"><i class="fa-solid fa-file-medical"></i></div>
+                            <h3 class="font-black text-slate-800">ملف طبي EMR</h3>
+                            <p class="text-xs text-slate-500 font-bold leading-relaxed">كل فحوصاتك، روشتاتك، وتاريخك المرضي محفوظ بأمان تحت رقم سري خاص بك.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Services -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
                     <div onclick="App.navigate('doctors')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group"><div class="w-16 h-16 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-stethoscope"></i></div><h3 class="font-black text-slate-800 text-lg mb-2">عيادات وأطباء</h3><p class="text-xs text-slate-500 font-bold">احجز عيادة أو كشف منزلي.</p></div>
                     <div onclick="App.navigate('nursing')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group"><div class="w-16 h-16 bg-blue-100 text-brand-info rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-user-nurse"></i></div><h3 class="font-black text-slate-800 text-lg mb-2">تمريض منزلي</h3><p class="text-xs text-slate-500 font-bold">حقن ومحاليل ورعاية كبار السن.</p></div>
                     <div onclick="App.navigate('supplies')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group"><div class="w-16 h-16 bg-amber-100 text-brand-accent rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-wheelchair"></i></div><h3 class="font-black text-slate-800 text-lg mb-2">مستلزمات طبية</h3><p class="text-xs text-slate-500 font-bold">أجهزة حركة ومستلزمات المرضى.</p></div>
                     <div onclick="App.navigate('labs')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group"><div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-flask"></i></div><h3 class="font-black text-slate-800 text-lg mb-2">معامل وأشعة</h3><p class="text-xs text-slate-500 font-bold">تحاليل وأشعة (قريباً).</p></div>
-                </div>`,
+                </div>
+
+                <!-- Testimonials -->
+                <div class="bg-brand-primary-light rounded-3xl p-8 text-center mb-12">
+                    <h2 class="text-2xl font-black text-slate-800 mb-6">آراء مرضانا</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                            <div class="flex text-amber-500 mb-2 justify-center gap-1"><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i></div>
+                            <p class="text-sm text-slate-600 font-bold mb-3">"تجربة ممتازة، حجزت مع دكتور باطنة في دقيقة وجالي تذكير على الواتساب."</p>
+                            <div class="text-xs font-black text-brand-primary">- أحمد م.</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                            <div class="flex text-amber-500 mb-2 justify-center gap-1"><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i></div>
+                            <p class="text-sm text-slate-600 font-bold mb-3">"طلبوا لي ممرض منزلي في نفس اليوم، سرعة استجابة رائعة."</p>
+                            <div class="text-xs font-black text-brand-primary">- سارة ع.</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                            <div class="flex text-amber-500 mb-2 justify-center gap-1"><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-solid fa-star text-xs"></i><i class="fa-regular fa-star text-xs"></i></div>
+                            <p class="text-sm text-slate-600 font-bold mb-3">"فكرة الملف الطبي ممتازة، بقيت أحتفظ بكل فحوصاتي في مكان واحد."</p>
+                            <div class="text-xs font-black text-brand-primary">- خالد ف.</div>
+                        </div>
+                    </div>
+                </div>
+            `,
 
             login: () => `
                 <div class="max-w-md mx-auto glass p-8 rounded-[2rem] mt-10 border border-slate-200 shadow-2xl animate-fade-in-up">
