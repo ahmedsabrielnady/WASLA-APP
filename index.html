@@ -308,17 +308,32 @@
     window.Views = {
         // 1. الصفحة الرئيسية
         landing: () => `
-            <div class="relative bg-brand-secondary rounded-[2.5rem] p-8 sm:p-16 text-white mb-12 overflow-hidden shadow-2xl animate-fade-in">
-                <div class="absolute inset-0 overflow-hidden"><div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-primary rounded-full blur-[100px] opacity-30 -translate-y-1/2 translate-x-1/4"></div></div>
-                <div class="relative z-10 max-w-2xl">
-                    <span class="inline-flex items-center gap-2 bg-brand-primary/20 text-brand-primary border border-brand-primary/30 text-xs px-4 py-1.5 rounded-full font-black mb-6"><i class="fa-solid fa-star text-brand-accent"></i> منصة شبين القناطر الذكية</span>
-                    <h1 class="text-4xl sm:text-6xl font-black leading-tight mb-6">احجز موعدك مع أفضل الأطباء<br><span class="text-brand-primary">في ثواني.</span></h1>
-                    <p class="text-sm sm:text-lg text-slate-300 font-bold leading-relaxed mb-8">وفر وقتك ومجهودك. احجز في العيادة أو اطلب كشف منزلي، وتابع دورك برقم مرجعي.</p>
-                    <button onclick="App.navigate('doctors')" class="bg-brand-primary text-white px-8 py-4 rounded-2xl text-sm font-black shadow-lg shadow-brand-primary/40 hover:scale-105 transition flex items-center gap-2"><i class="fa-solid fa-calendar-check text-lg"></i> احجز موعدك الآن</button>
-                </div>
-            </div>
-        `,
-
+    <div class="relative bg-brand-secondary rounded-[2.5rem] p-8 sm:p-16 text-white mb-12 overflow-hidden shadow-2xl animate-fade-in">
+        <div class="absolute inset-0 overflow-hidden"><div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-primary rounded-full blur-[100px] opacity-30 -translate-y-1/2 translate-x-1/4"></div></div>
+        <div class="relative z-10 max-w-2xl">
+            <span class="inline-flex items-center gap-2 bg-brand-primary/20 text-brand-primary border border-brand-primary/30 text-xs px-4 py-1.5 rounded-full font-black mb-6"><i class="fa-solid fa-star text-brand-accent"></i> منصة شبين القناطر الذكية</span>
+            <h1 class="text-4xl sm:text-6xl font-black leading-tight mb-6">احجز موعدك مع أفضل الأطباء<br><span class="text-brand-primary">في ثواني.</span></h1>
+            <p class="text-sm sm:text-lg text-slate-300 font-bold leading-relaxed mb-8">وفر وقتك ومجهودك. احجز في العيادة أو اطلب كشف منزلي، وتابع دورك برقم مرجعي.</p>
+            <button onclick="App.navigate('doctors')" class="bg-brand-primary text-white px-8 py-4 rounded-2xl text-sm font-black shadow-lg shadow-brand-primary/40 hover:scale-105 transition flex items-center gap-2"><i class="fa-solid fa-calendar-check text-lg"></i> احجز موعدك الآن</button>
+        </div>
+    </div>
+    
+    <!-- الكروت الناقصة اللي كانت بتعمل الفراغ -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div onclick="App.navigate('doctors')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group">
+            <div class="w-16 h-16 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-stethoscope"></i></div>
+            <h3 class="font-black text-slate-800 text-lg mb-2">عيادات وأطباء</h3><p class="text-xs text-slate-500 font-bold">كشف عيادة أو كشف منزلي.</p>
+        </div>
+        <div onclick="App.navigate('services')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group">
+            <div class="w-16 h-16 bg-blue-100 text-brand-info rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-user-nurse"></i></div>
+            <h3 class="font-black text-slate-800 text-lg mb-2">تمريض منزلي</h3><p class="text-xs text-slate-500 font-bold">حقن ومحاليل ورعاية كبار السن.</p>
+        </div>
+        <div onclick="App.navigate('services')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group">
+            <div class="w-16 h-16 bg-amber-100 text-brand-accent rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-pills"></i></div>
+            <h3 class="font-black text-slate-800 text-lg mb-2">مستلزمات وأجهزة</h3><p class="text-xs text-slate-500 font-bold">كراسي متحركة، عكاز، ومراتب طبية.</p>
+        </div>
+    </div>
+`,
         // 2. تسجيل الدخول
         login: () => `
             <div class="max-w-md mx-auto glass p-8 rounded-[2rem] mt-10 border border-slate-200 shadow-2xl animate-fade-in-up">
