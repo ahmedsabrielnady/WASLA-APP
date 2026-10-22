@@ -17,12 +17,10 @@
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-out',
                         'fade-in-up': 'fadeInUp 0.4s ease-out',
-                        'marquee': 'marquee 25s linear infinite',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
                         fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-                        marquee: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(100%)' } }
                     }
                 }
             }
@@ -41,7 +39,7 @@
         
         .desktop-nav { display: none; }
         @media (min-width: 1024px) { .desktop-nav { display: flex; } }
-
+        
         .modal-overlay { background: rgba(11, 17, 32, 0.7); backdrop-filter: blur(6px); }
         
         .status-badge { font-size: 11px; padding: 4px 10px; border-radius: 9999px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
@@ -49,7 +47,6 @@
         .status-completed { background: #DBEAFE; color: #1E40AF; }
         .status-cancelled { background: #FEE2E2; color: #991B1B; }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #0A8754; border-radius: 4px; }
@@ -57,52 +54,29 @@
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <!-- TOP BAR (Announcements & Ticker) -->
+    <!-- TOP BAR -->
     <div class="bg-brand-secondary text-white text-[11px] py-2 border-b border-slate-700/50 overflow-hidden relative">
         <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
-            <div class="flex items-center gap-2 text-brand-primary font-bold">
-                <i class="fa-solid fa-bullhorn animate-pulse"></i>
-                <span>إعلانات المنصة:</span>
-            </div>
-            <div class="flex-grow overflow-hidden relative mx-4">
-                <div id="announcement-ticker" class="whitespace-nowrap flex gap-8 items-center font-bold text-slate-300">
-                    <!-- Populated via JS -->
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <a href="tel:01000000000" class="hover:text-brand-primary transition"><i class="fa-solid fa-phone"></i> الدعم</a>
-            </div>
+            <div class="flex items-center gap-2 text-brand-primary font-bold"><i class="fa-solid fa-bullhorn animate-pulse"></i><span>إعلانات المنصة:</span></div>
+            <div class="flex-grow overflow-hidden relative mx-4"><div id="announcement-ticker" class="whitespace-nowrap flex gap-8 items-center font-bold text-slate-300"></div></div>
+            <div class="flex items-center gap-3"><a href="tel:01000000000" class="hover:text-brand-primary transition"><i class="fa-solid fa-phone"></i> الدعم</a></div>
         </div>
     </div>
 
-    <!-- MAIN HEADER -->
+    <!-- HEADER -->
     <header id="main-header" class="glass-dark text-white sticky top-0 z-50 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3 cursor-pointer" onclick="App.navigate('landing')">
-                <div class="bg-brand-primary p-2.5 rounded-2xl text-2xl shadow-lg shadow-brand-primary/30">
-                    <i class="fa-solid fa-heart-pulse"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-black leading-tight">وَصْلَة</h1>
-                    <p class="text-[10px] text-brand-primary font-bold tracking-wider">منصة شبين القناطر</p>
-                </div>
+                <div class="bg-brand-primary p-2.5 rounded-2xl text-2xl shadow-lg shadow-brand-primary/30"><i class="fa-solid fa-heart-pulse"></i></div>
+                <div><h1 class="text-2xl font-black leading-tight">وَصْلَة</h1><p class="text-[10px] text-brand-primary font-bold tracking-wider">منصة شبين القناطر</p></div>
             </div>
-
             <nav id="desktop-nav" class="desktop-nav items-center gap-1"></nav>
-
             <div class="flex items-center gap-2">
-                <button onclick="App.navigate('login')" id="btn-login" class="flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white px-3 py-2 rounded-lg transition">
-                    <i class="fa-regular fa-user"></i> دخول
-                </button>
-                <button onclick="App.logout()" id="btn-logout" class="hidden bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-700 transition shadow-lg flex items-center gap-1.5">
-                    <i class="fa-solid fa-power-off"></i> خروج
-                </button>
-                <button onclick="App.toggleMobileMenu()" class="lg:hidden text-white p-2">
-                    <i class="fa-solid fa-bars text-2xl"></i>
-                </button>
+                <button onclick="App.navigate('login')" id="btn-login" class="flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white px-3 py-2 rounded-lg transition"><i class="fa-regular fa-user"></i> دخول</button>
+                <button onclick="App.logout()" id="btn-logout" class="hidden bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-700 transition shadow-lg flex items-center gap-1.5"><i class="fa-solid fa-power-off"></i> خروج</button>
+                <button onclick="App.toggleMobileMenu()" class="lg:hidden text-white p-2"><i class="fa-solid fa-bars text-2xl"></i></button>
             </div>
         </div>
-
         <div id="mobile-menu" class="hidden lg:hidden bg-brand-secondary border-t border-slate-700 p-4 space-y-2 absolute w-full shadow-2xl"></div>
     </header>
 
@@ -112,9 +86,7 @@
     <!-- MODAL CONTAINER -->
     <div id="modal-container" class="fixed inset-0 modal-overlay z-[300] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto relative animate-fade-in-up shadow-2xl">
-            <button onclick="App.closeModal()" class="absolute top-5 left-5 text-slate-400 hover:text-red-500 z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md transition">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
+            <button onclick="App.closeModal()" class="absolute top-5 left-5 text-slate-400 hover:text-red-500 z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md transition"><i class="fa-solid fa-xmark text-xl"></i></button>
             <div id="modal-content" class="p-6 sm:p-8"></div>
         </div>
     </div>
@@ -129,76 +101,52 @@
     </footer>
 
     <!-- =========================================
-         JAVASCRIPT: DATABASE & CORE SETUP (PART 1)
+         JAVASCRIPT: THE FULL ENGINE
     ========================================= -->
     <script>
-        // 1. قاعدة البيانات الشاملة (Realistic & Configurable)
+        // 1. قاعدة البيانات
         const DB_SEED = {
-            configs: {
-                platformName: "وصلة",
-                supportPhone: "01000000000",
-                defaultSlotDuration: 15, // بالدقائق
-                announcementText: "أهلاً بكم في منصة وصلة | نرحب بالدكتور محمد فؤاد (استشاري العظام) | تم إضافة خدمة الأشعة قريباً"
-            },
+            configs: { announcementText: "أهلاً بكم في منصة وصلة | نرحب بالدكتور محمد فؤاد (استشاري العظام) | تم إضافة خدمة الأشعة قريباً" },
             users: [
-                // Admin (المؤسس)
-                { id: 'u1', name: 'المؤسس', phone: '01000000000', pass: '123', role: 'admin', permissions: ['all'] },
-                // Doctor
-                { id: 'd1', name: 'د. أحمد الشريف', phone: '01011111111', pass: '123', role: 'doctor', permissions: ['view_own_appts', 'manage_own_schedule', 'add_emr'] },
-                // Patient
-                { id: 'p1', name: 'محمود علي', phone: '01022222222', pass: '123', role: 'patient', permissions: ['view_own_profile', 'book_appt'] },
-                // Staff (موظف)
-                { id: 'st1', name: 'سارة (منسقة)', phone: '01033333333', pass: '123', role: 'staff', permissions: ['view_all_appts', 'book_for_patient'] }
+                { id: 'u_admin', name: 'المؤسس', phone: '01000000000', pass: '123', role: 'admin', permissions: ['all'] },
+                { id: 'd1', name: 'د. أحمد الشريف', phone: '01011111111', pass: '123', role: 'doctor', permissions: [] }
             ],
             doctors: [
-                { 
-                    id: 'd1', name: 'د. أحمد الشريف', spec: 'باطنة وسكر', area: 'شارع بورسعيد', ins: 'GlobeMed', 
-                    clinicFee: 150, homeFee: 300, slotDuration: 15, 
-                    workingHours: { start: '09:00', end: '14:00' } 
-                }
+                { id: 'd1', name: 'د. أحمد الشريف', spec: 'باطنة وسكر', area: 'شارع بورسعيد', clinicFee: 150, homeFee: 300, slotDuration: 15, workingHours: { start: '09:00', end: '14:00' } }
             ],
             appointments: [],
             emr: [],
             services: {
                 nursing: [
-                    { id: 'n1', name: 'تمريض - حقن ومحاليل', pricingType: 'flexible', price: 0, desc: 'السعر حسب الاتفاق وعدد الزيارات' },
-                    { id: 'n2', name: 'رعاية كبار السن', pricingType: 'flexible', price: 0, desc: 'يتم تحديد السعر بناءً على عدد الساعات' }
+                    { id: 'n1', name: 'تمريض - حقن ومحاليل', desc: 'زيارة ممرض معتمد لإعطاء الحقن والمحاليل.' },
+                    { id: 'n2', name: 'رعاية كبار السن', desc: 'رعاية شاملة لكبار السن في المنزل.' }
                 ],
                 labs: [
-                    { id: 'l1', name: 'تحاليل دم عامة', status: 'coming_soon' },
-                    { id: 'l2', name: 'وظائف كبد وكلى', status: 'coming_soon' }
-                ],
-                radiology: [
-                    { id: 'r1', name: 'أشعة سينية (X-Ray)', status: 'coming_soon' },
-                    { id: 'r2', name: 'أشعة مقطعية (CT Scan)', status: 'coming_soon' }
+                    { id: 'l1', name: 'تحاليل دم عامة' },
+                    { id: 'l2', name: 'وظائف كبد وكلى' }
                 ],
                 supplies: [
                     { id: 's1', name: 'كرسي متحرك', category: 'أجهزة حركة', price: 1500, desc: 'كرسي متحرك قابل للطي' },
-                    { id: 's2', name: 'عكاز طبي', category: 'أجهزة حركة', price: 200, desc: 'عكاز ألومنيوم قابل للتعديل' },
-                    { id: 's3', name: 'مرتبة هوائية', category: 'عناية بالمريض', price: 350, desc: 'مرتبة هوائية لمنع قرح الفراش' },
-                    { id: 's4', name: 'رقبة طبية (Collar)', category: 'دعامات', price: 150, desc: 'دعامة رقبة طبية' }
+                    { id: 's2', name: 'عكاز طبي', category: 'أجهزة حركة', price: 200, desc: 'عكاز ألومنيوم قابل للتعديل' }
                 ]
             }
         };
 
-        // تهيئة قاعدة البيانات (LocalStorage)
-        if (!localStorage.getItem('wasla_db')) {
-            localStorage.setItem('wasla_db', JSON.stringify(DB_SEED));
+        if (!localStorage.getItem('wasla_db_v4')) {
+            localStorage.setItem('wasla_db_v4', JSON.stringify(DB_SEED));
         }
-        const DB = JSON.parse(localStorage.getItem('wasla_db'));
-        
-        // دوال مساعدة
-        const saveDB = () => localStorage.setItem('wasla_db', JSON.stringify(DB));
+        const DB = JSON.parse(localStorage.getItem('wasla_db_v4'));
+        const saveDB = () => localStorage.setItem('wasla_db_v4', JSON.stringify(DB));
         const sanitize = (str) => {
             const temp = document.createElement('div');
             temp.textContent = str;
             return temp.innerHTML;
         };
 
-        // 2. محرك التطبيق الأساسي (App Core)
+        // 2. المحرك الأساسي
         window.App = {
             state: {
-                user: JSON.parse(localStorage.getItem('wasla_session')) || null,
+                user: JSON.parse(localStorage.getItem('wasla_session_v4')) || null,
                 currentView: 'landing'
             },
 
@@ -210,21 +158,15 @@
 
             renderAnnouncements() {
                 const ticker = document.getElementById('announcement-ticker');
-                if (ticker) {
-                    ticker.innerHTML = `<span>${sanitize(DB.configs.announcementText)}</span>`;
-                }
+                if (ticker) ticker.innerHTML = `<span>${sanitize(DB.configs.announcementText)}</span>`;
             },
 
             navigate(view) {
                 this.state.currentView = view;
                 const container = document.getElementById('app-container');
                 
-                // حماية المسارات (Role-Based Access Control)
-                if (['patientPortal', 'doctorDashboard', 'adminDashboard', 'staffDashboard'].includes(view)) {
-                    if (!this.state.user) {
-                        this.toast('يجب تسجيل الدخول أولاً.', 'warning');
-                        return this.navigate('login');
-                    }
+                if (['patientPortal', 'doctorDashboard', 'adminDashboard'].includes(view)) {
+                    if (!this.state.user) return this.navigate('login');
                     if (view === 'adminDashboard' && this.state.user.role !== 'admin') return this.navigate('landing');
                     if (view === 'doctorDashboard' && this.state.user.role !== 'doctor') return this.navigate('landing');
                 }
@@ -233,7 +175,7 @@
                     container.innerHTML = window.Views[view]();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {
-                    container.innerHTML = window.Views.landing();
+                    container.innerHTML = `<div class="text-center py-20 animate-fade-in"><h2 class="text-2xl font-black text-slate-800">قيد التطوير</h2></div>`;
                 }
                 this.updateHeader();
             },
@@ -245,46 +187,43 @@
                 const btnLogin = document.getElementById('btn-login');
                 const btnLogout = document.getElementById('btn-logout');
 
+                let commonLinks = `
+                    <button onclick="App.navigate('landing')" class="px-3 py-2 text-xs font-bold text-slate-300 hover:text-white transition">الرئيسية</button>
+                    <button onclick="App.navigate('doctors')" class="px-3 py-2 text-xs font-bold text-slate-300 hover:text-white transition">الأطباء</button>
+                    <button onclick="App.navigate('nursing')" class="px-3 py-2 text-xs font-bold text-slate-300 hover:text-white transition">التمريض</button>
+                    <button onclick="App.navigate('supplies')" class="px-3 py-2 text-xs font-bold text-slate-300 hover:text-white transition">المستلزمات</button>
+                    <button onclick="App.navigate('labs')" class="px-3 py-2 text-xs font-bold text-slate-300 hover:text-white transition">المعامل</button>
+                `;
+
+                let mobileCommon = `
+                    <button onclick="App.navigate('landing'); App.toggleMobileMenu()" class="block w-full text-right p-2 text-slate-300 font-bold">الرئيسية</button>
+                    <button onclick="App.navigate('doctors'); App.toggleMobileMenu()" class="block w-full text-right p-2 text-slate-300 font-bold">الأطباء</button>
+                    <button onclick="App.navigate('nursing'); App.toggleMobileMenu()" class="block w-full text-right p-2 text-slate-300 font-bold">التمريض</button>
+                    <button onclick="App.navigate('supplies'); App.toggleMobileMenu()" class="block w-full text-right p-2 text-slate-300 font-bold">المستلزمات</button>
+                    <button onclick="App.navigate('labs'); App.toggleMobileMenu()" class="block w-full text-right p-2 text-slate-300 font-bold">المعامل</button>
+                `;
+
                 if (u) {
                     btnLogin.classList.add('hidden');
                     btnLogout.classList.remove('hidden');
-                    
                     let dashLink = '';
-                    if (u.role === 'patient') dashLink = `<button onclick="App.navigate('patientPortal')" class="px-3 py-2 text-xs font-bold text-brand-primary hover:text-white">ملفي</button>`;
-                    if (u.role === 'doctor') dashLink = `<button onclick="App.navigate('doctorDashboard')" class="px-3 py-2 text-xs font-bold text-brand-primary hover:text-white">لوحة الطبيب</button>`;
-                    if (u.role === 'admin') dashLink = `<button onclick="App.navigate('adminDashboard')" class="px-3 py-2 text-xs font-bold text-brand-accent hover:text-white">الإدارة</button>`;
-                    if (u.role === 'staff') dashLink = `<button onclick="App.navigate('staffDashboard')" class="px-3 py-2 text-xs font-bold text-brand-info hover:text-white">لوحة الموظف</button>`;
+                    let mobileDash = '';
+                    if (u.role === 'patient') { dashLink = `<button onclick="App.navigate('patientPortal')" class="px-3 py-2 text-xs font-bold text-brand-primary hover:text-white">ملفي</button>`; mobileDash = `<button onclick="App.navigate('patientPortal'); App.toggleMobileMenu()" class="block w-full text-right p-2 text-brand-primary font-bold">ملفي الطبي</button>`; }
+                    if (u.role === 'doctor') { dashLink = `<button onclick="App.navigate('doctorDashboard')" class="px-3 py-2 text-xs font-bold text-brand-primary hover:text-white">لوحة الطبيب</button>`; mobileDash = `<button onclick="App.navigate('doctorDashboard'); App.toggleMobileMenu()" class="block w-full text-right p-2 text-brand-primary font-bold">لوحة الطبيب</button>`; }
+                    if (u.role === 'admin') { dashLink = `<button onclick="App.navigate('adminDashboard')" class="px-3 py-2 text-xs font-bold text-brand-accent hover:text-white">الإدارة</button>`; mobileDash = `<button onclick="App.navigate('adminDashboard'); App.toggleMobileMenu()" class="block w-full text-right p-2 text-brand-accent font-bold">لوحة المؤسس</button>`; }
 
-                    nav.innerHTML = `<button onclick="App.navigate('landing')" class="px-3 py-2 text-xs font-bold text-slate-300 hover:text-white">الرئيسية</button>${dashLink}`;
-                    mobileNav.innerHTML = `
-                        <button onclick="App.navigate('landing'); App.toggleMobileMenu()" class="block w-full text-right p-2 text-slate-300 font-bold">الرئيسية</button>
-                        <div class="border-t border-slate-700 my-2"></div>
-                        ${dashLink.replace(/px-3 py-2 text-xs/g, 'block w-full text-right p-2 text-sm')}
-                        <button onclick="App.logout(); App.toggleMobileMenu()" class="block w-full text-right p-2 text-red-400 font-bold mt-2">تسجيل خروج</button>
-                    `;
+                    nav.innerHTML = commonLinks + dashLink;
+                    mobileNav.innerHTML = `${mobileCommon}<div class="border-t border-slate-700 my-2"></div>${mobileDash}<button onclick="App.logout(); App.toggleMobileMenu()" class="block w-full text-right p-2 text-red-400 font-bold mt-2">تسجيل خروج</button>`;
                 } else {
                     btnLogin.classList.remove('hidden');
                     btnLogout.classList.add('hidden');
-                    nav.innerHTML = `
-                        <button onclick="App.navigate('landing')" class="px-3 py-2 text-xs font-bold text-slate-300 hover:text-white">الرئيسية</button>
-                        <button onclick="App.navigate('doctors')" class="px-3 py-2 text-xs font-bold text-slate-300 hover:text-white">الأطباء</button>
-                        <button onclick="App.navigate('services')" class="px-3 py-2 text-xs font-bold text-slate-300 hover:text-white">الخدمات</button>
-                    `;
-                    mobileNav.innerHTML = `
-                        <button onclick="App.navigate('landing'); App.toggleMobileMenu()" class="block w-full text-right p-2 text-slate-300 font-bold">الرئيسية</button>
-                        <button onclick="App.navigate('doctors'); App.toggleMobileMenu()" class="block w-full text-right p-2 text-slate-300 font-bold">الأطباء</button>
-                        <button onclick="App.navigate('services'); App.toggleMobileMenu()" class="block w-full text-right p-2 text-slate-300 font-bold">الخدمات</button>
-                    `;
+                    nav.innerHTML = commonLinks;
+                    mobileNav.innerHTML = `${mobileCommon}<div class="border-t border-slate-700 my-2"></div><button onclick="App.navigate('login'); App.toggleMobileMenu()" class="block w-full text-right p-2 text-brand-primary font-bold">تسجيل الدخول</button>`;
                 }
             },
 
-            toggleMobileMenu() {
-                document.getElementById('mobile-menu').classList.toggle('hidden');
-            },
-
-            closeModal() {
-                document.getElementById('modal-container').classList.add('hidden');
-            },
+            toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); },
+            closeModal() { document.getElementById('modal-container').classList.add('hidden'); },
 
             toast(msg, type = 'info') {
                 const colors = { success: 'bg-emerald-600', info: 'bg-brand-primary', warning: 'bg-amber-600', error: 'bg-red-600' };
@@ -293,966 +232,403 @@
                 el.innerText = msg;
                 document.getElementById('toast-container').appendChild(el);
                 setTimeout(() => el.remove(), 3000);
+            },
+
+            handleLogin(e) {
+                e.preventDefault();
+                const phone = document.getElementById('login-phone').value;
+                const pass = document.getElementById('login-pass').value;
+                const user = DB.users.find(u => u.phone === phone && u.pass === pass);
+                if (user) {
+                    this.state.user = user;
+                    localStorage.setItem('wasla_session_v4', JSON.stringify(user));
+                    this.toast('تم تسجيل الدخول بنجاح', 'success');
+                    if (user.role === 'patient') this.navigate('patientPortal');
+                    else if (user.role === 'doctor') this.navigate('doctorDashboard');
+                    else if (user.role === 'admin') this.navigate('adminDashboard');
+                } else {
+                    this.toast('رقم الهاتف أو كلمة المرور غير صحيحة', 'error');
+                }
+            },
+
+            handleRegister(e) {
+                e.preventDefault();
+                const name = document.getElementById('reg-name').value;
+                const phone = document.getElementById('reg-phone').value;
+                const pass = document.getElementById('reg-pass').value;
+                const role = document.getElementById('reg-role').value;
+
+                if (DB.users.find(u => u.phone === phone)) return this.toast('رقم الهاتف مسجل بالفعل', 'warning');
+
+                const newUser = { id: 'u' + Date.now(), name: sanitize(name), phone: sanitize(phone), pass, role, permissions: [] };
+                DB.users.push(newUser);
+                if (role === 'doctor') DB.doctors.push({ id: newUser.id, name: sanitize(name), spec: 'تخصص عام', area: 'شبين القناطر', clinicFee: 100, homeFee: 200, slotDuration: 15, workingHours: { start: '09:00', end: '17:00' } });
+                
+                saveDB();
+                this.toast('تم إنشاء الحساب بنجاح! يمكنك الدخول الآن.', 'success');
+                this.navigate('login');
+            },
+
+            logout() {
+                this.state.user = null;
+                localStorage.removeItem('wasla_session_v4');
+                this.navigate('landing');
+                this.toast('تم تسجيل الخروج.', 'info');
+            },
+
+            // --- Booking & Doctors ---
+            renderDoctors() {
+                const grid = document.getElementById('doctors-grid');
+                if (!grid) return;
+                const query = document.getElementById('search-name')?.value.toLowerCase() || '';
+                const specFilter = document.getElementById('filter-spec')?.value || '';
+                const areaFilter = document.getElementById('filter-area')?.value || '';
+
+                const filtered = DB.doctors.filter(d => {
+                    const matchName = d.name.toLowerCase().includes(query) || d.spec.toLowerCase().includes(query);
+                    return matchName && (specFilter === '' || d.spec === specFilter) && (areaFilter === '' || d.area === areaFilter);
+                });
+
+                if (filtered.length === 0) {
+                    grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500 font-bold">لا يوجد أطباء مطابقون لبحثك.</div>`;
+                    return;
+                }
+
+                grid.innerHTML = filtered.map(d => `
+                    <div class="glass rounded-3xl p-6 border border-slate-200 hover-lift">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center text-3xl"><i class="fa-solid fa-user-doctor"></i></div>
+                                <div><h3 class="font-black text-slate-800 text-lg">${sanitize(d.name)}</h3><p class="text-xs text-brand-primary font-bold mt-0.5">${sanitize(d.spec)}</p></div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-3 mb-4 space-y-2 border border-slate-100">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-600"><i class="fa-solid fa-location-dot text-brand-primary w-4"></i> ${sanitize(d.area)}</div>
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-600"><i class="fa-solid fa-clock text-brand-info w-4"></i> مدة الكشف: ${d.slotDuration} دقيقة</div>
+                        </div>
+                        <div class="flex justify-between items-center pt-4 border-t border-slate-100">
+                            <div><span class="text-[10px] text-slate-400 font-bold block">عيادة: ${d.clinicFee} ج.م</span><span class="text-brand-info font-black text-xs">منزلي: ${d.homeFee} ج.م</span></div>
+                            <button onclick="App.openBookingModal('${d.id}')" class="bg-brand-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-primary-dark transition shadow-md">حجز</button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            openBookingModal(docId) {
+                const doc = DB.doctors.find(d => d.id === docId);
+                if (!doc) return;
+                const html = `
+                    <div class="text-center mb-6"><div class="w-20 h-20 bg-brand-primary-light text-brand-primary rounded-full flex items-center justify-center mx-auto text-4xl mb-3"><i class="fa-solid fa-user-doctor"></i></div><h2 class="text-2xl font-black text-slate-800">حجز مع ${doc.name}</h2></div>
+                    <form onsubmit="event.preventDefault(); App.confirmBooking(event, '${doc.id}')" class="space-y-4">
+                        <div class="bg-slate-50 p-3 rounded-xl border">
+                            <label class="block text-xs font-bold text-slate-700 mb-2">نوع الكشف</label>
+                            <div class="flex gap-2">
+                                <label class="flex-1 cursor-pointer"><input type="radio" name="bk-type" value="clinic" class="peer sr-only" required checked onchange="document.getElementById('price-label').innerText='${doc.clinicFee}'"><div class="text-center py-2 border rounded-xl text-sm font-bold peer-checked:bg-brand-primary peer-checked:text-white">عيادة (${doc.clinicFee} ج.م)</div></label>
+                                <label class="flex-1 cursor-pointer"><input type="radio" name="bk-type" value="home" class="peer sr-only" required onchange="document.getElementById('price-label').innerText='${doc.homeFee}'"><div class="text-center py-2 border rounded-xl text-sm font-bold peer-checked:bg-brand-info peer-checked:text-white">كشف منزلي (${doc.homeFee} ج.م)</div></label>
+                            </div>
+                        </div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-2">التاريخ</label><input type="date" id="bk-date" required class="w-full p-3 border border-slate-300 rounded-xl font-bold text-sm" min="${new Date().toISOString().split('T')[0]}" onchange="App.updateSlots('${doc.id}', this.value)"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-2">الوقت المتاح</label><select id="bk-time" required class="w-full p-3 border border-slate-300 rounded-xl font-bold text-sm"><option value="">اختر التاريخ أولاً</option></select></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-2">اسم المريض</label><input type="text" id="bk-name" required class="w-full p-3 border border-slate-300 rounded-xl font-bold text-sm" value="${this.state.user ? this.state.user.name : ''}"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-2">رقم الهاتف</label><input type="tel" id="bk-phone" required class="w-full p-3 border border-slate-300 rounded-xl font-bold text-sm" value="${this.state.user ? this.state.user.phone : ''}"></div>
+                        <button type="submit" class="w-full bg-brand-primary text-white py-4 rounded-xl font-black text-base shadow-lg mt-2">تأكيد الحجز (<span id="price-label">${doc.clinicFee}</span> ج.م)</button>
+                    </form>`;
+                document.getElementById('modal-content').innerHTML = html;
+                document.getElementById('modal-container').classList.remove('hidden');
+            },
+
+            updateSlots(docId, date) {
+                const doc = DB.doctors.find(d => d.id === docId);
+                const select = document.getElementById('bk-time');
+                const [startH, startM] = doc.workingHours.start.split(':').map(Number);
+                const [endH, endM] = doc.workingHours.end.split(':').map(Number);
+                let currentMin = startH * 60 + startM;
+                const endMin = endH * 60 + endM;
+                const slots = [];
+                const bookedAppts = DB.appointments.filter(a => a.docId === docId && a.date === date && a.status !== 'cancelled');
+
+                while (currentMin < endMin) {
+                    const h = Math.floor(currentMin / 60).toString().padStart(2, '0');
+                    const m = (currentMin % 60).toString().padStart(2, '0');
+                    const timeStr = `${h}:${m}`;
+                    if (!bookedAppts.some(a => a.time === timeStr)) slots.push(timeStr);
+                    currentMin += doc.slotDuration;
+                }
+                select.innerHTML = slots.length > 0 ? slots.map(s => `<option value="${s}">${s}</option>`).join('') : `<option value="">لا توجد أوقات متاحة</option>`;
+            },
+
+            confirmBooking(e, docId) {
+                const doc = DB.doctors.find(d => d.id === docId);
+                const type = document.querySelector('input[name="bk-type"]:checked').value;
+                const name = document.getElementById('bk-name').value;
+                const date = document.getElementById('bk-date').value;
+                const time = document.getElementById('bk-time').value;
+                const phone = document.getElementById('bk-phone').value;
+                if (!time) return this.toast('يرجى اختيار وقت متاح أولاً', 'warning');
+
+                const amount = type === 'home' ? doc.homeFee : doc.clinicFee;
+                const refNum = 'WS-' + Math.floor(1000 + Math.random() * 9000);
+                DB.appointments.push({ id: 'A' + Date.now(), refNum, patient: sanitize(name), phone: sanitize(phone), docId: doc.id, docName: doc.name, date, time, status: 'confirmed', amount, type });
+                saveDB();
+                
+                document.getElementById('modal-container').classList.add('hidden');
+                this.toast(`تم تأكيد الحجز! رقمك المرجعي: ${refNum}`, 'success');
+                if (this.state.user) this.navigate('patientPortal'); else this.navigate('landing');
+                
+                window.open(`https://wa.me/201000000000?text=${encodeURIComponent(`*تذكرة حجز - وصلة*\nالرقم: ${refNum}\nالطبيب: ${doc.name}\nالمريض: ${name}\nالتاريخ: ${date} - ${time}`)}`, '_blank');
+            },
+
+            // --- EMR & Doctor ---
+            openEMRModal(patientName, patientPhone) {
+                document.getElementById('modal-content').innerHTML = window.Views.doctorEMR(patientName, patientPhone);
+                document.getElementById('modal-container').classList.remove('hidden');
+            },
+
+            saveEMR(e, patientName, patientPhone) {
+                const type = document.getElementById('emr-type').value;
+                const notes = document.getElementById('emr-notes').value;
+                DB.emr.push({ id: 'E' + Date.now(), patientName, patientPhone, docName: this.state.user.name, date: new Date().toISOString().split('T')[0], type, notes: sanitize(notes) });
+                saveDB();
+                this.toast('تم حفظ السجل الطبي بنجاح!', 'success');
+                this.closeModal();
+            },
+
+            completeAppointment(id) {
+                const appt = DB.appointments.find(a => a.id === id);
+                if (appt) { appt.status = 'completed'; saveDB(); this.toast('تم إنهاء الكشف بنجاح!', 'success'); this.navigate('doctorDashboard'); }
+            },
+
+            // --- Admin ---
+            adminTab(tab) {
+                document.querySelectorAll('.admin-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.admin-tab').forEach(el => { el.classList.remove('bg-brand-primary', 'text-white'); el.classList.add('bg-white', 'border', 'text-slate-700'); });
+                document.getElementById(`admin-content-${tab}`).classList.remove('hidden');
+                const activeBtn = document.getElementById(`tab-${tab}`);
+                activeBtn.classList.remove('bg-white', 'border', 'text-slate-700');
+                activeBtn.classList.add('bg-brand-primary', 'text-white');
+            },
+
+            updateAnnouncement() {
+                DB.configs.announcementText = sanitize(document.getElementById('admin-announcement').value);
+                saveDB(); this.renderAnnouncements(); this.toast('تم تحديث الإعلان بنجاح!', 'success');
+            },
+
+            editDoctorSchedule(docId) {
+                const doc = DB.doctors.find(d => d.id === docId);
+                if(!doc) return;
+                document.getElementById('modal-content').innerHTML = `
+                    <h3 class="text-xl font-black mb-4">تعديل إعدادات: ${doc.name}</h3>
+                    <form onsubmit="event.preventDefault(); App.saveDoctorSettings(event, '${docId}')" class="space-y-4">
+                        <div><label class="block text-xs font-bold mb-1">سعر العيادة (ج.م)</label><input type="number" id="edit-fee" value="${doc.clinicFee}" required class="w-full p-2.5 border rounded-xl font-bold"></div>
+                        <div><label class="block text-xs font-bold mb-1">سعر الكشف المنزلي (ج.م)</label><input type="number" id="edit-home-fee" value="${doc.homeFee}" required class="w-full p-2.5 border rounded-xl font-bold"></div>
+                        <div><label class="block text-xs font-bold mb-1">مدة الكشف للدكتور</label><select id="edit-duration" class="w-full p-2.5 border rounded-xl font-bold"><option value="10" ${doc.slotDuration === 10 ? 'selected' : ''}>10 دقائق</option><option value="15" ${doc.slotDuration === 15 ? 'selected' : ''}>15 دقيقة</option><option value="20" ${doc.slotDuration === 20 ? 'selected' : ''}>20 دقيقة</option><option value="30" ${doc.slotDuration === 30 ? 'selected' : ''}>30 دقيقة</option></select></div>
+                        <div class="flex gap-2">
+                            <div class="flex-1"><label class="block text-xs font-bold mb-1">بداية العمل</label><input type="time" id="edit-start" value="${doc.workingHours.start}" class="w-full p-2.5 border rounded-xl font-bold"></div>
+                            <div class="flex-1"><label class="block text-xs font-bold mb-1">نهاية العمل</label><input type="time" id="edit-end" value="${doc.workingHours.end}" class="w-full p-2.5 border rounded-xl font-bold"></div>
+                        </div>
+                        <button type="submit" class="w-full bg-brand-primary text-white py-3 rounded-xl font-bold mt-2">حفظ التعديلات</button>
+                    </form>`;
+                document.getElementById('modal-container').classList.remove('hidden');
+            },
+
+            saveDoctorSettings(e, docId) {
+                const doc = DB.doctors.find(d => d.id === docId);
+                doc.clinicFee = Number(document.getElementById('edit-fee').value);
+                doc.homeFee = Number(document.getElementById('edit-home-fee').value);
+                doc.slotDuration = Number(document.getElementById('edit-duration').value);
+                doc.workingHours.start = document.getElementById('edit-start').value;
+                doc.workingHours.end = document.getElementById('edit-end').value;
+                saveDB(); this.closeModal(); this.navigate('adminDashboard'); this.adminTab('doctors');
+                this.toast('تم حفظ إعدادات الطبيب بنجاح!', 'success');
+            },
+
+            adminAddNursing() {
+                const name = prompt("اسم خدمة التمريض:"); if(!name) return;
+                const desc = prompt("وصف الخدمة:");
+                DB.services.nursing.push({ id: 'n'+Date.now(), name: sanitize(name), desc: sanitize(desc) });
+                saveDB(); this.navigate('adminDashboard'); this.adminTab('services');
+                this.toast('تمت إضافة خدمة التمريض', 'success');
+            },
+
+            adminDeleteNursing(id) {
+                if(confirm("تأكيد حذف الخدمة؟")) {
+                    DB.services.nursing = DB.services.nursing.filter(s => s.id !== id);
+                    saveDB(); this.navigate('adminDashboard'); this.adminTab('services');
+                    this.toast('تم حذف الخدمة', 'info');
+                }
+            },
+
+            adminUpdateSupply(id) {
+                const supply = DB.services.supplies.find(s => s.id === id);
+                if(!supply) return;
+                const newPrice = prompt(`تعديل سعر: ${supply.name}`, supply.price);
+                if(newPrice) {
+                    supply.price = Number(newPrice);
+                    saveDB(); this.navigate('adminDashboard'); this.adminTab('services');
+                    this.toast('تم تحديث السعر', 'success');
+                }
             }
         };
 
-        // التشغيل الآمن
+        // 3. الواجهات (Views)
+        window.Views = {
+            landing: () => `
+                <div class="relative bg-brand-secondary rounded-[2.5rem] p-8 sm:p-16 text-white mb-12 overflow-hidden shadow-2xl animate-fade-in">
+                    <div class="absolute inset-0 overflow-hidden"><div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-primary rounded-full blur-[100px] opacity-30 -translate-y-1/2 translate-x-1/4"></div></div>
+                    <div class="relative z-10 max-w-2xl">
+                        <span class="inline-flex items-center gap-2 bg-brand-primary/20 text-brand-primary border border-brand-primary/30 text-xs px-4 py-1.5 rounded-full font-black mb-6"><i class="fa-solid fa-star text-brand-accent"></i> منصة شبين القناطر الذكية</span>
+                        <h1 class="text-4xl sm:text-6xl font-black leading-tight mb-6">احجز موعدك مع أفضل الأطباء<br><span class="text-brand-primary">في ثواني.</span></h1>
+                        <p class="text-sm sm:text-lg text-slate-300 font-bold leading-relaxed mb-8">وفر وقتك ومجهودك. احجز في العيادة أو اطلب كشف منزلي، وتابع دورك برقم مرجعي.</p>
+                        <button onclick="App.navigate('doctors')" class="bg-brand-primary text-white px-8 py-4 rounded-2xl text-sm font-black shadow-lg shadow-brand-primary/40 hover:scale-105 transition flex items-center gap-2"><i class="fa-solid fa-calendar-check text-lg"></i> احجز موعدك الآن</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div onclick="App.navigate('doctors')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group"><div class="w-16 h-16 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-stethoscope"></i></div><h3 class="font-black text-slate-800 text-lg mb-2">عيادات وأطباء</h3><p class="text-xs text-slate-500 font-bold">احجز عيادة أو كشف منزلي.</p></div>
+                    <div onclick="App.navigate('nursing')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group"><div class="w-16 h-16 bg-blue-100 text-brand-info rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-user-nurse"></i></div><h3 class="font-black text-slate-800 text-lg mb-2">تمريض منزلي</h3><p class="text-xs text-slate-500 font-bold">حقن ومحاليل ورعاية كبار السن.</p></div>
+                    <div onclick="App.navigate('supplies')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group"><div class="w-16 h-16 bg-amber-100 text-brand-accent rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-wheelchair"></i></div><h3 class="font-black text-slate-800 text-lg mb-2">مستلزمات طبية</h3><p class="text-xs text-slate-500 font-bold">أجهزة حركة ومستلزمات المرضى.</p></div>
+                    <div onclick="App.navigate('labs')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group"><div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-flask"></i></div><h3 class="font-black text-slate-800 text-lg mb-2">معامل وأشعة</h3><p class="text-xs text-slate-500 font-bold">تحاليل وأشعة (قريباً).</p></div>
+                </div>`,
+
+            login: () => `
+                <div class="max-w-md mx-auto glass p-8 rounded-[2rem] mt-10 border border-slate-200 shadow-2xl animate-fade-in-up">
+                    <div class="text-center mb-8"><div class="w-20 h-20 bg-brand-primary-light text-brand-primary rounded-3xl flex items-center justify-center mx-auto text-3xl mb-4"><i class="fa-solid fa-user-lock"></i></div><h2 class="text-3xl font-black text-slate-800">تسجيل الدخول</h2></div>
+                    <form onsubmit="event.preventDefault(); App.handleLogin(event)" class="space-y-4">
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">رقم الهاتف</label><input type="tel" id="login-phone" required placeholder="01xxxxxxxxx" class="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 font-bold text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">كلمة المرور</label><input type="password" id="login-pass" required placeholder="••••••••" class="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 font-bold text-sm"></div>
+                        <button type="submit" class="w-full bg-brand-primary text-white py-3.5 rounded-xl font-black text-base shadow-lg mt-2">دخول</button>
+                    </form>
+                    <div class="mt-6 pt-4 border-t border-slate-100 text-center"><p class="text-sm text-slate-500 font-bold">ليس لديك حساب؟ <button onclick="App.navigate('register')" class="text-brand-primary hover:underline font-bold">سجل الآن</button></p></div>
+                    <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3 text-[10px] text-amber-800 font-bold text-center">للتجربة: مؤسس 01000000000 | طبيب 01011111111 (الباسورد: 123)</div>
+                </div>`,
+
+            register: () => `
+                <div class="max-w-md mx-auto glass p-8 rounded-[2rem] mt-10 border border-slate-200 shadow-2xl animate-fade-in-up">
+                    <div class="text-center mb-8"><div class="w-20 h-20 bg-brand-primary-light text-brand-primary rounded-3xl flex items-center justify-center mx-auto text-3xl mb-4"><i class="fa-solid fa-user-plus"></i></div><h2 class="text-3xl font-black text-slate-800">حساب جديد</h2></div>
+                    <form onsubmit="event.preventDefault(); App.handleRegister(event)" class="space-y-4">
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">الاسم الكامل</label><input type="text" id="reg-name" required placeholder="الاسم الثلاثي" class="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 font-bold text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">رقم الهاتف</label><input type="tel" id="reg-phone" required placeholder="01xxxxxxxxx" class="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 font-bold text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">كلمة المرور</label><input type="password" id="reg-pass" required placeholder="••••••••" class="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 font-bold text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1">نوع الحساب</label><select id="reg-role" class="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 font-bold text-sm"><option value="patient">مريض</option><option value="doctor">طبيب</option></select></div>
+                        <button type="submit" class="w-full bg-brand-primary text-white py-3.5 rounded-xl font-black text-base shadow-lg mt-2">إنشاء الحساب</button>
+                    </form>
+                </div>`,
+
+            doctors: () => {
+                const specialties = [...new Set(DB.doctors.map(d => d.spec))];
+                const areas = [...new Set(DB.doctors.map(d => d.area))];
+                return `
+                <div class="animate-fade-in">
+                    <div class="mb-8"><h2 class="text-3xl font-black text-slate-800">دليل الأطباء</h2><p class="text-sm text-slate-500 font-bold mt-1">احجز كشف عيادة أو اطلب الطبيب في بيتك.</p></div>
+                    <div class="glass p-4 rounded-2xl border border-slate-200 mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <input type="text" id="search-name" oninput="App.renderDoctors()" placeholder="ابحث باسم الطبيب..." class="w-full px-4 py-2.5 border rounded-xl text-sm font-bold bg-white">
+                        <select id="filter-spec" onchange="App.renderDoctors()" class="w-full px-4 py-2.5 border rounded-xl text-sm font-bold bg-white"><option value="">كل التخصصات</option>${specialties.map(s => `<option value="${s}">${s}</option>`).join('')}</select>
+                        <select id="filter-area" onchange="App.renderDoctors()" class="w-full px-4 py-2.5 border rounded-xl text-sm font-bold bg-white"><option value="">كل المناطق</option>${areas.map(a => `<option value="${a}">${a}</option>`).join('')}</select>
+                    </div>
+                    <div id="doctors-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                </div>`;
+            },
+
+            nursing: () => `
+                <div class="animate-fade-in space-y-6">
+                    <div class="text-center mb-8"><h2 class="text-3xl font-black text-slate-800">التمريض المنزلي</h2><p class="text-sm text-slate-500 font-bold mt-2">رعاية طبية في منزلك بأيدي ممرضين معتمدين.</p></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${DB.services.nursing.map(s => `
+                            <div class="glass rounded-3xl p-6 border border-slate-200 hover-lift flex flex-col justify-between">
+                                <div><div class="w-12 h-12 bg-blue-100 text-brand-info rounded-2xl flex items-center justify-center text-2xl mb-4"><i class="fa-solid fa-user-nurse"></i></div><h3 class="font-black text-slate-800 text-lg mb-2">${s.name}</h3><p class="text-xs text-slate-500 font-bold">${s.desc}</p></div>
+                                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between"><span class="text-xs font-bold text-brand-primary">السعر حسب الاتفاق</span><button onclick="App.toast('جاري تفعيل الطلب', 'info')" class="bg-brand-primary text-white px-5 py-2 rounded-xl text-sm font-bold">اطلب</button></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`,
+
+            supplies: () => `
+                <div class="animate-fade-in space-y-6">
+                    <div class="text-center mb-8"><h2 class="text-3xl font-black text-slate-800">المستلزمات الطبية والأجهزة</h2><p class="text-sm text-slate-500 font-bold mt-2">نوفر لك الأجهزة الطبية التي تحتاجها في المنزل.</p></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        ${DB.services.supplies.map(s => `
+                            <div class="glass rounded-3xl p-5 border border-slate-200 hover-lift text-center flex flex-col justify-between">
+                                <div><div class="bg-slate-50 w-full h-32 rounded-2xl flex items-center justify-center mb-4"><i class="fa-solid fa-wheelchair text-5xl text-slate-300"></i></div><span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded mb-2 inline-block">${s.category}</span><h3 class="font-black text-slate-800 text-lg">${s.name}</h3><p class="text-xs text-slate-500 font-bold mt-1">${s.desc}</p></div>
+                                <div class="mt-4"><div class="text-brand-primary font-black text-xl mb-3">${s.price} <span class="text-xs">ج.م</span></div><button onclick="App.toast('تحت التطوير', 'info')" class="w-full bg-brand-primary-light text-brand-primary py-2 rounded-xl text-sm font-bold hover:bg-brand-primary hover:text-white transition">اطلب الآن</button></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`,
+
+            labs: () => `
+                <div class="animate-fade-in space-y-8">
+                    <div class="text-center mb-8"><h2 class="text-3xl font-black text-slate-800">المعامل ومراكز الأشعة</h2><p class="text-sm text-slate-500 font-bold mt-2">نعمل على التعاقد مع أفضل المعامل والمراكز لتوفير الخدمة قريباً.</p></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="glass p-6 rounded-3xl border border-slate-200"><h3 class="font-black text-lg text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-flask text-brand-info"></i> التحاليل الطبية</h3><div class="space-y-3">${DB.services.labs.map(l => `<div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border"><span class="font-bold text-slate-700">${l.name}</span><span class="text-[10px] bg-amber-100 text-amber-700 px-2 py-1 rounded font-bold">قريباً</span></div>`).join('')}</div></div>
+                        <div class="glass p-6 rounded-3xl border border-slate-200"><h3 class="font-black text-lg text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-x-ray text-brand-accent"></i> الأشعة</h3><div class="space-y-3"><div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border"><span class="font-bold text-slate-700">أشعة سينية (X-Ray)</span><span class="text-[10px] bg-amber-100 text-amber-700 px-2 py-1 rounded font-bold">قريباً</span></div><div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border"><span class="font-bold text-slate-700">أشعة مقطعية (CT Scan)</span><span class="text-[10px] bg-amber-100 text-amber-700 px-2 py-1 rounded font-bold">قريباً</span></div></div></div>
+                    </div>
+                </div>`,
+
+            patientPortal: () => {
+                const u = App.state.user;
+                const userAppts = DB.appointments.filter(a => a.phone === u.phone);
+                return `
+                <div class="space-y-6 animate-fade-in">
+                    <div class="bg-brand-secondary rounded-3xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
+                        <div class="flex items-center gap-4 relative z-10"><div class="w-16 h-16 bg-brand-primary text-white rounded-full flex items-center justify-center text-2xl font-black">${u.name.charAt(0)}</div><div><h2 class="text-2xl font-black">أهلاً، ${u.name}</h2><p class="text-sm text-slate-300">رقم الهاتف: ${u.phone}</p></div></div>
+                        <button onclick="App.navigate('doctors')" class="relative z-10 bg-brand-primary text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg hover:bg-brand-primary-dark transition flex items-center gap-2"><i class="fa-solid fa-plus"></i> حجز جديد</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass rounded-3xl p-6 border border-slate-200"><h3 class="font-black text-lg mb-4"><i class="fa-solid fa-calendar-check text-brand-primary ml-2"></i> مواعيدي</h3><div class="space-y-3">${userAppts.length > 0 ? userAppts.map(a => `<div class="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm"><div class="flex justify-between items-start mb-2"><div class="font-bold text-slate-800">${a.docName || a.serviceName}</div><span class="status-badge status-${a.status}">${a.status === 'confirmed' ? 'مؤكد' : 'مكتمل'}</span></div><div class="text-xs text-slate-500 font-bold mb-2">${a.date} - ${a.time} (${a.type === 'home' ? 'منزلي' : a.type === 'clinic' ? 'عيادة' : 'تمريض'})</div><div class="text-xs font-mono bg-slate-50 p-2 rounded border">رقم الحجز: ${a.refNum}</div></div>`).join('') : '<p class="text-sm text-slate-400 font-bold py-4">لا توجد مواعيد حالياً.</p>'}</div></div>
+                        <div class="glass rounded-3xl p-6 border border-slate-200"><h3 class="font-black text-lg mb-4"><i class="fa-solid fa-file-medical text-brand-info ml-2"></i> الملف الطبي (EMR)</h3><div class="space-y-3">${DB.emr.filter(e => e.patientPhone === u.phone).map(e => `<div class="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden"><div class="absolute top-0 right-0 w-1.5 h-full bg-brand-info"></div><div class="text-xs font-bold text-brand-info mb-1">${e.type} - ${e.date}</div><p class="text-sm text-slate-700 font-bold">${e.notes}</p></div>`).join('') || '<p class="text-sm text-slate-400 font-bold py-4">لا توجد سجلات طبية بعد.</p>'}</div></div>
+                    </div>
+                </div>`;
+            },
+
+            doctorDashboard: () => {
+                const u = App.state.user;
+                const docAppts = DB.appointments.filter(a => a.docId === u.id);
+                const completedCount = docAppts.filter(a => a.status === 'completed').length;
+                const pendingAppts = docAppts.filter(a => a.status === 'confirmed');
+                return `
+                <div class="space-y-6 animate-fade-in">
+                    <div class="bg-brand-secondary rounded-3xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
+                        <div class="flex items-center gap-4"><div class="w-16 h-16 bg-brand-primary text-white rounded-full flex items-center justify-center text-2xl font-black"><i class="fa-solid fa-user-doctor"></i></div><div><h2 class="text-2xl font-black">أهلاً، ${u.name}</h2><p class="text-sm text-slate-300 font-bold mt-1">لوحة إدارة العيادة</p></div></div>
+                        <div class="flex gap-4"><div class="bg-white/10 p-3 rounded-xl text-center min-w-[100px]"><span class="block text-xs text-slate-300 mb-1">إجمالي المواعيد</span><span class="text-2xl font-black text-white">${docAppts.length}</span></div><div class="bg-white/10 p-3 rounded-xl text-center min-w-[100px]"><span class="block text-xs text-slate-300 mb-1">حالات مكتملة</span><span class="text-2xl font-black text-emerald-400">${completedCount}</span></div></div>
+                    </div>
+                    <div class="glass rounded-3xl p-6 border border-slate-200">
+                        <div class="flex justify-between items-center mb-6"><h3 class="font-black text-lg text-slate-800"><i class="fa-solid fa-list-check text-brand-primary ml-2"></i> قائمة الانتظار</h3><span class="text-xs font-bold bg-brand-primary-light text-brand-primary px-3 py-1 rounded-full">${pendingAppts.length} مريض</span></div>
+                        <div class="space-y-3">${docAppts.length > 0 ? docAppts.map(a => `<div class="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"><div><div class="font-bold text-slate-800 text-base flex items-center gap-2">${sanitize(a.patient)}<span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-500 font-mono">${a.refNum}</span></div><div class="text-xs text-slate-500 font-bold mt-1"><i class="fa-regular fa-calendar ml-1"></i> ${a.date} - ${a.time} <span class="mx-2">|</span> <span class="text-brand-info">${a.type === 'home' ? 'كشف منزلي' : 'عيادة'}</span></div><div class="text-xs text-slate-500 font-bold mt-1"><i class="fa-solid fa-phone ml-1 text-brand-primary"></i> ${sanitize(a.phone)}</div></div><div class="flex gap-2 w-full sm:w-auto">${a.status === 'confirmed' ? `<button onclick="App.openEMRModal('${a.patient}', '${a.phone}')" class="flex-1 sm:flex-none bg-brand-info text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 transition shadow-sm"><i class="fa-solid fa-file-medical"></i> إضافة ملف</button><button onclick="App.completeAppointment('${a.id}')" class="flex-1 sm:flex-none bg-brand-primary text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-brand-primary-dark transition shadow-sm"><i class="fa-solid fa-check"></i> إنهاء الكشف</button>` : `<span class="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-xs font-bold w-full text-center border border-emerald-100"><i class="fa-solid fa-check-double ml-1"></i> تم الكشف</span>`}</div></div>`).join('') : '<p class="text-sm text-slate-400 font-bold text-center py-8">لا توجد مواعيد مسجلة لك حتى الآن.</p>'}</div>
+                    </div>
+                </div>`;
+            },
+
+            doctorEMR: (patientName, patientPhone) => `
+                <div class="space-y-4">
+                    <div class="text-center mb-4"><div class="w-16 h-16 bg-brand-info/10 text-brand-info rounded-full flex items-center justify-center mx-auto text-2xl mb-2"><i class="fa-solid fa-file-medical"></i></div><h3 class="font-black text-lg text-slate-800">ملف المريض: ${sanitize(patientName)}</h3></div>
+                    <form onsubmit="event.preventDefault(); App.saveEMR(event, '${sanitize(patientName)}', '${sanitize(patientPhone)}')" class="space-y-3">
+                        <div><label class="block text-xs font-bold mb-1">نوع الملف</label><select id="emr-type" class="w-full p-3 border rounded-xl font-bold text-sm bg-slate-50"><option value="روشتة طبية">روشتة طبية</option><option value="نتيجة تحليل">نتيجة تحليل</option><option value="أشعة">أشعة</option><option value="ملاحظة طبية">ملاحظة طبية</option></select></div>
+                        <div><label class="block text-xs font-bold mb-1">التفاصيل</label><textarea id="emr-notes" required rows="4" placeholder="اكتب تفاصيل الروشتة أو التشخيص هنا..." class="w-full p-3 border rounded-xl font-bold text-sm bg-slate-50"></textarea></div>
+                        <button type="submit" class="w-full bg-brand-info text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition shadow-md"><i class="fa-solid fa-save ml-1"></i> حفظ في ملف المريض</button>
+                    </form>
+                    <div class="mt-6 border-t pt-4"><h4 class="font-bold text-sm text-slate-700 mb-3">السجلات السابقة:</h4><div class="space-y-2 max-h-40 overflow-y-auto pr-1">${DB.emr.filter(e => e.patientPhone === patientPhone).map(e => `<div class="p-3 bg-slate-50 text-xs border rounded-xl"><div class="flex justify-between font-bold text-brand-info mb-1"><span>${sanitize(e.type)}</span><span>${e.date}</span></div><p class="text-slate-700">${sanitize(e.notes)}</p></div>`).join('') || '<p class="text-xs text-slate-400 text-center">لا يوجد سجلات سابقة لهذا المريض.</p>'}</div></div>
+                </div>`,
+
+            adminDashboard: () => `
+                <div class="space-y-6 animate-fade-in">
+                    <div class="bg-slate-900 rounded-3xl p-6 text-white shadow-xl flex justify-between items-center"><div><h2 class="text-2xl font-black">لوحة تحكم المؤسس</h2><p class="text-sm text-slate-400 mt-1">إدارة الإعدادات، الأطباء، الصلاحيات، والإعلانات</p></div><i class="fa-solid fa-shield-halved text-4xl text-brand-accent"></i></div>
+                    <div class="flex gap-2 overflow-x-auto pb-2">
+                        <button onclick="App.adminTab('settings')" id="tab-settings" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-brand-primary text-white">الإعدادات العامة</button>
+                        <button onclick="App.adminTab('doctors')" id="tab-doctors" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-white border text-slate-700">الأطباء والمواعيد</button>
+                        <button onclick="App.adminTab('services')" id="tab-services" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-white border text-slate-700">الخدمات والمنتجات</button>
+                    </div>
+                    <div id="admin-content-settings" class="admin-content glass rounded-3xl p-6 border border-slate-200 space-y-4"><h3 class="font-black text-lg mb-2">إعدادات شريط الإعلانات</h3><textarea id="admin-announcement" rows="2" class="w-full p-3 border rounded-xl font-bold text-sm bg-slate-50">${sanitize(DB.configs.announcementText)}</textarea><button onclick="App.updateAnnouncement()" class="bg-brand-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold">حفظ الإعلان</button></div>
+                    <div id="admin-content-doctors" class="admin-content hidden glass rounded-3xl p-6 border border-slate-200 space-y-4"><h3 class="font-black text-lg">إدارة الأطباء والمواعيد</h3><div class="grid grid-cols-1 gap-4">${DB.doctors.map(d => `<div class="p-4 bg-white border rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4"><div><div class="font-bold text-lg">${d.name}</div><div class="text-xs text-slate-500 mb-2">${d.spec} | عيادة: ${d.clinicFee} ج | منزلي: ${d.homeFee} ج</div><div class="text-xs font-bold text-brand-info bg-brand-info/10 px-2 py-1 rounded inline-block">مدة الكشف: ${d.slotDuration} دقيقة</div></div><button onclick="App.editDoctorSchedule('${d.id}')" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-200"><i class="fa-solid fa-clock"></i> تعديل الوقت والسعر</button></div>`).join('')}</div></div>
+                    <div id="admin-content-services" class="admin-content hidden glass rounded-3xl p-6 border border-slate-200 space-y-6">
+                        <div><div class="flex justify-between items-center mb-3"><h3 class="font-black text-lg text-slate-800">إدارة خدمات التمريض</h3><button onclick="App.adminAddNursing()" class="bg-brand-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-plus"></i> إضافة</button></div><div class="space-y-2">${DB.services.nursing.map(s => `<div class="p-3 bg-slate-50 border rounded-xl flex justify-between items-center"><div><div class="font-bold text-sm">${s.name}</div><div class="text-xs text-slate-500">${s.desc}</div></div><button onclick="App.adminDeleteNursing('${s.id}')" class="text-red-500 hover:text-red-700 p-2"><i class="fa-solid fa-trash"></i></button></div>`).join('')}</div></div>
+                        <div class="border-t pt-4"><h3 class="font-black text-lg text-slate-800 mb-3">إدارة المستلزمات (تعديل الأسعار)</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-2">${DB.services.supplies.map(s => `<div class="p-3 bg-slate-50 border rounded-xl flex justify-between items-center"><div><div class="font-bold text-sm">${s.name}</div><div class="text-xs text-brand-primary font-black">${s.price} ج.م</div></div><button onclick="App.adminUpdateSupply('${s.id}')" class="text-brand-info hover:text-blue-700 p-2"><i class="fa-solid fa-pen"></i></button></div>`).join('')}</div></div>
+                    </div>
+                </div>`
+        };
+
+        // التشغيل
         document.addEventListener('DOMContentLoaded', () => {
             try { App.init(); } catch (e) { console.error(e); }
         });
     </script>
-    <!-- =========================================
-     JAVASCRIPT: VIEWS & LOGIC (PART 2)
-========================================= -->
-<script>
-    window.Views = {
-        // 1. الصفحة الرئيسية
-        landing: () => `
-    <div class="relative bg-brand-secondary rounded-[2.5rem] p-8 sm:p-16 text-white mb-12 overflow-hidden shadow-2xl animate-fade-in">
-        <div class="absolute inset-0 overflow-hidden"><div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-primary rounded-full blur-[100px] opacity-30 -translate-y-1/2 translate-x-1/4"></div></div>
-        <div class="relative z-10 max-w-2xl">
-            <span class="inline-flex items-center gap-2 bg-brand-primary/20 text-brand-primary border border-brand-primary/30 text-xs px-4 py-1.5 rounded-full font-black mb-6"><i class="fa-solid fa-star text-brand-accent"></i> منصة شبين القناطر الذكية</span>
-            <h1 class="text-4xl sm:text-6xl font-black leading-tight mb-6">احجز موعدك مع أفضل الأطباء<br><span class="text-brand-primary">في ثواني.</span></h1>
-            <p class="text-sm sm:text-lg text-slate-300 font-bold leading-relaxed mb-8">وفر وقتك ومجهودك. احجز في العيادة أو اطلب كشف منزلي، وتابع دورك برقم مرجعي.</p>
-            <button onclick="App.navigate('doctors')" class="bg-brand-primary text-white px-8 py-4 rounded-2xl text-sm font-black shadow-lg shadow-brand-primary/40 hover:scale-105 transition flex items-center gap-2"><i class="fa-solid fa-calendar-check text-lg"></i> احجز موعدك الآن</button>
-        </div>
-    </div>
-    
-    <!-- الكروت الناقصة اللي كانت بتعمل الفراغ -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div onclick="App.navigate('doctors')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group">
-            <div class="w-16 h-16 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-stethoscope"></i></div>
-            <h3 class="font-black text-slate-800 text-lg mb-2">عيادات وأطباء</h3><p class="text-xs text-slate-500 font-bold">كشف عيادة أو كشف منزلي.</p>
-        </div>
-        <div onclick="App.navigate('services')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group">
-            <div class="w-16 h-16 bg-blue-100 text-brand-info rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-user-nurse"></i></div>
-            <h3 class="font-black text-slate-800 text-lg mb-2">تمريض منزلي</h3><p class="text-xs text-slate-500 font-bold">حقن ومحاليل ورعاية كبار السن.</p>
-        </div>
-        <div onclick="App.navigate('services')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group">
-            <div class="w-16 h-16 bg-amber-100 text-brand-accent rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-pills"></i></div>
-            <h3 class="font-black text-slate-800 text-lg mb-2">مستلزمات وأجهزة</h3><p class="text-xs text-slate-500 font-bold">كراسي متحركة، عكاز، ومراتب طبية.</p>
-        </div>
-    </div>
-`,
-        // 2. تسجيل الدخول
-        login: () => `
-            <div class="max-w-md mx-auto glass p-8 rounded-[2rem] mt-10 border border-slate-200 shadow-2xl animate-fade-in-up">
-                <div class="text-center mb-8">
-                    <div class="w-20 h-20 bg-brand-primary-light text-brand-primary rounded-3xl flex items-center justify-center mx-auto text-3xl mb-4"><i class="fa-solid fa-user-lock"></i></div>
-                    <h2 class="text-3xl font-black text-slate-800">تسجيل الدخول</h2>
-                    <p class="text-sm text-slate-500 font-bold mt-2">للمرضى، الأطباء، الموظفين، والإدارة</p>
-                </div>
-                <form onsubmit="event.preventDefault(); App.handleLogin(event)" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">رقم الهاتف</label>
-                        <input type="tel" id="login-phone" required placeholder="01xxxxxxxxx" class="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 font-bold text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">كلمة المرور</label>
-                        <input type="password" id="login-pass" required placeholder="••••••••" class="w-full px-4 py-3 border border-slate-300 rounded-xl bg-slate-50 font-bold text-sm">
-                    </div>
-                    <button type="submit" class="w-full bg-brand-primary text-white py-3.5 rounded-xl font-black text-base shadow-lg mt-2">دخول</button>
-                </form>
-                <div class="mt-6 pt-4 border-t border-slate-100 text-center text-xs text-slate-500 font-bold space-y-1">
-                    <p>للتجربة السريعة:</p>
-                    <p>مؤسس: <b>01000000000</b> | طبيب: <b>01011111111</b></p>
-                    <p>موظف: <b>01033333333</b> | مريض: <b>01022222222</b></p>
-                    <p>(كلمة المرور للجميع: 123)</p>
-                </div>
-            </div>
-        `,
-
-        // 3. لوحة تحكم المؤسس (الإدارة)
-        adminDashboard: () => {
-            const u = App.state.user;
-            return `
-            <div class="space-y-6 animate-fade-in">
-                <div class="bg-slate-900 rounded-3xl p-6 text-white shadow-xl flex justify-between items-center">
-                    <div>
-                        <h2 class="text-2xl font-black">لوحة تحكم المؤسس</h2>
-                        <p class="text-sm text-slate-400 mt-1">إدارة الإعدادات، الأطباء، الصلاحيات، والإعلانات</p>
-                    </div>
-                    <i class="fa-solid fa-shield-halved text-4xl text-brand-accent"></i>
-                </div>
-                
-                <!-- Tabs Navigation -->
-                <div class="flex gap-2 overflow-x-auto pb-2">
-                    <button onclick="App.adminTab('settings')" id="tab-settings" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-brand-primary text-white">الإعدادات العامة</button>
-                    <button onclick="App.adminTab('doctors')" id="tab-doctors" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-white border text-slate-700">الأطباء والمواعيد</button>
-                    <button onclick="App.adminTab('staff')" id="tab-staff" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-white border text-slate-700">صلاحيات الموظفين</button>
-                    <button onclick="App.adminTab('services')" id="tab-services" class="admin-tab px-5 py-2.5 rounded-xl font-bold text-sm bg-white border text-slate-700">الخدمات والمنتجات</button>
-                </div>
-
-                <!-- Tab: Settings -->
-                <div id="admin-content-settings" class="admin-content glass rounded-3xl p-6 border border-slate-200 space-y-4">
-                    <h3 class="font-black text-lg mb-2">إعدادات شريط الإعلانات</h3>
-                    <textarea id="admin-announcement" rows="2" class="w-full p-3 border rounded-xl font-bold text-sm bg-slate-50">${sanitize(DB.configs.announcementText)}</textarea>
-                    <button onclick="App.updateAnnouncement()" class="bg-brand-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold">حفظ الإعلان</button>
-                </div>
-
-                <!-- Tab: Doctors -->
-                <div id="admin-content-doctors" class="admin-content hidden glass rounded-3xl p-6 border border-slate-200 space-y-4">
-                    <div class="flex justify-between items-center">
-                        <h3 class="font-black text-lg">إدارة الأطباء والمواعيد</h3>
-                    </div>
-                    <div class="grid grid-cols-1 gap-4">
-                        ${DB.doctors.map(d => `
-                            <div class="p-4 bg-white border rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                <div>
-                                    <div class="font-bold text-lg">${d.name}</div>
-                                    <div class="text-xs text-slate-500 mb-2">${d.spec} | عيادة: ${d.clinicFee} ج | منزلي: ${d.homeFee} ج</div>
-                                    <div class="text-xs font-bold text-brand-info bg-brand-info/10 px-2 py-1 rounded inline-block">مدة الكشف: ${d.slotDuration} دقيقة</div>
-                                </div>
-                                <button onclick="App.editDoctorSchedule('${d.id}')" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-200"><i class="fa-solid fa-clock"></i> تعديل الوقت والسعر</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <!-- Tab: Staff Permissions -->
-                <div id="admin-content-staff" class="admin-content hidden glass rounded-3xl p-6 border border-slate-200 space-y-4">
-                    <h3 class="font-black text-lg">إدارة صلاحيات الموظفين</h3>
-                    <div class="space-y-3">
-                        ${DB.users.filter(user => user.role === 'staff').map(st => `
-                            <div class="p-4 bg-white border rounded-xl flex flex-col sm:flex-row justify-between items-center gap-3">
-                                <div><div class="font-bold">${st.name}</div><div class="text-xs text-slate-500">${st.phone}</div></div>
-                                <div class="flex gap-2">
-                                    <label class="flex items-center gap-1 text-xs font-bold cursor-pointer">
-                                        <input type="checkbox" onchange="App.togglePermission('${st.id}', 'view_all_appts', this.checked)" ${st.permissions.includes('view_all_appts') ? 'checked' : ''} class="w-4 h-4 text-brand-primary rounded">
-                                        رؤية كل المواعيد
-                                    </label>
-                                    <label class="flex items-center gap-1 text-xs font-bold cursor-pointer ml-4">
-                                        <input type="checkbox" onchange="App.togglePermission('${st.id}', 'book_for_patient', this.checked)" ${st.permissions.includes('book_for_patient') ? 'checked' : ''} class="w-4 h-4 text-brand-primary rounded">
-                                        الحجز نيابة عن المريض
-                                    </label>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <!-- Tab: Services -->
-                <div id="admin-content-services" class="admin-content hidden glass rounded-3xl p-6 border border-slate-200 space-y-4">
-                    <h3 class="font-black text-lg">إدارة الخدمات</h3>
-                    <p class="text-xs text-slate-500 font-bold">(هنا يتم ربط المعامل ومراكز الأشعة لاحقاً، وتعديل أسعار التمريض والمستلزمات)</p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <!-- سيتم تفعيل إضافة الخدمات في الجزء الثالث -->
-                        <div class="p-4 border border-dashed rounded-xl text-center text-slate-400 font-bold text-sm">تحت التطوير</div>
-                    </div>
-                </div>
-            </div>
-            `;
-        },
-
-        // 4. لوحة الموظف
-        staffDashboard: () => {
-            const u = App.state.user;
-            const hasViewPerm = u.permissions.includes('view_all_appts');
-
-            if (!hasViewPerm) {
-                return `<div class="text-center py-20"><h2 class="text-2xl font-black text-slate-800">غير مصرح لك</h2><p class="text-slate-500">ليست لديك صلاحية رؤية المواعيد. تواصل مع الإدارة.</p></div>`;
-            }
-
-            return `
-            <div class="space-y-6 animate-fade-in">
-                <div class="bg-brand-info rounded-3xl p-6 text-white shadow-xl">
-                    <h2 class="text-2xl font-black">لوحة الموظف: ${u.name}</h2>
-                    <p class="text-sm mt-1">إدارة حجوزات المرضى</p>
-                </div>
-                <div class="glass rounded-3xl p-6 border border-slate-200">
-                    <h3 class="font-black mb-4">كل المواعيد</h3>
-                    <div class="space-y-3">
-                        ${DB.appointments.length > 0 ? DB.appointments.map(a => `
-                            <div class="p-4 bg-white border rounded-xl flex justify-between items-center">
-                                <div>
-                                    <div class="font-bold">${a.patient} <span class="text-xs text-slate-400">(${a.phone})</span></div>
-                                    <div class="text-xs text-slate-500">مع ${a.docName} - ${a.date} ${a.time}</div>
-                                </div>
-                                <span class="status-badge status-${a.status}">${a.status === 'confirmed' ? 'مؤكد' : 'مكتمل'}</span>
-                            </div>
-                        `).join('') : '<p class="text-sm text-slate-400">لا توجد مواعيد.</p>'}
-                    </div>
-                </div>
-            </div>
-            `;
-        }
-    };
-
-    // دمج دوال الجافاسكريبت الجديدة في المحرك
-    Object.assign(window.App, {
-        
-        handleLogin(e) {
-            const phone = document.getElementById('login-phone').value;
-            const pass = document.getElementById('login-pass').value;
-            
-            const user = DB.users.find(u => u.phone === phone && u.pass === pass);
-            if (user) {
-                this.state.user = user;
-                localStorage.setItem('wasla_session', JSON.stringify(user));
-                this.toast('تم تسجيل الدخول بنجاح', 'success');
-                
-                if (user.role === 'patient') this.navigate('patientPortal');
-                else if (user.role === 'doctor') this.navigate('doctorDashboard');
-                else if (user.role === 'admin') this.navigate('adminDashboard');
-                else if (user.role === 'staff') this.navigate('staffDashboard');
-            } else {
-                this.toast('رقم الهاتف أو كلمة المرور غير صحيحة', 'error');
-            }
-        },
-
-        logout() {
-            this.state.user = null;
-            localStorage.removeItem('wasla_session');
-            this.navigate('landing');
-            this.toast('تم تسجيل الخروج.', 'info');
-        },
-
-        adminTab(tab) {
-            document.querySelectorAll('.admin-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.admin-tab').forEach(el => { el.classList.remove('bg-brand-primary', 'text-white'); el.classList.add('bg-white', 'border', 'text-slate-700'); });
-            
-            document.getElementById(`admin-content-${tab}`).classList.remove('hidden');
-            const activeBtn = document.getElementById(`tab-${tab}`);
-            activeBtn.classList.remove('bg-white', 'border', 'text-slate-700');
-            activeBtn.classList.add('bg-brand-primary', 'text-white');
-        },
-
-        updateAnnouncement() {
-            const text = document.getElementById('admin-announcement').value;
-            DB.configs.announcementText = sanitize(text);
-            saveDB();
-            this.renderAnnouncements();
-            this.toast('تم تحديث الإعلان بنجاح!', 'success');
-        },
-
-        togglePermission(staffId, permName, isChecked) {
-            const staff = DB.users.find(u => u.id === staffId);
-            if (staff) {
-                if (isChecked) {
-                    if (!staff.permissions.includes(permName)) staff.permissions.push(permName);
-                } else {
-                    staff.permissions = staff.permissions.filter(p => p !== permName);
-                }
-                saveDB();
-                this.toast('تم تحديث صلاحيات الموظف', 'success');
-            }
-        },
-
-        editDoctorSchedule(docId) {
-            const doc = DB.doctors.find(d => d.id === docId);
-            if(!doc) return;
-
-            const html = `
-                <h3 class="text-xl font-black mb-4">تعديل إعدادات: ${doc.name}</h3>
-                <form onsubmit="event.preventDefault(); App.saveDoctorSettings(event, '${docId}')" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold mb-1">سعر العيادة (ج.م)</label>
-                        <input type="number" id="edit-fee" value="${doc.clinicFee}" required class="w-full p-2.5 border rounded-xl font-bold">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold mb-1">سعر الكشف المنزلي (ج.م)</label>
-                        <input type="number" id="edit-home-fee" value="${doc.homeFee}" required class="w-full p-2.5 border rounded-xl font-bold">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold mb-1">مدة الكشف للدكتور (بالدقائق)</label>
-                        <select id="edit-duration" class="w-full p-2.5 border rounded-xl font-bold">
-                            <option value="10" ${doc.slotDuration === 10 ? 'selected' : ''}>10 دقائق</option>
-                            <option value="15" ${doc.slotDuration === 15 ? 'selected' : ''}>15 دقيقة</option>
-                            <option value="20" ${doc.slotDuration === 20 ? 'selected' : ''}>20 دقيقة</option>
-                            <option value="30" ${doc.slotDuration === 30 ? 'selected' : ''}>30 دقيقة</option>
-                        </select>
-                    </div>
-                    <div class="flex gap-2">
-                        <div class="flex-1">
-                            <label class="block text-xs font-bold mb-1">بداية العمل</label>
-                            <input type="time" id="edit-start" value="${doc.workingHours.start}" class="w-full p-2.5 border rounded-xl font-bold">
-                        </div>
-                        <div class="flex-1">
-                            <label class="block text-xs font-bold mb-1">نهاية العمل</label>
-                            <input type="time" id="edit-end" value="${doc.workingHours.end}" class="w-full p-2.5 border rounded-xl font-bold">
-                        </div>
-                    </div>
-                    <button type="submit" class="w-full bg-brand-primary text-white py-3 rounded-xl font-bold mt-2">حفظ التعديلات</button>
-                </form>
-            `;
-            document.getElementById('modal-content').innerHTML = html;
-            document.getElementById('modal-container').classList.remove('hidden');
-        },
-
-        saveDoctorSettings(e, docId) {
-            const doc = DB.doctors.find(d => d.id === docId);
-            doc.clinicFee = Number(document.getElementById('edit-fee').value);
-            doc.homeFee = Number(document.getElementById('edit-home-fee').value);
-            doc.slotDuration = Number(document.getElementById('edit-duration').value);
-            doc.workingHours.start = document.getElementById('edit-start').value;
-            doc.workingHours.end = document.getElementById('edit-end').value;
-            
-            saveDB();
-            this.closeModal();
-            this.navigate('adminDashboard');
-            this.adminTab('doctors');
-            this.toast('تم حفظ إعدادات الطبيب بنجاح!', 'success');
-        }
-    });
-</script>
-    <!-- =========================================
-     JAVASCRIPT: SMART BOOKING & PATIENT PORTAL (PART 3)
-========================================= -->
-<script>
-    // 1. إضافة واجهات الأطباء، الخدمات، وبوابة المريض
-    Object.assign(window.Views, {
-        
-        // دليل الأطباء مع البحث
-        doctors: () => {
-            const specialties = [...new Set(DB.doctors.map(d => d.spec))];
-            const areas = [...new Set(DB.doctors.map(d => d.area))];
-            return `
-            <div class="animate-fade-in">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-black text-slate-800">دليل الأطباء</h2>
-                    <p class="text-sm text-slate-500 font-bold mt-1">احجز كشف عيادة أو اطلب الطبيب في بيتك.</p>
-                </div>
-
-                <!-- فلاتر البحث -->
-                <div class="glass p-4 rounded-2xl border border-slate-200 mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <input type="text" id="search-name" oninput="App.renderDoctors()" placeholder="ابحث باسم الطبيب..." class="w-full px-4 py-2.5 border rounded-xl text-sm font-bold">
-                    <select id="filter-spec" onchange="App.renderDoctors()" class="w-full px-4 py-2.5 border rounded-xl text-sm font-bold">
-                        <option value="">كل التخصصات</option>
-                        ${specialties.map(s => `<option value="${s}">${s}</option>`).join('')}
-                    </select>
-                    <select id="filter-area" onchange="App.renderDoctors()" class="w-full px-4 py-2.5 border rounded-xl text-sm font-bold">
-                        <option value="">كل المناطق</option>
-                        ${areas.map(a => `<option value="${a}">${a}</option>`).join('')}
-                    </select>
-                </div>
-
-                <div id="doctors-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-            </div>
-            `;
-        },
-
-        // صفحة الخدمات (تمريض، معامل، أشعة، مستلزمات)
-        services: () => `
-            <div class="animate-fade-in space-y-10">
-                <div class="text-center">
-                    <h2 class="text-3xl font-black text-slate-800">الخدمات الطبية</h2>
-                    <p class="text-sm text-slate-500 font-bold mt-2">كل ما تحتاجه صحياً في مكان واحد.</p>
-                </div>
-
-                <!-- التمريض المنزلي -->
-                <div>
-                    <h3 class="text-xl font-black text-slate-800 mb-4 border-r-4 border-brand-primary pr-3">التمريض المنزلي</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        ${DB.services.nursing.map(s => `
-                            <div class="glass rounded-2xl p-5 border border-slate-200 hover-lift">
-                                <h4 class="font-bold text-lg text-slate-800 mb-1">${s.name}</h4>
-                                <p class="text-xs text-slate-500 font-bold mb-4">${s.desc}</p>
-                                <div class="flex justify-between items-center border-t pt-3">
-                                    <span class="text-brand-primary font-black text-sm">سعر مرن (حسب الاتفاق)</span>
-                                    <button onclick="App.requestNursing('${s.id}')" class="bg-brand-primary text-white px-4 py-2 rounded-lg text-xs font-bold">اطلب</button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <!-- المعامل والأشعة -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <h3 class="text-xl font-black text-slate-800 mb-4 border-r-4 border-brand-info pr-3">المعامل</h3>
-                        <div class="space-y-3">
-                            ${DB.services.labs.map(l => `
-                                <div class="glass p-4 rounded-xl border border-slate-200 flex justify-between items-center">
-                                    <span class="font-bold text-slate-700">${l.name}</span>
-                                    <span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-1 rounded font-bold">قريباً</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-black text-slate-800 mb-4 border-r-4 border-brand-accent pr-3">مراكز الأشعة</h3>
-                        <div class="space-y-3">
-                            ${DB.services.radiology.map(r => `
-                                <div class="glass p-4 rounded-xl border border-slate-200 flex justify-between items-center">
-                                    <span class="font-bold text-slate-700">${r.name}</span>
-                                    <span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-1 rounded font-bold">قريباً</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- المستلزمات الطبية -->
-                <div>
-                    <h3 class="text-xl font-black text-slate-800 mb-4 border-r-4 border-emerald-500 pr-3">المستلزمات الطبية والأجهزة</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        ${DB.services.supplies.map(s => `
-                            <div class="glass rounded-2xl p-4 border border-slate-200 hover-lift text-center">
-                                <div class="bg-slate-50 w-full h-24 rounded-lg flex items-center justify-center mb-3">
-                                    <i class="fa-solid fa-wheelchair text-4xl text-slate-400"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-slate-800">${s.name}</h4>
-                                <p class="text-[10px] text-slate-500 mb-2">${s.category}</p>
-                                <div class="font-black text-brand-primary">${s.price} ج.م</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            </div>
-        `,
-
-        // بوابة المريض
-        patientPortal: () => {
-            const u = App.state.user;
-            const userAppts = DB.appointments.filter(a => a.phone === u.phone);
-
-            return `
-            <div class="space-y-6 animate-fade-in">
-                <div class="bg-brand-secondary rounded-3xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
-                    <div class="flex items-center gap-4 relative z-10">
-                        <div class="w-16 h-16 bg-brand-primary text-white rounded-full flex items-center justify-center text-2xl font-black">${u.name.charAt(0)}</div>
-                        <div><h2 class="text-2xl font-black">أهلاً، ${u.name}</h2><p class="text-sm text-slate-300">رقم الهاتف: ${u.phone}</p></div>
-                    </div>
-                    <button onclick="App.navigate('doctors')" class="relative z-10 bg-brand-primary text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg hover:bg-brand-primary-dark transition flex items-center gap-2"><i class="fa-solid fa-plus"></i> حجز جديد</button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="glass rounded-3xl p-6 border border-slate-200">
-                        <h3 class="font-black text-lg mb-4"><i class="fa-solid fa-calendar-check text-brand-primary ml-2"></i> مواعيدي</h3>
-                        <div class="space-y-3">
-                            ${userAppts.length > 0 ? userAppts.map(a => `
-                                <div class="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                                    <div class="flex justify-between items-start mb-2">
-                                        <div class="font-bold text-slate-800">${a.docName || a.serviceName}</div>
-                                        <span class="status-badge status-${a.status}">${a.status === 'confirmed' ? 'مؤكد' : 'مكتمل'}</span>
-                                    </div>
-                                    <div class="text-xs text-slate-500 font-bold mb-2">${a.date} - ${a.time} (${a.type === 'home' ? 'منزلي' : a.type === 'clinic' ? 'عيادة' : 'تمريض'})</div>
-                                    <div class="text-xs font-mono bg-slate-50 p-2 rounded border">رقم الحجز: ${a.refNum}</div>
-                                </div>
-                            `).join('') : '<p class="text-sm text-slate-400 font-bold text-center py-4">لا توجد مواعيد حالياً.</p>'}
-                        </div>
-                    </div>
-                    <div class="glass rounded-3xl p-6 border border-slate-200">
-                        <h3 class="font-black text-lg mb-4"><i class="fa-solid fa-file-medical text-brand-info ml-2"></i> الملف الطبي (EMR)</h3>
-                        <div class="space-y-3">
-                            ${DB.emr.filter(e => e.patientPhone === u.phone).map(e => `
-                                <div class="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
-                                    <div class="absolute top-0 right-0 w-1.5 h-full bg-brand-info"></div>
-                                    <div class="text-xs font-bold text-brand-info mb-1">${e.type} - ${e.date}</div>
-                                    <p class="text-sm text-slate-700 font-bold">${e.notes}</p>
-                                </div>
-                            `).join('') || '<p class="text-sm text-slate-400 font-bold text-center py-4">لا توجد سجلات طبية بعد.</p>'}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            `;
-        }
-    });
-
-    // 2. إضافة منطق الحجز الذكي (Smart Booking Logic)
-    Object.assign(window.App, {
-
-        // رسم الأطباء مع الفلترة
-        renderDoctors() {
-            const grid = document.getElementById('doctors-grid');
-            if (!grid) return;
-
-            const query = document.getElementById('search-name')?.value.toLowerCase() || '';
-            const specFilter = document.getElementById('filter-spec')?.value || '';
-            const areaFilter = document.getElementById('filter-area')?.value || '';
-
-            const filtered = DB.doctors.filter(d => {
-                const matchName = d.name.toLowerCase().includes(query) || d.spec.toLowerCase().includes(query);
-                const matchSpec = specFilter === '' || d.spec === specFilter;
-                const matchArea = areaFilter === '' || d.area === areaFilter;
-                return matchName && matchSpec && matchArea;
-            });
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500 font-bold">لا يوجد أطباء مطابقون لبحثك.</div>`;
-                return;
-            }
-
-            grid.innerHTML = filtered.map(d => `
-                <div class="glass rounded-3xl p-6 border border-slate-200 hover-lift">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center text-3xl"><i class="fa-solid fa-user-doctor"></i></div>
-                            <div><h3 class="font-black text-slate-800 text-lg">${sanitize(d.name)}</h3><p class="text-xs text-brand-primary font-bold mt-0.5">${sanitize(d.spec)}</p></div>
-                        </div>
-                    </div>
-                    <div class="bg-slate-50 rounded-xl p-3 mb-4 space-y-2 border border-slate-100">
-                        <div class="flex items-center gap-2 text-xs font-bold text-slate-600"><i class="fa-solid fa-location-dot text-brand-primary w-4"></i> ${sanitize(d.area)}</div>
-                        <div class="flex items-center gap-2 text-xs font-bold text-slate-600"><i class="fa-solid fa-clock text-brand-info w-4"></i> مدة الكشف: ${d.slotDuration} دقيقة</div>
-                    </div>
-                    <div class="flex justify-between items-center pt-4 border-t border-slate-100">
-                        <div>
-                            <span class="text-[10px] text-slate-400 font-bold block">عيادة: ${d.clinicFee} ج.م</span>
-                            <span class="text-brand-info font-black text-xs">منزلي: ${d.homeFee} ج.م</span>
-                        </div>
-                        <button onclick="App.openBookingModal('${d.id}')" class="bg-brand-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-primary-dark transition shadow-md">حجز</button>
-                    </div>
-                </div>
-            `).join('');
-        },
-
-        // دالة توليد الأوقات المتاحة بناءً على إعدادات الطبيب
-        generateAvailableSlots(docId, date) {
-            const doc = DB.doctors.find(d => d.id === docId);
-            if (!doc) return [];
-
-            // تحويل الوقت إلى دقائق
-            const [startH, startM] = doc.workingHours.start.split(':').map(Number);
-            const [endH, endM] = doc.workingHours.end.split(':').map(Number);
-            let currentMin = startH * 60 + startM;
-            const endMin = endH * 60 + endM;
-            
-            const slots = [];
-            const bookedAppts = DB.appointments.filter(a => a.docId === docId && a.date === date && a.status !== 'cancelled');
-
-            while (currentMin < endMin) {
-                const h = Math.floor(currentMin / 60).toString().padStart(2, '0');
-                const m = (currentMin % 60).toString().padStart(2, '0');
-                const timeStr = `${h}:${m}`;
-
-                // التحقق إذا كان هذا الوقت محجوزاً
-                const isBooked = bookedAppts.some(a => a.time === timeStr);
-                if (!isBooked) {
-                    slots.push(timeStr);
-                }
-                currentMin += doc.slotDuration;
-            }
-            return slots;
-        },
-
-        openBookingModal(docId) {
-            const doc = DB.doctors.find(d => d.id === docId);
-            if (!doc) return;
-            
-            const html = `
-                <div class="text-center mb-6">
-                    <div class="w-20 h-20 bg-brand-primary-light text-brand-primary rounded-full flex items-center justify-center mx-auto text-4xl mb-3"><i class="fa-solid fa-user-doctor"></i></div>
-                    <h2 class="text-2xl font-black text-slate-800">حجز مع ${doc.name}</h2>
-                </div>
-                
-                <form onsubmit="event.preventDefault(); App.confirmBooking(event, '${doc.id}')" class="space-y-4">
-                    <div class="bg-slate-50 p-3 rounded-xl border">
-                        <label class="block text-xs font-bold text-slate-700 mb-2">نوع الكشف</label>
-                        <div class="flex gap-2">
-                            <label class="flex-1 cursor-pointer">
-                                <input type="radio" name="bk-type" value="clinic" class="peer sr-only" required checked onchange="document.getElementById('price-label').innerText='${doc.clinicFee}'">
-                                <div class="text-center py-2 border rounded-xl text-sm font-bold peer-checked:bg-brand-primary peer-checked:text-white">عيادة (${doc.clinicFee} ج.م)</div>
-                            </label>
-                            <label class="flex-1 cursor-pointer">
-                                <input type="radio" name="bk-type" value="home" class="peer sr-only" required onchange="document.getElementById('price-label').innerText='${doc.homeFee}'">
-                                <div class="text-center py-2 border rounded-xl text-sm font-bold peer-checked:bg-brand-info peer-checked:text-white">كشف منزلي (${doc.homeFee} ج.م)</div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-2">التاريخ</label>
-                        <input type="date" id="bk-date" required class="w-full p-3 border border-slate-300 rounded-xl font-bold text-sm" min="${new Date().toISOString().split('T')[0]}" onchange="App.updateSlots('${doc.id}', this.value)">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-2">الوقت المتاح</label>
-                        <select id="bk-time" required class="w-full p-3 border border-slate-300 rounded-xl font-bold text-sm">
-                            <option value="">اختر التاريخ أولاً لعرض الأوقات المتاحة</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-2">اسم المريض</label>
-                        <input type="text" id="bk-name" required class="w-full p-3 border border-slate-300 rounded-xl font-bold text-sm" value="${this.state.user ? this.state.user.name : ''}">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-2">رقم الهاتف</label>
-                        <input type="tel" id="bk-phone" required class="w-full p-3 border border-slate-300 rounded-xl font-bold text-sm" value="${this.state.user ? this.state.user.phone : ''}">
-                    </div>
-                    <button type="submit" class="w-full bg-brand-primary text-white py-4 rounded-xl font-black text-base shadow-lg mt-2">
-                        تأكيد الحجز (<span id="price-label">${doc.clinicFee}</span> ج.م)
-                    </button>
-                </form>
-            `;
-            document.getElementById('modal-content').innerHTML = html;
-            document.getElementById('modal-container').classList.remove('hidden');
-        },
-
-        // تحديث قائمة الأوقات المتاحة
-        updateSlots(docId, date) {
-            const select = document.getElementById('bk-time');
-            const slots = this.generateAvailableSlots(docId, date);
-            
-            if (slots.length === 0) {
-                select.innerHTML = `<option value="">لا توجد أوقات متاحة في هذا اليوم</option>`;
-            } else {
-                select.innerHTML = slots.map(s => `<option value="${s}">${s}</option>`).join('');
-            }
-        },
-
-        confirmBooking(e, docId) {
-            const doc = DB.doctors.find(d => d.id === docId);
-            const type = document.querySelector('input[name="bk-type"]:checked').value;
-            const name = document.getElementById('bk-name').value;
-            const date = document.getElementById('bk-date').value;
-            const time = document.getElementById('bk-time').value;
-            const phone = document.getElementById('bk-phone').value;
-            
-            if (!time) return this.toast('يرجى اختيار وقت متاح أولاً', 'warning');
-
-            // إعادة التحقق من عدم الحجز المزدوج
-            const isBooked = DB.appointments.find(a => a.docId === docId && a.date === date && a.time === time && a.status !== 'cancelled');
-            if (isBooked) {
-                return this.toast('عذراً، هذا الميعاد تم حجزه للتو. يرجى اختيار وقت آخر.', 'error');
-            }
-
-            const amount = type === 'home' ? doc.homeFee : doc.clinicFee;
-            const refNum = 'WS-' + Math.floor(1000 + Math.random() * 9000);
-            
-            const newAppt = { 
-                id: 'A' + Date.now(), refNum: refNum, patient: sanitize(name), phone: sanitize(phone), 
-                docId: doc.id, docName: doc.name, date, time, status: 'confirmed', amount, type 
-            };
-            
-            DB.appointments.push(newAppt);
-            saveDB();
-            
-            document.getElementById('modal-container').classList.add('hidden');
-            this.toast(`تم تأكيد الحجز! رقمك المرجعي: ${refNum}`, 'success');
-            
-            if (this.state.user && this.state.user.role === 'patient') this.navigate('patientPortal');
-            else this.navigate('landing');
-            
-            const msg = `*تذكرة حجز - منصة وصلة* 🏥\n\n*الرقم المرجعي:* ${refNum}\n*الطبيب:* ${doc.name}\n*النوع:* ${type === 'home' ? 'كشف منزلي' : 'كشف عيادة'}\n*المريض:* ${name}\n*التاريخ:* ${date} - ${time}\n*المبلغ:* ${amount} ج.م`;
-            window.open(`https://wa.me/201000000000?text=${encodeURIComponent(msg)}`, '_blank');
-        },
-
-        // طلب خدمة تمريض (سعر مرن)
-        requestNursing(serviceId) {
-            const service = DB.services.nursing.find(s => s.id === serviceId);
-            if (!service) return;
-
-            const html = `
-                <h3 class="text-xl font-black mb-4">طلب: ${service.name}</h3>
-                <p class="text-xs text-slate-500 mb-4">${service.desc}</p>
-                <form onsubmit="event.preventDefault(); App.confirmNursing(event, '${service.id}')" class="space-y-4">
-                    <input type="text" id="nur-name" required placeholder="اسم المريض" class="w-full p-3 border rounded-xl font-bold text-sm" value="${this.state.user ? this.state.user.name : ''}">
-                    <input type="tel" id="nur-phone" required placeholder="رقم الهاتف" class="w-full p-3 border rounded-xl font-bold text-sm" value="${this.state.user ? this.state.user.phone : ''}">
-                    <input type="date" id="nur-date" required class="w-full p-3 border rounded-xl font-bold text-sm">
-                    <textarea id="nur-notes" required placeholder="تفاصيل الحالة وعدد الزيارات المطلوبة..." class="w-full p-3 border rounded-xl font-bold text-sm" rows="3"></textarea>
-                    <button type="submit" class="w-full bg-brand-primary text-white py-3 rounded-xl font-bold">إرسال الطلب وتسعير لاحقاً</button>
-                </form>
-            `;
-            document.getElementById('modal-content').innerHTML = html;
-            document.getElementById('modal-container').classList.remove('hidden');
-        },
-
-        confirmNursing(e, serviceId) {
-            const service = DB.services.nursing.find(s => s.id === serviceId);
-            const name = document.getElementById('nur-name').value;
-            const phone = document.getElementById('nur-phone').value;
-            const date = document.getElementById('nur-date').value;
-            const notes = document.getElementById('nur-notes').value;
-            const refNum = 'NUR-' + Math.floor(1000 + Math.random() * 9000);
-
-            const newAppt = {
-                id: 'A' + Date.now(), refNum: refNum, patient: sanitize(name), phone: sanitize(phone),
-                serviceName: service.name, date: date, time: 'حسب الاتفاق', status: 'confirmed', amount: 0, type: 'nursing'
-            };
-            DB.appointments.push(newAppt);
-            saveDB();
-
-            this.closeModal();
-            this.toast(`تم استلام طلبك. رقم المرجع: ${refNum}. سنتصل بك للتسعير.`, 'success');
-            
-            const msg = `*طلب تمريض - منصة وصلة* 🏥\n\n*الخدمة:* ${service.name}\n*المريض:* ${name}\n*الهاتف:* ${phone}\n*التاريخ:* ${date}\n*التفاصيل:* ${notes}\n*رقم المرجع:* ${refNum}`;
-            window.open(`https://wa.me/201000000000?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-    });
-
-    // تشغيل الرسم عند فتح الصفحة
-    const oldNavigate = App.navigate;
-    App.navigate = function(view) {
-        oldNavigate.call(this, view);
-        if (view === 'doctors') this.renderDoctors();
-    };
-</script>
-    <!-- =========================================
-     JAVASCRIPT: DOCTOR DASHBOARD & FINAL LOGIC (PART 4)
-========================================= -->
-<script>
-    // 1. إضافة واجهات الطبيب وتحديث لوحة الإدارة
-    Object.assign(window.Views, {
-        
-        // لوحة تحكم الطبيب
-        doctorDashboard: () => {
-            const u = App.state.user;
-            // الطبيب يشوف مواعيده هو بس (عن طريق الـ id)
-            const docAppts = DB.appointments.filter(a => a.docId === u.id);
-            const completedCount = docAppts.filter(a => a.status === 'completed').length;
-            const pendingAppts = docAppts.filter(a => a.status === 'confirmed');
-
-            return `
-            <div class="space-y-6 animate-fade-in">
-                <!-- Header -->
-                <div class="bg-brand-secondary rounded-3xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
-                    <div class="flex items-center gap-4">
-                        <div class="w-16 h-16 bg-brand-primary text-white rounded-full flex items-center justify-center text-2xl font-black">
-                            <i class="fa-solid fa-user-doctor"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-black">أهلاً، ${u.name}</h2>
-                            <p class="text-sm text-slate-300 font-bold mt-1">لوحة إدارة العيادة</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="bg-white/10 p-3 rounded-xl text-center min-w-[100px]">
-                            <span class="block text-xs text-slate-300 mb-1">مواعيد اليوم</span>
-                            <span class="text-2xl font-black text-white">${docAppts.length}</span>
-                        </div>
-                        <div class="bg-white/10 p-3 rounded-xl text-center min-w-[100px]">
-                            <span class="block text-xs text-slate-300 mb-1">حالات مكتملة</span>
-                            <span class="text-2xl font-black text-emerald-400">${completedCount}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Appointments List -->
-                <div class="glass rounded-3xl p-6 border border-slate-200">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-black text-lg text-slate-800"><i class="fa-solid fa-list-check text-brand-primary ml-2"></i> قائمة الانتظار</h3>
-                        <span class="text-xs font-bold bg-brand-primary-light text-brand-primary px-3 py-1 rounded-full">${pendingAppts.length} مريض</span>
-                    </div>
-                    
-                    <div class="space-y-3">
-                        ${docAppts.length > 0 ? docAppts.map(a => `
-                            <div class="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                <div>
-                                    <div class="font-bold text-slate-800 text-base flex items-center gap-2">
-                                        ${sanitize(a.patient)}
-                                        <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-500 font-mono">${a.refNum}</span>
-                                    </div>
-                                    <div class="text-xs text-slate-500 font-bold mt-1">
-                                        <i class="fa-regular fa-calendar ml-1"></i> ${a.date} - ${a.time} 
-                                        <span class="mx-2">|</span> 
-                                        <span class="text-brand-info">${a.type === 'home' ? 'كشف منزلي' : 'عيادة'}</span>
-                                    </div>
-                                    <div class="text-xs text-slate-500 font-bold mt-1"><i class="fa-solid fa-phone ml-1 text-brand-primary"></i> ${sanitize(a.phone)}</div>
-                                </div>
-                                <div class="flex gap-2 w-full sm:w-auto">
-                                    ${a.status === 'confirmed' ? `
-                                        <button onclick="App.openEMRModal('${a.patient}', '${a.phone}')" class="flex-1 sm:flex-none bg-brand-info text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 transition shadow-sm">
-                                            <i class="fa-solid fa-file-medical"></i> إضافة ملف
-                                        </button>
-                                        <button onclick="App.completeAppointment('${a.id}')" class="flex-1 sm:flex-none bg-brand-primary text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-brand-primary-dark transition shadow-sm">
-                                            <i class="fa-solid fa-check"></i> إنهاء الكشف
-                                        </button>
-                                    ` : `
-                                        <span class="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-xs font-bold w-full text-center border border-emerald-100">
-                                            <i class="fa-solid fa-check-double ml-1"></i> تم الكشف
-                                        </span>
-                                    `}
-                                </div>
-                            </div>
-                        `).join('') : '<p class="text-sm text-slate-400 font-bold text-center py-8">لا توجد مواعيد مسجلة لك حتى الآن.</p>'}
-                    </div>
-                </div>
-            </div>
-            `
-        },
-
-        // واجهة مودال إضافة الملف الطبي (EMR)
-        doctorEMR: (patientName, patientPhone) => `
-            <div class="space-y-4">
-                <div class="text-center mb-4">
-                    <div class="w-16 h-16 bg-brand-info/10 text-brand-info rounded-full flex items-center justify-center mx-auto text-2xl mb-2">
-                        <i class="fa-solid fa-file-medical"></i>
-                    </div>
-                    <h3 class="font-black text-lg text-slate-800">ملف المريض: ${sanitize(patientName)}</h3>
-                </div>
-                
-                <form onsubmit="event.preventDefault(); App.saveEMR(event, '${sanitize(patientName)}', '${sanitize(patientPhone)}')" class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold mb-1">نوع الملف</label>
-                        <select id="emr-type" class="w-full p-3 border rounded-xl font-bold text-sm bg-slate-50">
-                            <option value="روشتة طبية">روشتة طبية</option>
-                            <option value="نتيجة تحليل">نتيجة تحليل</option>
-                            <option value="أشعة">أشعة</option>
-                            <option value="ملاحظة طبية">ملاحظة طبية</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold mb-1">التفاصيل</label>
-                        <textarea id="emr-notes" required rows="4" placeholder="اكتب تفاصيل الروشتة أو التشخيص هنا..." class="w-full p-3 border rounded-xl font-bold text-sm bg-slate-50"></textarea>
-                    </div>
-                    <button type="submit" class="w-full bg-brand-info text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition shadow-md">
-                        <i class="fa-solid fa-save ml-1"></i> حفظ في ملف المريض
-                    </button>
-                </form>
-
-                <!-- السجلات السابقة -->
-                <div class="mt-6 border-t pt-4">
-                    <h4 class="font-bold text-sm text-slate-700 mb-3">السجلات السابقة:</h4>
-                    <div class="space-y-2 max-h-40 overflow-y-auto pr-1">
-                        ${DB.emr.filter(e => e.patientPhone === patientPhone).map(e => `
-                            <div class="p-3 bg-slate-50 text-xs border rounded-xl">
-                                <div class="flex justify-between font-bold text-brand-info mb-1">
-                                    <span>${sanitize(e.type)}</span>
-                                    <span>${e.date}</span>
-                                </div>
-                                <p class="text-slate-700">${sanitize(e.notes)}</p>
-                            </div>
-                        `).join('') || '<p class="text-xs text-slate-400 text-center">لا يوجد سجلات سابقة لهذا المريض.</p>'}
-                    </div>
-                </div>
-            </div>
-        `
-    });
-
-    // 2. دمج دوال الجافاسكريبت الجديدة (Doctor Logic)
-    Object.assign(window.App, {
-        
-        openEMRModal(patientName, patientPhone) {
-            document.getElementById('modal-content').innerHTML = this.views.doctorEMR(patientName, patientPhone);
-            document.getElementById('modal-container').classList.remove('hidden');
-        },
-
-        saveEMR(e, patientName, patientPhone) {
-            const type = document.getElementById('emr-type').value;
-            const notes = document.getElementById('emr-notes').value;
-            
-            const newRecord = {
-                id: 'E' + Date.now(),
-                patientName: patientName,
-                patientPhone: patientPhone,
-                docName: this.state.user.name,
-                date: new Date().toISOString().split('T')[0],
-                type: type,
-                notes: sanitize(notes)
-            };
-
-            DB.emr.push(newRecord);
-            saveDB();
-            
-            this.toast('تم حفظ السجل الطبي بنجاح!', 'success');
-            this.closeModal();
-        },
-
-        completeAppointment(id) {
-            const appt = DB.appointments.find(a => a.id === id);
-            if (appt) {
-                appt.status = 'completed';
-                saveDB();
-                this.toast('تم إنهاء الكشف بنجاح!', 'success');
-                this.navigate('doctorDashboard'); // تحديث الصفحة
-            }
-        }
-    });
-
-    // 3. تحديث وظيفة الـ Views في الـ App عشان نربط المودال
-    window.App.views = window.Views;
-
-    // 4. ربط لوحة الأدمن بإدارة الخدمات (إضافة/حذف تمريض)
-    Object.assign(window.App, {
-        adminAddNursing() {
-            const name = prompt("اسم خدمة التمريض:");
-            if(!name) return;
-            const desc = prompt("وصف الخدمة:");
-            
-            DB.services.nursing.push({ 
-                id: 'n'+Date.now(), 
-                name: sanitize(name), 
-                pricingType: 'flexible', 
-                price: 0, 
-                desc: sanitize(desc) 
-            });
-            saveDB();
-            this.navigate('adminDashboard');
-            this.adminTab('services');
-            this.toast('تمت إضافة خدمة التمريض', 'success');
-        },
-
-        adminDeleteNursing(id) {
-            if(confirm("تأكيد حذف الخدمة؟")) {
-                DB.services.nursing = DB.services.nursing.filter(s => s.id !== id);
-                saveDB();
-                this.navigate('adminDashboard');
-                this.adminTab('services');
-                this.toast('تم حذف الخدمة', 'info');
-            }
-        },
-
-        adminUpdateSupply(id) {
-            const supply = DB.services.supplies.find(s => s.id === id);
-            if(!supply) return;
-            const newPrice = prompt(`تعديل سعر: ${supply.name}`, supply.price);
-            if(newPrice) {
-                supply.price = Number(newPrice);
-                saveDB();
-                this.navigate('adminDashboard');
-                this.adminTab('services');
-                this.toast('تم تحديث السعر', 'success');
-            }
-        }
-    });
-
-    // تعديل لوحة الإدارة عشان تشمل الخدمات
-    const oldAdminDashboard = window.Views.adminDashboard;
-    window.Views.adminDashboard = function() {
-        let html = oldAdminDashboard();
-        
-        // استبدال محتوى تاب الخدمات
-        const servicesContent = `
-            <div id="admin-content-services" class="admin-content hidden glass rounded-3xl p-6 border border-slate-200 space-y-6">
-                <!-- التمريض -->
-                <div>
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="font-black text-lg text-slate-800">إدارة خدمات التمريض</h3>
-                        <button onclick="App.adminAddNursing()" class="bg-brand-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-plus"></i> إضافة</button>
-                    </div>
-                    <div class="space-y-2">
-                        ${DB.services.nursing.map(s => `
-                            <div class="p-3 bg-slate-50 border rounded-xl flex justify-between items-center">
-                                <div>
-                                    <div class="font-bold text-sm">${s.name}</div>
-                                    <div class="text-xs text-slate-500">${s.desc}</div>
-                                </div>
-                                <button onclick="App.adminDeleteNursing('${s.id}')" class="text-red-500 hover:text-red-700 p-2"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                
-                <!-- المستلزمات -->
-                <div class="border-t pt-4">
-                    <h3 class="font-black text-lg text-slate-800 mb-3">إدارة المستلزمات (تعديل الأسعار)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        ${DB.services.supplies.map(s => `
-                            <div class="p-3 bg-slate-50 border rounded-xl flex justify-between items-center">
-                                <div>
-                                    <div class="font-bold text-sm">${s.name}</div>
-                                    <div class="text-xs text-brand-primary font-black">${s.price} ج.م</div>
-                                </div>
-                                <button onclick="App.adminUpdateSupply('${s.id}')" class="text-brand-info hover:text-blue-700 p-2"><i class="fa-solid fa-pen"></i></button>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // استبدال الجزء القديم بالجديد
-        const start = html.indexOf('<div id="admin-content-services"');
-        if(start !== -1) {
-            const end = html.indexOf('</div>', html.indexOf('</div>', html.indexOf('</div>', start) + 6) + 6) + 6; // صيد معقد للـ div
-            // بما إن الـ HTML معقد شوية، هنستخدم replace مباشر
-            html = html.replace(/<div id="admin-content-services"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/, servicesContent);
-        }
-        
-        return html;
-    };
-</script>
 </body>
 </html>
