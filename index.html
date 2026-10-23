@@ -3,587 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>وصلة | نظام إدارة العيادة</title>
+    <title>وصلة | لوحة التحكم</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 500: '#10b981', 600: '#059669', 700: '#047857' },
-                        sidebar: '#0f172a'
-                    },
-                    fontFamily: { sans: ['Cairo', 'sans-serif'] },
-                }
-            }
-        }
-    </script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+        body { font-family: 'Cairo', sans-serif; background-color: #F1F5F9; }
+        .glass-panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
         
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-        /* Sidebar */
-        .sidebar { position: fixed; right: -16rem; transition: right 0.3s ease; }
-        .sidebar.open { right: 0; }
+        /* Mobile Sidebar Overlay */
+        .sidebar-overlay { display: none; }
+        .sidebar-overlay.active { display: block; }
+        
         @media (min-width: 1024px) {
-            .sidebar { right: 0 !important; position: relative; }
+            .sidebar-overlay { display: none !important; }
         }
-
-        /* Nav Item Active */
-        .nav-item.active { background-color: #10b981; color: white; }
-        .nav-item.active i { color: white; }
-
-        /* Overlay */
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 20; }
-        .overlay.active { display: block; }
-        @media (min-width: 1024px) { .overlay { display: none !important; } }
-
-        /* Fade In */
-        .fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex">
+<body class="text-slate-800 antialiased h-screen flex overflow-hidden">
 
-    <!-- Overlay for Mobile -->
-    <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+    <!-- Mobile Overlay (Dark background when sidebar is open) -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 lg:hidden sidebar-overlay" onclick="toggleSidebar()"></div>
 
     <!-- =========================================
-         SIDEBAR
+         SIDEBAR (Hidden on mobile, Fixed on Desktop)
     ========================================= -->
-    <aside id="sidebar" class="sidebar w-64 bg-sidebar text-slate-300 flex flex-col h-screen shrink-0 z-30">
-        <!-- Logo -->
-        <div class="h-16 flex items-center justify-between px-6 border-b border-slate-800">
+    <aside id="sidebar" class="fixed lg:static inset-y-0 right-0 z-50 w-64 bg-slate-900 text-white flex flex-col h-full shrink-0 transform translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+        <div class="p-6 flex items-center justify-between border-b border-slate-800">
             <div class="flex items-center gap-3">
-                <div class="bg-primary-500 text-white p-1.5 rounded-lg text-xl"><i class="fa-solid fa-heart-pulse"></i></div>
-                <h1 class="text-xl font-black text-white">وَصْلَة</h1>
+                <div class="bg-emerald-500 p-2 rounded-xl text-xl"><i class="fa-solid fa-heart-pulse"></i></div>
+                <div>
+                    <h1 class="text-xl font-black leading-tight">وَصْلَة</h1>
+                    <p class="text-[9px] text-emerald-400 font-bold">منصة شبين القناطر</p>
+                </div>
             </div>
+            <!-- Close button for mobile -->
             <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
         </div>
         
-        <!-- Navigation -->
-        <nav class="flex-grow p-3 space-y-1 overflow-y-auto text-sm font-bold">
-            <div class="text-xs text-slate-500 mb-2 mt-2 px-3">القائمة الرئيسية</div>
+        <nav class="flex-grow p-4 space-y-2 overflow-y-auto custom-scrollbar text-sm font-bold">
+            <div class="text-slate-500 text-xs mb-2 mt-2 px-2">إدارة العمليات</div>
+            <button onclick="switchView('dashboard')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 transition">
+                <i class="fa-solid fa-chart-pie w-5 text-center"></i> لوحة القيادة
+            </button>
+            <button onclick="switchView('dispatcher')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fa-solid fa-map-location-dot w-5 text-center"></i> مركز التوجيه
+            </button>
+            <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fa-brands fa-whatsapp w-5 text-center"></i> غرفة الفرز
+                <span class="bg-red-500 text-[10px] px-2 py-0.5 rounded-full mr-auto">14</span>
+            </button>
             
-            <button onclick="switchView('dashboard', this)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition text-right">
-                <i class="fa-solid fa-border-all w-5 text-center text-slate-400"></i> الرئيسية
+            <div class="text-slate-500 text-xs mb-2 mt-6 px-2">إدارة النظام</div>
+            <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fa-solid fa-user-doctor w-5 text-center"></i> الأطباء والعيادات
             </button>
-            <button onclick="switchView('appointments', this)" class="nav-item active w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition text-right">
-                <i class="fa-regular fa-calendar-check w-5 text-center text-slate-400"></i> المواعيد المتاحة
-            </button>
-            <button onclick="switchView('patients', this)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition text-right">
-                <i class="fa-solid fa-users w-5 text-center text-slate-400"></i> المرضى
-                <span class="bg-primary-500 text-white text-[10px] px-2 py-0.5 rounded-full mr-auto">12</span>
-            </button>
-            <button onclick="switchView('my-appointments', this)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition text-right">
-                <i class="fa-regular fa-clock w-5 text-center text-slate-400"></i> مواعيدي
-            </button>
-            <button onclick="switchView('doctors', this)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition text-right">
-                <i class="fa-solid fa-user-doctor w-5 text-center text-slate-400"></i> الأطباء
-            </button>
-
-            <div class="text-xs text-slate-500 mb-2 mt-6 px-3">الإدارة</div>
-            
-            <button onclick="switchView('inventory', this)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition text-right">
-                <i class="fa-solid fa-boxes-stacked w-5 text-center text-slate-400"></i> المخزون
-            </button>
-            <button onclick="switchView('accounts', this)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition text-right">
-                <i class="fa-solid fa-money-bill-trend-up w-5 text-center text-slate-400"></i> الحسابات
-            </button>
-            <button onclick="switchView('staff', this)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition text-right">
-                <i class="fa-solid fa-user-tie w-5 text-center text-slate-400"></i> الموظفين
-            </button>
-            <button onclick="switchView('settings', this)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition text-right">
-                <i class="fa-solid fa-gear w-5 text-center text-slate-400"></i> الإعدادات
+            <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fa-solid fa-users w-5 text-center"></i> المرضى
             </button>
         </nav>
 
-        <!-- User Profile -->
         <div class="p-4 border-t border-slate-800">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <img src="https://ui-avatars.com/api/?name=M+Z&background=10b981&color=fff" class="w-9 h-9 rounded-full">
-                    <div>
-                        <div class="text-sm font-bold text-white">مهند زيد</div>
-                        <div class="text-[10px] text-slate-400">مدير العيادة</div>
-                    </div>
+            <div class="flex items-center gap-3 bg-slate-800 p-3 rounded-xl">
+                <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center font-bold text-white">أ</div>
+                <div>
+                    <div class="text-sm font-bold text-white">أحمد صبحي</div>
+                    <div class="text-[10px] text-slate-400">المؤسس</div>
                 </div>
-                <button class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-right-from-bracket"></i></button>
             </div>
         </div>
     </aside>
 
     <!-- =========================================
-         MAIN CONTENT
+         MAIN CONTENT AREA
     ========================================= -->
-    <main class="flex-grow flex flex-col h-screen overflow-hidden bg-slate-50">
+    <main class="flex-grow flex flex-col h-full overflow-hidden w-full relative">
         
-        <!-- Top Bar -->
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 shrink-0 z-10 shadow-sm">
-            <div class="flex items-center gap-3">
-                <button onclick="toggleSidebar()" class="lg:hidden text-slate-600 hover:text-slate-900 text-xl"><i class="fa-solid fa-bars"></i></button>
-                <h2 id="page-title" class="text-lg font-black text-slate-800">المواعيد المتاحة</h2>
+        <!-- Top Header (Mobile Friendly) -->
+        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 lg:px-6 shrink-0 z-30">
+            <div class="flex items-center gap-4">
+                <!-- Hamburger Menu (Only Mobile) -->
+                <button onclick="toggleSidebar()" class="lg:hidden text-slate-600 hover:text-slate-900 text-xl">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h2 id="page-title" class="text-lg font-black text-slate-800">لوحة القيادة</h2>
             </div>
             
             <div class="flex items-center gap-3">
-                <div class="relative hidden md:block">
-                    <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-slate-400 text-sm"></i>
-                    <input type="text" placeholder="بحث عن مريض أو ملف..." class="bg-slate-100 border-none rounded-lg py-2 pr-9 pl-4 text-sm font-bold w-64 focus:ring-2 focus:ring-primary-500 outline-none transition">
-                </div>
-                <button class="w-9 h-9 bg-slate-100 text-slate-500 rounded-lg flex items-center justify-center hover:bg-slate-200 transition relative">
-                    <i class="fa-regular fa-bell"></i>
-                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+                <button class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
+                    <i class="fa-solid fa-bell"></i>
                 </button>
-                <img src="https://ui-avatars.com/api/?name=M+Z&background=10b981&color=fff" class="w-9 h-9 rounded-full md:hidden">
+                <img src="https://ui-avatars.com/api/?name=Ahmed+Sobhy&background=0A8754&color=fff" class="w-10 h-10 rounded-full border border-slate-200 hidden sm:block">
             </div>
         </header>
 
-        <!-- Scrollable Content Area -->
-        <div class="flex-grow overflow-y-auto p-4 lg:p-6">
-
-            <!-- ==============================================
-                 VIEW 1: DASHBOARD
-            =============================================== -->
-            <div id="view-dashboard" class="hidden space-y-6 fade-in">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-r-4 border-primary-500">
-                        <p class="text-xs text-slate-500 font-bold mb-1">إجمالي المواعيد اليوم</p>
-                        <h3 class="text-3xl font-black text-slate-800">24</h3>
-                        <p class="text-[10px] text-primary-600 font-bold mt-1"><i class="fa-solid fa-arrow-up"></i> 12% عن أمس</p>
+        <!-- Scrollable Content -->
+        <div class="flex-grow overflow-y-auto p-4 lg:p-6 custom-scrollbar relative">
+            
+            <!-- VIEW 1: MAIN DASHBOARD -->
+            <div id="view-dashboard" class="space-y-6 fade-in">
+                <!-- Welcome -->
+                <div class="bg-slate-900 rounded-3xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center justify-between shadow-xl relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-2xl"></div>
+                    <div class="relative z-10 text-center sm:text-right mb-4 sm:mb-0">
+                        <h2 class="text-2xl font-black mb-1">أهلاً بك يا دكتور</h2>
+                        <p class="text-sm text-slate-300 font-bold">لديك <span class="text-emerald-400 font-black">12 مريض</span> في قائمة الانتظار اليوم.</p>
                     </div>
-                    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-r-4 border-blue-500">
-                        <p class="text-xs text-slate-500 font-bold mb-1">إيرادات اليوم</p>
-                        <h3 class="text-3xl font-black text-slate-800">4,500 <span class="text-sm">ج.م</span></h3>
-                    </div>
-                    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-r-4 border-amber-500">
-                        <p class="text-xs text-slate-500 font-bold mb-1">مرضى جدد</p>
-                        <h3 class="text-3xl font-black text-slate-800">8</h3>
-                    </div>
-                    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-r-4 border-purple-500">
-                        <p class="text-xs text-slate-500 font-bold mb-1">نسبة الحضور</p>
-                        <h3 class="text-3xl font-black text-slate-800">94%</h3>
+                    <div class="flex gap-4 relative z-10 w-full sm:w-auto">
+                        <div class="bg-white/10 px-4 py-3 rounded-2xl text-center flex-1 sm:flex-none border border-white/10">
+                            <span class="block text-[10px] text-slate-300 mb-1">إيرادات اليوم</span>
+                            <span class="text-xl font-black text-emerald-400">3,400 <span class="text-xs text-white">ج.م</span></span>
+                        </div>
+                        <div class="bg-white/10 px-4 py-3 rounded-2xl text-center flex-1 sm:flex-none border border-white/10">
+                            <span class="block text-[10px] text-slate-300 mb-1">إجمالي الشهر</span>
+                            <span class="text-xl font-black text-white">42,500 <span class="text-xs">ج.م</span></span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-                    <h3 class="font-black text-lg mb-4">مرحباً بك في لوحة تحكم وصلة</h3>
-                    <p class="text-sm text-slate-600 font-bold leading-relaxed">من هنا يمكنك إدارة كل ما يتعلق بعيادتك: المواعيد، ملفات المرضى، المخزون، والحسابات. استخدم القائمة الجانبية للتنقل بين الأقسام المختلفة.</p>
-                </div>
-            </div>
-
-            <!-- ==============================================
-                 VIEW 2: APPOINTMENTS (Image 1)
-            =============================================== -->
-            <div id="view-appointments" class="space-y-6 fade-in">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div>
-                        <h3 class="text-2xl font-black text-slate-800">المواعيد المتاحة</h3>
-                        <p class="text-sm text-slate-500 font-bold mt-1">إدارة وتنظيم مواعيد العيادة</p>
-                    </div>
-                    <button onclick="alert('سيتم فتح نموذج إضافة موعد جديد')" class="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-primary-600 transition flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> إضافة موعد
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    
-                    <!-- Card 1 -->
-                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md hover:border-primary-300 transition">
-                        <div class="flex justify-between items-start mb-3">
-                            <span class="bg-primary-100 text-primary-700 text-[10px] font-bold px-2 py-1 rounded">موعد مؤكد</span>
-                            <button class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                        </div>
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-full flex items-center justify-center font-bold">أ</div>
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-800">أحمد محمود</h4>
-                                <p class="text-[10px] text-slate-500 font-bold">حجز WS-582</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between text-xs font-bold text-slate-500 border-t border-slate-100 pt-3 mb-3">
-                            <span><i class="fa-regular fa-clock ml-1"></i> 10:00 ص</span>
-                            <span class="text-primary-600">باطنة</span>
-                        </div>
-                        <button onclick="openPrescriptionModal('أحمد محمود')" class="w-full bg-slate-50 hover:bg-primary-500 hover:text-white text-primary-600 py-2 rounded-lg text-xs font-bold transition">
-                            بدء الكشف
-                        </button>
+                <!-- Patients List (Responsive) -->
+                <div class="glass-panel p-4 lg:p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
+                        <h3 class="font-black text-lg text-slate-800"><i class="fa-solid fa-calendar-day text-emerald-500 ml-2"></i> عيادة اليوم</h3>
+                        <span class="text-xs font-bold bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full">الأحد، 22 أكتوبر</span>
                     </div>
 
-                    <!-- Card 2 -->
-                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md hover:border-primary-300 transition">
-                        <div class="flex justify-between items-start mb-3">
-                            <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-1 rounded">في الانتظار</span>
-                            <button class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                        </div>
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center font-bold">س</div>
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-800">سارة عبد الرحمن</h4>
-                                <p class="text-[10px] text-slate-500 font-bold">حجز WS-583</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between text-xs font-bold text-slate-500 border-t border-slate-100 pt-3 mb-3">
-                            <span><i class="fa-regular fa-clock ml-1"></i> 10:30 ص</span>
-                            <span class="text-primary-600">أطفال</span>
-                        </div>
-                        <button onclick="openPrescriptionModal('سارة عبد الرحمن')" class="w-full bg-slate-50 hover:bg-primary-500 hover:text-white text-primary-600 py-2 rounded-lg text-xs font-bold transition">
-                            بدء الكشف
-                        </button>
-                    </div>
-
-                    <!-- Card 3 -->
-                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md hover:border-primary-300 transition">
-                        <div class="flex justify-between items-start mb-3">
-                            <span class="bg-primary-100 text-primary-700 text-[10px] font-bold px-2 py-1 rounded">موعد مؤكد</span>
-                            <button class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                        </div>
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-full flex items-center justify-center font-bold">م</div>
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-800">محمود علي</h4>
-                                <p class="text-[10px] text-slate-500 font-bold">حجز WS-584</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between text-xs font-bold text-slate-500 border-t border-slate-100 pt-3 mb-3">
-                            <span><i class="fa-regular fa-clock ml-1"></i> 11:00 ص</span>
-                            <span class="text-primary-600">عظام</span>
-                        </div>
-                        <button onclick="openPrescriptionModal('محمود علي')" class="w-full bg-slate-50 hover:bg-primary-500 hover:text-white text-primary-600 py-2 rounded-lg text-xs font-bold transition">
-                            بدء الكشف
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- ==============================================
-                 VIEW 3: PATIENTS (Image 3)
-            =============================================== -->
-            <div id="view-patients" class="hidden space-y-6 fade-in">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div>
-                        <h3 class="text-2xl font-black text-slate-800">سجل المرضى</h3>
-                        <p class="text-sm text-slate-500 font-bold mt-1">إدارة بيانات المرضى والزيارات</p>
-                    </div>
-                    <button class="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-primary-600 transition flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> إضافة مريض
-                    </button>
-                </div>
-
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-right text-sm">
-                            <thead class="bg-slate-50 text-slate-500 text-xs font-bold border-b border-slate-200">
-                                <tr>
-                                    <th class="p-4">اسم المريض</th>
-                                    <th class="p-4">رقم الهاتف</th>
-                                    <th class="p-4">التخصص</th>
-                                    <th class="p-4">آخر زيارة</th>
-                                    <th class="p-4">حالة الملف</th>
-                                    <th class="p-4">إجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
-                                <tr class="hover:bg-slate-50 transition">
-                                    <td class="p-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs">أ</div>
-                                            أحمد محمود
-                                        </div>
-                                    </td>
-                                    <td class="p-4 text-xs text-slate-600" dir="ltr">01068990089</td>
-                                    <td class="p-4 text-xs">باطنة</td>
-                                    <td class="p-4 text-xs">2024-05-20</td>
-                                    <td class="p-4"><span class="bg-primary-100 text-primary-700 text-[10px] px-2 py-1 rounded">مكتمل</span></td>
-                                    <td class="p-4">
-                                        <button onclick="openPrescriptionModal('أحمد محمود')" class="text-primary-600 hover:text-primary-800 text-xs font-bold"><i class="fa-solid fa-eye ml-1"></i> فتح</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-slate-50 transition">
-                                    <td class="p-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs">س</div>
-                                            سارة عبد الرحمن
-                                        </div>
-                                    </td>
-                                    <td class="p-4 text-xs text-slate-600" dir="ltr">01068990089</td>
-                                    <td class="p-4 text-xs">أطفال</td>
-                                    <td class="p-4 text-xs">2024-05-22</td>
-                                    <td class="p-4"><span class="bg-primary-100 text-primary-700 text-[10px] px-2 py-1 rounded">مكتمل</span></td>
-                                    <td class="p-4">
-                                        <button onclick="openPrescriptionModal('سارة عبد الرحمن')" class="text-primary-600 hover:text-primary-800 text-xs font-bold"><i class="fa-solid fa-eye ml-1"></i> فتح</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-slate-50 transition">
-                                    <td class="p-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs">م</div>
-                                            محمود علي
-                                        </div>
-                                    </td>
-                                    <td class="p-4 text-xs text-slate-600" dir="ltr">01068990089</td>
-                                    <td class="p-4 text-xs">عظام</td>
-                                    <td class="p-4 text-xs">2024-05-23</td>
-                                    <td class="p-4"><span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-1 rounded">قيد الانتظار</span></td>
-                                    <td class="p-4">
-                                        <button onclick="openPrescriptionModal('محمود علي')" class="text-primary-600 hover:text-primary-800 text-xs font-bold"><i class="fa-solid fa-eye ml-1"></i> فتح</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ==============================================
-                 VIEW 4: MY APPOINTMENTS (Image 5)
-            =============================================== -->
-            <div id="view-my-appointments" class="hidden space-y-6 fade-in">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-2xl font-black text-slate-800">مواعيدي</h3>
-                    <button class="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-primary-600 transition flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> حجز موعد جديد
-                    </button>
-                </div>
-
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
-                    <div class="p-4 border-b border-slate-100">
-                        <div class="flex gap-2">
-                            <button class="bg-primary-500 text-white px-4 py-1.5 rounded-lg text-xs font-bold">الكل</button>
-                            <button class="bg-slate-100 text-slate-600 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200">قادمة</button>
-                            <button class="bg-slate-100 text-slate-600 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200">مكتملة</button>
-                            <button class="bg-slate-100 text-slate-600 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200">ملغاة</button>
-                        </div>
-                    </div>
-
-                    <div class="divide-y divide-slate-100">
-                        <!-- Appointment 1 -->
-                        <div class="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-slate-50 transition">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center">
-                                    <i class="fa-solid fa-tooth text-xl"></i>
-                                </div>
+                    <div class="space-y-3">
+                        <!-- Patient 1 -->
+                        <div class="border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-emerald-500 transition">
+                            <div class="flex items-center gap-4 w-full sm:w-auto">
+                                <div class="w-12 h-12 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center font-black">م</div>
                                 <div>
-                                    <h4 class="font-bold text-slate-800">د. محمد الشريف</h4>
-                                    <p class="text-xs text-slate-500 font-bold mt-1">استشاري باطنة - عيادة 4</p>
-                                    <p class="text-[10px] text-slate-400 mt-1">حجز رقم: WS-582-3</p>
+                                    <div class="font-bold text-slate-800">محمود علي <span class="text-[10px] text-slate-400 font-mono bg-slate-100 px-1 rounded">WS-582</span></div>
+                                    <div class="text-xs text-slate-500 font-bold mt-1"><i class="fa-regular fa-clock ml-1 text-emerald-500"></i> 05:15 م - كشف باطنة</div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                                <div class="text-right">
-                                    <div class="text-sm font-black text-slate-800">2024-10-25</div>
-                                    <div class="text-xs text-primary-600 font-bold">10:00 صباحاً</div>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button class="bg-primary-100 text-primary-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-primary-200">تأكيد</button>
-                                    <button class="bg-red-100 text-red-600 px-3 py-2 rounded-lg text-xs font-bold hover:bg-red-200"><i class="fa-solid fa-xmark"></i></button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Appointment 2 -->
-                        <div class="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-slate-50 transition opacity-60">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-slate-100 text-slate-500 rounded-xl flex items-center justify-center">
-                                    <i class="fa-solid fa-bone text-xl"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800">د. سارة عبد الرحمن</h4>
-                                    <p class="text-xs text-slate-500 font-bold mt-1">أخصائية أطفال - عيادة 2</p>
-                                    <p class="text-[10px] text-slate-400 mt-1">حجز رقم: WS-583-5</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                                <div class="text-right">
-                                    <div class="text-sm font-black text-slate-800">2024-10-20</div>
-                                    <div class="text-xs text-slate-500 font-bold">02:30 مساءً</div>
-                                </div>
-                                <div class="bg-slate-100 text-slate-600 px-3 py-2 rounded-lg text-xs font-bold">مكتملة</div>
+                            <div class="flex gap-2 w-full sm:w-auto">
+                                <button onclick="openEMR()" class="flex-1 sm:flex-none bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-200 transition"><i class="fa-solid fa-file-medical"></i> الملف الطبي</button>
+                                <button class="flex-1 sm:flex-none bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-600 transition"><i class="fa-solid fa-stethoscope"></i> بدء الكشف</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ==============================================
-                 VIEW 5: DOCTORS
-            =============================================== -->
-            <div id="view-doctors" class="hidden space-y-6 fade-in">
-                <h3 class="text-2xl font-black text-slate-800">قائمة الأطباء</h3>
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-right text-sm">
-                            <thead class="bg-slate-50 text-slate-500 text-xs font-bold border-b border-slate-200">
-                                <tr>
-                                    <th class="p-4">الطبيب</th>
-                                    <th class="p-4">التخصص</th>
-                                    <th class="p-4">الهاتف</th>
-                                    <th class="p-4">سعر الكشف</th>
-                                    <th class="p-4">حالة العيادة</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-4 flex items-center gap-3">
-                                        <div class="w-8 h-8 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center"><i class="fa-solid fa-user-doctor"></i></div>
-                                        د. محمد الشريف
-                                    </td>
-                                    <td class="p-4 text-xs">باطنة</td>
-                                    <td class="p-4 text-xs" dir="ltr">01068990089</td>
-                                    <td class="p-4 text-xs">200 ج.م</td>
-                                    <td class="p-4"><span class="bg-primary-100 text-primary-700 text-[10px] px-2 py-1 rounded">مفتوحة</span></td>
-                                </tr>
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-4 flex items-center gap-3">
-                                        <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center"><i class="fa-solid fa-user-doctor"></i></div>
-                                        د. سارة عبد الرحمن
-                                    </td>
-                                    <td class="p-4 text-xs">أطفال</td>
-                                    <td class="p-4 text-xs" dir="ltr">01068990089</td>
-                                    <td class="p-4 text-xs">180 ج.م</td>
-                                    <td class="p-4"><span class="bg-primary-100 text-primary-700 text-[10px] px-2 py-1 rounded">مفتوحة</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+            <!-- VIEW 2: DISPATCHER (Hidden by default) -->
+            <div id="view-dispatcher" class="hidden space-y-4 fade-in">
+                <div class="glass-panel p-4 flex gap-2">
+                    <input type="text" placeholder="ابحث عن مريض أو رقم تذكرة..." class="w-full bg-slate-100 border-none rounded-lg px-4 py-2 text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none">
                 </div>
-            </div>
-
-            <!-- ==============================================
-                 VIEW 6: INVENTORY (Images 4 & 6)
-            =============================================== -->
-            <div id="view-inventory" class="hidden space-y-6 fade-in">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div>
-                        <h3 class="text-2xl font-black text-slate-800">المخزون</h3>
-                        <p class="text-sm text-slate-500 font-bold mt-1">إدارة الأدوية والمستلزمات الطبية</p>
+                
+                <!-- Task Card -->
+                <div class="glass-panel p-4 cursor-pointer border-r-4 border-amber-500 hover:bg-slate-50 transition relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-1 rounded">تمريض منزلي</span>
+                        <span class="text-xs font-bold text-slate-400">منذ 5 دقائق</span>
                     </div>
-                    <button class="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-primary-600 transition flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> إضافة منتج
-                    </button>
-                </div>
-
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-right text-sm">
-                            <thead class="bg-slate-50 text-slate-500 text-xs font-bold border-b border-slate-200">
-                                <tr>
-                                    <th class="p-4">المنتج</th>
-                                    <th class="p-4">التصنيف</th>
-                                    <th class="p-4">الكمية</th>
-                                    <th class="p-4">تاريخ الانتهاء</th>
-                                    <th class="p-4">سعر الشراء</th>
-                                    <th class="p-4">سعر البيع</th>
-                                    <th class="p-4">الحالة</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 font-bold text-slate-700">
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-4 flex items-center gap-3"><div class="w-8 h-8 bg-slate-100 rounded text-slate-400 flex items-center justify-center text-xs"><i class="fa-solid fa-pills"></i></div> بانادول إكسترا</td>
-                                    <td class="p-4 text-xs">مسكنات</td>
-                                    <td class="p-4">30</td>
-                                    <td class="p-4 text-xs text-red-500">2025-10-01</td>
-                                    <td class="p-4">20 ج.م</td>
-                                    <td class="p-4 text-primary-600">35 ج.م</td>
-                                    <td class="p-4"><span class="bg-primary-100 text-primary-700 text-[10px] px-2 py-1 rounded">متوفر</span></td>
-                                </tr>
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-4 flex items-center gap-3"><div class="w-8 h-8 bg-slate-100 rounded text-slate-400 flex items-center justify-center text-xs"><i class="fa-solid fa-syringe"></i></div> حقن أموكسيسيلين</td>
-                                    <td class="p-4 text-xs">مضادات</td>
-                                    <td class="p-4">5</td>
-                                    <td class="p-4 text-xs">2026-05-15</td>
-                                    <td class="p-4">50 ج.م</td>
-                                    <td class="p-4 text-primary-600">80 ج.م</td>
-                                    <td class="p-4"><span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-1 rounded">قليلة</span></td>
-                                </tr>
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-4 flex items-center gap-3"><div class="w-8 h-8 bg-slate-100 rounded text-slate-400 flex items-center justify-center text-xs"><i class="fa-solid fa-bandaid"></i></div> شاش طبي</td>
-                                    <td class="p-4 text-xs">مستلزمات</td>
-                                    <td class="p-4">0</td>
-                                    <td class="p-4 text-xs">2026-01-20</td>
-                                    <td class="p-4">10 ج.م</td>
-                                    <td class="p-4 text-primary-600">15 ج.م</td>
-                                    <td class="p-4"><span class="bg-red-100 text-red-700 text-[10px] px-2 py-1 rounded">نفذ</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <h4 class="font-black text-slate-800">الحاج عاطف المليجي</h4>
+                    <p class="text-xs text-slate-500 font-bold mt-1"><i class="fa-solid fa-location-dot text-red-500 ml-1"></i> طحانوب - ميدان السوق</p>
+                    <div class="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
+                        <span class="text-xs font-bold text-slate-600">حقن ومحاليل</span>
+                        <button class="bg-slate-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg hover:bg-slate-800">إسناد لممرض</button>
                     </div>
-                </div>
-            </div>
-
-            <!-- ==============================================
-                 VIEW 7: ACCOUNTS
-            =============================================== -->
-            <div id="view-accounts" class="hidden space-y-6 fade-in">
-                <h3 class="text-2xl font-black text-slate-800">الحسابات</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                        <p class="text-xs text-slate-500 font-bold mb-1">إجمالي إيرادات الشهر</p>
-                        <h3 class="text-3xl font-black text-primary-600">42,500 <span class="text-sm text-slate-800">ج.م</span></h3>
-                    </div>
-                    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                        <p class="text-xs text-slate-500 font-bold mb-1">مصروفات الشهر</p>
-                        <h3 class="text-3xl font-black text-red-600">8,200 <span class="text-sm text-slate-800">ج.م</span></h3>
-                    </div>
-                    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                        <p class="text-xs text-slate-500 font-bold mb-1">صافي الربح</p>
-                        <h3 class="text-3xl font-black text-slate-800">34,300 <span class="text-sm">ج.م</span></h3>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ==============================================
-                 VIEW 8: STAFF
-            =============================================== -->
-            <div id="view-staff" class="hidden space-y-6 fade-in">
-                <h3 class="text-2xl font-black text-slate-800">الموظفين</h3>
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-                        <h4 class="font-bold text-sm text-slate-800">قائمة الموظفين</h4>
-                        <button class="bg-primary-500 text-white px-4 py-2 rounded-lg text-xs font-bold"><i class="fa-solid fa-plus"></i> إضافة</button>
-                    </div>
-                    <div class="divide-y divide-slate-100 font-bold text-sm text-slate-700">
-                        <div class="p-4 flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-xs">س</div>
-                                سارة (منسقة مواعيد)
-                            </div>
-                            <span class="text-xs text-slate-500">01012345678</span>
-                        </div>
-                        <div class="p-4 flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-xs">م</div>
-                                محمد (ممرض)
-                            </div>
-                            <span class="text-xs text-slate-500">01087654321</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ==============================================
-                 VIEW 9: SETTINGS
-            =============================================== -->
-            <div id="view-settings" class="hidden space-y-6 fade-in">
-                <h3 class="text-2xl font-black text-slate-800">الإعدادات</h3>
-                <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-2">اسم العيادة</label>
-                        <input type="text" value="عيادة د. محمد الشريف" class="w-full md:w-96 p-2.5 border border-slate-300 rounded-lg font-bold text-sm focus:border-primary-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-2">رقم الهاتف للتواصل</label>
-                        <input type="text" value="01068990089" class="w-full md:w-96 p-2.5 border border-slate-300 rounded-lg font-bold text-sm focus:border-primary-500 outline-none" dir="ltr">
-                    </div>
-                    <button class="bg-primary-500 text-white px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-primary-600 transition shadow-md">حفظ التعديلات</button>
                 </div>
             </div>
 
@@ -591,204 +178,72 @@
     </main>
 
     <!-- =========================================
-         MODAL: SMART PRESCRIPTION (Image 2)
+         MODALS (Fixed positioning)
     ========================================= -->
-    <div id="prescription-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden fade-in">
-            
-            <!-- Modal Header -->
-            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
-                <div>
-                    <h3 class="font-black text-lg text-slate-800">إضافة روشتة جديدة</h3>
-                    <p id="modal-patient-name" class="text-xs text-slate-500 font-bold mt-1">للمريض: أحمد محمود</p>
-                </div>
-                <button onclick="closePrescriptionModal()" class="text-slate-400 hover:text-red-500 transition w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-
-            <!-- Modal Body -->
-            <div class="p-6 overflow-y-auto flex-grow">
-                <div class="space-y-6">
-                    
-                    <!-- Medicines Section -->
-                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50">
-                        <div class="flex items-center justify-between mb-4 border-b border-slate-200 pb-2">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-capsules text-primary-500"></i>
-                                <h4 class="font-bold text-sm text-slate-800">الأدوية</h4>
-                            </div>
-                            <button onclick="addMedicineRow()" class="text-xs font-bold text-primary-600 hover:text-primary-800 flex items-center gap-1"><i class="fa-solid fa-plus"></i> إضافة</button>
-                        </div>
-                        
-                        <div id="medicines-container" class="space-y-3">
-                            <!-- Initial Row -->
-                            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                                <div class="sm:col-span-5">
-                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">اسم الدواء</label>
-                                    <input type="text" placeholder="مثال: بانادول" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold focus:border-primary-500 outline-none">
-                                </div>
-                                <div class="sm:col-span-3">
-                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">الجرعة</label>
-                                    <input type="text" placeholder="مثال: قرص" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold focus:border-primary-500 outline-none">
-                                </div>
-                                <div class="sm:col-span-4">
-                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">المدة</label>
-                                    <input type="text" placeholder="مثال: 5 أيام" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold focus:border-primary-500 outline-none">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Labs Section -->
-                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50">
-                        <div class="flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
-                            <i class="fa-solid fa-flask text-blue-500"></i>
-                            <h4 class="font-bold text-sm text-slate-800">التحاليل المطلوبة</h4>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-blue-400 transition">
-                                <input type="checkbox" class="w-4 h-4 text-primary-500 rounded focus:ring-primary-500">
-                                <span class="text-sm font-bold text-slate-700">صورة دم كاملة (CBC)</span>
-                            </label>
-                            <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-blue-400 transition">
-                                <input type="checkbox" class="w-4 h-4 text-primary-500 rounded focus:ring-primary-500">
-                                <span class="text-sm font-bold text-slate-700">سكر صائم</span>
-                            </label>
-                            <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-blue-400 transition">
-                                <input type="checkbox" class="w-4 h-4 text-primary-500 rounded focus:ring-primary-500">
-                                <span class="text-sm font-bold text-slate-700">وظائف كبد</span>
-                            </label>
-                            <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-blue-400 transition">
-                                <input type="checkbox" class="w-4 h-4 text-primary-500 rounded focus:ring-primary-500">
-                                <span class="text-sm font-bold text-slate-700">وظائف كلى</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Radiology Section -->
-                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50">
-                        <div class="flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
-                            <i class="fa-solid fa-x-ray text-amber-500"></i>
-                            <h4 class="font-bold text-sm text-slate-800">الأشعة</h4>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-amber-400 transition">
-                                <input type="checkbox" class="w-4 h-4 text-primary-500 rounded focus:ring-primary-500">
-                                <span class="text-sm font-bold text-slate-700">أشعة سينية للصدر</span>
-                            </label>
-                            <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-amber-400 transition">
-                                <input type="checkbox" class="w-4 h-4 text-primary-500 rounded focus:ring-primary-500">
-                                <span class="text-sm font-bold text-slate-700">أشعة مقطعية</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Notes -->
+    <!-- EMR Modal -->
+    <div id="emr-modal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fade-in">
+            <div class="bg-slate-900 text-white p-4 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-file-medical text-emerald-400"></i>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-2">ملاحظات إضافية</label>
-                        <textarea rows="2" class="w-full border border-slate-200 rounded-lg p-3 text-sm font-bold focus:border-primary-500 outline-none" placeholder="ملاحظات للصيدلي أو المريض..."></textarea>
+                        <div class="font-bold">الملف الطبي: محمود علي</div>
+                        <div class="text-[10px] text-slate-400">32 سنة - فصيلة الدم O+</div>
                     </div>
-
                 </div>
+                <button onclick="closeEMR()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-
-            <!-- Modal Footer -->
-            <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 shrink-0">
-                <button onclick="closePrescriptionModal()" class="px-5 py-2 rounded-lg text-sm font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 transition">إلغاء</button>
-                <button onclick="alert('✅ تم حفظ الروشتة وإرسالها للمريض وواتساب!'); closePrescriptionModal();" class="px-6 py-2 rounded-lg text-sm font-bold text-white bg-primary-500 hover:bg-primary-600 shadow-md transition flex items-center gap-2">
-                    <i class="fa-solid fa-save"></i> حفظ الروشتة
-                </button>
+            
+            <div class="p-4 sm:p-6 overflow-y-auto flex-grow custom-scrollbar">
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-6">
+                    <h4 class="font-black text-sm text-slate-800 mb-3"><i class="fa-solid fa-pen ml-1"></i> إضافة سجل جديد</h4>
+                    <textarea class="w-full p-3 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-emerald-500" rows="3" placeholder="اكتب الشكوى والروشتة..."></textarea>
+                    <button onclick="alert('تم الحفظ!')" class="bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-emerald-600 transition mt-2">حفظ</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ==============================================
-        // 1. SIDEBAR TOGGLE
-        // ==============================================
+        // 1. Sidebar Toggle (Mobile)
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            sidebar.classList.toggle('open');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            sidebar.classList.toggle('translate-x-full');
             overlay.classList.toggle('active');
         }
 
-        // ==============================================
-        // 2. VIEW SWITCHER (Fixed)
-        // ==============================================
-        const viewTitles = {
-            'dashboard': 'الرئيسية',
-            'appointments': 'المواعيد المتاحة',
-            'patients': 'سجل المرضى',
-            'my-appointments': 'مواعيدي',
-            'doctors': 'الأطباء',
-            'inventory': 'المخزون',
-            'accounts': 'الحسابات',
-            'staff': 'الموظفين',
-            'settings': 'الإعدادات'
-        };
-
-        function switchView(viewId, btnElement) {
+        // 2. View Switching (SPA Logic)
+        function switchView(viewName) {
             // Hide all views
-            document.querySelectorAll('[id^="view-"]').forEach(v => v.classList.add('hidden'));
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-dispatcher').classList.add('hidden');
             
-            // Show selected
-            const targetView = document.getElementById('view-' + viewId);
-            if (targetView) targetView.classList.remove('hidden');
-            
-            // Update page title
-            if (viewTitles[viewId]) document.getElementById('page-title').innerText = viewTitles[viewId];
+            // Show selected view
+            document.getElementById('view-' + viewName).classList.remove('hidden');
 
-            // Update active nav item
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            if (btnElement) btnElement.classList.add('active');
+            // Update Title
+            const titles = {
+                'dashboard': 'لوحة القيادة',
+                'dispatcher': 'مركز التوجيه'
+            };
+            document.getElementById('page-title').innerText = titles[viewName];
 
-            // Close sidebar on mobile
-            if (window.innerWidth < 1024) toggleSidebar();
+            // Close sidebar on mobile after clicking
+            if (window.innerWidth < 1024) {
+                toggleSidebar();
+            }
         }
 
-        // ==============================================
-        // 3. PRESCRIPTION MODAL (Fixed)
-        // ==============================================
-        function openPrescriptionModal(patientName = 'أحمد محمود') {
-            document.getElementById('modal-patient-name').innerText = 'للمريض: ' + patientName;
-            document.getElementById('prescription-modal').classList.remove('hidden');
+        // 3. EMR Modal Logic
+        function openEMR() {
+            document.getElementById('emr-modal').classList.remove('hidden');
         }
 
-        function closePrescriptionModal() {
-            document.getElementById('prescription-modal').classList.add('hidden');
+        function closeEMR() {
+            document.getElementById('emr-modal').classList.add('hidden');
         }
-
-        // ==============================================
-        // 4. ADD MEDICINE ROW (Dynamic)
-        // ==============================================
-        function addMedicineRow() {
-            const container = document.getElementById('medicines-container');
-            const row = document.createElement('div');
-            row.className = 'grid grid-cols-1 sm:grid-cols-12 gap-3 pt-3 border-t border-slate-100';
-            row.innerHTML = `
-                <div class="sm:col-span-5">
-                    <input type="text" placeholder="اسم الدواء الجديد" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold focus:border-primary-500 outline-none">
-                </div>
-                <div class="sm:col-span-3">
-                    <input type="text" placeholder="الجرعة" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold focus:border-primary-500 outline-none">
-                </div>
-                <div class="sm:col-span-3">
-                    <input type="text" placeholder="المدة" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold focus:border-primary-500 outline-none">
-                </div>
-                <div class="sm:col-span-1 flex items-center justify-center">
-                    <button onclick="this.parentElement.parentElement.remove()" class="text-red-400 hover:text-red-600 w-full flex justify-center"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            `;
-            container.appendChild(row);
-        }
-
-        // Close modal on overlay click
-        document.getElementById('prescription-modal').addEventListener('click', function(e) {
-            if (e.target === this) closePrescriptionModal();
-        });
-
-        // Log
-        console.log("Clinic ERP Loaded Successfully ✅");
     </script>
 </body>
 </html>
