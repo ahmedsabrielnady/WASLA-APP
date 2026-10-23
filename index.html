@@ -3,610 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة وصلة الأسطورية | Wasla Super Web Platform</title>
-    <!-- تضمين Tailwind CSS للتصميم العصري المتجاوب -->
+    <title>منصة وصلة الطبية | WASLA</title>
+    <!-- تضمين مكتبة Tailwind CSS للتصميم العصري والهوية البصرية -->
     <script src="https://tailwindcss.com"></script>
-    <!-- تضمين مكتبة الأيقونات العالمية FontAwesome 6 -->
-    <link rel="stylesheet" href="https://cloudflare.com">
-    <!-- تضمين خط Cairo الفاخر من Google Fonts -->
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
-    
-    <!-- تخصيص الألوان المطلوبة بدقة: سماوي ناعم وزيتوني هادئ -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        sky: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            200: '#bae6fd',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
-                        },
-                        olive: {
-                            50: '#f4f6f0',
-                            100: '#e9ede2',
-                            200: '#d3dcbf',
-                            600: '#606c38',
-                            700: '#4c562d',
-                            800: '#283618',
-                            900: '#1b2410',
-                        },
-                        mint: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a'
-                        }
-                    },
-                    boxShadow: {
-                        'bento': '0 8px 30px rgb(0 0 0 / 0.02)',
-                        'premium': '0 20px 40px -15px rgba(96, 108, 56, 0.12)',
-                        'glow-sky': '0 0 20px rgba(14, 165, 233, 0.15)',
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="https://googleapis.com" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            scroll-behavior: smooth;
-            background-color: #fafbfa;
-        }
-        /* تخصيص شريط التمرير الجانبي ليكون ناعماً وبنفس الألوان */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f4f6f0;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #bae6fd;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #0284c7;
-        }
-        /* أنيميشن التنقل بين الأقسام */
-        .page-section {
-            display: none;
-            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .page-section.active {
-            display: block;
-        }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        body { font-family: 'Cairo', sans-serif; }
+        .medical-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); }
     </style>
 </head>
-<body class="text-gray-800 antialiased custom-scrollbar">
+<body class="bg-gray-50 text-gray-800">
 
-    <!-- شريط الإعلانات والخط الساخن العلوي للمنصة -->
-    <div class="bg-gradient-to-r from-olive-900 via-olive-800 to-sky-800 text-white py-2.5 text-center text-xs font-semibold px-4 flex justify-between items-center hidden md:flex border-b border-olive-700/50">
-        <div class="flex items-center gap-4">
-            <span class="flex items-center gap-1"><i class="fa-solid fa-bullhorn text-amber-400 animate-bounce"></i> تحديث الويب الأسطوري الجديد لمنصة وصلة الموحدة أصبح حياً الآن!</span>
-            <span class="bg-sky-600 text-[10px] px-2 py-0.5 rounded-full font-bold tracking-wider animate-pulse">V2.0 LIVE</span>
-        </div>
-        <div class="flex items-center gap-6">
-            <span class="hover:text-sky-200 transition cursor-pointer"><i class="fa-solid fa-phone-volume ml-1 text-sky-200"></i> الدعم الفوري الساخن: 19999</span>
-            <div class="flex items-center gap-3 border-r border-olive-700 pr-6">
-                <a href="#" class="hover:text-sky-200 transition flex items-center gap-1"><i class="fa-brands fa-android text-sm"></i> أندرويد</a>
-                <a href="#" class="hover:text-sky-200 transition flex items-center gap-1"><i class="fa-brands fa-apple text-sm"></i> آيفون</a>
+    <!-- الـ Header والهوية البصرية (اللوجو والتنقل) -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-reverse space-x-3">
+                <div class="bg-blue-600 text-white p-2 rounded-xl font-bold text-2xl tracking-wider shadow-md shadow-blue-200">وَصْلَة</div>
+                <span class="text-xs text-gray-400 font-semibold block hidden sm:block">بوابتك الطبية في شبين القناطر</span>
             </div>
-        </div>
-    </div>
-
-    <!-- شريط التنقل الرئيسي الفاخر (Premium Navigation Header) -->
-    <header class="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-olive-100/80 transition-all duration-300">
-        <div class="container mx-auto px-4 lg:px-8 py-4 flex justify-between items-center">
-            
-            <!-- الشعار والهوية البصرية للمنصة -->
-            <a href="#" onclick="switchPage('hero-home')" class="flex items-center gap-3 group">
-                <div class="bg-gradient-to-tr from-sky-600 via-sky-700 to-olive-600 p-3 rounded-2xl text-white shadow-md group-hover:rotate-6 transition-transform duration-300">
-                    <i class="fa-solid fa-circle-nodes text-2xl"></i>
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-2xl font-black text-olive-800 tracking-tight">وصْـلَة</span>
-                    <span class="text-[9px] font-extrabold text-sky-700 uppercase tracking-widest -mt-1">All-In-One Mega Platform</span>
-                </div>
-            </a>
-            
-            <!-- أزرار التنقل الرئيسية الكبرى للويب -->
-            <nav class="hidden lg:flex items-center gap-1 text-gray-600 font-semibold text-sm">
-                <button onclick="switchPage('hero-home')" class="nav-link px-4 py-2.5 rounded-xl text-olive-700 bg-olive-50 font-black transition">الرئيسية</button>
-                <button onclick="switchPage('medical-hub')" class="nav-link px-4 py-2.5 rounded-xl hover:text-sky-600 hover:bg-sky-50 transition">العيادات الطبية</button>
-                <button onclick="switchPage('shop-hub')" class="nav-link px-4 py-2.5 rounded-xl hover:text-olive-600 hover:bg-olive-50 transition">التسوق والبيع</button>
-                <button onclick="switchPage('car-hub')" class="nav-link px-4 py-2.5 rounded-xl hover:text-sky-600 hover:bg-sky-50 transition">خدمات السيارات</button>
-                <button onclick="switchPage('maintenance-hub')" class="nav-link px-4 py-2.5 rounded-xl hover:text-olive-600 hover:bg-olive-50 transition">الصيانة المنزلية</button>
+            <nav class="hidden md:flex space-x-reverse space-x-6 font-semibold">
+                <a href="#search-section" class="text-blue-600 hover:text-blue-800 transition">احجز عيادة</a>
+                <a href="#home-services" class="text-gray-600 hover:text-blue-600 transition">خدمات منزلية</a>
+                <a href="#founder-dashboard" class="bg-green-50 text-green-700 px-3 py-1 rounded-lg border border-green-200 text-sm">بوابة المؤسس (لوحة التحكم)</a>
             </nav>
-
-            <!-- المحفظة والتحكم والحسابات -->
-            <div class="flex items-center gap-4">
-                <!-- المحفظة الموحدة التفاعلية للعميل -->
-                <div class="hidden sm:flex items-center gap-3 bg-gradient-to-r from-sky-50 to-olive-50/60 border border-olive-200/50 px-4 py-1.5 rounded-2xl shadow-inner">
-                    <div class="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                        <i class="fa-solid fa-wallet text-olive-600 text-sm"></i>
-                    </div>
-                    <div class="flex flex-col text-right">
-                        <span class="text-[9px] text-gray-400 font-black">رصيد محفظتك الموحد</span>
-                        <span class="text-xs font-black text-olive-800 tracking-tight" id="wallet-balance">2,450.50 ج.م</span>
-                    </div>
-                </div>
-
-                <!-- زر لوحة التحكم الكبرى للمنصة -->
-                <button onclick="switchPage('dashboard-hub')" class="bg-gradient-to-l from-olive-600 to-olive-700 text-white px-5 py-2.5 rounded-xl shadow-premium hover:from-olive-700 hover:to-olive-800 transition-all duration-300 font-bold text-xs md:text-sm flex items-center gap-2 border border-olive-600">
-                    <i class="fa-solid fa-user-gear text-sm"></i>
-                    <span>غرفة التحكم والعمليات</span>
-                </button>
-                
-                <!-- زر الهامبرغر للقائمة على الشاشات الصغيرة -->
-                <button class="lg:hidden p-2.5 text-gray-600 hover:bg-gray-50 rounded-xl border border-gray-100 transition">
-                    <i class="fa-solid fa-bars text-lg"></i>
-                </button>
-            </div>
         </div>
     </header>
 
-    <main>
-        <!-- [بداية القسم الأول: الصفحة الرئيسية] -->
-        <div id="hero-home" class="page-section active">
-            
-            <!-- قسم الترحيب الرئيسي الفخم جداً ومحرك البحث الضخم (Hero Area) -->
-            <section class="bg-gradient-to-b from-sky-100/60 via-olive-50/30 to-transparent py-24 px-4 relative overflow-hidden border-b border-gray-50">
-                <div class="absolute inset-0 opacity-20 pointer-events-none">
-                    <div class="absolute top-10 left-10 w-96 h-96 bg-sky-300 rounded-full filter blur-3xl animate-pulse"></div>
-                    <div class="absolute bottom-10 right-10 w-[30rem] h-[30rem] bg-olive-200 rounded-full filter blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
-                </div>
+    <!-- البانر الرئيسي الترحيبي -->
+    <section class="medical-gradient text-white py-12 px-4 text-center shadow-inner relative overflow-hidden">
+        <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-500 rounded-full opacity-10 blur-xl"></div>
+        <div class="container mx-auto max-w-3xl">
+            <h1 class="text-3xl md:text-4xl font-bold mb-4 leading-tight">كل ما تحتاجه طبيًا في <span class="text-green-400">شبين القناطر</span> مكانك وبكل وضوح</h1>
+            <p class="text-blue-200 text-sm md:text-base">ابحث عن طبيبك، اعرف سعر الكشف، نوع التأمين، أو اطلب تمريض منزلي فوراً بدون عناء الانتظار.</p>
+        </div>
+    </section>
 
-                <div class="container mx-auto text-center max-w-5xl relative z-10">
-                    <div class="inline-flex items-center gap-2.5 bg-white border border-olive-200/80 text-olive-800 font-extrabold px-5 py-2 rounded-full text-xs shadow-sm mb-8 transform hover:scale-105 transition-transform cursor-pointer">
-                        <span class="flex h-2.5 w-2.5 rounded-full bg-mint-500 animate-ping"></span>
-                        مستقبل الخدمات الرقمية المدمجة في مكان واحد
-                    </div>
-                                <!-- قسم شبكة الخدمات البصرية الأيقونية (Premium Bento Grid Sections) -->
-            <section class="py-16 container mx-auto px-4 lg:px-8">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-4">
+    <!-- أولاً: تجربة المواطن / المريض (البحث والحجز) -->
+    <main id="search-section" class="container mx-auto px-4 py-10 max-w-5xl">
+        <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h2 class="text-xl font-bold text-gray-900 border-r-4 border-blue-600 pr-3">الأطباء المتاحون الآن بالحجز الفوري</h2>
+            
+            <!-- أدوات الفلترة الذكية للمواطن -->
+            <div class="flex flex-wrap gap-2 text-sm">
+                <select class="border rounded-lg px-3 py-2 bg-white shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option>كل التخصصات</option>
+                    <option>أطفال وحديثي الولادة</option>
+                    <option>باطنة وجهاز هضمي</option>
+                    <option>عظام ومفاصل</option>
+                </select>
+                <select class="border rounded-lg px-3 py-2 bg-white shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option>طريقة الدفع (الكل)</option>
+                    <option>كاش فقط</option>
+                    <option>تأمين صحي (مصر للتأمين)</option>
+                    <option>تأمين نقابة المهندسين</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- كروت العيادات والأطباء المستوحاة من دراسة شبين القناطر -->
+        <div class="grid md:grid-cols-2 gap-6">
+            
+            <!-- كارت طبيب 1 -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition relative">
+                <span class="absolute top-4 left-4 bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-bold">متاح اليوم</span>
+                <div class="flex items-start space-x-reverse space-x-4">
+                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xl shadow-inner">د</div>
                     <div>
-                        <div class="flex items-center gap-2 text-sky-700 font-bold text-xs uppercase tracking-wider mb-2">
-                            <i class="fa-solid fa-cubes-stacked"></i> لوحة التحكم المركزية
-                        </div>
-                        <h2 class="text-2xl md:text-4xl font-black text-olive-900 tracking-tight">استكشف بوابات الخدمات الرقمية المدمجة</h2>
-                    </div>
-                    <span class="text-xs font-extrabold text-olive-700 bg-olive-100/60 border border-olive-200 px-4 py-1.5 rounded-xl shadow-sm">
-                        <i class="fa-solid fa-circle-check text-mint-500 ml-1"></i> جميع الخدمات مربوطة بمحفظتك
-                    </span>
-                </div>
-
-                <!-- شبكة بينتو المتطورة تفاعلياً (Bento Grid) -->
-                <div class="grid grid-cols-1 md:grid-cols-6 gap-6 lg:gap-8">
-                    
-                    <!-- 1. عيادات وخدمات طبية (حجم كبير) -->
-                    <div onclick="switchPage('medical-hub')" class="md:col-span-3 bg-gradient-to-br from-white to-sky-50/40 p-8 rounded-3xl border border-sky-100 shadow-bento hover:shadow-premium hover:scale-[1.01] transition-all duration-300 cursor-pointer group flex flex-col justify-between min-h-[300px]">
-                        <div>
-                            <div class="flex justify-between items-start mb-6">
-                                <div class="w-14 h-14 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center text-2xl group-hover:bg-sky-600 group-hover:text-white shadow-sm transition-all duration-300">
-                                    <i class="fa-solid fa-user-doctor"></i>
-                                </div>
-                                <span class="text-[11px] font-black text-sky-700 bg-sky-100/70 border border-sky-200/50 px-3 py-1 rounded-full flex items-center gap-1">
-                                    <i class="fa-solid fa-bolt-lightning text-xs animate-pulse"></i> حجز فوري مؤمن
-                                </span>
-                            </div>
-                            <h3 class="text-xl md:text-2xl font-black text-olive-950 mb-3 group-hover:text-sky-700 transition-colors">العيادات والمنظومة الطبية الشاملة</h3>
-                            <p class="text-gray-500 text-sm leading-relaxed mb-6 font-medium">
-                                تواصل مع نخبة من الاستشاريين والأطباء المعتمدين. احجز موعد عيادتك، اطلب زيارة طبية منزلية عاجلة، أو تصفح مراكز الأشعة والتحاليل والصيدليات مع ميزة الاستشارة بالفيديو عن بُعد.
-                            </p>
-                        </div>
-                        <div class="flex items-center justify-between text-xs font-bold text-gray-500 border-t border-gray-100 pt-4">
-                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-stethoscope text-sky-600"></i> أكثر من 120 تخصص طبي</span>
-                            <span class="text-sky-700 font-extrabold group-hover:translate-x-[-4px] transition-transform flex items-center gap-1">دخول البوابة <i class="fa-solid fa-arrow-left text-[10px]"></i></span>
-                        </div>
-                    </div>
-
-                    <!-- 2. سوق المنتجات والتسوق المباشر (حجم كبير) -->
-                    <div onclick="switchPage('shop-hub')" class="md:col-span-3 bg-gradient-to-br from-white to-olive-50/40 p-8 rounded-3xl border border-olive-100 shadow-bento hover:shadow-premium hover:scale-[1.01] transition-all duration-300 cursor-pointer group flex flex-col justify-between min-h-[300px]">
-                        <div>
-                            <div class="flex justify-between items-start mb-6">
-                                <div class="w-14 h-14 bg-olive-100 text-olive-600 rounded-2xl flex items-center justify-center text-2xl group-hover:bg-olive-600 group-hover:text-white shadow-sm transition-all duration-300">
-                                    <i class="fa-solid fa-basket-shopping"></i>
-                                </div>
-                                <span class="text-[11px] font-black text-olive-700 bg-olive-100/70 border border-olive-200/50 px-3 py-1 rounded-full flex items-center gap-1">
-                                    <i class="fa-solid fa-truck-fast text-xs"></i> شحن سريع ومضمون
-                                </span>
-                            </div>
-                            <h3 class="text-xl md:text-2xl font-black text-olive-950 mb-3 group-hover:text-olive-600 transition-colors">سوق المنتجات والتسوق الذكي</h3>
-                            <p class="text-gray-500 text-sm leading-relaxed mb-6 font-medium">
-                                منصة تجارية متكاملة تضمن لك شراء المنتجات الجديدة كلياً من المصانع والبراندات مباشرة. ملابس، إلكترونيات، مستحضرات تجميل، وأدوات منزلية مع حماية كاملة للمشتري وتتبع الشحنات.
-                            </p>
-                        </div>
-                        <div class="flex items-center justify-between text-xs font-bold text-gray-500 border-t border-gray-100 pt-4">
-                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-tags text-olive-600"></i> عروض وتخفيضات حصرية يومية</span>
-                            <span class="text-olive-700 font-extrabold group-hover:translate-x-[-4px] transition-transform flex items-center gap-1">دخول البوابة <i class="fa-solid fa-arrow-left text-[10px]"></i></span>
-                        </div>
-                    </div>
-
-                    <!-- 3. سوق البيع والشراء للأفراد (حجم متوسط) -->
-                    <div onclick="switchPage('shop-hub')" class="md:col-span-2 bg-white p-6 rounded-3xl border border-gray-100 shadow-bento hover:shadow-premium hover:scale-[1.01] transition-all duration-300 cursor-pointer group flex flex-col justify-between">
-                        <div>
-                            <div class="w-12 h-12 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center text-xl mb-5 group-hover:bg-sky-600 group-hover:text-white shadow-sm transition-all">
-                                <i class="fa-solid fa-comments-dollar"></i>
-                            </div>
-                            <h4 class="font-bold text-lg text-olive-900 mb-2 group-hover:text-sky-700 transition-colors">إعلانات البيع والشراء (مستعمل)</h4>
-                            <p class="text-gray-400 text-xs leading-relaxed font-medium">
-                                اعرض أغراضك المستعملة أو الجديدة للبيع مجاناً (سيارات، عقارات، أجهزة) وتواصل مع المشترين في منطقتك مباشرة عبر المحادثات دون وسيط.
-                            </p>
-                        </div>
-                        <span class="text-xs font-bold text-sky-600 mt-4 block">تصفح الإعلانات المبوبة ←</span>
-                    </div>
-
-                    <!-- 4. خدمات السيارات وورش الصيانة (حجم متوسط) -->
-                    <div onclick="switchPage('car-hub')" class="md:col-span-2 bg-white p-6 rounded-3xl border border-gray-100 shadow-bento hover:shadow-premium hover:scale-[1.01] transition-all duration-300 cursor-pointer group flex flex-col justify-between">
-                        <div>
-                            <div class="w-12 h-12 bg-olive-50 text-olive-600 rounded-2xl flex items-center justify-center text-xl mb-5 group-hover:bg-olive-600 group-hover:text-white shadow-sm transition-all">
-                                <i class="fa-solid fa-car-burst"></i>
-                            </div>
-                            <h4 class="font-bold text-lg text-olive-900 mb-2 group-hover:text-olive-600 transition-colors">خدمات السيارات والورش المعتمدة</h4>
-                            <p class="text-gray-400 text-xs leading-relaxed font-medium">
-                                اطلب ونش إنقاذ فوري لحالات الطوارئ، احجز مواعيد الصيانة وميكانيكا السيارات، واشترِ قطع غيار أصلية ومكفولة لمركبتك بأسعار تنافسية.
-                            </p>
-                        </div>
-                        <span class="text-xs font-bold text-olive-600 mt-4 block">إدارة خدمات مركبتك ←</span>
-                    </div>
-
-                    <!-- 5. صيانة منزلية وفنية (حجم متوسط) -->
-                    <div onclick="switchPage('maintenance-hub')" class="md:col-span-2 bg-white p-6 rounded-3xl border border-gray-100 shadow-bento hover:shadow-premium hover:scale-[1.01] transition-all duration-300 cursor-pointer group flex flex-col justify-between">
-                        <div>
-                            <div class="w-12 h-12 bg-sky-50 text-sky-700 rounded-2xl flex items-center justify-center text-xl mb-5 group-hover:bg-sky-600 group-hover:text-white shadow-sm transition-all">
-                                <i class="fa-solid fa-screwdriver-wrench"></i>
-                            </div>
-                            <h4 class="font-bold text-lg text-olive-900 mb-2 group-hover:text-sky-700 transition-colors">الصيانة المنزلية والخدمات الفنية</h4>
-                            <p class="text-gray-400 text-xs leading-relaxed font-medium">
-                                استعن بأفضل الحرفيين والفنيين الموثقين لأعمال منزلك (سباكة، كهرباء، تكييف، نجارة) مع فحص أمني جنائي كامل لضمان أعلى مستويات الأمان.
-                            </p>
-                        </div>
-                        <span class="text-xs font-bold text-sky-600 mt-4 block">اطلب فني الآن ←</span>
-                    </div>
-
-                </div>
-            </section>
-
-            <!-- قسم إحصائيات المنصة الكبرى (Global Impact Numbers) -->
-            <section class="py-12 bg-gradient-to-r from-olive-800 to-olive-950 text-white my-8">
-                <div class="container mx-auto px-4 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                    <div class="p-4">
-                    <!-- منطقة عرض كروت الأطباء والمراكز الطبية حياً -->
-                    <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6" id="doctors-list-container">
-                        
-                        <!-- كارت طبيب 1 -->
-                        <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-bento flex flex-col justify-between hover:shadow-premium hover:scale-[1.01] transition-all duration-300 group">
-                            <div>
-                                <div class="flex gap-4 items-start mb-4">
-                                    <div class="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center text-4xl shadow-inner border border-sky-100 group-hover:bg-sky-600 transition-colors duration-300">👨‍⚕️</div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center justify-between">
-                                            <h3 class="font-black text-lg text-olive-950">د. حازم المنشاوي</h3>
-                                            <span class="bg-mint-50 text-mint-600 text-[10px] font-black px-2 py-0.5 rounded-md">متاح اليوم</span>
-                                        </div>
-                                        <p class="text-xs font-bold text-sky-700 mt-0.5">استشاري أمراض القلب والأوعية الدموية</p>
-                                        <div class="flex items-center gap-1 text-[11px] text-amber-500 mt-1.5 font-bold">
-                                            <i class="fa-solid fa-star"></i> <span>4.9</span> 
-                                            <span class="text-gray-400 font-medium">(240 تقييم زائر)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="bg-gray-50/80 p-3.5 rounded-2xl text-xs space-y-2 text-gray-600 border border-gray-100">
-                                    <div class="flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-gray-400 w-4"></i> <span>مصر الجديدة، القاهرة</span></div>
-                                    <div class="flex items-center gap-2"><i class="fa-solid fa-business-time text-gray-400 w-4"></i> <span>الانتظار: 15 دقيقة فقط</span></div>
-                                    <div class="flex items-center gap-2"><i class="fa-solid fa-money-bill-wave text-gray-400 w-4"></i> <span>قيمة الكشف: <span class="font-extrabold text-olive-800">400 ج.م</span></span></div>
-                                </div>
-                            </div>
-                            <button onclick="bookAppointment('د. حازم المنشاوي')" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-black py-3 rounded-xl text-xs mt-5 shadow-sm transition-all duration-300">
-                                <i class="fa-solid fa-calendar-check ml-1"></i> احجز موعد الكشف الموحد
-                            </button>
-                        </div>
-
-                        <!-- كارت طبيب 2 -->
-                        <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-bento flex flex-col justify-between hover:shadow-premium hover:scale-[1.01] transition-all duration-300 group">
-                            <div>
-                                <div class="flex gap-4 items-start mb-4">
-                                    <div class="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center text-4xl shadow-inner border border-sky-100 group-hover:bg-sky-600 transition-colors duration-300">👩‍⚕️</div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center justify-between">
-                                            <h3 class="font-black text-lg text-olive-950">د. رانيا النجار</h3>
-                                            <span class="bg-mint-50 text-mint-600 text-[10px] font-black px-2 py-0.5 rounded-md">متاح اليوم</span>
-                                        </div>
-                                        <p class="text-xs font-bold text-sky-700 mt-0.5">أستاذ طب وجراحة الأسنان والوجه</p>
-                                        <div class="flex items-center gap-1 text-[11px] text-amber-500 mt-1.5 font-bold">
-                                            <i class="fa-solid fa-star"></i> <span>4.8</span> 
-                                            <span class="text-gray-400 font-medium">(189 تقييم زائر)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="bg-gray-50/80 p-3.5 rounded-2xl text-xs space-y-2 text-gray-600 border border-gray-100">
-                                    <div class="flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-gray-400 w-4"></i> <span>الدقي، الجيزة</span></div>
-                                    <div class="flex items-center gap-2"><i class="fa-solid fa-business-time text-gray-400 w-4"></i> <span>الانتظار: 10 دقائق فقط</span></div>
-                                    <div class="flex items-center gap-2"><i class="fa-solid fa-money-bill-wave text-gray-400 w-4"></i> <span>قيمة الكشف: <span class="font-extrabold text-olive-800">350 ج.م</span></span></div>
-                                </div>
-                            </div>
-                            <button onclick="bookAppointment('د. رانيا النجار')" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-black py-3 rounded-xl text-xs mt-5 shadow-sm transition-all duration-300">
-                                <i class="fa-solid fa-calendar-check ml-1"></i> احجز موعد الكشف الموحد
-                            </button>
-                        </div>
-
+                        <h3 class="font-bold text-lg text-gray-900">د. أحمد رأفت المغربي</h3>
+                        <p class="text-sm text-blue-600 font-medium">استشاري أمراض الباطنة والجهاز الهضمي</p>
+                        <p class="text-xs text-gray-500 mt-1">📍 شبين القناطر - شارع المحطة (بجوار صيدلية مصر)</p>
                     </div>
                 </div>
-        </div>
-
-        <!-- 3. بوابة سوق وصلة الشامل المفتوح (Shop & Classifieds Hub) -->
-        <div id="shop-hub" class="page-section py-12 container mx-auto px-4 lg:px-8">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10 pb-6 border-b border-gray-100">
-                <div>
-                    <h2 class="text-3xl font-black text-olive-950">سوق وصلة الشامل المفتوح</h2>
-                    <p class="text-gray-500 text-sm mt-1">تسوّق أحدث المنتجات التجارية بضمان شحن المنصة، أو تصفح وبع أغراضك المستعملة مع الأفراد مجاناً</p>
+                <div class="mt-4 pt-4 border-t border-gray-50 grid grid-cols-2 gap-2 text-sm text-gray-600">
+                    <div>💵 الكشف: <span class="font-bold text-gray-900 text-base">200 ج.م</span></div>
+                    <div>🏥 الدفع: <span class="font-bold text-blue-600">كاش + تأمين صحي</span></div>
                 </div>
-                <div class="flex bg-olive-100/80 border border-olive-200 p-1.5 rounded-2xl shadow-inner self-stretch lg:self-auto justify-center">
-                    <button class="bg-white text-olive-900 font-black px-5 py-2.5 rounded-xl text-xs shadow-sm flex items-center gap-1.5 transition-all"><i class="fa-solid fa-store text-olive-600"></i> منتجات براندات جديدة</button>
-                    <button class="text-gray-600 font-bold px-5 py-2.5 rounded-xl text-xs hover:text-olive-800 flex items-center gap-1.5 transition-all"><i class="fa-solid fa-handshake text-gray-400"></i> سوق الأفراد (المستعمل)</button>
-                </div>
+                <button onclick="bookingAlert('د. أحمد رأفت')" class="w-full mt-4 bg-blue-600 text-white text-center py-2.5 rounded-xl font-semibold hover:bg-blue-700 transition shadow-md shadow-blue-100">احجز ميعادك الآن (رقم الدور)</button>
             </div>
 
-            <!-- شبكة استعراض المنتجات المعروضة -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
-                
-                <!-- منتج تجاري 1 -->
-                <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-bento hover:shadow-premium hover:scale-[1.01] transition-all duration-300 group">
-                    <div class="h-52 bg-gradient-to-tr from-gray-100 to-gray-50 w-full relative flex items-center justify-center text-5xl select-none">
-                        📱
-                        <span class="absolute top-4 right-4 bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm">خصم 15%</span>
-                    </div>
-                    <div class="p-5">
-                        <span class="text-[10px] text-gray-400 font-black uppercase tracking-wider">إلكترونيات وهواتف</span>
-                        <h4 class="font-bold text-base text-olive-950 mb-1 group-hover:text-olive-600 transition-colors mt-0.5">هاتف ذكي ألترا بلس 256 جيجا</h4>
-                        <div class="flex items-baseline gap-2 mb-4">
-                            <span class="text-lg font-black text-olive-800 tracking-tight">14,500 ج.م</span>
-                            <span class="text-xs text-gray-400 line-through">16,000 ج.م</span>
-                        </div>
-                        <button onclick="addToCart('هاتف ذكي ألترا بلس')" class="w-full bg-olive-600 hover:bg-olive-700 text-white text-xs font-black py-3 rounded-xl transition-all duration-300 shadow-sm flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-cart-plus text-sm"></i> إضافة إلى السلة الموحدة
-                        </button>
+            <!-- كارت طبيب 2 -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition relative">
+                <span class="absolute top-4 left-4 bg-amber-100 text-amber-700 text-xs px-2.5 py-1 rounded-full font-bold">مزدحم قليلاً</span>
+                <div class="flex items-start space-x-reverse space-x-4">
+                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xl shadow-inner">د</div>
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-900">د. منى عبد العزيز</h3>
+                        <p class="text-sm text-blue-600 font-medium">أخصائية طب الأطفال وحديثي الولادة</p>
+                        <p class="text-xs text-gray-500 mt-1">📍 شبين القناطر - أمام مجلس المدينة</p>
                     </div>
                 </div>
-
-                <!-- منتج تجاري 2 -->
-                <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-bento hover:shadow-premium hover:scale-[1.01] transition-all duration-300 group">
-                    <div class="h-52 bg-gradient-to-tr from-gray-100 to-gray-50 w-full relative flex items-center justify-center text-5xl select-none">
-                        👟
-                    </div>
-                    <div class="p-5">
-                        <span class="text-[10px] text-gray-400 font-black uppercase tracking-wider">أزياء وملابس</span>
-                        <h4 class="font-bold text-base text-olive-950 mb-1 group-hover:text-olive-600 transition-colors mt-0.5">حذاء رياضي مريح خفيف للجري</h4>
-                        <div class="flex items-baseline gap-2 mb-4">
-                            <span class="text-lg font-black text-olive-800 tracking-tight">850 ج.م</span>
-                        </div>
-        <!-- 4. بوابة خدمات السيارات وورش الصيانة (Car Services Hub) -->
-        <div id="car-hub" class="page-section py-12 container mx-auto px-4 lg:px-8">
-            <!-- بنر خدمات الطوارئ والدعم على الطريق -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-                <div class="lg:col-span-2 bg-gradient-to-br from-olive-800 to-olive-950 text-white p-8 lg:p-10 rounded-3xl flex flex-col justify-between relative overflow-hidden shadow-premium">
-                    <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-olive-700/20 rounded-full filter blur-3xl pointer-events-none"></div>
-                    <div class="relative z-10">
-                        <span class="bg-red-500/20 border border-red-500/30 text-red-200 text-xs font-black px-4 py-1.5 rounded-full mb-4 inline-block backdrop-blur-md">
-                            <i class="fa-solid fa-triangle-exclamation animate-pulse ml-1"></i> مركز الإنقاذ السريع والتأمين
-                        </span>
-                        <h2 class="text-2xl md:text-4xl font-black mb-4 leading-tight">رعاية متكاملة وصيانة ذكية لسيارتك على مدار الساعة</h2>
-                        <p class="text-gray-300 text-sm md:text-base max-w-xl font-medium leading-relaxed mb-6">
-                            تعطلت سيارتك؟ لا تقلق، بنقرة واحدة يمكنك طلب ونش إنقاذ فوري يحدد موقعك بدقة، أو يمكنك حجز موعد صيانة دورية، ميكانيكا، كهرباء سيارات، أو تغيير إطارات في أقرب مركز معتمد لسيارتك.
-                        </p>
-                    </div>
-                    <button onclick="requestSOS()" class="w-full sm:w-fit bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black px-8 py-4 rounded-2xl shadow-lg transition-all duration-300 flex items-center justify-center gap-3 border border-red-600 group">
-                        <i class="fa-solid fa-truck-pickup text-lg group-hover:rotate-12 transition-transform"></i>
-                        <span>طلب ونش إنقاذ فوري (SOS)</span>
-                    </button>
+                <div class="mt-4 pt-4 border-t border-gray-50 grid grid-cols-2 gap-2 text-sm text-gray-600">
+                    <div>💵 الكشف: <span class="font-bold text-gray-900 text-base">150 ج.م</span></div>
+                    <div>🏥 الدفع: <span class="font-bold text-gray-900">كاش فقط</span></div>
                 </div>
-                
-                <!-- كارت حجز مراكز الصيانة وشراء قطع الغيار المضمونة -->
-                <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-bento flex flex-col justify-between items-center text-center group">
-                    <div class="py-4">
-                        <div class="w-16 h-16 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5 shadow-inner border border-sky-100 group-hover:bg-sky-600 group-hover:text-white transition-all duration-300">
-                            <i class="fa-solid fa-gears"></i>
-                        </div>
-                        <h4 class="font-black text-xl text-olive-950 mb-2">متجر قطع الغيار والملحقات</h4>
-                        <p class="text-gray-400 text-xs leading-relaxed font-semibold max-w-xs mx-auto">
-                            تصفح واشترِ قطع غيار سيارات أصلية 100% مع ضمان فحص الوكلاء، فلاتر، زيوت، بوجيهات، وإكسسوارات بخصومات حصرية عبر محفظتك الموحدة.
-                        </p>
-                    </div>
-                    <button onclick="switchPage('shop-hub')" class="w-full bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 text-gray-700 border border-gray-200/60 font-black py-3.5 rounded-xl text-xs transition-all duration-300 shadow-sm">
-                        تصفح متجر قطع الغيار ←
-                    </button>
-                </div>
+                <button onclick="bookingAlert('د. منى عبد العزيز')" class="w-full mt-4 bg-blue-600 text-white text-center py-2.5 rounded-xl font-semibold hover:bg-blue-700 transition shadow-md shadow-blue-100">احجز ميعادك الآن (رقم الدور)</button>
             </div>
         </div>
 
-        <!-- 5. بوابة الصيانة المنزلية والخدمات الفنية (Maintenance & Handyman Hub) -->
-        <div id="maintenance-hub" class="page-section py-12 container mx-auto px-4 lg:px-8">
-            <div class="text-center max-w-2xl mx-auto mb-14">
-                <div class="inline-flex items-center gap-2 text-olive-700 font-extrabold text-xs uppercase bg-olive-50 border border-olive-200 px-4 py-1.5 rounded-full mb-3 shadow-sm">
-                    <i class="fa-solid fa-house-chimney-crack"></i> رعاية منزلك أصبحت أسهل
-                </div>
-                <h2 class="text-3xl md:text-4xl font-black text-olive-950 mb-3 tracking-tight">اطلب فني صيانة منزلك بكل ثقة وأمان</h2>
-                <p class="text-gray-500 text-sm md:text-base font-medium leading-relaxed">
-                    اختر التخصص المطلوب وتلقّ عروض أسعار تفصيلية وتنافسية من حرفيين وفنيين محترفين تم التحقق من هوياتهم وسجلهم الجنائي بدقة لضمان سلامتك وسلامة عائلتك.
-                </p>
-            </div>
-
-            <!-- شبكة التخصصات المهنية الأيقونية المتقدمة -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
-                
-                <!-- كهرباء -->
-                <div onclick="requestHandyman('كهربائي')" class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-bento hover:shadow-premium hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group">
-                    <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5 shadow-inner border border-amber-100 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
-                        <i class="fa-solid fa-bolt-lightning"></i>
-                    </div>
-                    <h4 class="font-black text-olive-950 text-base mb-1 group-hover:text-olive-700 transition-colors">تأسيس وأعمال الكهرباء</h4>
-                    <p class="text-gray-400 text-[11px] font-bold">أعطال، تركيبات، إضاءة</p>
-                </div>
-
-                <!-- سباكة -->
-                <div onclick="requestHandyman('سباك')" class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-bento hover:shadow-premium hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group">
-                    <div class="w-16 h-16 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5 shadow-inner border border-sky-100 group-hover:bg-sky-600 group-hover:text-white transition-all duration-300">
-                        <i class="fa-solid fa-droplet"></i>
-                    </div>
-                    <h4 class="font-bold text-olive-950 text-base mb-1 group-hover:text-sky-700 transition-colors">سباكة وأعمال صحي</h4>
-                    <p class="text-gray-400 text-[11px] font-bold">تسريبات، تركيب خلاطات، فلاتر</p>
-                </div>
-
-                <!-- تكييف وتبريد -->
-                <div onclick="requestHandyman('فني تكييف')" class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-bento hover:shadow-premium hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group">
-                    <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5 shadow-inner border border-blue-100 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
-                        <i class="fa-solid fa-snowflake"></i>
-                    </div>
-                    <h4 class="font-bold text-olive-950 text-base mb-1 group-hover:text-blue-600 transition-colors">صيانة وشحن التكييفات</h4>
-                    <p class="text-gray-400 text-[11px] font-bold">غسيل مكيفات، شحن فريون، نقل</p>
-                </div>
-
-                <!-- نجارة -->
-                <div onclick="requestHandyman('نجار')" class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-bento hover:shadow-premium hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group">
-                    <div class="w-16 h-16 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5 shadow-inner border border-orange-100 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300">
-                        <i class="fa-solid fa-hammer"></i>
-                    </div>
-                    <h4 class="font-bold text-olive-950 text-base mb-1 group-hover:text-orange-600 transition-colors">نجارة وتصليح أثاث</h4>
-                    <p class="text-gray-400 text-[11px] font-bold">تركيب كالون، غرف نوم، مطابخ</p>
-                </div>
-        <!-- 6. غرفة التحكم والعمليات الموحدة للمستخدم (User Management & Wallet Dashboard) -->
-        <div id="dashboard-hub" class="page-section py-12 container mx-auto px-4 lg:px-8">
-            <div class="flex items-center gap-3 mb-8 pb-4 border-b border-gray-100">
-                <div class="w-10 h-10 bg-olive-100 text-olive-700 rounded-xl flex items-center justify-center text-lg shadow-sm">
-                    <i class="fa-solid fa-chart-line"></i>
-                </div>
-                <div>
-                    <h2 class="text-2xl md:text-3xl font-black text-olive-950">غرفة التحكم والعمليات السريعة</h2>
-                    <p class="text-gray-500 text-xs font-semibold mt-0.5">تابع حسابك الشخصي، رصيد المحفظة، وحالة طلباتك الحالية في كل الأقسام</p>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                
-                <!-- كارت الحساب الشخصي والمحفظة الرقمية التفاعلية -->
-                <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-premium flex flex-col justify-between min-h-[420px] group relative overflow-hidden">
-                    <div class="absolute -left-16 -top-16 w-36 h-36 bg-olive-50 rounded-full pointer-events-none"></div>
-                    <div class="relative z-10">
-                        <div class="flex items-center gap-4 mb-6 pb-4 border-b border-gray-50">
-                            <div class="w-14 h-14 bg-gradient-to-tr from-olive-600 to-olive-800 rounded-full flex items-center justify-center text-white text-xl font-black shadow-md border-2 border-white">أ</div>
-                            <div>
-                                <div class="flex items-center gap-1.5">
-                                    <h3 class="font-black text-lg text-olive-950">أحمد رأفت</h3>
-                                    <span class="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded-md"><i class="fa-solid fa-crown text-[8px]"></i> مميز</span>
-                                </div>
-                                <p class="text-[11px] text-gray-400 font-bold">رقم الحساب: #WS-99482</p>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-gradient-to-br from-olive-800 to-olive-900 rounded-2xl p-5 text-white shadow-md mb-6">
-                            <span class="text-[10px] font-black text-olive-200 block uppercase tracking-wider">الرصيد القابل للاستخدام</span>
-                            <span class="text-3xl font-black tracking-tight block mt-1" id="dashboard-wallet-balance">2,450.50 ج.م</span>
-                            <div class="text-[10px] text-sky-200 font-bold mt-3 border-t border-white/10 pt-2 flex items-center gap-1">
-                                <i class="fa-solid fa-circle-nodes text-[8px]"></i> محفظة موحدة للعيادات، المشتريات، والصيانة
-                            </div>
-                        </div>
-
-                        <div class="space-y-3 text-xs border-t border-gray-50 pt-4 font-bold text-gray-600">
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-400 font-semibold">البريد الإلكتروني:</span> 
-                                <span class="text-olive-950">ahmed.rafat@wasla.com</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-400 font-semibold">رقم الهاتف النشط:</span> 
-                                <span class="text-olive-950">01023456789</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-400 font-semibold">موقعك الجغرافي:</span> 
-                                <span class="text-sky-700 bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-md text-[10px]">القاهرة، مصر</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button onclick="chargeWallet()" class="w-full mt-6 bg-gradient-to-r from-olive-600 to-olive-700 hover:from-olive-700 hover:to-olive-800 text-white font-black py-3.5 rounded-xl text-xs shadow-md transition-all duration-300 border border-olive-600">
-                        <i class="fa-solid fa-circle-dollar-to-slot ml-1"></i> شحن رصيد محفظتك الفوري
-                    </button>
-                </div>
-
-                <!-- جدول العمليات الموحد (Global Operations Live Logger) -->
-                <div class="lg:col-span-2 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-bento min-h-[420px]">
-                    <div class="flex justify-between items-center mb-6">
-                        <h4 class="font-black text-lg text-olive-950 flex items-center gap-2">
-                            <i class="fa-solid fa-clock-history text-sky-600"></i> سجل العمليات وحالة الحجوزات والطلبات
-                        </h4>
-                        <span class="text-[10px] font-black text-mint-600 bg-mint-50 px-2.5 py-1 rounded-full animate-pulse border border-mint-100">محدث حياً الآن</span>
-                    </div>
-                    
-                    <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-right text-xs min-w-[500px]">
-                            <thead>
-                                <tr class="bg-gray-50/80 text-gray-400 font-black border-b border-gray-100 uppercase tracking-wider">
-                                    <th class="p-3.5 rounded-r-xl">رقم الطلب</th>
-                                    <th class="p-3.5">القسم والخدمة</th>
-                                    <th class="p-3.5">التفاصيل والوجهة</th>
-                                    <th class="p-3.5">التكلفة والرسوم</th>
-                                    <th class="p-3.5 rounded-l-xl text-center">حالة المعاملة</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-gray-600 font-semibold" id="orders-log-tbody">
-                                <tr class="border-b border-gray-50/50 hover:bg-gray-50/30 transition-colors">
-                                    <td class="p-4 font-black text-olive-950">#WS-9021</td>
-                                    <td class="p-4 text-sky-700 font-black"><i class="fa-solid fa-user-doctor ml-1.5 text-sky-600"></i> العيادات الطبية</td>
-                                    <td class="p-4">استشارة قلب - د. حازم المنشاوي</td>
-                                    <td class="p-4 font-black text-olive-900">400 ج.م</td>
-                                    <td class="p-4 text-center"><span class="bg-amber-50 text-amber-700 border border-amber-200/60 px-3 py-1 rounded-full font-black text-[10px]">بانتظار موعد الطبيب</span></td>
-                                </tr>
-                                <tr class="border-b border-gray-50/50 hover:bg-gray-50/30 transition-colors">
-                                    <td class="p-4 font-black text-olive-950">#WS-8831</td>
-                                    <td class="p-4 text-olive-600 font-black"><i class="fa-solid fa-bag-shopping ml-1.5 text-olive-600"></i> سوق المنتجات</td>
-                                    <td class="p-4">شراء حذاء رياضي مريح خفيف</td>
-                                    <td class="p-4 font-black text-olive-900">850 ج.م</td>
-                                    <td class="p-4 text-center"><span class="bg-mint-50 text-mint-600 border border-mint-100 px-3 py-1 rounded-full font-black text-[10px]"><i class="fa-solid fa-circle-check text-[9px] ml-0.5"></i> تم تسليم الشحنة</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
+        <!-- قطاع الخدمات الفورية والتمريض المنزلي -->
+        <div id="home-services" class="mt-12 bg-emerald-900 text-white rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden">
+            <div class="relative z-10 max-w-xl">
+                <span class="bg-emerald-800 text-emerald-300 text-xs font-bold px-3 py-1 rounded-md uppercase tracking-wider">رعاية منزلية فورية</span>
+                <h2 class="text-2xl font-bold mt-2 mb-3">ممرض أو كشف منزلي لحد باب بيتك في شبين</h2>
+                <p class="text-emerald-100 text-sm leading-relaxed mb-6">هل محتاج تركيب محاليل، غيار على جرح، أو طبيب يجيلك البيت فوراً؟ شبكة تمريض وصلة المعتمدة جاهزة لخدمتك الآن.</p>
+                <button onclick="alert('جاري تحديد موقعك الجغرافي في شبين القناطر لربطك بأقرب ممرض متاح...')" class="bg-green-400 text-emerald-950 font-bold px-6 py-3 rounded-xl hover:bg-green-300 transition shadow-lg shadow-emerald-950/50">اطلب تمريض منزلي الآن</button>
             </div>
         </div>
-
     </main>
 
-    <!-- تذييل الصفحة الختامي الفخم والهوية القانونية والبرمجية (Global Footer) -->
-    <footer class="bg-olive-950 text-white pt-20 pb-8 border-t border-olive-900/60 relative z-10 overflow-hidden">
-        <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
-        <div class="container mx-auto px-4 lg:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16 relative z-10">
-            <div>
-                <div class="flex items-center gap-3 mb-5">
-                    <div class="bg-white text-olive-950 p-2.5 rounded-xl shadow-md">
-                        <i class="fa-solid fa-circle-nodes text-xl"></i>
-                    </div>
-                    <span class="text-2xl font-black tracking-tight">وصْـلَة</span>
+    <!-- ثانياً: تجربة واجهة المؤسس / المشرف (Founder Admin Dashboard View) -->
+    <section id="founder-dashboard" class="bg-gray-900 text-white py-12 px-4 border-t-4 border-green-500">
+        <div class="container mx-auto max-w-5xl">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                <div>
+                    <span class="text-xs text-green-400 font-bold tracking-widest block uppercase">نظام الإدارة المركزي</span>
+                    <h2 class="text-2xl font-bold mt-1">لوحة تحكم منصة وصلة - الرؤية الشاملة للمؤسس</h2>
                 </div>
-                <p class="text-gray-400 text-xs leading-relaxed font-medium">
-                    منظومة أسطورية رقمية لدمج الخدمات تهدف إلى ربط مقدمي الخدمات الطبية، الفنية، الحرفية، والسيارات مع المشترين والتجار بذكاء، أمان، وسهولة تامة.
-                </p>
+                <div class="bg-gray-800 px-4 py-2 rounded-xl text-sm border border-gray-700">📌 النطاق الحالي للتشغيل: <span class="text-green-400 font-bold">شبين القناطر</span></div>
             </div>
-            <div>
-                <h5 class="font-black text-sm mb-5 text-sky-200 uppercase tracking-wider"><i class="fa-solid fa-link ml-1.5 text-sky-400"></i> بوابات الانضمام والشركاء</h5>
-                <ul class="space-y-3 text-gray-400 text-xs font-semibold">
-                    <li><a href="#" class="hover:text-white hover:translate-x-[-4px] transition-all inline-block">سجل عيادتك كمقدم رعاية طبية</a></li>
-                    <li><a href="#" class="hover:text-white hover:translate-x-[-4px] transition-all inline-block">انضم كمركز معتمد لصيانة السيارات</a></li>
-                    <li><a href="#" class="hover:text-white hover:translate-x-[-4px] transition-all inline-block">افتح متجرك التجاري المجاني الآن</a></li>
-                </ul>
-            </div>
-            <div>
 
+            <!-- إحصائيات حية حاسمة للمؤسس لتقييم المنظومة -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-800 text-center">
+                    <p class="text-gray-400 text-xs font-medium">إجمالي الأطباء المتعاقدين</p>
+                    <p class="text-2xl font-bold text-blue-400 mt-1">24 عيادة</p>
+                </div>
+                <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-800 text-center">
+                    <p class="text-gray-400 text-xs font-medium">طلبات التمريض النشطة</p>
+                    <p class="text-2xl font-bold text-emerald-400 mt-1">7 طلبات حية</p>
+                </div>
+                <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-800 text-center">
+                    <p class="text-gray-400 text-xs font-medium">حجوزات عيادات اليوم</p>
+                    <p class="text-2xl font-bold text-purple-400 mt-1">142 حجز</p>
+                </div>
+                <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-800 text-center">
+                    <p class="text-gray-400 text-xs font-medium">صافي الأرباح المتوقعة (النسبة)</p>
+                    <p class="text-2xl font-bold text-green-400 mt-1">1,840 ج.م</p>
+                </div>
             </div>
-        </div>
 
