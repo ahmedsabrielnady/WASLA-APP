@@ -2,344 +2,575 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة وصلة الرقمية | القطاع الطبي الشامل في شبين القناطر</title>
-    <style>
-        /* ==========================================================================
-           1. نظام الهوية البصرية، الألوان والتحكم بالحركة (WASLA MEDICAL CORE)
-           ========================================================================== */
-        @import url('https://googleapis.com');
-        
-        :root {
-            --wasla-dark: #0f172a;
-            --wasla-blue: #2563eb;
-            --wasla-blue-light: #eff6ff;
-            --medical-emerald: #10b981;
-            --medical-emerald-hover: #059669;
-            --medical-soft: #f0fdf4;
-            --medical-border: #bbf7d0;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --bg-canvas: #f8fafc;
-            --white: #ffffff;
-            --shadow-md: 0 10px 15px -3px rgba(15, 23, 42, 0.04);
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>وصلة | منصة الرعاية الصحية المتكاملة</title>
+    <meta name="description" content="منصة وصلة: عيادات، تمريض منزلي، مستلزمات طبية، كشف منزلي، إسعاف، ملف طبي إلكتروني EMR، وتأمين صحي.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 
+                            primary: '#0A8754', 
+                            'primary-dark': '#076B42', 
+                            'primary-light': '#E6F4ED', 
+                            secondary: '#0B1120', 
+                            accent: '#D97706', 
+                            danger: '#E11D48', 
+                            info: '#0284C7' 
+                        },
+                        surface: { 50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0' }
+                    },
+                    fontFamily: { sans: ['Cairo', 'sans-serif'] },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'fade-in-up': 'fadeInUp 0.4s ease-out',
+                        'fade-in-down': 'fadeInDown 0.4s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'shimmer': 'shimmer 1.5s infinite'
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        fadeInDown: { '0%': { opacity: '0', transform: 'translateY(-20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+                        shimmer: { '0%': { backgroundPosition: '200% 0' }, '100%': { backgroundPosition: '-200% 0' } }
+                    }
+                }
+            }
         }
+    </script>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Cairo', sans-serif;
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           GLOBAL STYLES
+        ========================================= */
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background-color: #F8FAFC; 
+            overflow-x: hidden; 
             scroll-behavior: smooth;
         }
-
-        body {
-            background-color: var(--bg-canvas);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+        
+        ::selection {
+            background-color: #0A8754;
+            color: #ffffff;
         }
 
-        /* ==========================================================================
-           2. شريط التنقل العلوي الفخم والهوية (HEADER & NAVIGATION)
-           ========================================================================== */
-        header {
-            background: rgba(255, 255, 255, 0.96);
-            backdrop-filter: blur(12px);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #0A8754; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background: #076B42; }
+
+        /* =========================================
+           COMPONENT CLASSES
+        ========================================= */
+        .glass { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(14px); 
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.6); 
+        }
+        
+        .glass-dark { 
+            background: rgba(11, 17, 32, 0.9); 
+            backdrop-filter: blur(14px); 
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08); 
         }
 
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 16px 24px;
-            display: flex;
-            justify-content: space-between;
+        .hover-lift { 
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease; 
+        }
+        
+        .hover-lift:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.15); 
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #0A8754, #0284C7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Sidebar RTL Fix */
+        #cart-sidebar, #notification-sidebar { 
+            right: 0; 
+            transform: translateX(100%); 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            z-index: 200;
+        }
+        
+        #cart-sidebar.open, #notification-sidebar.open { 
+            transform: translateX(0); 
+        }
+
+        /* Modal Overlay */
+        .modal-overlay { 
+            background: rgba(11, 17, 32, 0.7); 
+            backdrop-filter: blur(6px); 
+            -webkit-backdrop-filter: blur(6px);
+        }
+
+        .modal-content {
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        /* Status Badges */
+        .status-badge { 
+            font-size: 11px; 
+            padding: 4px 10px; 
+            border-radius: 9999px; 
+            font-weight: 700; 
+            display: inline-flex;
             align-items: center;
+            gap: 4px;
+        }
+        
+        .status-confirmed { background: #D1FAE5; color: #065F46; }
+        .status-completed { background: #DBEAFE; color: #1E40AF; }
+        .status-cancelled { background: #FEE2E2; color: #991B1B; }
+        .status-pending { background: #FEF3C7; color: #92400E; }
+
+        /* Loader */
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #FFF;
+            border-bottom-color: #0A8754;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
         }
 
-        .brand-block {
-            display: flex;
-            align-items: center;
-            gap: 14px;
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .brand-logo {
-            background: linear-gradient(135deg, var(--wasla-blue) 0%, #1d4ed8 100%);
-            color: var(--white);
-            padding: 8px 22px;
-            border-radius: 16px;
-            font-weight: 900;
-            font-size: 24px;
-            box-shadow: 0 8px 16px rgba(37, 99, 213, 0.2);
-        }
+        /* Custom Utilities */
+        .hidden { display: none !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
 
-        .brand-subtext h2 {
-            font-size: 15px;
-            font-weight: 800;
-            color: var(--wasla-dark);
-        }
+    <!-- =========================================
+         LOADING SCREEN
+    ========================================= -->
+    <div id="loading-screen" class="fixed inset-0 z-[9999] bg-brand-secondary flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="w-24 h-24 bg-brand-primary text-white rounded-3xl flex items-center justify-center text-5xl shadow-[0_0_50px_rgba(10,135,84,0.5)] animate-pulse mb-6">
+            <i class="fa-solid fa-heart-pulse"></i>
+        </div>
+        <h1 class="text-4xl font-black text-white mb-2">وَصْلَة</h1>
+        <p class="text-sm text-brand-primary font-bold tracking-widest mb-6">SMART HEALTH PLATFORM</p>
+        <div class="loader"></div>
+    </div>
 
-        .brand-subtext p {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
+    <!-- =========================================
+         TOP BAR (Emergency & Info)
+    ========================================= -->
+    <div class="bg-brand-secondary text-slate-300 text-[11px] py-2 px-4 border-b border-slate-700/50">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div class="flex items-center gap-4">
+                <span class="flex items-center gap-1"><i class="fa-solid fa-shield-halved text-brand-primary"></i> منصة طبية معتمدة</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-clock text-brand-primary"></i> دعم 24/7</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="tel:123" class="hover:text-white transition flex items-center gap-1 text-red-400 font-bold"><i class="fa-solid fa-ambulance"></i> طوارئ: 123</a>
+                <a href="tel:01000000000" class="hover:text-white transition flex items-center gap-1"><i class="fa-solid fa-phone"></i> 0100 000 0000</a>
+                <a href="https://wa.me/201000000000" target="_blank" class="text-emerald-400 hover:text-emerald-300 transition flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> واتساب</a>
+            </div>
+        </div>
+    </div>
 
-        .quick-actions-nav {
-            display: flex;
-            gap: 12px;
-        }
+    <!-- =========================================
+         MAIN HEADER
+    ========================================= -->
+    <header id="main-header" class="glass-dark text-white sticky top-0 z-50 shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <!-- Logo -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="App.navigate('landing')">
+                <div class="bg-brand-primary p-2.5 rounded-2xl text-2xl shadow-lg shadow-brand-primary/30">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black leading-tight">وَصْلَة</h1>
+                    <p class="text-[10px] text-brand-primary font-bold tracking-wider">SHIBIN EL QANATER</p>
+                </div>
+            </div>
 
-        .action-nav-link {
-            text-decoration: none;
-            color: var(--text-main);
-            font-weight: 700;
-            font-size: 14px;
-            padding: 10px 16px;
-            border-radius: 10px;
-            transition: all 0.2s ease;
-            background: var(--bg-canvas);
-        }
+            <!-- Desktop Navigation (Dynamic based on Role) -->
+            <nav id="desktop-nav" class="hidden lg:flex items-center gap-1">
+                <!-- Populated by JS -->
+            </nav>
 
-        .action-nav-link:hover {
-            background: var(--wasla-blue-light);
-            color: var(--wasla-blue);
-        }
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2">
+                <!-- Notifications -->
+                <button onclick="App.toggleNotifications()" class="relative text-slate-300 hover:text-white p-2 transition">
+                    <i class="fa-solid fa-bell text-lg"></i>
+                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-brand-secondary animate-pulse"></span>
+                </button>
+                
+                <!-- Cart -->
+                <button onclick="App.toggleCart()" class="relative text-slate-300 hover:text-white p-2 transition">
+                    <i class="fa-solid fa-cart-shopping text-lg"></i>
+                    <span id="cart-badge" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-brand-secondary hidden">0</span>
+                </button>
 
-        /* ==========================================================================
-           3. البانر التعريفي وقسم الفلترة والبحث (HERO & ADVANCED FILTER)
-           ========================================================================== */
-        .medical-hero {
-            background: linear-gradient(135deg, #0f172a 0%, #1e40af 100%);
-            color: var(--white);
-            padding: 60px 24px;
-            text-align: center;
-            position: relative;
-        }
+                <!-- Auth Buttons -->
+                <button onclick="App.navigate('login')" id="btn-login" class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white px-3 py-2 rounded-lg transition">
+                    <i class="fa-regular fa-user"></i> دخول
+                </button>
+                <button onclick="App.navigate('register')" id="btn-register" class="bg-brand-primary text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-brand-primary-dark transition shadow-lg shadow-brand-primary/20 flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-plus"></i> حساب جديد
+                </button>
+                <button onclick="App.logout()" id="btn-logout" class="hidden bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-700 transition shadow-lg flex items-center gap-1.5">
+                    <i class="fa-solid fa-power-off"></i> خروج
+                </button>
 
-        .medical-hero::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 6px;
-            background: var(--medical-emerald);
-        }
+                <!-- Mobile Menu Toggle -->
+                <button onclick="App.toggleMobileMenu()" class="lg:hidden text-white p-2">
+                    <i class="fa-solid fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
 
-        .hero-inner {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-brand-secondary border-t border-slate-700 p-4 space-y-2 absolute w-full shadow-2xl">
+            <!-- Populated by JS -->
+        </div>
+    </header>
 
-        .hero-inner h1 {
-            font-size: 32px;
-            font-weight: 900;
-            margin-bottom: 12px;
-        }
+    <!-- =========================================
+         MAIN CONTAINER (Views injected here)
+    ========================================= -->
+    <main id="app-container" class="flex-grow w-full max-w-7xl mx-auto px-4 py-8">
+        <!-- Initial Landing Page HTML (Will be managed by JS later) -->
+        <div id="view-landing" class="view-section animate-fade-in">
+            
+            <!-- Hero Section -->
+            <div class="relative bg-brand-secondary rounded-[2.5rem] p-8 sm:p-16 text-white mb-12 overflow-hidden shadow-2xl border border-slate-800">
+                <!-- Background Decoration -->
+                <div class="absolute inset-0 overflow-hidden">
+                    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-primary rounded-full blur-[100px] opacity-30 -translate-y-1/2 translate-x-1/4"></div>
+                    <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-info rounded-full blur-[100px] opacity-20 translate-y-1/2 -translate-x-1/4"></div>
+                </div>
+                
+                <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-6">
+                        <span class="inline-flex items-center gap-2 bg-brand-primary/20 text-brand-primary border border-brand-primary/30 text-xs px-4 py-1.5 rounded-full font-black">
+                            <i class="fa-solid fa-star text-brand-accent"></i> المنصة الأولى للرعاية الصحية المتكاملة
+                        </span>
+                        <h1 class="text-4xl sm:text-6xl font-black leading-tight">
+                            صحتك بين يديك،<br>
+                            <span class="text-brand-primary">في أي وقت ومكان.</span>
+                        </h1>
+                        <p class="text-sm sm:text-lg text-slate-300 font-bold leading-relaxed max-w-lg">
+                            احجز مع نخبة من الأطباء، اطلب تمريض منزلي، اشتر مستلزماتك الطبية، وتابع ملفك الطبي بسهولة وأمان. كل ذلك في منصة واحدة.
+                        </p>
+                        <div class="flex flex-wrap gap-4 pt-4">
+                            <button onclick="App.navigate('doctors')" class="bg-brand-primary text-white px-8 py-4 rounded-2xl text-sm font-black shadow-lg shadow-brand-primary/40 hover:scale-105 transition flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-check text-lg"></i> احجز موعدك الآن
+                            </button>
+                            <button onclick="App.navigate('services')" class="bg-white/10 text-white border border-white/20 px-8 py-4 rounded-2xl text-sm font-black hover:bg-white/20 transition flex items-center gap-2">
+                                <i class="fa-solid fa-house-medical text-lg"></i> الخدمات المنزلية
+                            </button>
+                        </div>
+                        
+                        <!-- Trust Indicators -->
+                        <div class="flex items-center gap-6 pt-6 text-xs text-slate-400 font-bold">
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-circle-check text-brand-primary"></i> +50 طبيب</span>
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-circle-check text-brand-primary"></i> +10 شركات تأمين</span>
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-circle-check text-brand-primary"></i> حجز فوري</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Hero Image / Illustration -->
+                    <div class="hidden lg:flex justify-center relative">
+                        <div class="w-80 h-80 bg-brand-primary/10 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse-slow"></div>
+                        <div class="glass-dark p-8 rounded-3xl border border-slate-700/50 w-full max-w-sm space-y-4 relative z-10 animate-float">
+                            <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+                                <span class="text-sm font-bold">إحصائيات مباشرة</span>
+                                <span class="flex items-center gap-1 text-[10px] text-emerald-400 font-bold"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Live</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-white/5 p-4 rounded-2xl border border-slate-700/50">
+                                    <span class="text-[10px] text-slate-400 font-bold block mb-1">مواعيد اليوم</span>
+                                    <span class="text-2xl font-black text-white">124</span>
+                                </div>
+                                <div class="bg-white/5 p-4 rounded-2xl border border-slate-700/50">
+                                    <span class="text-[10px] text-slate-400 font-bold block mb-1">أطباء متاحون</span>
+                                    <span class="text-2xl font-black text-brand-primary">38</span>
+                                </div>
+                                <div class="bg-white/5 p-4 rounded-2xl border border-slate-700/50">
+                                    <span class="text-[10px] text-slate-400 font-bold block mb-1">رضا المرضى</span>
+                                    <span class="text-2xl font-black text-brand-accent">98%</span>
+                                </div>
+                                <div class="bg-white/5 p-4 rounded-2xl border border-slate-700/50">
+                                    <span class="text-[10px] text-slate-400 font-bold block mb-1">متوسط الانتظار</span>
+                                    <span class="text-2xl font-black text-brand-info">12د</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        .hero-inner h1 span {
-            color: #38bdf8;
-        }
+            <!-- Quick Services Grid -->
+            <div class="mb-16">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-black text-slate-800">كيف نقدر نخدمك؟</h2>
+                    <p class="text-sm text-slate-500 font-bold mt-2">اختر الخدمة اللي تناسبك وابدأ رحلتك</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Service Card 1 -->
+                    <div onclick="App.navigate('doctors')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group">
+                        <div class="w-16 h-16 bg-brand-primary-light text-brand-primary rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-stethoscope"></i>
+                        </div>
+                        <h3 class="font-black text-slate-800 text-lg mb-2">عيادات وأطباء</h3>
+                        <p class="text-xs text-slate-500 font-bold leading-relaxed">احجز مع استشاريين في جميع التخصصات الطبية.</p>
+                        <div class="mt-4 text-brand-primary font-bold text-sm group-hover:translate-x-[-5px] transition flex items-center justify-center gap-1">
+                            احجز الآن <i class="fa-solid fa-arrow-left"></i>
+                        </div>
+                    </div>
 
-        .hero-inner p {
-            font-size: 15px;
-            color: #93c5fd;
-            line-height: 1.6;
-        }
+                    <!-- Service Card 2 -->
+                    <div onclick="App.navigate('services')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group">
+                        <div class="w-16 h-16 bg-blue-100 text-brand-info rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-user-nurse"></i>
+                        </div>
+                        <h3 class="font-black text-slate-800 text-lg mb-2">تمريض منزلي</h3>
+                        <p class="text-xs text-slate-500 font-bold leading-relaxed">حقن، محاليل، رعاية كبار السن في بيتك.</p>
+                        <div class="mt-4 text-brand-info font-bold text-sm group-hover:translate-x-[-5px] transition flex items-center justify-center gap-1">
+                            اطلب الخدمة <i class="fa-solid fa-arrow-left"></i>
+                        </div>
+                    </div>
 
-        .search-filter-widget {
-            max-width: 1200px;
-            margin: -30px auto 40px auto;
-            padding: 0 24px;
-            position: relative;
-            z-index: 10;
-        }
+                    <!-- Service Card 3 -->
+                    <div onclick="App.navigate('supplies')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group">
+                        <div class="w-16 h-16 bg-amber-100 text-brand-accent rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-pills"></i>
+                        </div>
+                        <h3 class="font-black text-slate-800 text-lg mb-2">مستلزمات طبية</h3>
+                        <p class="text-xs text-slate-500 font-bold leading-relaxed">أجهزة وأدوية معتمدة تصلك لباب البيت.</p>
+                        <div class="mt-4 text-brand-accent font-bold text-sm group-hover:translate-x-[-5px] transition flex items-center justify-center gap-1">
+                            تسوق الآن <i class="fa-solid fa-arrow-left"></i>
+                        </div>
+                    </div>
 
-        .filter-bar {
-            background: var(--white);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid #e2e8f0;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
+                    <!-- Service Card 4 -->
+                    <div onclick="App.navigate('services')" class="glass p-6 rounded-3xl border border-slate-200 cursor-pointer hover-lift text-center group">
+                        <div class="w-16 h-16 bg-red-100 text-brand-danger rounded-2xl flex items-center justify-center mx-auto text-3xl mb-4 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-ambulance"></i>
+                        </div>
+                        <h3 class="font-black text-slate-800 text-lg mb-2">إسعاف وطوارئ</h3>
+                        <p class="text-xs text-slate-500 font-bold leading-relaxed">استجابة سريعة لحالات الطوارئ 24/7.</p>
+                        <div class="mt-4 text-brand-danger font-bold text-sm group-hover:translate-x-[-5px] transition flex items-center justify-center gap-1">
+                            طوارئ <i class="fa-solid fa-arrow-left"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        @media (max-width: 768px) {
-            .filter-bar { grid-template-columns: 1fr; }
-        }
+            <!-- Features (Why Wasla?) -->
+            <div class="mb-16 bg-white rounded-[2.5rem] p-8 sm:p-12 border border-slate-200 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-brand-primary-light rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
+                <div class="relative z-10">
+                    <div class="text-center mb-10">
+                        <span class="text-[11px] text-brand-primary font-black bg-brand-primary-light px-3 py-1.5 rounded-full">القيمة المضافة</span>
+                        <h2 class="text-3xl font-black text-slate-800 mt-3">ليه تختار <span class="gradient-text">وصلة</span>؟</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Feature 1 -->
+                        <div class="text-center space-y-3">
+                            <div class="w-16 h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto text-brand-primary text-2xl shadow-sm">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <h4 class="font-black text-slate-800">تأمين شفاف</h4>
+                            <p class="text-xs text-slate-500 font-bold leading-relaxed">اعرف نسبة تحملك من التأمين قبل الحجز بضغطة واحدة، بدون مفاجآت.</p>
+                        </div>
+                        <!-- Feature 2 -->
+                        <div class="text-center space-y-3">
+                            <div class="w-16 h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto text-brand-info text-2xl shadow-sm">
+                                <i class="fa-solid fa-file-medical"></i>
+                            </div>
+                            <h4 class="font-black text-slate-800">ملف طبي EMR</h4>
+                            <p class="text-xs text-slate-500 font-bold leading-relaxed">كل فحوصاتك، روشتاتك، وتاريخك المرضي محفوظ بأمان تحت رقم سري خاص بك.</p>
+                        </div>
+                        <!-- Feature 3 -->
+                        <div class="text-center space-y-3">
+                            <div class="w-16 h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto text-brand-accent text-2xl shadow-sm">
+                                <i class="fa-solid fa-bell"></i>
+                            </div>
+                            <h4 class="font-black text-slate-800">تذكيرات ذكية</h4>
+                            <p class="text-xs text-slate-500 font-bold leading-relaxed">نرسل لك تذكيرات واتساب قبل الموعد لتقليل نسبة الغياب وضمان حضورك.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
+            <!-- Stats Banner -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+                <div class="glass rounded-2xl p-6 text-center border border-slate-200">
+                    <div class="text-4xl font-black text-brand-primary mb-1">+15K</div>
+                    <div class="text-xs text-slate-500 font-bold">مريض سعيد</div>
+                </div>
+                <div class="glass rounded-2xl p-6 text-center border border-slate-200">
+                    <div class="text-4xl font-black text-brand-primary mb-1">+60</div>
+                    <div class="text-xs text-slate-500 font-bold">طبيب معتمد</div>
+                </div>
+                <div class="glass rounded-2xl p-6 text-center border border-slate-200">
+                    <div class="text-4xl font-black text-brand-primary mb-1">+120</div>
+                    <div class="text-xs text-slate-500 font-bold">منتج طبي</div>
+                </div>
+                <div class="glass rounded-2xl p-6 text-center border border-slate-200">
+                    <div class="text-4xl font-black text-brand-primary mb-1">+10</div>
+                    <div class="text-xs text-slate-500 font-bold">شركة تأمين</div>
+                </div>
+            </div>
 
-        .filter-group label {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--wasla-dark);
-        }
+        </div> <!-- End of #view-landing -->
+    </main>
 
-        .filter-select, .filter-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            outline: none;
-            background-color: var(--bg-canvas);
-            transition: all 0.2s;
-        }
+    <!-- =========================================
+         SIDEBARS & MODALS
+    ========================================= -->
+    
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-2xl flex flex-col border-r border-slate-200">
+        <div class="p-5 bg-brand-secondary text-white flex justify-between items-center">
+            <h3 class="font-black text-lg"><i class="fa-solid fa-cart-shopping ml-2"></i> سلة المشتريات</h3>
+            <button onclick="App.toggleCart()" class="text-slate-300 hover:text-white transition p-1"><i class="fa-solid fa-xmark text-2xl"></i></button>
+        </div>
+        <div id="cart-items" class="flex-grow p-5 overflow-y-auto space-y-3">
+            <!-- Items injected here -->
+        </div>
+        <div class="p-5 border-t border-slate-200 bg-slate-50">
+            <div class="flex justify-between font-black text-lg mb-4 text-slate-800">
+                <span>الإجمالي:</span>
+                <span id="cart-total" class="text-brand-primary">0 ج.م</span>
+            </div>
+            <div class="space-y-2 mb-4">
+                <input type="text" id="cart-address" placeholder="عنوان التوصيل بالتفصيل..." class="w-full p-3 border border-slate-300 rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-primary outline-none">
+                <input type="tel" id="cart-phone" placeholder="رقم الهاتف (واتساب)..." class="w-full p-3 border border-slate-300 rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-primary outline-none">
+            </div>
+            <button onclick="App.checkout()" class="w-full bg-brand-primary text-white py-3.5 rounded-xl font-black text-sm hover:bg-brand-primary-dark transition shadow-lg flex items-center justify-center gap-2">
+                <i class="fa-brands fa-whatsapp text-lg"></i> إتمام الطلب
+            </button>
+        </div>
+    </div>
 
-        .filter-select:focus, .filter-input:focus {
-            border-color: var(--medical-emerald);
-            background-color: var(--white);
-        }
+    <!-- Notification Sidebar -->
+    <div id="notification-sidebar" class="fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-2xl flex flex-col border-r border-slate-200">
+        <div class="p-5 bg-brand-secondary text-white flex justify-between items-center">
+            <h3 class="font-black text-lg"><i class="fa-solid fa-bell ml-2"></i> الإشعارات</h3>
+            <button onclick="App.toggleNotifications()" class="text-slate-300 hover:text-white transition p-1"><i class="fa-solid fa-xmark text-2xl"></i></button>
+        </div>
+        <div class="flex-grow p-5 overflow-y-auto space-y-3">
+            <!-- Notification Item -->
+            <div class="p-4 bg-brand-primary-light rounded-xl border border-brand-primary/20 relative">
+                <span class="absolute top-4 left-4 w-2 h-2 bg-brand-primary rounded-full"></span>
+                <h4 class="font-bold text-brand-primary text-sm mb-1">تم تأكيد حجزك</h4>
+                <p class="text-xs text-slate-600 font-bold">تم تأكيد موعدك مع د. أحمد الشريف غداً الساعة 10:00 صباحاً.</p>
+                <span class="text-[10px] text-slate-400 mt-2 block">منذ ساعتين</span>
+            </div>
+            <!-- Notification Item -->
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <h4 class="font-bold text-slate-800 text-sm mb-1">تذكير بموعدك</h4>
+                <p class="text-xs text-slate-600 font-bold">لا تنسى إحضار بطاقة التأمين الخاصة بك.</p>
+                <span class="text-[10px] text-slate-400 mt-2 block">منذ 5 ساعات</span>
+            </div>
+        </div>
+    </div>
 
-        /* ==========================================================================
-           4. شبكة عرض بطاقات العيادات الطبية (CLINICS GRID DISPLAY)
-           ========================================================================== */
-        .main-content-layout {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px 60px 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 40px;
-        }
+    <!-- Generic Modal Container -->
+    <div id="modal-container" class="fixed inset-0 modal-overlay z-[300] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto relative modal-content custom-scrollbar shadow-2xl">
+            <button onclick="App.closeModal()" class="absolute top-5 left-5 text-slate-400 hover:text-red-500 z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div id="modal-content" class="p-6 sm:p-8"></div>
+        </div>
+    </div>
 
-        .section-title-wrapper {
-            border-right: 4px solid var(--medical-emerald);
-            padding-right: 12px;
-            margin-bottom: 24px;
-        }
+    <!-- Toasts Container -->
+    <div id="toast-container" class="fixed bottom-5 left-5 z-[400] space-y-3"></div>
 
-        .section-title-wrapper h3 {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--wasla-dark);
-        }
+    <!-- =========================================
+         FOOTER
+    ========================================= -->
+    <footer class="bg-brand-secondary text-slate-400 py-12 border-t border-slate-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="bg-brand-primary p-2 rounded-xl text-white"><i class="fa-solid fa-heart-pulse"></i></div>
+                    <div><div class="font-black text-white text-lg">وَصْلَة</div><div class="text-[10px] text-brand-primary font-bold">SMART HEALTH</div></div>
+                </div>
+                <p class="text-xs font-bold leading-relaxed mb-4">منصة رعاية صحية ذكية تربط المرضى بمقدمي الخدمات الطبية، مع شفافية التأمين وسهولة الوصول.</p>
+                <div class="flex gap-2">
+                    <a href="#" class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center hover:bg-brand-primary transition"><i class="fa-brands fa-facebook-f text-xs"></i></a>
+                    <a href="#" class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center hover:bg-brand-primary transition"><i class="fa-brands fa-twitter text-xs"></i></a>
+                    <a href="#" class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center hover:bg-brand-primary transition"><i class="fa-brands fa-instagram text-xs"></i></a>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-black text-white mb-4 text-sm">الخدمات</h4>
+                <ul class="space-y-2 text-xs font-bold">
+                    <li><button onclick="App.navigate('doctors')" class="hover:text-white transition">دليل الأطباء</button></li>
+                    <li><button onclick="App.navigate('services')" class="hover:text-white transition">تمريض منزلي</button></li>
+                    <li><button onclick="App.navigate('services')" class="hover:text-white transition">كشف منزلي</button></li>
+                    <li><button onclick="App.navigate('supplies')" class="hover:text-white transition">مستلزمات طبية</button></li>
+                    <li><button onclick="App.navigate('services')" class="hover:text-white transition">إسعاف وطوارئ</button></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-black text-white mb-4 text-sm">المنصة</h4>
+                <ul class="space-y-2 text-xs font-bold">
+                    <li><button onclick="App.navigate('about')" class="hover:text-white transition">عن وصلة</button></li>
+                    <li><button onclick="App.navigate('login')" class="hover:text-white transition">تسجيل الدخول</button></li>
+                    <li><button onclick="App.navigate('register')" class="hover:text-white transition">حساب جديد</button></li>
+                    <li><button class="hover:text-white transition">سياسة الخصوصية</button></li>
+                    <li><button class="hover:text-white transition">الشروط والأحكام</button></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-black text-white mb-4 text-sm">تواصل معنا</h4>
+                <ul class="space-y-3 text-xs font-bold">
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-phone text-brand-primary"></i> 0100 000 0000</li>
+                    <li class="flex items-center gap-2"><i class="fa-brands fa-whatsapp text-emerald-500 text-base"></i> 0100 000 0000</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-envelope text-brand-primary"></i> support@wasla.com</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-brand-primary"></i> شبين القناطر، القليوبية</li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 mt-10 pt-6 border-t border-slate-800 text-center text-[11px] font-bold">
+            © 2026 منصة وصلة الرقمية. جميع الحقوق محفوظة. | صُنع بكل حب في مصر 🇪🇬
+        </div>
+    </footer>
 
-        .clinics-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-        }
-
-        @media (max-width: 850px) {
-            .clinics-grid { grid-template-columns: 1fr; }
-        }
-
-        .clinic-card {
-            background: var(--white);
-            border-radius: 24px;
-            border: 1px solid #e2e8f0;
-            padding: 24px;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .clinic-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
-        }
-
-        .badge-status {
-            position: absolute;
-            top: 24px;
-            left: 24px;
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: 11px;
-            font-weight: 800;
-        }
-
-        .badge-available { background: var(--medical-soft); color: #166534; border: 1px solid var(--medical-border); }
-        .badge-busy { background: #fffbeb; color: #92400e; border: 1px solid #fef3c7; }
-
-        .doctor-profile {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .doctor-avatar {
-            width: 64px;
-            height: 64px;
-            border-radius: 18px;
-            background: var(--medical-soft);
-            color: var(--medical-emerald);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 900;
-            border: 1px solid var(--medical-border);
-        }
-
-        .doctor-details h4 {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--wasla-dark);
-        }
-
-        .doctor-details p {
-            font-size: 13px;
-            color: var(--wasla-blue);
-            font-weight: 600;
-            margin-top: 2px;
-        }
-
-        .doctor-address {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        .price-insurance-table {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            padding: 16px 0;
-            border-top: 1px dashed #e2e8f0;
-            border-bottom: 1px dashed #e2e8f0;
-            margin-bottom: 20px;
-        }
-
-        .table-cell {
-            font-size: 13px;
-            color: var(--text-main);
-            font-weight: 600;
-        }
-
-        .table-cell span {
-            font-weight: 800;
-            color: var(--wasla-dark);
-        }
-
-        .book-btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 14px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            background: var(--medical-emerald);
-            color: var(--white);
-            transition: background 0.2s;
-        }
-
-        .book-btn:hover { background: var(--medical-emerald-hover); }
-
+    <!-- =========================================
+         JAVASCRIPT WILL START IN PART 5
+    ========================================= -->
+    <!-- PLACEHOLDER FOR PART 5 SCRIPT -->
+    
+</body>
+</html>
