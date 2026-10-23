@@ -3,142 +3,655 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة وصلة الطبية | WASLA</title>
-    <!-- تضمين مكتبة Tailwind CSS للتصميم العصري والهوية البصرية -->
-    <script src="https://tailwindcss.com"></script>
-    <link href="https://googleapis.com" rel="stylesheet">
+    <title>منصة وصلة الفائقة | القطاع الطبي المتكامل</title>
     <style>
-        body { font-family: 'Cairo', sans-serif; }
-        .medical-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); }
+        /* ==========================================================================
+           1. نظام الهوية البصرية الأساسي والخطوط (WASLA MEDICAL DESIGN SYSTEM)
+           ========================================================================== */
+        @import url('https://googleapis.com');
+        
+        :root {
+            --wasla-dark: #0f172a;
+            --wasla-blue: #2563eb;
+            --wasla-blue-light: #eff6ff;
+            --medical-emerald: #10b981;
+            --medical-emerald-hover: #059669;
+            --medical-soft: #f0fdf4;
+            --medical-border: #bbf7d0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --bg-canvas: #f8fafc;
+            --white: #ffffff;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ==========================================================================
+           2. مكونات الهيدر العلوية والتنقل (NAVIGATION LAYOUT)
+           ========================================================================== */
+        header {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-block {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-logo {
+            background: linear-gradient(135deg, var(--wasla-blue) 0%, #1d4ed8 100%);
+            color: var(--white);
+            padding: 8px 22px;
+            border-radius: 16px;
+            font-weight: 900;
+            font-size: 24px;
+            box-shadow: 0 8px 16px rgba(37, 99, 213, 0.2);
+        }
+
+        .brand-subtext h2 {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--wasla-dark);
+        }
+
+        .brand-subtext p {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .quick-actions-nav {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-nav-link {
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 14px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            background: var(--bg-canvas);
+        }
+
+        .action-nav-link:hover {
+            background: var(--wasla-blue-light);
+            color: var(--wasla-blue);
+        }
+
+        /* ==========================================================================
+           3. لوحة الترحيب وقائمة الفرز الطبي (HERO & FILTER ENGINE)
+           ========================================================================== */
+        .medical-hero {
+            background: linear-gradient(135deg, #0f172a 0%, #1e40af 100%);
+            color: var(--white);
+            padding: 60px 24px;
+            text-align: center;
+            position: relative;
+        }
+
+        .medical-hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: var(--medical-emerald);
+        }
+
+        .hero-inner {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero-inner h1 {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 12px;
+        }
+
+        .hero-inner h1 span {
+            color: #38bdf8;
+        }
+
+        .hero-inner p {
+            font-size: 15px;
+            color: #93c5fd;
+            line-height: 1.6;
+        }
+
+        .search-filter-widget {
+            max-width: 1200px;
+            margin: -30px auto 40px auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .filter-bar {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid #e2e8f0;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 960px) {
+            .filter-bar { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .filter-bar { grid-template-columns: 1fr; }
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--wasla-dark);
+        }
+
+        .filter-select, .filter-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            outline: none;
+            background-color: var(--bg-canvas);
+            transition: border-color 0.2s;
+        }
+
+        .filter-select:focus, .filter-input:focus {
+            border-color: var(--medical-emerald);
+            background-color: var(--white);
+        }
+
+        /* ==========================================================================
+           4. شبكة عرض العيادات الحقيقية (CLINICS GRID)
+           ========================================================================== */
+        .main-content-layout {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px 60px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .section-title-wrapper {
+            border-right: 4px solid var(--medical-emerald);
+            padding-right: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section-title-wrapper h3 {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--wasla-dark);
+        }
+
+        .clinics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 850px) {
+            .clinics-grid { grid-template-columns: 1fr; }
+        }
+
+        .clinic-card {
+            background: var(--white);
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            padding: 24px;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .clinic-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        .badge-status {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .badge-available { background: var(--medical-soft); color: #166534; border: 1px solid var(--medical-border); }
+        .badge-busy { background: #fffbeb; color: #92400e; border: 1px solid #fef3c7; }
+
+        .doctor-profile {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .doctor-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            background: var(--medical-soft);
+            color: var(--medical-emerald);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 900;
+            border: 1px solid var(--medical-border);
+        }
+
+        .doctor-details h4 {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--wasla-dark);
+        }
+
+        .doctor-details p {
+            font-size: 13px;
+            color: var(--wasla-blue);
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .doctor-address {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .price-insurance-table {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 16px 0;
+            border-top: 1px dashed #e2e8f0;
+            border-bottom: 1px dashed #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .table-cell {
+            font-size: 13px;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .table-cell span {
+            font-weight: 800;
+            color: var(--wasla-dark);
+        }
+
+        .book-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+    <!-- ==========================================================================
+       6. قطاع التسوق الرقمي وعربة المشتريات المتكاملة (SHOPPING & CART ENGINE)
+       ========================================================================== -->
+    <style>
+        :root {
+            --shopping-amber: #f59e0b;
+            --shopping-amber-hover: #d97706;
+            --shopping-soft: #fffbeb;
+            --shopping-border: #fde68a;
+            --cart-bg: #ffffff;
+        }
+
+        .shopping-hero-badge {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--shopping-amber);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 16px;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .shopping-layout-wrapper {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .shopping-layout-wrapper { grid-template-columns: 1fr; }
+        }
+
+        .stores-and-products-zone {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .store-header-pills {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .store-pill {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .store-pill.active-store {
+            background: var(--shopping-amber);
+            color: #ffffff;
+            border-color: var(--shopping-amber);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+        }
+
+        .products-dense-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .products-dense-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 480px) {
+            .products-dense-grid { grid-template-columns: 1fr; }
+        }
+
+        .product-card {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            transition: all 0.25s ease;
+        }
+
+        .product-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: #cbd5e1;
+        }
+
+        .product-img-holder {
+            width: 100%;
+            height: 130px;
+            background: #f8fafc;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .product-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--wasla-dark);
+            margin-bottom: 4px;
+        }
+
+        .product-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .product-meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .product-price {
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--wasla-dark);
+        }
+
+        .product-price span {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .add-to-cart-btn {
+            background: var(--shopping-amber);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .add-to-cart-btn:hover {
+            background: var(--shopping-amber-hover);
+        }
+
+        /* تصميم كارت وعربة التسوق الذكية الجانبية */
+        .cart-sticky-sidebar {
+            background: #ffffff;
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .cart-title-wrapper {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--wasla-dark);
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 12px;
+        }
+
+        .cart-items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            max-height: 280px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-left: 4px;
+        }
+
+        .cart-item-node {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            background: #f8fafc;
+            padding: 10px 12px;
+            border-radius: 10px;
+        }
+
+        .cart-item-details h5 {
+            font-weight: 800;
+            color: var(--wasla-dark);
+        }
+
+        .cart-item-details p {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .cart-remove-item {
+            color: #ef4444;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 12px;
+            background: none;
+            border: none;
+        }
+
+        .invoice-summary-box {
+            border-top: 2px dashed #e2e8f0;
+            padding-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .invoice-row {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-body);
+            font-weight: 600;
+        }
+
+        .invoice-row.total-row {
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--wasla-dark);
+            border-top: 1px solid #f1f5f9;
+            padding-top: 10px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: var(--wasla-dark);
+            color: #ffffff;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+
+        .checkout-btn:hover {
+            background: #1e293b;
+        }
     </style>
-</head>
-<body class="bg-gray-50 text-gray-800">
 
-    <!-- الـ Header والهوية البصرية (اللوجو والتنقل) -->
-    <header class="bg-white shadow-md sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-reverse space-x-3">
-                <div class="bg-blue-600 text-white p-2 rounded-xl font-bold text-2xl tracking-wider shadow-md shadow-blue-200">وَصْلَة</div>
-                <span class="text-xs text-gray-400 font-semibold block hidden sm:block">بوابتك الطبية في شبين القناطر</span>
+    <div id="shopping-section-view" style="display: none;">
+        <section class="medical-hero" style="background: linear-gradient(135deg, #0f172a 0%, #78350f 100%);">
+            <div class="hero-inner">
+                <span class="shopping-hero-badge">سوق شبين المتكامل ديليفري</span>
+                <h1>كل احتياجات بيتك من محلاتك المفضلة <span>واصلة لحد عندك</span></h1>
+                <p>تعاقدنا مع كبرى محلات السوبرماركت، الجزارة، والخضروات في شبين القناطر لنوفر لك تجربة تسوق مريحة بأسعار السوق الرسمية وبأقل رسوم توصيل.</p>
             </div>
-            <nav class="hidden md:flex space-x-reverse space-x-6 font-semibold">
-                <a href="#search-section" class="text-blue-600 hover:text-blue-800 transition">احجز عيادة</a>
-                <a href="#home-services" class="text-gray-600 hover:text-blue-600 transition">خدمات منزلية</a>
-                <a href="#founder-dashboard" class="bg-green-50 text-green-700 px-3 py-1 rounded-lg border border-green-200 text-sm">بوابة المؤسس (لوحة التحكم)</a>
-            </nav>
-        </div>
-    </header>
+        </section>
 
-    <!-- البانر الرئيسي الترحيبي -->
-    <section class="medical-gradient text-white py-12 px-4 text-center shadow-inner relative overflow-hidden">
-        <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-500 rounded-full opacity-10 blur-xl"></div>
-        <div class="container mx-auto max-w-3xl">
-            <h1 class="text-3xl md:text-4xl font-bold mb-4 leading-tight">كل ما تحتاجه طبيًا في <span class="text-green-400">شبين القناطر</span> مكانك وبكل وضوح</h1>
-            <p class="text-blue-200 text-sm md:text-base">ابحث عن طبيبك، اعرف سعر الكشف، نوع التأمين، أو اطلب تمريض منزلي فوراً بدون عناء الانتظار.</p>
-        </div>
-    </section>
+        <div class="shopping-layout-wrapper">
+            <div class="stores-and-products-zone">
+                <!-- أزرار اختيار المتجر الميداني -->
+                <div class="store-header-pills">
+                    <div class="store-pill active-store" onclick="switchStore('all')">كل المحلات</div>
+                    <div class="store-pill" onclick="switchStore('ragab')">سوبرماركت أولاد رجب</div>
+                    <div class="store-pill" onclick="switchStore('amana')">جزارة الأمانة والخير</div>
+                </div>
 
-    <!-- أولاً: تجربة المواطن / المريض (البحث والحجز) -->
-    <main id="search-section" class="container mx-auto px-4 py-10 max-w-5xl">
-        <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <h2 class="text-xl font-bold text-gray-900 border-r-4 border-blue-600 pr-3">الأطباء المتاحون الآن بالحجز الفوري</h2>
-            
-            <!-- أدوات الفلترة الذكية للمواطن -->
-            <div class="flex flex-wrap gap-2 text-sm">
-                <select class="border rounded-lg px-3 py-2 bg-white shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                    <option>كل التخصصات</option>
-                    <option>أطفال وحديثي الولادة</option>
-                    <option>باطنة وجهاز هضمي</option>
-                    <option>عظام ومفاصل</option>
-                </select>
-                <select class="border rounded-lg px-3 py-2 bg-white shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                    <option>طريقة الدفع (الكل)</option>
-                    <option>كاش فقط</option>
-                    <option>تأمين صحي (مصر للتأمين)</option>
-                    <option>تأمين نقابة المهندسين</option>
-                </select>
-            </div>
-        </div>
+                <div class="section-title-wrapper" style="border-right-color: var(--shopping-amber);">
+                    <h3>المنتجات الغذائية والسلع المتاحة للتوصيل الآن</h3>
+                </div>
 
-        <!-- كروت العيادات والأطباء المستوحاة من دراسة شبين القناطر -->
-        <div class="grid md:grid-cols-2 gap-6">
-            
-            <!-- كارت طبيب 1 -->
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition relative">
-                <span class="absolute top-4 left-4 bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-bold">متاح اليوم</span>
-                <div class="flex items-start space-x-reverse space-x-4">
-                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xl shadow-inner">د</div>
-                    <div>
-                        <h3 class="font-bold text-lg text-gray-900">د. أحمد رأفت المغربي</h3>
-                        <p class="text-sm text-blue-600 font-medium">استشاري أمراض الباطنة والجهاز الهضمي</p>
-                        <p class="text-xs text-gray-500 mt-1">📍 شبين القناطر - شارع المحطة (بجوار صيدلية مصر)</p>
+                <!-- شبكة المنتجات الحية للعميل -->
+                <div class="products-dense-grid">
+                    <div class="product-card" data-store="ragab">
+                        <div class="product-img-holder">🥛</div>
+                        <h4 class="product-title">جبنة عبور لاند 1 كيلو</h4>
+                        <p class="product-desc">علبة فيتا كاملة الدسم طازجة من السوبرماركت مباشرة.</p>
+                        <div class="product-meta-row">
+                            <div class="product-price">85 <span>ج.م</span></div>
+                            <button class="add-to-cart-btn" onclick="addItemToWaslaCart('جبنة عبور لاند 1 كيلو', 85)">+</button>
+                        </div>
                     </div>
-                </div>
-                <div class="mt-4 pt-4 border-t border-gray-50 grid grid-cols-2 gap-2 text-sm text-gray-600">
-                    <div>💵 الكشف: <span class="font-bold text-gray-900 text-base">200 ج.م</span></div>
-                    <div>🏥 الدفع: <span class="font-bold text-blue-600">كاش + تأمين صحي</span></div>
-                </div>
-                <button onclick="bookingAlert('د. أحمد رأفت')" class="w-full mt-4 bg-blue-600 text-white text-center py-2.5 rounded-xl font-semibold hover:bg-blue-700 transition shadow-md shadow-blue-100">احجز ميعادك الآن (رقم الدور)</button>
-            </div>
 
-            <!-- كارت طبيب 2 -->
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition relative">
-                <span class="absolute top-4 left-4 bg-amber-100 text-amber-700 text-xs px-2.5 py-1 rounded-full font-bold">مزدحم قليلاً</span>
-                <div class="flex items-start space-x-reverse space-x-4">
-                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xl shadow-inner">د</div>
-                    <div>
-                        <h3 class="font-bold text-lg text-gray-900">د. منى عبد العزيز</h3>
-                        <p class="text-sm text-blue-600 font-medium">أخصائية طب الأطفال وحديثي الولادة</p>
-                        <p class="text-xs text-gray-500 mt-1">📍 شبين القناطر - أمام مجلس المدينة</p>
-                    </div>
-                </div>
-                <div class="mt-4 pt-4 border-t border-gray-50 grid grid-cols-2 gap-2 text-sm text-gray-600">
-                    <div>💵 الكشف: <span class="font-bold text-gray-900 text-base">150 ج.م</span></div>
-                    <div>🏥 الدفع: <span class="font-bold text-gray-900">كاش فقط</span></div>
-                </div>
-                <button onclick="bookingAlert('د. منى عبد العزيز')" class="w-full mt-4 bg-blue-600 text-white text-center py-2.5 rounded-xl font-semibold hover:bg-blue-700 transition shadow-md shadow-blue-100">احجز ميعادك الآن (رقم الدور)</button>
-            </div>
-        </div>
-
-        <!-- قطاع الخدمات الفورية والتمريض المنزلي -->
-        <div id="home-services" class="mt-12 bg-emerald-900 text-white rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden">
-            <div class="relative z-10 max-w-xl">
-                <span class="bg-emerald-800 text-emerald-300 text-xs font-bold px-3 py-1 rounded-md uppercase tracking-wider">رعاية منزلية فورية</span>
-                <h2 class="text-2xl font-bold mt-2 mb-3">ممرض أو كشف منزلي لحد باب بيتك في شبين</h2>
-                <p class="text-emerald-100 text-sm leading-relaxed mb-6">هل محتاج تركيب محاليل، غيار على جرح، أو طبيب يجيلك البيت فوراً؟ شبكة تمريض وصلة المعتمدة جاهزة لخدمتك الآن.</p>
-                <button onclick="alert('جاري تحديد موقعك الجغرافي في شبين القناطر لربطك بأقرب ممرض متاح...')" class="bg-green-400 text-emerald-950 font-bold px-6 py-3 rounded-xl hover:bg-green-300 transition shadow-lg shadow-emerald-950/50">اطلب تمريض منزلي الآن</button>
-            </div>
-        </div>
-    </main>
-
-    <!-- ثانياً: تجربة واجهة المؤسس / المشرف (Founder Admin Dashboard View) -->
-    <section id="founder-dashboard" class="bg-gray-900 text-white py-12 px-4 border-t-4 border-green-500">
-        <div class="container mx-auto max-w-5xl">
-            <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                <div>
-                    <span class="text-xs text-green-400 font-bold tracking-widest block uppercase">نظام الإدارة المركزي</span>
-                    <h2 class="text-2xl font-bold mt-1">لوحة تحكم منصة وصلة - الرؤية الشاملة للمؤسس</h2>
-                </div>
-                <div class="bg-gray-800 px-4 py-2 rounded-xl text-sm border border-gray-700">📌 النطاق الحالي للتشغيل: <span class="text-green-400 font-bold">شبين القناطر</span></div>
-            </div>
-
-            <!-- إحصائيات حية حاسمة للمؤسس لتقييم المنظومة -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-800 text-center">
-                    <p class="text-gray-400 text-xs font-medium">إجمالي الأطباء المتعاقدين</p>
-                    <p class="text-2xl font-bold text-blue-400 mt-1">24 عيادة</p>
-                </div>
-                <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-800 text-center">
-                    <p class="text-gray-400 text-xs font-medium">طلبات التمريض النشطة</p>
-                    <p class="text-2xl font-bold text-emerald-400 mt-1">7 طلبات حية</p>
-                </div>
-                <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-800 text-center">
-                    <p class="text-gray-400 text-xs font-medium">حجوزات عيادات اليوم</p>
-                    <p class="text-2xl font-bold text-purple-400 mt-1">142 حجز</p>
-                </div>
-                <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-800 text-center">
-                    <p class="text-gray-400 text-xs font-medium">صافي الأرباح المتوقعة (النسبة)</p>
-                    <p class="text-2xl font-bold text-green-400 mt-1">1,840 ج.م</p>
-                </div>
-            </div>
-
+                    <div class="product-card" data-store="ragab">
+                        <div class="product-img-holder">🍾</div>
+                        <h4 class="product-title">زيت كريستال عباد شمس 1 لتر</h4>
+                        <p class="product-desc">زيت نقي للطهي والقلي متوفر بأعلى جودة مخزون.</p>
+                        <div class="product-meta-row">
+                            <div class="product-price">110 <span>ج.م</span></div>
+                            <button class="add-to-cart-btn" onclick="addItemToWaslaCart('زيت كريستال 1 لتر', 110)">+</button>
