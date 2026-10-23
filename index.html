@@ -3585,5 +3585,405 @@ document.addEventListener('DOMContentLoaded', () => {
 
 })();
 </script>
+  <script>
+/* ================================================================
+   WASLA PHASE 5 — DOCTOR PORTAL, LIVE NOTIFICATIONS, AUTH FIX
+   لا يعدل أي سطر من الكود القديم — يوسّعه فقط
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const NS = 'wasla_v2_';
+  const S = {
+    get(k, d) { try { const r = localStorage.getItem(NS + k); return r ? JSON.parse(r) : d; } catch (_) { return d; } },
+    set(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); return true; } catch (_) { return false; } }
+  };
+
+  /* ============== 1. إصلاح تسجيل الدخول (Self-Healing Auth) ============== */
+  // إصلاح المشكلة: دالة الـ hash في Phase 2 كانت تختلف عن دالة Phase 1
+  function fixAuthHashes() {
+    const users = S.get('users', []);
+    let changed = false;
+    
+    // إعادة ضبط كلمات المرور للحسابات التجريبية باستخدام الدالة المتزامنة المتوافقة
+    function syncHash(str) {
+      let h1 = 1779033703, h2 = 3144134277, h3 = 1013904242, h4 = 2773480762;
+      for (let i = 0; i < str.length; i++) {
+        const k = str.charCodeAt(i);
+        h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
+        h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+        h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
+        h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+      }
+      h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
+      h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+      h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
+      h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+      const out = [(h1 ^ h2 ^ h3 ^ h4) >>> 0, (h2 ^ h1) >>> 0, (h3 ^ h1) >>> 0, (h4 ^ h1) >>> 0];
+      return out.map(x => x.toString(16).padStart(8, '0')).join('');
+    }
+
+    users.forEach(u => {
+      if (u.phone === '01068990089' && u.passwordHash.length !== 64) { // المؤسس
+        u.passwordHash = syncHash('admin123::' + u.salt);
+        changed = true;
+      }
+      if (u.phone === '01000000001' && u.passwordHash.length !== 64) { // المريض
+        u.passwordHash = syncHash('patient123::' + u.salt);
+        changed = true;
+      }
+      if (u.phone === '01000000002' && u.passwordHash.length !== 64) { // المريض 2
+        u.passwordHash = syncHash('patient123::' + u.salt);
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      S.set('users', users);
+      console.log('✅ Auth hashes fixed successfully.');
+    }
+  }
+  
+  // تشغيل الإصلاح فور التحميل
+  setTimeout(fixAuthHashes, 100);
+
+
+  /* ============== 2. نظام الإشعارات الحي (Live Notifications) ============== */
+
+  // إضافة جرس الإشعارات في الهيدر
+  function injectNotificationBell() {
+    const headerActions = document.getElementById('header-actions');
+    if (!headerActions || document.getElementById('notif-bell-container')) return;
+
+    const bellHTML = `
+      <div id="notif-bell-container" style="position:relative;display:inline-block;margin-left:8px;">
+        <button onclick="window.toggleNotifCenter()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#fff;width:38px;height:38px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,0.16)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+          <i class="fa-solid fa-bell"></i>
+          <span id="notif-badge" style="position:absolute;top:-4px;left:-4px;background:#E11D48;color:#fff;min-width:18px;height:18px;border-radius:99px;font-size:10px;font-weight:900;display:none;align-items:center;justify-content:center;border:2px solid #0B1220;">0</span>
+        </button>
+        
+        <!-- Dropdown -->
+        <div id="notif-dropdown" style="display:none;position:absolute;top:45px;left:0;width:320px;max-height:400px;overflow-y:auto;background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,0.2);border:1px solid #E2E8F0;z-index:200;text-align:right;">
+          <div style="padding:14px;border-bottom:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;background:#F8FAFC;border-radius:16px 16px 0 0;">
+            <strong style="font-size:13px;font-weight:900;color:#0B1220;">الإشعارات الحية</strong>
+            <button onclick="window.clearNotifications()" style="background:none;border:none;color:#E11D48;font-size:11px;font-weight:800;cursor:pointer;">مسح الكل</button>
+          </div>
+          <div id="notif-list" style="padding:8px;">
+            <div style="text-align:center;padding:20px;color:#94A3B8;font-size:12px;font-weight:700;">لا توجد إشعارات حالياً</div>
+          </div>
+        </div>
+      </div>
+    `;
+    headerActions.insertAdjacentHTML('afterbegin', bellHTML);
+  }
+
+  // منطق الإشعارات
+  window.WaslaNotifs = {
+    list: S.get('notifications', []),
+    
+    add(text, type = 'info') {
+      this.list.unshift({ id: Date.now(), text, type, read: false, ts: Date.now() });
+      S.set('notifications', this.list);
+      this.render();
+      this.showToast(text);
+    },
+    
+    render() {
+      const badge = document.getElementById('notif-badge');
+      const listEl = document.getElementById('notif-list');
+      if (!badge || !listEl) return;
+
+      const unread = this.list.filter(n => !n.read).length;
+      badge.textContent = unread;
+      badge.style.display = unread > 0 ? 'flex' : 'none';
+
+      if (this.list.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94A3B8;font-size:12px;font-weight:700;">لا توجد إشعارات</div>';
+        return;
+      }
+
+      listEl.innerHTML = this.list.map(n => `
+        <div style="padding:10px;border-bottom:1px solid #F1F5F9;display:flex;gap:10px;align-items:flex-start;background:${n.read ? '#fff' : '#F0F9FF'};border-radius:8px;margin-bottom:4px;">
+          <div style="width:28px;height:28px;border-radius:8px;background:${n.type === 'alert' ? '#FEE2E2' : '#DBEAFE'};color:${n.type === 'alert' ? '#E11D48' : '#0284C7'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fa-solid ${n.type === 'alert' ? 'fa-triangle-exclamation' : 'fa-info-circle'}"></i>
+          </div>
+          <div style="flex:1;">
+            <p style="margin:0;font-size:11.5px;font-weight:800;color:#0B1220;line-height:1.4;">${n.text}</p>
+            <span style="font-size:9.5px;color:#94A3B8;font-weight:700;margin-top:4px;display:block;">${new Date(n.ts).toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'})}</span>
+          </div>
+        </div>
+      `).join('');
+    },
+
+    showToast(text) {
+      // إنشاء Toast مؤقت يظهر في الشاشة
+      const t = document.createElement('div');
+      t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#0B1220;color:#fff;padding:12px 20px;border-radius:12px;font-family:Cairo;font-size:13px;font-weight:900;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,0.3);border-right:4px solid #059669;display:flex;align-items:center;gap:8px;';
+      t.innerHTML = `<i class="fa-solid fa-bell" style="color:#34D399;"></i> ${text}`;
+      document.body.appendChild(t);
+      setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(), 300); }, 4000);
+    },
+
+    markRead() {
+      this.list.forEach(n => n.read = true);
+      S.set('notifications', this.list);
+      this.render();
+    }
+  };
+
+  window.toggleNotifCenter = function() {
+    const dd = document.getElementById('notif-dropdown');
+    if (!dd) return;
+    const isHidden = dd.style.display === 'none';
+    dd.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) window.WaslaNotifs.markRead();
+  };
+
+  window.clearNotifications = function() {
+    window.WaslaNotifs.list = [];
+    S.set('notifications', []);
+    window.WaslaNotifs.render();
+  };
+
+
+  /* ============== 3. بوابة الطبيب (Doctor Portal) ============== */
+
+  function injectDoctorTab() {
+    const superTabs = document.getElementById('super-tabs');
+    if (!superTabs || document.getElementById('doctor-tab-btn')) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'doctor-tab-btn';
+    btn.className = 'super-tab hidden-tab'; // مخفي افتراضياً
+    btn.dataset.sector = 'doctor-portal';
+    btn.onclick = () => window.switchSector('doctor-portal');
+    btn.innerHTML = '<i class="fa-solid fa-user-md"></i> بوابة الطبيب';
+    superTabs.appendChild(btn);
+  }
+
+  // عرض بوابة الطبيب
+  window.renderDoctorPortal = function() {
+    const user = Auth.currentUser();
+    // نفترض أن الطبيب مسجل كـ Founder أو لديه صلاحية (للتجربة نستخدم حساب المؤسس أو حساب مخصص)
+    // للتجربة، سنسمح لأي شخص بفتحها إذا كان مسجل دخول (في الواقع، يجب أن يكون role === 'doctor')
+    
+    const body = document.getElementById('sector-doctor-portal');
+    if (!body) return;
+
+    if (!user) {
+      body.innerHTML = `<div class="panel"><div class="empty-state"><i class="fa-solid fa-lock"></i><p>سجل دخول لعرض بوابة الطبيب</p></div></div>`;
+      return;
+    }
+
+    const docId = user.phone === '01068990089' ? 'doc-001' : 'doc-002'; // افتراضياً
+    const doc = Store.doctors().find(d => d.id === docId);
+    const today = todayStr();
+    
+    // جلب مواعيد اليوم لهذا الطبيب
+    const todayAppts = S.get('appointments', [])
+      .filter(a => a.doctorId === docId && a.date === today && a.status !== 'cancelled')
+      .sort((a, b) => a.slot.localeCompare(b.slot));
+
+    body.innerHTML = `
+      <div class="panel" style="background:linear-gradient(135deg,#1E1B4B,#3730A3);color:#fff;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h3 style="font-weight:900;font-size:18px;margin:0;"><i class="fa-solid fa-stethoscope"></i> بوابة الطبيب: ${doc.name}</h3>
+            <p style="font-size:12px;opacity:.85;font-weight:700;margin:4px 0 0;">إدارة طابور المرضى اليوم - ${today}</p>
+          </div>
+          <div style="text-align:center;background:rgba(255,255,255,0.15);padding:8px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);">
+            <div style="font-size:24px;font-weight:900;">${todayAppts.length}</div>
+            <div style="font-size:10px;font-weight:800;opacity:.8;">إجمالي المرضى</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title"><i class="fa-solid fa-users" style="color:#3730A3;"></i> طابور الانتظار الآن</h3>
+        <p class="panel-sub">اضغط "استدعاء التالي" لإبلاغ المريض عبر الإشعارات والواتساب</p>
+        
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+          ${todayAppts.length ? todayAppts.map((a, idx) => {
+            const isNext = a.medicalStatus === 'ahead' || a.medicalStatus === 'received';
+            return `
+              <div style="border:1px solid ${isNext ? '#A7F3D0' : '#E2E8F0'};border-radius:12px;padding:14px;background:${isNext ? '#ECFDF5' : '#F8FAFC'};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                <div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="background:#0B1220;color:#fff;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">${idx + 1}</span>
+                    <strong style="font-size:14px;font-weight:900;">${a.patientName}</strong>
+                    <span style="font-size:11px;color:#64748B;">(${a.slot})</span>
+                  </div>
+                  <div style="font-size:11px;color:#059669;font-weight:800;margin-top:4px;">
+                    <i class="fa-solid fa-id-card"></i> ${a.waslaId || 'WASLA-XXXXX'}
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <button onclick="window.doctorCallNext('${a.id}')" style="background:#059669;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-family:inherit;font-weight:900;font-size:11.5px;cursor:pointer;box-shadow:0 4px 12px rgba(5,150,105,0.3);">
+                    <i class="fa-solid fa-bullhorn"></i> استدعاء
+                  </button>
+                  <button onclick="window.doctorFinishVisit('${a.id}')" style="background:#fff;color:#3730A3;border:1px solid #3730A3;padding:8px 14px;border-radius:8px;font-family:inherit;font-weight:900;font-size:11.5px;cursor:pointer;">
+                    إنهاء
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('') : '<div class="empty-state"><i class="fa-solid fa-mug-hot"></i><p>لا يوجد مرضى في الطابور</p></div>'}
+        </div>
+      </div>
+    `;
+  };
+
+  // دالة استدعاء المريض من قبل الطبيب
+  window.doctorCallNext = function(apptId) {
+    const appts = S.get('appointments', []);
+    const target = appts.find(a => a.id === apptId);
+    if (!target) return;
+
+    // تحديث حالة المريض إلى "دورك الآن"
+    target.medicalStatus = 'now';
+    S.set('appointments', appts);
+
+    // إرسال إشعار للمريض (سيظهر في شريط الإشعارات إذا كان يستخدم نفس المتصفح)
+    const notifMsg = `🔔 حان دورك الآن! برجاء التوجه للعيادة لمقابلة ${target.doctorName}`;
+    window.WaslaNotifs.add(notifMsg, 'alert');
+
+    // تحديث واجهة الطبيب
+    window.renderDoctorPortal();
+
+    // تجهيز رسالة واتساب للمريض (للتجربة، نفتحها للطبيب ليضغط إرسال)
+    const waMsg = `🔔 *منصة وصلة - دورك الآن*\n\nأهلاً ${target.patientName}،\nحان دورك لمقابلة ${target.doctorName}.\nبرجاء التوجه للعيادة فوراً.\n\nرقم حجزك: ${target.waslaId}`;
+    setTimeout(() => {
+      if (confirm('المريض تم استدعاؤه في المنصة. هل تريد إرسال رسالة واتساب له الآن؟')) {
+        window.open(`https://wa.me/2${target.patientPhone}?text=${encodeURIComponent(waMsg)}`, '_blank');
+      }
+    }, 500);
+  };
+
+  // دالة إنهاء الزيارة
+  window.doctorFinishVisit = function(apptId) {
+    const appts = S.get('appointments', []);
+    const target = appts.find(a => a.id === apptId);
+    if (!target) return;
+
+    if (confirm('هل انتهت الزيارة؟ هل يحتاج المريض لموعد متابعة؟')) {
+      target.status = 'completed';
+      target.medicalStatus = 'follow_up'; // نضعها كمتابعة
+      S.set('appointments', appts);
+      
+      window.WaslaNotifs.add(`تم إنهاء زيارة ${target.patientName}. تم إرسال طلب متابعة له.`, 'info');
+      window.renderDoctorPortal();
+      toast('تم إنهاء الزيارة وإرسال طلب المتابعة للمريض');
+    }
+  };
+
+
+  /* ============== 4. التعديل على التوجيه لتفعيل بوابة الطبيب ============== */
+
+  // ربط بوابة الطبيب بدالة التوجيه الأساسية
+  const _oldSwitchSectorPhase4 = window.switchSector;
+  window.switchSector = function(sector) {
+    _oldSwitchSectorPhase4(sector);
+    
+    // إظهار/إخفاء تبويب الطبيب بناءً على المستخدم
+    const user = Auth.currentUser();
+    const docTab = document.getElementById('doctor-tab-btn');
+    if (docTab) {
+      // للتجربة: نسمح للمؤسس أو أي حساب برقم معين بالدخول
+      if (user && (user.role === 'founder' || user.phone === '01000000001')) {
+        docTab.classList.remove('hidden-tab');
+      } else {
+        docTab.classList.add('hidden-tab');
+      }
+    }
+
+    // إذا تم اختيار قطاع الطبيب، نرسم الواجهة
+    if (sector === 'doctor-portal') {
+      // إنشاء قسم الطبيب إذا لم يكن موجوداً
+      if (!document.getElementById('sector-doctor-portal')) {
+        document.querySelector('.page-shell').insertAdjacentHTML('beforeend', `
+          <section class="sector-view" id="sector-doctor-portal"></section>
+        `);
+      }
+      window.renderDoctorPortal();
+      
+      // تغيير شكل الـ Hero للطبيب
+      document.getElementById('hero-card').dataset.sector = 'medical';
+      document.getElementById('hero-pill').innerHTML = '<i class="fa-solid fa-user-md"></i> بوابة الطبيب المعتمد';
+      document.getElementById('hero-title').textContent = 'إدارة عيادتك بذكاء';
+      document.getElementById('hero-desc').textContent = 'تابع طابور المرضى، استدعِ الحالة التالية بضغطة زر، وأدر مواعيدك بكل سهولة.';
+      document.getElementById('hero-stats').innerHTML = `<div class="hs"><strong>${S.get('appointments',[]).filter(a=>a.date===todayStr()).length}</strong> مريض اليوم</div>`;
+    }
+  };
+
+  // تحديث دالة إعادة رسم الهيدر لإضافة الجرس
+  const _oldRenderHeaderActionsPhase5 = window.renderHeaderActions;
+  window.renderHeaderActions = function() {
+    _oldRenderHeaderActionsPhase5();
+    setTimeout(injectNotificationBell, 50);
+    setTimeout(() => window.WaslaNotifs.render(), 100);
+  };
+
+
+  /* ============== 5. محاكي التحديث التلقائي للطابور (للمريض) ============== */
+
+  // كل 15 ثانية، نتأكد من حالة مواعيد المريض ونرسل إشعار
+  setInterval(() => {
+    const user = Auth.currentUser();
+    if (!user) return;
+
+    const myAppts = S.get('appointments', []).filter(a => a.patientId === user.id && a.medicalStatus !== 'follow_up' && a.medicalStatus !== 'now' && a.status !== 'cancelled');
+    
+    myAppts.forEach(a => {
+      const now = Date.now();
+      const elapsed = now - (a.createdAt || now);
+      
+      // تقدم الحالة تلقائياً للمحاكاة
+      let changed = false;
+      if (elapsed > 20000 && a.medicalStatus === 'received') {
+        a.medicalStatus = 'reminder';
+        window.WaslaNotifs.add(`🔔 تذكير: موعدك مع ${a.doctorName} يوم ${a.date} الساعة ${a.slot}`, 'info');
+        changed = true;
+      } else if (elapsed > 45000 && a.medicalStatus === 'reminder') {
+        a.medicalStatus = 'ahead';
+        window.WaslaNotifs.add(`⏳ أنت رقم 3 في طابور ${a.doctorName}. برجاء الاستعداد.`, 'alert');
+        changed = true;
+      }
+      
+      if (changed) {
+        S.set('appointments', S.get('appointments', []));
+        // تحديث الشاشة إذا كان المودال مفتوح
+        if (document.getElementById('medical-tracker-modal')?.classList.contains('open')) {
+          if (typeof renderMedicalTrackerModal === 'function') renderMedicalTrackerModal();
+        }
+      }
+    });
+  }, 5000);
+
+
+  /* ============== 6. التهيئة (Init) ============== */
+
+  function initPhase5() {
+    fixAuthHashes();
+    injectDoctorTab();
+    injectNotificationBell();
+    window.WaslaNotifs.render();
+
+    // إذا كان هناك إشعارات سابقة، نظهرها
+    const user = Auth.currentUser();
+    if (user) {
+      window.WaslaNotifs.add(`مرحباً بك مجدداً يا ${user.name.split(' ')[0]} في منصة وصلة!`, 'info');
+    }
+    
+    console.log('✅ WASLA Phase 5 loaded — Doctor Portal, Notifications & Auth Fix active');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initPhase5, 100));
+  } else {
+    setTimeout(initPhase5, 100);
+  }
+
+})();
+</script>
 </body>
 </html>
