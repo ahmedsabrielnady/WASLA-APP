@@ -1100,5 +1100,1939 @@ document.addEventListener('DOMContentLoaded', () => {
   syncCartUI();
 });
 </script>
+  <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>منصة وصلة | WASLA - صحة، تسوق، سيارات، صيانة</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#0B1220;--ink-soft:#111C30;--indigo:#3730A3;--indigo-soft:#EEF2FF;
+    --emerald:#059669;--emerald-soft:#ECFDF5;--amber:#EA580C;--amber-soft:#FFF7ED;
+    --sky:#0284C7;--sky-soft:#F0F9FF;--gold:#D97706;--danger:#E11D48;
+    --line:#E2E8F0;--radius:22px;
+    --shadow-sm:0 4px 14px rgba(11,18,32,.05);
+    --shadow-md:0 10px 30px rgba(11,18,32,.08);
+    --shadow-lg:0 20px 55px rgba(11,18,32,.14);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:'Cairo',system-ui,sans-serif;background:#F4F6FB;color:var(--ink);margin:0;-webkit-font-smoothing:antialiased}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:#EEF2F7}
+  ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--indigo),var(--emerald));border-radius:99px}
+
+  .wasla-topbar{background:linear-gradient(90deg,var(--ink) 0%,#14213A 55%,var(--indigo) 100%);color:#fff;font-size:12px;padding:9px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .tp-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.09);padding:5px 11px;border-radius:99px;font-weight:700;font-size:11px;border:1px solid rgba(255,255,255,.12)}
+
+  .wasla-header{position:sticky;top:0;z-index:90;background:rgba(11,18,32,.96);backdrop-filter:blur(16px);color:#fff;border-bottom:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow-md)}
+  .wasla-header-inner{max-width:1280px;margin:0 auto;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand-mark{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--emerald),#10B981);display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;box-shadow:0 8px 22px rgba(5,150,105,.45);flex-shrink:0}
+  .brand-text h1{font-size:20px;font-weight:900;margin:0;letter-spacing:.2px}
+  .brand-text h1 span{font-size:11px;font-weight:800;color:#34D399;background:rgba(5,150,105,.18);border:1px solid rgba(52,211,153,.3);padding:2px 8px;border-radius:8px;margin-right:6px;vertical-align:middle}
+  .brand-text p{font-size:11px;color:#94A3B8;margin:2px 0 0;font-weight:600}
+  .header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+  .wa-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#25D366,#16A34A);color:#fff;font-weight:800;font-size:12px;padding:9px 15px;border-radius:12px;text-decoration:none;box-shadow:0 6px 18px rgba(37,211,102,.35);transition:transform .2s,box-shadow .2s;white-space:nowrap;cursor:pointer;border:none;font-family:inherit}
+  .wa-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(37,211,102,.45)}
+
+  .login-btn{background:linear-gradient(135deg,var(--indigo),#6366F1);color:#fff;font-weight:800;font-size:12px;padding:9px 15px;border-radius:12px;border:none;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;box-shadow:0 6px 18px rgba(55,48,163,.4);transition:transform .2s}
+  .login-btn:hover{transform:translateY(-2px)}
+
+  .user-chip{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);padding:6px 12px 6px 6px;border-radius:99px;cursor:pointer;transition:background .2s;font-family:inherit}
+  .user-chip:hover{background:rgba(255,255,255,.16)}
+  .user-chip .u-avatar{width:32px;height:32px;border-radius:99px;background:linear-gradient(135deg,var(--emerald),#10B981);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:900}
+  .user-chip .u-name{font-size:12px;font-weight:800;color:#fff}
+  .user-chip .u-role{font-size:10px;color:#94A3B8;font-weight:700;margin:0}
+
+  .super-tabs-wrap{max-width:1280px;margin:22px auto 0;padding:0 20px}
+  .super-tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;background:#fff;padding:10px;border-radius:20px;box-shadow:var(--shadow-md);border:1px solid var(--line)}
+  .super-tab{border:none;background:transparent;cursor:pointer;padding:14px 10px;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:9px;font-family:inherit;font-weight:800;font-size:13px;color:#64748B;transition:all .28s cubic-bezier(.4,0,.2,1);position:relative}
+  .super-tab i{font-size:17px}
+  .super-tab:hover{background:#F1F5F9;color:var(--ink)}
+  .super-tab.active{color:#fff;transform:translateY(-2px)}
+  .super-tab.active[data-sector="medical"]{background:linear-gradient(135deg,#059669,#10B981);box-shadow:0 12px 26px rgba(5,150,105,.4)}
+  .super-tab.active[data-sector="market"]{background:linear-gradient(135deg,#EA580C,#F59E0B);box-shadow:0 12px 26px rgba(234,88,12,.4)}
+  .super-tab.active[data-sector="cars"]{background:linear-gradient(135deg,#3730A3,#6366F1);box-shadow:0 12px 26px rgba(55,48,163,.4)}
+  .super-tab.active[data-sector="home"]{background:linear-gradient(135deg,#0284C7,#0EA5E9);box-shadow:0 12px 26px rgba(2,132,199,.4)}
+  .super-tab.active[data-sector="dashboard"]{background:linear-gradient(135deg,#059669,#10B981);box-shadow:0 12px 26px rgba(5,150,105,.4)}
+  .super-tab.active[data-sector="founder"]{background:linear-gradient(135deg,#7C2D12,#EA580C);box-shadow:0 12px 26px rgba(124,45,18,.4)}
+  .super-tab.hidden-tab{display:none}
+
+  .hero-shell{max-width:1280px;margin:20px auto 0;padding:0 20px}
+  .hero-card{border-radius:28px;padding:34px 30px;color:#fff;position:relative;overflow:hidden;box-shadow:var(--shadow-lg);transition:background .5s ease}
+  .hero-card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 20%,rgba(255,255,255,.18),transparent 55%);pointer-events:none}
+  .hero-card[data-sector="medical"]{background:linear-gradient(120deg,#064E3B 0%,#059669 55%,#10B981 100%)}
+  .hero-card[data-sector="market"]{background:linear-gradient(120deg,#7C2D12 0%,#EA580C 55%,#F59E0B 100%)}
+  .hero-card[data-sector="cars"]{background:linear-gradient(120deg,#1E1B4B 0%,#3730A3 55%,#6366F1 100%)}
+  .hero-card[data-sector="home"]{background:linear-gradient(120deg,#0C4A6E 0%,#0284C7 55%,#0EA5E9 100%)}
+  .hero-card[data-sector="dashboard"]{background:linear-gradient(120deg,#064E3B 0%,#059669 55%,#10B981 100%)}
+  .hero-card[data-sector="founder"]{background:linear-gradient(120deg,#7C2D12 0%,#EA580C 55%,#F59E0B 100%)}
+  .hero-card h2{font-size:clamp(22px,3.2vw,34px);font-weight:900;line-height:1.25;margin:12px 0 10px;max-width:720px;position:relative}
+  .hero-card p{font-size:13.5px;line-height:1.8;color:rgba(255,255,255,.88);max-width:640px;margin:0 0 18px;position:relative}
+  .hero-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);padding:6px 14px;border-radius:99px;font-size:12px;font-weight:800;position:relative}
+  .hero-stats{display:flex;gap:22px;flex-wrap:wrap;position:relative;margin-top:6px}
+  .hero-stats .hs{font-size:11px;font-weight:700;color:rgba(255,255,255,.75)}
+  .hero-stats .hs strong{display:block;font-size:19px;font-weight:900;color:#fff}
+
+  .sector-view{display:none}
+  .sector-view.active{display:block;animation:fadeUp .45s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .page-shell{max-width:1280px;margin:0 auto;padding:24px 20px 90px}
+
+  .panel{background:#fff;border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow-sm);padding:22px}
+  .panel-title{font-weight:900;font-size:16px;display:flex;align-items:center;gap:9px;margin:0 0 4px}
+  .panel-sub{font-size:12px;color:#64748B;font-weight:700;margin:0 0 16px}
+
+  .filter-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+  @media(max-width:820px){.filter-grid{grid-template-columns:1fr}}
+  .field-label{display:block;font-size:11.5px;font-weight:800;color:#475569;margin-bottom:6px}
+  .input-box{width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid var(--line);background:#F8FAFC;font-family:inherit;font-size:13px;font-weight:700;color:var(--ink);transition:border-color .2s,background .2s,box-shadow .2s}
+  .input-box:focus{outline:none;border-color:var(--emerald);background:#fff;box-shadow:0 0 0 4px rgba(5,150,105,.12)}
+  .search-wrap{position:relative}
+  .search-wrap i{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:13px}
+  .search-wrap .input-box{padding-right:38px}
+
+  .chips-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .chip{border:1.5px solid var(--line);background:#fff;color:#475569;padding:7px 14px;border-radius:99px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+  .chip:hover{border-color:var(--emerald);color:var(--emerald)}
+  .chip.active{background:var(--emerald);border-color:var(--emerald);color:#fff;box-shadow:0 6px 16px rgba(5,150,105,.35)}
+
+  .doctors-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:18px}
+  .doc-card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;transition:box-shadow .25s,transform .25s,border-color .25s}
+  .doc-card:hover{box-shadow:var(--shadow-md);transform:translateY(-3px);border-color:rgba(5,150,105,.35)}
+  .doc-avatar{width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#ECFDF5,#D1FAE5);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--emerald);flex-shrink:0;border:1px solid rgba(5,150,105,.2)}
+  .doc-tag{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:900;background:var(--emerald-soft);color:var(--emerald);padding:3px 10px;border-radius:99px;margin-bottom:6px;border:1px solid rgba(5,150,105,.18)}
+  .doc-name{font-size:16.5px;font-weight:900;margin:0;color:var(--ink)}
+  .doc-meta{font-size:12px;font-weight:700;color:#64748B;margin:4px 0 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .doc-insurance-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .ins-pill{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:8px;background:var(--sky-soft);color:var(--sky);border:1px solid rgba(2,132,199,.15)}
+  .ins-pill.cash{background:var(--amber-soft);color:var(--amber);border-color:rgba(234,88,12,.15)}
+  .doc-price-col{text-align:center;min-width:120px}
+  .price-old{font-size:12px;color:#94A3B8;text-decoration:line-through;font-weight:700}
+  .price-new{font-size:22px;font-weight:900;color:var(--emerald);line-height:1.1}
+  .price-new span{font-size:11px;color:#64748B;font-weight:700}
+  .book-btn{margin-top:8px;width:100%;background:linear-gradient(135deg,#059669,#10B981);color:#fff;border:none;padding:10px 16px;border-radius:12px;font-family:inherit;font-weight:900;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 6px 16px rgba(5,150,105,.35);transition:transform .2s}
+  .book-btn:hover{transform:translateY(-2px)}
+  @media(max-width:640px){.doc-card{grid-template-columns:auto 1fr}.doc-price-col{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;text-align:right;border-top:1px dashed var(--line);padding-top:12px}.doc-price-col .book-btn{width:auto;margin-top:0}}
+
+  .nursing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:720px){.nursing-grid{grid-template-columns:1fr}}
+  .nursing-option{border:1.5px solid var(--line);background:#F8FAFC;border-radius:14px;padding:12px;cursor:pointer;font-family:inherit;text-align:right;transition:all .2s;display:flex;align-items:center;gap:10px}
+  .nursing-option:hover{border-color:var(--emerald);background:#fff}
+  .nursing-option.selected{border-color:var(--emerald);background:var(--emerald-soft);box-shadow:0 6px 16px rgba(5,150,105,.15)}
+  .nursing-option i{font-size:18px;color:var(--emerald)}
+  .nursing-option strong{display:block;font-size:12.5px;font-weight:900;color:var(--ink)}
+  .nursing-option small{font-size:10.5px;color:#64748B;font-weight:700}
+
+  .primary-btn{background:linear-gradient(135deg,#059669,#10B981);color:#fff;border:none;padding:12px 22px;border-radius:12px;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 20px rgba(5,150,105,.35);transition:transform .2s}
+  .primary-btn:hover{transform:translateY(-2px)}
+  .primary-btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+  .ghost-btn{background:#fff;color:var(--ink);border:1.5px solid var(--line);padding:11px 20px;border-radius:12px;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;transition:border-color .2s,background .2s}
+  .ghost-btn:hover{border-color:var(--emerald);background:var(--emerald-soft)}
+  .danger-btn{background:linear-gradient(135deg,#DC2626,#E11D48);color:#fff;border:none;padding:11px 20px;border-radius:12px;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(225,29,72,.35)}
+
+  .modal-backdrop{position:fixed;inset:0;background:rgba(11,18,32,.72);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+  .modal-backdrop.open{display:flex}
+  .modal-card{background:#fff;border-radius:24px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;padding:26px;box-shadow:var(--shadow-lg);position:relative;animation:popIn .3s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes popIn{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+  .modal-close{position:absolute;top:16px;left:16px;background:#F1F5F9;border:none;width:34px;height:34px;border-radius:10px;cursor:pointer;color:#475569;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .2s}
+  .modal-close:hover{background:#E2E8F0}
+
+  .slot-option{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;background:#F8FAFC;font-size:12.5px;font-weight:800;transition:all .2s}
+  .slot-option:hover{border-color:var(--emerald)}
+  .slot-option input{accent-color:var(--emerald);margin-left:8px}
+  .slot-option.selected{border-color:var(--emerald);background:var(--emerald-soft)}
+
+  .cart-drawer{position:fixed;top:0;left:0;height:100vh;width:400px;max-width:92vw;background:#fff;z-index:220;box-shadow:-20px 0 60px rgba(11,18,32,.25);transform:translateX(-105%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+  .cart-drawer.open{transform:translateX(0)}
+  .cart-head{padding:20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+  .cart-body{flex:1;overflow-y:auto;padding:16px 20px}
+  .cart-item{border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:10px;display:flex;gap:10px;align-items:flex-start;background:#FAFCFE}
+  .ci-icon{width:38px;height:38px;border-radius:10px;flex-shrink:0;background:var(--emerald-soft);color:var(--emerald);display:flex;align-items:center;justify-content:center;font-size:16px}
+  .ci-title{font-size:12.5px;font-weight:900;color:var(--ink);margin:0}
+  .ci-sub{font-size:10.5px;color:#64748B;font-weight:700;margin:2px 0 0}
+  .ci-price{font-size:13px;font-weight:900;color:var(--emerald);margin-top:4px}
+  .ci-remove{background:none;border:none;color:var(--danger);cursor:pointer;font-size:13px;padding:4px;border-radius:6px;transition:background .2s}
+  .ci-remove:hover{background:#FFE4E6}
+  .cart-foot{padding:18px 20px;border-top:1px solid var(--line);background:#F8FAFC}
+  .cart-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .cart-total-row span{font-size:13px;font-weight:800;color:#475569}
+  .cart-total-row strong{font-size:22px;font-weight:900;color:var(--emerald)}
+
+  .cart-fab{position:fixed;bottom:24px;left:24px;z-index:100;background:linear-gradient(135deg,#059669,#10B981);color:#fff;border:none;width:60px;height:60px;border-radius:20px;cursor:pointer;font-size:22px;box-shadow:0 14px 34px rgba(5,150,105,.45);display:flex;align-items:center;justify-content:center;transition:transform .25s}
+  .cart-fab:hover{transform:translateY(-4px) scale(1.04)}
+  .cart-badge{position:absolute;top:-6px;left:-6px;background:var(--amber);color:#fff;min-width:20px;height:20px;border-radius:99px;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 3px 8px rgba(234,88,12,.5)}
+
+  .toast-stack{position:fixed;bottom:26px;right:26px;z-index:300;display:flex;flex-direction:column;gap:10px}
+  .toast{background:var(--ink);color:#fff;padding:13px 18px;border-radius:14px;font-size:12.5px;font-weight:800;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:9px;animation:slideIn .35s cubic-bezier(.34,1.56,.64,1);border-right:4px solid var(--emerald)}
+  .toast.error{border-right-color:var(--danger)}
+  @keyframes slideIn{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}
+
+  .empty-state{text-align:center;padding:44px 20px;color:#94A3B8}
+  .empty-state i{font-size:42px;margin-bottom:12px;display:block;color:#CBD5E1}
+  .empty-state p{font-size:13px;font-weight:800;margin:0}
+  .empty-state small{font-size:11.5px;font-weight:700;color:#B0BAC9}
+
+  .overlay-scrim{position:fixed;inset:0;background:rgba(11,18,32,.55);backdrop-filter:blur(3px);z-index:210;display:none}
+  .overlay-scrim.open{display:block}
+
+  /* Dashboard cards */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media(max-width:820px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+  .kpi-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+  .kpi-card::before{content:"";position:absolute;top:0;right:0;width:4px;height:100%;background:var(--emerald)}
+  .kpi-card.blue::before{background:var(--sky)}
+  .kpi-card.amber::before{background:var(--amber)}
+  .kpi-card.red::before{background:var(--danger)}
+  .kpi-label{font-size:11px;font-weight:800;color:#64748B;margin:0 0 6px;text-transform:uppercase;letter-spacing:.5px}
+  .kpi-value{font-size:24px;font-weight:900;color:var(--ink);margin:0;line-height:1.1}
+  .kpi-delta{font-size:11px;font-weight:800;margin-top:6px}
+  .kpi-delta.up{color:var(--emerald)}
+  .kpi-delta.down{color:var(--danger)}
+
+  /* Queue tracker */
+  .queue-card{background:linear-gradient(135deg,#064E3B,#059669);color:#fff;border-radius:18px;padding:20px;position:relative;overflow:hidden}
+  .queue-card::before{content:"";position:absolute;top:-50%;right:-20%;width:250px;height:250px;background:radial-gradient(circle,rgba(255,255,255,.15),transparent 70%);pointer-events:none}
+  .queue-num{font-size:52px;font-weight:900;line-height:1;letter-spacing:-2px}
+  .queue-label{font-size:12px;font-weight:800;opacity:.85;margin-bottom:8px}
+  .queue-meta{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px}
+  .queue-meta > div{font-size:11px;font-weight:700;opacity:.85}
+  .queue-meta strong{display:block;font-size:16px;font-weight:900;opacity:1;margin-top:2px}
+
+  /* EMR vitals chart */
+  .vitals-chart{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}
+  .vitals-chart svg{width:100%;height:120px}
+
+  /* Tabs inside dashboard */
+  .inner-tabs{display:flex;gap:6px;flex-wrap:wrap;background:#F1F5F9;padding:6px;border-radius:14px;margin-bottom:16px}
+  .inner-tab{border:none;background:transparent;padding:9px 15px;border-radius:10px;font-family:inherit;font-weight:800;font-size:12.5px;color:#475569;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px}
+  .inner-tab.active{background:#fff;color:var(--emerald);box-shadow:var(--shadow-sm)}
+
+  /* Prescriptions */
+  .rx-card{border:1px solid var(--line);border-radius:14px;padding:16px;background:#FAFCFE;margin-bottom:10px}
+  .rx-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .rx-doc{font-size:13px;font-weight:900;color:var(--ink);margin:0}
+  .rx-date{font-size:11px;color:#64748B;font-weight:700}
+  .rx-med{background:#fff;border:1px dashed var(--line);border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .rx-med strong{font-size:12px;color:var(--ink);font-weight:900}
+  .rx-med small{font-size:11px;color:#64748B;font-weight:700}
+
+  /* Lab results */
+  .lab-row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;padding:12px;border-bottom:1px solid var(--line);align-items:center;font-size:12.5px;font-weight:700}
+  .lab-row:last-child{border-bottom:none}
+  .lab-status{padding:3px 10px;border-radius:99px;font-size:10.5px;font-weight:900}
+  .lab-status.normal{background:var(--emerald-soft);color:var(--emerald)}
+  .lab-status.high{background:#FEE2E2;color:var(--danger)}
+  .lab-status.low{background:var(--amber-soft);color:var(--amber)}
+
+  /* Auth */
+  .auth-tabs{display:flex;gap:6px;margin-bottom:18px;background:#F1F5F9;padding:5px;border-radius:12px}
+  .auth-tab{flex:1;border:none;background:transparent;padding:10px;border-radius:9px;font-family:inherit;font-weight:900;font-size:13px;color:#64748B;cursor:pointer;transition:all .2s}
+  .auth-tab.active{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .strength-bar{height:5px;background:#E2E8F0;border-radius:99px;overflow:hidden;margin-top:6px}
+  .strength-fill{height:100%;background:var(--danger);width:0%;transition:all .3s}
+  .form-hint{font-size:10.5px;color:#94A3B8;font-weight:700;margin-top:4px}
+
+  /* Live feed */
+  .feed-item{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px dashed var(--line);font-size:12px;font-weight:700;color:#334155}
+  .feed-item:last-child{border:none}
+  .feed-dot{width:8px;height:8px;border-radius:99px;background:var(--emerald);margin-top:6px;flex-shrink:0;box-shadow:0 0 0 3px rgba(5,150,105,.15)}
+  .feed-time{font-size:10.5px;color:#94A3B8;font-weight:700;margin-right:auto}
+
+  /* Animations for counters */
+  .counter{font-variant-numeric:tabular-nums}
+
+  /* Service grid */
+  .service-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+  .service-tile{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center;cursor:pointer;transition:all .2s}
+  .service-tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--emerald)}
+  .service-tile i{font-size:22px;color:var(--emerald);margin-bottom:8px;display:block}
+  .service-tile strong{font-size:12.5px;font-weight:900;color:var(--ink);display:block;margin-bottom:3px}
+  .service-tile small{font-size:10.5px;color:#64748B;font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="wasla-topbar">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span class="tp-chip"><i class="fa-solid fa-bolt" style="color:#FBBF24;"></i> السوبر آب الأول لشبين القناطر والقرى</span>
+    <span class="tp-chip" id="topbar-patients"><i class="fa-solid fa-users"></i> <span class="counter" data-target="0">0</span> مريض مشترك</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span class="tp-chip"><i class="fa-solid fa-phone"></i> 01068990089</span>
+    <span class="tp-chip"><i class="fa-solid fa-location-dot" style="color:#34D399;"></i> شبين القناطر</span>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="wasla-header">
+  <div class="wasla-header-inner">
+    <div style="display:flex;align-items:center;gap:13px;">
+      <div class="brand-mark"><i class="fa-solid fa-heart-pulse"></i></div>
+      <div class="brand-text">
+        <h1>وَصْلَة <span>WASLA</span></h1>
+        <p>شبكة الحياة اليومية الذكية - صحة، تسوق، سيارات، صيانة</p>
+      </div>
+    </div>
+    <div class="header-actions" id="header-actions">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+</header>
+
+<!-- SUPER TABS -->
+<div class="super-tabs-wrap">
+  <div class="super-tabs" id="super-tabs">
+    <button class="super-tab active" data-sector="medical" onclick="switchSector('medical')">
+      <i class="fa-solid fa-stethoscope"></i> القطاع الطبي
+    </button>
+    <button class="super-tab" data-sector="market" onclick="switchSector('market')">
+      <i class="fa-solid fa-cart-shopping"></i> التسوق
+    </button>
+    <button class="super-tab" data-sector="cars" onclick="switchSector('cars')">
+      <i class="fa-solid fa-car-side"></i> السيارات
+    </button>
+    <button class="super-tab" data-sector="home" onclick="switchSector('home')">
+      <i class="fa-solid fa-screwdriver-wrench"></i> الصيانة
+    </button>
+    <button class="super-tab hidden-tab" data-sector="dashboard" data-auth="patient" onclick="switchSector('dashboard')">
+      <i class="fa-solid fa-notes-medical"></i> ملفي الطبي
+    </button>
+    <button class="super-tab hidden-tab" data-sector="founder" data-auth="founder" onclick="switchSector('founder')">
+      <i class="fa-solid fa-crown"></i> لوحة المؤسس
+    </button>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero-shell">
+  <div class="hero-card" id="hero-card" data-sector="medical">
+    <div class="hero-pill" id="hero-pill"></div>
+    <h2 id="hero-title"></h2>
+    <p id="hero-desc"></p>
+    <div class="hero-stats" id="hero-stats"></div>
+  </div>
+</div>
+
+<!-- SECTORS -->
+<div class="page-shell">
+
+  <!-- MEDICAL -->
+  <section class="sector-view active" id="sector-medical">
+    <!-- Live Activity Strip -->
+    <div class="panel" style="margin-bottom:16px;background:linear-gradient(135deg,#F8FAFC,#F1F5F9);">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:10px;height:10px;border-radius:99px;background:#10B981;box-shadow:0 0 0 4px rgba(16,185,129,.25);animation:pulse 2s infinite"></div>
+          <span style="font-size:12.5px;font-weight:900;color:var(--ink);">حجز الآن على المنصة</span>
+        </div>
+        <div id="live-strip" style="display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;font-weight:800;color:#64748B;"></div>
+      </div>
+    </div>
+    <style>@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(16,185,129,.25)}50%{box-shadow:0 0 0 8px rgba(16,185,129,.1)}}</style>
+
+    <!-- Filters -->
+    <div class="panel" style="margin-bottom:18px;">
+      <h3 class="panel-title"><i class="fa-solid fa-magnifying-glass" style="color:var(--emerald);"></i> ابحث عن طبيبك</h3>
+      <p class="panel-sub">فلاتر متقدمة، أسعار شفافة، ودعم التأمين الفوري</p>
+      <div class="filter-grid">
+        <div class="search-wrap">
+          <label class="field-label">اسم الطبيب أو العيادة</label>
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="med-search" class="input-box" placeholder="مثال: د. محمد الشريف، باطنة..." oninput="renderDoctors()" />
+        </div>
+        <div>
+          <label class="field-label">التخصص</label>
+          <select id="med-spec" class="input-box" onchange="renderDoctors()">
+            <option value="">كل التخصصات</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">طريقة الدفع</label>
+          <select id="med-payment" class="input-box" onchange="renderDoctors()">
+            <option value="">الكل</option>
+            <option value="cash">كاش فقط</option>
+            <option value="insurance">تأمين</option>
+          </select>
+        </div>
+      </div>
+      <div class="chips-row" id="med-chips"></div>
+    </div>
+
+    <div class="doctors-grid" id="doctors-grid"></div>
+
+    <!-- Services showcase -->
+    <div class="panel" style="margin-top:22px;">
+      <h3 class="panel-title"><i class="fa-solid fa-grid-2" style="color:var(--emerald);"></i> خدمات وصلة الطبية الشاملة</h3>
+      <p class="panel-sub">12 خدمة طبية معتمدة تحت سقف واحد</p>
+      <div class="service-grid">
+        <div class="service-tile" onclick="scrollToNursing()"><i class="fa-solid fa-house-medical"></i><strong>تمريض منزلي</strong><small>خلال 60 دقيقة</small></div>
+        <div class="service-tile" onclick="scrollToNursing()"><i class="fa-solid fa-syringe"></i><strong>حقن ومحاليل</strong><small>في منزلك</small></div>
+        <div class="service-tile" onclick="scrollToNursing()"><i class="fa-solid fa-vial"></i><strong>سحب عينات</strong><small>نتائج خلال 4 ساعات</small></div>
+        <div class="service-tile"><i class="fa-solid fa-truck-medical"></i><strong>كشف منزلي</strong><small>طبيب لباب البيت</small></div>
+        <div class="service-tile"><i class="fa-solid fa-x-ray"></i><strong>أشعة</strong><small>خصم 20%</small></div>
+        <div class="service-tile"><i class="fa-solid fa-prescription"></i><strong>روشتة إلكترونية</strong><small>QR Code</small></div>
+        <div class="service-tile"><i class="fa-solid fa-heart-pulse"></i><strong>قياسات حيوية</strong><small>سكر وضغط</small></div>
+        <div class="service-tile"><i class="fa-solid fa-user-nurse"></i><strong>رعاية مسنين</strong><small>بالمناوبة</small></div>
+        <div class="service-tile"><i class="fa-solid fa-bandage"></i><strong>غيار جروح</strong><small>ممرض معتمد</small></div>
+        <div class="service-tile"><i class="fa-solid fa-baby"></i><strong>حضانات منزلية</strong><small>أجهزة معتمدة</small></div>
+        <div class="service-tile"><i class="fa-solid fa-stethoscope"></i><strong>استشارة أونلاين</strong><small>مكالمة فيديو</small></div>
+        <div class="service-tile"><i class="fa-solid fa-ambulance"></i><strong>إسعاف طارئ</strong><small>رقم موحد</small></div>
+      </div>
+    </div>
+
+    <!-- Nursing -->
+    <div class="panel" style="margin-top:22px;" id="nursing-panel">
+      <h3 class="panel-title"><i class="fa-solid fa-house-medical" style="color:var(--emerald);"></i> اطلب تمريض منزلي الآن</h3>
+      <p class="panel-sub">ممرضون موثقون بفيش وتشبيه وشهادات معتمدة. يصلون خلال 60 دقيقة.</p>
+      <div class="nursing-grid" id="nursing-options"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+        <button class="primary-btn" onclick="addNursingToCart()">
+          <i class="fa-solid fa-plus"></i> أضف للحجوزات
+        </button>
+        <button class="ghost-btn" onclick="resetNursing()">إلغاء الاختيار</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARKET (placeholder) -->
+  <section class="sector-view" id="sector-market">
+    <div class="panel">
+      <div class="empty-state"><i class="fa-solid fa-store"></i><p>قطاع التسوق - قريباً</p><small>بوابة المحلات + سلة + دليفري (Phase 3)</small></div>
+    </div>
+  </section>
+  <section class="sector-view" id="sector-cars">
+    <div class="panel">
+      <div class="empty-state"><i class="fa-solid fa-car-side"></i><p>قطاع السيارات - قريباً</p><small>خدمات متنقلة (Phase 3)</small></div>
+    </div>
+  </section>
+  <section class="sector-view" id="sector-home">
+    <div class="panel">
+      <div class="empty-state"><i class="fa-solid fa-screwdriver-wrench"></i><p>قطاع الصيانة - قريباً</p><small>صنايعية معتمدون (Phase 3)</small></div>
+    </div>
+  </section>
+
+  <!-- PATIENT DASHBOARD -->
+  <section class="sector-view" id="sector-dashboard">
+    <div id="patient-dashboard-body"></div>
+  </section>
+
+  <!-- FOUNDER DASHBOARD -->
+  <section class="sector-view" id="sector-founder">
+    <div id="founder-dashboard-body"></div>
+  </section>
+
+</div>
+
+<!-- MODALS -->
+<div class="modal-backdrop" id="auth-modal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeModal('auth-modal')"><i class="fa-solid fa-xmark"></i></button>
+    <div id="auth-modal-body"></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="booking-modal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeModal('booking-modal')"><i class="fa-solid fa-xmark"></i></button>
+    <div id="booking-modal-body"></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="emr-modal">
+  <div class="modal-card" style="max-width:640px;">
+    <button class="modal-close" onclick="closeModal('emr-modal')"><i class="fa-solid fa-xmark"></i></button>
+    <div id="emr-modal-body"></div>
+  </div>
+</div>
+
+<!-- CART -->
+<div class="overlay-scrim" id="cart-scrim" onclick="closeCart()"></div>
+<aside class="cart-drawer" id="cart-drawer">
+  <div class="cart-head">
+    <h3 style="font-weight:900;font-size:16px;margin:0;"><i class="fa-solid fa-basket-shopping" style="color:var(--emerald);margin-left:6px;"></i> حجوزاتي</h3>
+    <button class="modal-close" style="position:static;" onclick="closeCart()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="cart-body" id="cart-body"></div>
+  <div class="cart-foot">
+    <div class="cart-total-row"><span>الإجمالي</span><strong id="cart-total">0 ج.م</strong></div>
+    <button class="primary-btn" style="width:100%;" onclick="checkoutCart()"><i class="fa-brands fa-whatsapp"></i> تأكيد الحجز واتساب</button>
+  </div>
+</aside>
+
+<button class="cart-fab" onclick="openCart()" title="حجوزاتي">
+  <i class="fa-solid fa-basket-shopping"></i>
+  <span class="cart-badge" id="fab-cart-count">0</span>
+</button>
+
+<div class="toast-stack" id="toast-stack"></div>
+
+<script>
+/* ================================================================
+   WASLA v2 — SECURE LOCAL PERSISTENCE + AUTH + EMR + QUEUE
+   ================================================================ */
+
+/* ---------- Crypto Utilities ---------- */
+function fallbackHash(str) {
+  let h1 = 1779033703, h2 = 3144134277, h3 = 1013904242, h4 = 2773480762;
+  for (let i = 0; i < str.length; i++) {
+    const k = str.charCodeAt(i);
+    h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
+    h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+    h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
+    h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+  }
+  h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
+  h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+  h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
+  h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+  const out = [(h1 ^ h2 ^ h3 ^ h4) >>> 0, (h2 ^ h1) >>> 0, (h3 ^ h1) >>> 0, (h4 ^ h1) >>> 0];
+  return out.map(x => x.toString(16).padStart(8, '0')).join('');
+}
+
+async function hashPassword(password, salt) {
+  const payload = password + '::' + salt;
+  try {
+    if (window.crypto?.subtle) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch (_) {}
+  return fallbackHash(payload) + fallbackHash(payload.split('').reverse().join(''));
+}
+
+function makeSalt() {
+  if (window.crypto?.getRandomValues) {
+    const arr = new Uint8Array(16);
+    crypto.getRandomValues(arr);
+    return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+/* ---------- Storage Engine (Persistent) ---------- */
+const Store = (() => {
+  const NS = 'wasla_v2_';
+  const safe = {
+    get(key, fallback) {
+      try {
+        const raw = localStorage.getItem(NS + key);
+        return raw !== null ? JSON.parse(raw) : fallback;
+      } catch (_) { return fallback; }
+    },
+    set(key, value) {
+      try {
+        localStorage.setItem(NS + key, JSON.stringify(value));
+        return true;
+      } catch (e) {
+        console.error('Storage error:', e);
+        toast('فشل الحفظ — مساحة التخزين ممتلئة', 'error');
+        return false;
+      }
+    }
+  };
+  return {
+    users:        () => safe.get('users', []),
+    saveUsers:    u => safe.set('users', u),
+    doctors:      () => safe.get('doctors', []),
+    saveDoctors:  d => safe.set('doctors', d),
+    appointments: () => safe.get('appointments', []),
+    saveAppts:    a => safe.set('appointments', a),
+    transactions: () => safe.get('transactions', []),
+    saveTx:       t => safe.set('transactions', t),
+    cart:         () => safe.get('cart', []),
+    saveCart:     c => safe.set('cart', c),
+    session:      () => safe.get('session', null),
+    saveSession:  s => safe.set('session', s),
+    clearSession: () => { try { localStorage.removeItem(NS + 'session'); } catch (_) {} },
+    logins:       () => safe.get('login_attempts', {}),
+    saveLogins:   a => safe.set('login_attempts', a),
+    nursing:      () => safe.get('nursing', []),
+    saveNursing:  n => safe.set('nursing', n),
+    activity:     () => safe.get('activity', []),
+    saveActivity: a => safe.set('activity', a.slice(0, 100)),
+    seedFlag:     () => safe.get('seeded', false),
+    setSeeded:    () => safe.set('seeded', true),
+    exportAll: () => {
+      const dump = {};
+      ['users','doctors','appointments','transactions','cart','session','nursing','activity','seeded','login_attempts']
+        .forEach(k => { dump[k] = safe.get(k, null); });
+      return dump;
+    }
+  };
+})();
+
+/* ---------- Utilities ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+function toast(msg, type = 'success') {
+  const stack = $('#toast-stack');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type === 'error' ? ' error' : '');
+  el.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> ${msg}`;
+  stack.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(-30px)';
+    el.style.transition = 'all .3s';
+    setTimeout(() => el.remove(), 320);
+  }, 3200);
+}
+
+const money = n => (Number(n) || 0).toLocaleString('ar-EG') + ' ج.م';
+
+function uid(prefix) {
+  return prefix + '-' + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
+}
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+function timeToMin(slot) {
+  const m = slot.match(/(\d+):(\d+)\s*(ص|م|صباحاً|مساءً)?/);
+  if (!m) return 0;
+  let h = parseInt(m[1], 10);
+  const mm = parseInt(m[2], 10);
+  const period = m[3] || '';
+  if ((period.includes('م') || period.includes('مساء')) && h < 12) h += 12;
+  if ((period.includes('ص') || period.includes('صباح')) && h === 12) h = 0;
+  return h * 60 + mm;
+}
+
+function minToTime(mins) {
+  let h = Math.floor(mins / 60) % 24;
+  const m = mins % 60;
+  const period = h >= 12 ? 'م' : 'ص';
+  let hh = h % 12; if (hh === 0) hh = 12;
+  return `${hh}:${String(m).padStart(2, '0')} ${period}`;
+}
+
+function logActivity(icon, text) {
+  const acts = Store.activity();
+  acts.unshift({ id: uid('act'), icon, text, ts: Date.now() });
+  Store.saveActivity(acts);
+}
+
+function timeAgo(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return 'الآن';
+  if (s < 3600) return `قبل ${Math.floor(s / 60)} دقيقة`;
+  if (s < 86400) return `قبل ${Math.floor(s / 3600)} ساعة`;
+  return `قبل ${Math.floor(s / 86400)} يوم`;
+}
+
+/* ---------- Seed Data (Realistic) ---------- */
+function seedData() {
+  if (Store.seedFlag() && Store.doctors().length > 0) return;
+
+  const doctors = [
+    { id:'doc-001', name:'د. محمد الشريف', specialty:'باطنة وكبد وسكر', title:'استشاري الباطنة والسكر', area:'شارع بورسعيد - شبين القناطر', rating:4.9, reviews:212, priceCash:200, priceWasla:170, insurances:['GlobeMed','MetLife'], payments:['cash','insurance'], slots:['5:00 م','5:30 م','6:00 م','6:30 م','7:00 م'], avatar:'fa-user-doctor', avgConsultMin:15 },
+    { id:'doc-002', name:'د. أحمد فؤاد النجار', specialty:'جراحة العظام والمفاصل', title:'استشاري جراحة العظام - مناظير', area:'ميدان المحطة - شبين القناطر', rating:4.8, reviews:168, priceCash:250, priceWasla:210, insurances:['MetLife','MedRight'], payments:['cash','insurance'], slots:['4:00 م','5:00 م','6:00 م','7:00 م'], avatar:'fa-bone', avgConsultMin:20 },
+    { id:'doc-003', name:'د. سارة عبد الرحمن', specialty:'أطفال وحديثي الولادة', title:'أخصائية طب الأطفال', area:'شارع المستشفى - شبين القناطر', rating:5.0, reviews:301, priceCash:200, priceWasla:180, insurances:['MedRight','AXA'], payments:['cash','insurance'], slots:['3:00 م','4:00 م','6:00 م','6:30 م'], avatar:'fa-baby', avgConsultMin:12 },
+    { id:'doc-004', name:'د. كريم عبد العزيز', specialty:'قلب وأوعية دموية', title:'استشاري القلب والأوعية', area:'شارع بورسعيد - مركز القلب', rating:4.9, reviews:142, priceCash:350, priceWasla:300, insurances:['GlobeMed','Bupa'], payments:['cash','insurance'], slots:['5:00 م','6:00 م','7:00 م','8:00 م'], avatar:'fa-heart-pulse', avgConsultMin:18 },
+    { id:'doc-005', name:'د. منى سالم', specialty:'نساء وتوليد', title:'استشارية النساء والتوليد', area:'ميدان المحطة - عمارات الشفاء', rating:4.7, reviews:189, priceCash:220, priceWasla:190, insurances:['MetLife','AXA'], payments:['cash','insurance'], slots:['4:30 م','5:30 م','7:30 م'], avatar:'fa-person-pregnant', avgConsultMin:15 },
+    { id:'doc-006', name:'د. هشام الجندي', specialty:'جلدية وتجميل', title:'استشاري الجلدية والليزر', area:'شارع الجيش - ديرما كير', rating:4.6, reviews:97, priceCash:180, priceWasla:150, insurances:[], payments:['cash'], slots:['4:00 م','5:00 م','6:00 م'], avatar:'fa-face-smile', avgConsultMin:12 },
+    { id:'doc-007', name:'د. عمرو حسن', specialty:'أنف وأذن وحنجرة', title:'أخصائي أنف وأذن', area:'شارع المستشفى - برج النيل', rating:4.8, reviews:121, priceCash:180, priceWasla:160, insurances:['GlobeMed'], payments:['cash','insurance'], slots:['3:30 م','5:30 م','7:00 م'], avatar:'fa-ear-listen', avgConsultMin:14 },
+    { id:'doc-008', name:'د. فاطمة إبراهيم', specialty:'باطنة وكبد وسكر', title:'أخصائية الباطنة والجهاز الهضمي', area:'كفر حمزة - مركز الواحة', rating:4.7, reviews:88, priceCash:150, priceWasla:130, insurances:['MedRight'], payments:['cash','insurance'], slots:['5:00 م','6:00 م','7:00 م'], avatar:'fa-user-nurse', avgConsultMin:12 }
+  ];
+  Store.saveDoctors(doctors);
+
+  // Founder admin
+  const founderSalt = makeSalt();
+  const founderHash = fallbackHash('admin123::' + founderSalt); // sync seed; async upgrade happens on first login
+  const patientsSalt = makeSalt();
+  const patientsHash = fallbackHash('patient123::' + patientsSalt);
+
+  const users = [
+    {
+      id: 'usr-founder',
+      phone: '01068990089',
+      name: 'المؤسس - إدارة وصلة',
+      role: 'founder',
+      salt: founderSalt,
+      passwordHash: founderHash,
+      createdAt: Date.now() - 86400000 * 30
+    },
+    {
+      id: 'usr-patient-1',
+      phone: '01000000001',
+      name: 'أحمد محمد علي',
+      role: 'patient',
+      salt: patientsSalt,
+      passwordHash: patientsHash,
+      createdAt: Date.now() - 86400000 * 15,
+      emr: {
+        bloodType: 'O+',
+        allergies: ['بنسلين'],
+        chronic: ['سكري نوع 2', 'ضغط مرتفع'],
+        vitals: [
+          { date:'2025-09-15', bp:'138/88', hr:78, temp:37, weight:82, sugar:145 },
+          { date:'2025-10-01', bp:'135/85', hr:75, temp:36.8, weight:81, sugar:132 },
+          { date:'2025-10-20', bp:'128/82', hr:72, temp:36.7, weight:80, sugar:118 }
+        ],
+        prescriptions: [
+          { id:'rx-1', date:'2025-10-20', doctorId:'doc-001', doctorName:'د. محمد الشريف',
+            meds:[
+              {name:'Glucophage 850mg', dose:'قرص مرتين يومياً بعد الأكل', duration:'30 يوم'},
+              {name:'Concor 5mg', dose:'قرص صباحاً', duration:'30 يوم'}
+            ],
+            notes:'الالتزام بالدايت ومتابعة السكر صائم كل أسبوع' }
+        ],
+        labResults: [
+          { date:'2025-10-20', test:'سكر صائم', value:118, unit:'mg/dL', normal:'70-100', status:'high' },
+          { date:'2025-10-20', test:'HbA1c', value:6.8, unit:'%', normal:'<5.7', status:'high' },
+          { date:'2025-10-20', test:'كوليسترول', value:185, unit:'mg/dL', normal:'<200', status:'normal' },
+          { date:'2025-10-20', test:'كرياتينين', value:0.9, unit:'mg/dL', normal:'0.6-1.2', status:'normal' }
+        ],
+        visits: [
+          { date:'2025-10-20', doctorId:'doc-001', doctorName:'د. محمد الشريف', diagnosis:'سكري نوع 2 - مستقر' }
+        ]
+      }
+    },
+    {
+      id: 'usr-patient-2',
+      phone: '01000000002',
+      name: 'منى إبراهيم سالم',
+      role: 'patient',
+      salt: makeSalt(),
+      passwordHash: fallbackHash('patient123::x'),
+      createdAt: Date.now() - 86400000 * 8,
+      emr: {
+        bloodType: 'A+',
+        allergies: [],
+        chronic: [],
+        vitals: [
+          { date:'2025-10-15', bp:'118/76', hr:72, temp:36.6, weight:62, sugar:88 }
+        ],
+        prescriptions: [],
+        labResults: [],
+        visits: []
+      }
+    }
+  ];
+  // Fix patient-2 hash properly
+  users[2].passwordHash = fallbackHash('patient123::' + users[2].salt);
+  Store.saveUsers(users);
+
+  // Seed real appointments across days for founder dashboard metrics
+  const appts = [];
+  const today = new Date();
+  for (let d = 0; d < 30; d++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - d);
+    const dateStr = date.toISOString().slice(0, 10);
+    const count = Math.max(2, Math.floor(Math.random() * 6));
+    for (let i = 0; i < count; i++) {
+      const doc = doctors[Math.floor(Math.random() * doctors.length)];
+      const slot = doc.slots[Math.floor(Math.random() * doc.slots.length)];
+      appts.push({
+        id: uid('apt'),
+        patientId: ['usr-patient-1', 'usr-patient-2', 'guest-' + (i + d * 7)][Math.floor(Math.random() * 3)],
+        patientName: ['أحمد محمد علي', 'منى إبراهيم سالم', 'مريض زائر ' + (i + 1)][Math.floor(Math.random() * 3)],
+        patientPhone: '0100000000' + (Math.floor(Math.random() * 9) + 1),
+        doctorId: doc.id,
+        doctorName: doc.name,
+        specialty: doc.specialty,
+        date: dateStr,
+        slot,
+        price: doc.priceWasla,
+        status: d === 0 && i < 2 ? 'pending' : 'completed',
+        createdAt: date.getTime() + i * 3600000
+      });
+    }
+  }
+  Store.saveAppts(appts);
+
+  // Seed transactions
+  const txs = appts.filter(a => a.status === 'completed').map(a => ({
+    id: uid('tx'),
+    appointmentId: a.id,
+    doctorId: a.doctorId,
+    doctorName: a.doctorName,
+    amount: a.price,
+    commission: Math.round(a.price * 0.15),
+    patientName: a.patientName,
+    ts: a.createdAt
+  }));
+  Store.saveTx(txs);
+
+  // Activity
+  const acts = [
+    { id:'a1', icon:'fa-user-plus', text:'أحمد محمد علي سجّل حساب جديد', ts: Date.now() - 3600000 },
+    { id:'a2', icon:'fa-calendar-check', text:'منى إبراهيم حجزت مع د. سارة عبد الرحمن', ts: Date.now() - 7200000 },
+    { id:'a3', icon:'fa-prescription', text:'د. محمد الشريف كتب روشتة لمريض', ts: Date.now() - 10800000 },
+    { id:'a4', icon:'fa-star', text:'تقييم جديد 5 نجوم لـ د. كريم عبد العزيز', ts: Date.now() - 14400000 }
+  ];
+  Store.saveActivity(acts);
+  Store.setSeeded();
+}
+
+/* ---------- Auth ---------- */
+const Auth = (() => {
+  const MAX_ATTEMPTS = 5;
+  const WINDOW_MS = 60000;
+
+  function rateCheck(phone) {
+    const all = Store.logins();
+    const now = Date.now();
+    const entry = all[phone] || { count: 0, first: now };
+    if (now - entry.first > WINDOW_MS) return { allowed: true, reset: { count: 1, first: now } };
+    if (entry.count >= MAX_ATTEMPTS) return { allowed: false };
+    return { allowed: true, reset: { count: entry.count + 1, first: entry.first } };
+  }
+
+  function bumpAttempts(phone, reset) {
+    const all = Store.logins();
+    all[phone] = reset;
+    Store.saveLogins(all);
+  }
+
+  function validatePhone(phone) {
+    return /^01[0-9]{9}$/.test(phone);
+  }
+  function validatePassword(pw) {
+    if (pw.length < 6) return 'كلمة السر لازم 6 أحرف على الأقل';
+    if (!/[0-9]/.test(pw)) return 'لازم تحتوي على رقم';
+    return null;
+  }
+
+  async function register({ name, phone, password, role = 'patient' }) {
+    if (!name || name.trim().split(' ').length < 2) return { ok: false, msg: 'اكتب اسمك الثلاثي' };
+    if (!validatePhone(phone)) return { ok: false, msg: 'رقم موبايل غير صحيح' };
+    const pwErr = validatePassword(password);
+    if (pwErr) return { ok: false, msg: pwErr };
+
+    const users = Store.users();
+    if (users.some(u => u.phone === phone)) return { ok: false, msg: 'الرقم مسجل بالفعل — سجل دخول' };
+
+    const salt = makeSalt();
+    const passwordHash = await hashPassword(password, salt);
+    const user = {
+      id: uid('usr'),
+      phone, name: name.trim(), role,
+      salt, passwordHash,
+      createdAt: Date.now(),
+      emr: {
+        bloodType: 'غير محدد', allergies: [], chronic: [],
+        vitals: [], prescriptions: [], labResults: [], visits: []
+      }
+    };
+    users.push(user);
+    Store.saveUsers(users);
+    logActivity('fa-user-plus', `${user.name} سجّل حساب جديد`);
+    return { ok: true, user, msg: 'تم إنشاء الحساب بنجاح' };
+  }
+
+  async function login({ phone, password }) {
+    if (!validatePhone(phone)) return { ok: false, msg: 'رقم موبايل غير صحيح' };
+    const rl = rateCheck(phone);
+    if (!rl.allowed) return { ok: false, msg: 'محاولات كثيرة — انتظر دقيقة' };
+    bumpAttempts(phone, rl.reset);
+
+    const users = Store.users();
+    const user = users.find(u => u.phone === phone);
+    if (!user) return { ok: false, msg: 'الرقم أو كلمة السر غير صحيحة' };
+
+    const hash = await hashPassword(password, user.salt);
+    if (hash !== user.passwordHash) return { ok: false, msg: 'الرقم أو كلمة السر غير صحيحة' };
+
+    const session = {
+      userId: user.id,
+      token: makeSalt() + makeSalt(),
+      expiresAt: Date.now() + 24 * 3600 * 1000
+    };
+    Store.saveSession(session);
+    logActivity('fa-right-to-bracket', `${user.name} دخل المنصة`);
+    return { ok: true, user, msg: 'مرحباً بك في وصلة' };
+  }
+
+  function currentUser() {
+    const s = Store.session();
+    if (!s) return null;
+    if (s.expiresAt < Date.now()) { Store.clearSession(); return null; }
+    return Store.users().find(u => u.id === s.userId) || null;
+  }
+
+  function logout() {
+    Store.clearSession();
+    location.reload();
+  }
+
+  function saveUser(user) {
+    const users = Store.users();
+    const i = users.findIndex(u => u.id === user.id);
+    if (i >= 0) users[i] = user;
+    Store.saveUsers(users);
+  }
+
+  return { register, login, currentUser, logout, saveUser, validatePhone };
+})();
+
+/* ---------- EMR Helpers ---------- */
+const EMR = {
+  get(userId) {
+    const user = Store.users().find(u => u.id === userId);
+    return user?.emr || { bloodType:'غير محدد', allergies:[], chronic:[], vitals:[], prescriptions:[], labResults:[], visits:[] };
+  },
+  addVital(userId, vital) {
+    const users = Store.users();
+    const u = users.find(x => x.id === userId);
+    if (!u) return;
+    u.emr = u.emr || { bloodType:'غير محدد', allergies:[], chronic:[], vitals:[], prescriptions:[], labResults:[], visits:[] };
+    u.emr.vitals.unshift({ date: todayStr(), ...vital });
+    Store.saveUsers(users);
+  },
+  addPrescription(userId, rx) {
+    const users = Store.users();
+    const u = users.find(x => x.id === userId);
+    if (!u) return;
+    u.emr = u.emr || { bloodType:'غير محدد', allergies:[], chronic:[], vitals:[], prescriptions:[], labResults:[], visits:[] };
+    u.emr.prescriptions.unshift(rx);
+    Store.saveUsers(users);
+  },
+  addLab(userId, lab) {
+    const users = Store.users();
+    const u = users.find(x => x.id === userId);
+    if (!u) return;
+    u.emr = u.emr || { bloodType:'غير محدد', allergies:[], chronic:[], vitals:[], prescriptions:[], labResults:[], visits:[] };
+    u.emr.labResults.unshift(lab);
+    Store.saveUsers(users);
+  }
+};
+
+/* ---------- Queue Engine ---------- */
+const Queue = {
+  position(appointmentId) {
+    const appt = Store.appointments().find(a => a.id === appointmentId);
+    if (!appt) return null;
+    const doctor = Store.doctors().find(d => d.id === appt.doctorId);
+    const avgMin = doctor?.avgConsultMin || 15;
+
+    const sameShift = Store.appointments()
+      .filter(a => a.doctorId === appt.doctorId && a.date === appt.date && a.status !== 'cancelled')
+      .sort((a, b) => timeToMin(a.slot) - timeToMin(b.slot));
+
+    const idx = sameShift.findIndex(a => a.id === appointmentId);
+    if (idx < 0) return null;
+    const ahead = idx;
+    const waitMin = ahead * avgMin;
+    const startMin = timeToMin(appt.slot);
+    const estMin = startMin + waitMin;
+
+    return {
+      position: idx + 1,
+      ahead,
+      total: sameShift.length,
+      avgMin,
+      waitMin,
+      estimatedTime: minToTime(estMin),
+      slotTime: appt.slot
+    };
+  },
+
+  buildReminderMessage(appt) {
+    const q = this.position(appt.id);
+    if (!q) return 'لم يتم العثور على بيانات الدور';
+    const isNow = q.ahead === 0;
+    const lead = isNow ? '🔔 *دورك الآن!*' : `⏳ أنت *رقم ${q.position}* في طابور ${appt.doctorName}`;
+    const body = isNow
+      ? `برجاء التوجه للعيادة فوراً:\n📍 ${appt.doctorName}`
+      : `📊 قدامك *${q.ahead} ${q.ahead === 1 ? 'حالة' : 'حالات'}*\n⏰ متوقع دورك الساعة *${q.estimatedTime}*\n📍 ${appt.doctorName}`;
+
+    return `*منصة وصلة — تذكير موعد*\n\n${lead}\n\n${body}\n\n🎫 رقم الحجز: ${appt.id.slice(-6).toUpperCase()}\n📞 للاستفسار: 01068990089\n\n_منصة وصلة — صحتك أولويتنا_`;
+  }
+};
+
+/* ---------- Analytics ---------- */
+const Analytics = {
+  kpis() {
+    const appts = Store.appointments();
+    const txs = Store.transactions();
+    const users = Store.users().filter(u => u.role === 'patient');
+    const today = todayStr();
+    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+
+    const todayAppts = appts.filter(a => a.date === today).length;
+    const weekAppts = appts.filter(a => a.date >= weekAgo).length;
+    const totalRevenue = txs.reduce((s, t) => s + t.amount, 0);
+    const commission = txs.reduce((s, t) => s + t.commission, 0);
+    const todayTx = txs.filter(t => new Date(t.ts).toISOString().slice(0, 10) === today);
+    const todayRev = todayTx.reduce((s, t) => s + t.amount, 0);
+
+    const byDoctor = {};
+    txs.forEach(t => {
+      byDoctor[t.doctorId] = byDoctor[t.doctorId] || { name: t.doctorName, revenue: 0, count: 0 };
+      byDoctor[t.doctorId].revenue += t.amount;
+      byDoctor[t.doctorId].count += 1;
+    });
+    const topDocs = Object.values(byDoctor).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+
+    return {
+      totalRevenue, commission, todayRev,
+      totalAppointments: appts.length,
+      todayAppointments: todayAppts,
+      weekAppointments: weekAppts,
+      uniquePatients: users.length,
+      totalDoctors: Store.doctors().length,
+      cartSize: Store.cart().length,
+      topDocs
+    };
+  }
+};
+
+/* ---------- UI: Header Auth State ---------- */
+function renderHeaderActions() {
+  const el = $('#header-actions');
+  const user = Auth.currentUser();
+
+  if (!user) {
+    el.innerHTML = `
+      <button class="login-btn" onclick="openAuthModal('login')">
+        <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
+      </button>
+      <button class="wa-btn" onclick="openAuthModal('register')">
+        <i class="fa-solid fa-user-plus"></i> حساب جديد
+      </button>
+    `;
+  } else {
+    const roleLabel = user.role === 'founder' ? 'المؤسس' : 'مريض مشترك';
+    el.innerHTML = `
+      <button class="cart-fab-mini" onclick="openCart()" style="position:relative;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff;padding:9px 13px;border-radius:12px;cursor:pointer;font-weight:800;font-size:12px;display:inline-flex;align-items:center;gap:8px;font-family:inherit;">
+        <i class="fa-solid fa-basket-shopping"></i> حجوزاتي
+        <span class="cart-badge" id="header-cart-count">${Store.cart().length}</span>
+      </button>
+      <div class="user-chip" onclick="switchSector('${user.role === 'founder' ? 'founder' : 'dashboard'}')">
+        <div class="u-avatar">${user.name.charAt(0)}</div>
+        <div style="text-align:right">
+          <div class="u-name">${user.name.split(' ')[0]}</div>
+          <div class="u-role">${roleLabel}</div>
+        </div>
+      </div>
+      <button class="login-btn" style="background:linear-gradient(135deg,#DC2626,#E11D48);" onclick="Auth.logout()">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </button>
+    `;
+  }
+
+  // Update super-tabs visibility
+  $$('.super-tab').forEach(tab => {
+    const need = tab.dataset.auth;
+    if (!need) return;
+    if (need === 'patient' && user) tab.classList.remove('hidden-tab');
+    else if (need === 'founder' && user?.role === 'founder') tab.classList.remove('hidden-tab');
+    else tab.classList.add('hidden-tab');
+  });
+}
+
+/* ---------- UI: Super Tabs & Sectors ---------- */
+const HERO_CONFIG = {
+  medical: {
+    pill:'<i class="fa-solid fa-shield-heart"></i> القطاع الطبي المعتمد',
+    title:'صحتك في شبين القناطر.. بضغطة واحدة',
+    desc:'احجز مع استشاريي شبين القناطر، قارن الكاش والتأمين، اطلب تمريض منزلي، وتابع دورك في الطابور لحظة بلحظة.'
+  },
+  market: { pill:'<i class="fa-solid fa-truck-fast"></i> توصيل لكل القرى', title:'كل احتياجاتك من محلات البلد.. توصل لبابك', desc:'سوبرماركت، خضار، وصيدلية بضغطة واحدة.' },
+  cars: { pill:'<i class="fa-solid fa-wrench"></i> فنيون متنقلون', title:'غسيل، كشف، إطارات.. في مكانك', desc:'خدمات سيارات متنقلة معتمدة.' },
+  home: { pill:'<i class="fa-solid fa-shield-halved"></i> صنايعية بفيش وتشبيه', title:'صيانة منزلك بأيدي فنيين موثوقين', desc:'سباك، كهربائي، نجار، تكييف.' },
+  dashboard: { pill:'<i class="fa-solid fa-notes-medical"></i> ملفك الطبي الشخصي', title:'ملفك الطبي الذكي في مكان واحد', desc:'كل قياساتك، روشتاتك، تحاليلك، ومواعيدك تحت سيطرتك.' },
+  founder: { pill:'<i class="fa-solid fa-crown"></i> لوحة المؤسس', title:'نبض المنصة لحظة بلحظة', desc:'كل الأرقام محسوبة من الداتا الحقيقية — إيرادات، مواعيد، نمو.' }
+};
+
+function switchSector(sector) {
+  $$('.super-tab').forEach(t => t.classList.toggle('active', t.dataset.sector === sector));
+  $$('.sector-view').forEach(v => v.classList.toggle('active', v.id === `sector-${sector}`));
+  const hero = $('#hero-card');
+  hero.dataset.sector = sector;
+  const cfg = HERO_CONFIG[sector] || HERO_CONFIG.medical;
+  $('#hero-pill').innerHTML = cfg.pill;
+  $('#hero-title').textContent = cfg.title;
+  $('#hero-desc').textContent = cfg.desc;
+
+  // Recompute live stats for hero
+  const k = Analytics.kpis();
+  $('#hero-stats').innerHTML = `
+    <div class="hs"><strong>${k.totalDoctors}</strong> طبيب معتمد</div>
+    <div class="hs"><strong>${k.uniquePatients}</strong> مريض مشترك</div>
+    <div class="hs"><strong>${k.totalAppointments}</strong> حجز في المنصة</div>
+    <div class="hs"><strong>${k.totalRevenue.toLocaleString('ar-EG')} ج.م</strong> إجمالي المعاملات</div>
+  `;
+
+  if (sector === 'dashboard') renderPatientDashboard();
+  if (sector === 'founder') renderFounderDashboard();
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ---------- UI: Auth Modal ---------- */
+function openAuthModal(mode = 'login') {
+  const modal = $('#auth-modal');
+  const body = $('#auth-modal-body');
+  const isLogin = mode === 'login';
+
+  body.innerHTML = `
+    <div style="text-align:center;margin-bottom:14px;">
+      <div style="width:56px;height:56px;background:linear-gradient(135deg,#059669,#10B981);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin:0 auto 10px;box-shadow:0 10px 24px rgba(5,150,105,.35);">
+        <i class="fa-solid fa-heart-pulse"></i>
+      </div>
+      <h3 style="font-weight:900;font-size:19px;margin:0;">${isLogin ? 'تسجيل الدخول إلى وصلة' : 'إنشاء حساب جديد'}</h3>
+      <p style="font-size:12px;color:#64748B;font-weight:700;margin:4px 0 0;">مرحباً بك في شبكة الحياة الذكية</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab ${isLogin ? 'active' : ''}" onclick="openAuthModal('login')">دخول</button>
+      <button class="auth-tab ${!isLogin ? 'active' : ''}" onclick="openAuthModal('register')">حساب جديد</button>
+    </div>
+    <div id="auth-error" style="display:none;background:#FEF2F2;color:#991B1B;font-size:12px;font-weight:800;padding:10px 14px;border-radius:10px;margin-bottom:12px;border:1px solid #FECACA;"></div>
+    ${!isLogin ? `
+      <label class="field-label">الاسم الثلاثي</label>
+      <input type="text" id="auth-name" class="input-box" placeholder="أحمد محمد علي" style="margin-bottom:12px;" />
+    ` : ''}
+    <label class="field-label">رقم الموبايل</label>
+    <input type="tel" id="auth-phone" class="input-box" placeholder="01xxxxxxxxx" maxlength="11" style="margin-bottom:12px;" />
+    <label class="field-label">كلمة السر</label>
+    <input type="password" id="auth-password" class="input-box" placeholder="6 أحرف على الأقل، فيها رقم" />
+    ${!isLogin ? `
+      <div class="strength-bar"><div class="strength-fill" id="pw-strength"></div></div>
+      <p class="form-hint">استخدم حروف وأرقام ورموز لقوة أعلى</p>
+    ` : `
+      <p class="form-hint"><i class="fa-solid fa-shield-halved"></i> مشفّرة بـ SHA-256 — لن تظهر أبداً</p>
+    `}
+    <button class="primary-btn" id="auth-submit" style="width:100%;margin-top:16px;" onclick="submitAuth('${mode}')">
+      <i class="fa-solid ${isLogin ? 'fa-right-to-bracket' : 'fa-user-plus'}"></i>
+      ${isLogin ? 'دخول' : 'إنشاء الحساب'}
+    </button>
+    ${isLogin ? `
+      <div style="margin-top:16px;padding:12px;background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:10px;font-size:11px;color:#64748B;font-weight:700;">
+        <div style="margin-bottom:6px;color:#334155;font-weight:900;">🔑 حسابات تجريبية جاهزة:</div>
+        <div>👑 مؤسس: <code style="background:#fff;padding:1px 6px;border-radius:4px;font-family:monospace;color:#DC2626;">01068990089</code> / <code style="background:#fff;padding:1px 6px;border-radius:4px;font-family:monospace;color:#DC2626;">admin123</code></div>
+        <div>🧑 مريض: <code style="background:#fff;padding:1px 6px;border-radius:4px;font-family:monospace;color:#059669;">01000000001</code> / <code style="background:#fff;padding:1px 6px;border-radius:4px;font-family:monospace;color:#059669;">patient123</code></div>
+      </div>
+    ` : ''}
+  `;
+
+  if (!isLogin) {
+    const pw = $('#auth-password');
+    if (pw) pw.addEventListener('input', () => {
+      const v = pw.value;
+      let s = 0;
+      if (v.length >= 6) s += 30;
+      if (/[a-zA-Z]/.test(v)) s += 25;
+      if (/[0-9]/.test(v)) s += 25;
+      if (/[^a-zA-Z0-9]/.test(v)) s += 20;
+      s = Math.min(100, s);
+      const fill = $('#pw-strength');
+      fill.style.width = s + '%';
+      fill.style.background = s < 40 ? '#E11D48' : s < 70 ? '#EA580C' : '#059669';
+    });
+  }
+
+  modal.classList.add('open');
+}
+
+async function submitAuth(mode) {
+  const errEl = $('#auth-error');
+  const btn = $('#auth-submit');
+  const phone = $('#auth-phone').value.trim();
+  const password = $('#auth-password').value;
+  const name = mode === 'register' ? $('#auth-name').value.trim() : null;
+
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  const oldHTML = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري...';
+
+  try {
+    let res;
+    if (mode === 'login') {
+      res = await Auth.login({ phone, password });
+    } else {
+      res = await Auth.register({ name, phone, password });
+    }
+    if (res.ok) {
+      toast(res.msg);
+      closeModal('auth-modal');
+      renderHeaderActions();
+      const user = Auth.currentUser();
+      if (user) switchSector(user.role === 'founder' ? 'founder' : 'dashboard');
+    } else {
+      errEl.textContent = res.msg;
+      errEl.style.display = 'block';
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = oldHTML;
+  }
+}
+
+/* ---------- UI: Doctors ---------- */
+function renderDoctors() {
+  const q = ($('#med-search')?.value || '').toLowerCase();
+  const spec = $('#med-spec')?.value || '';
+  const pay = $('#med-payment')?.value || '';
+  const grid = $('#doctors-grid');
+  const doctors = Store.doctors();
+
+  const list = doctors.filter(d => {
+    const mq = !q || d.name.toLowerCase().includes(q) || d.specialty.toLowerCase().includes(q) || d.area.toLowerCase().includes(q);
+    const ms = !spec || d.specialty === spec;
+    const mp = !pay || d.payments.includes(pay);
+    return mq && ms && mp;
+  });
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="panel empty-state"><i class="fa-solid fa-user-doctor"></i><p>لا يوجد أطباء مطابقون</p><small>جرّب تغيير الفلتر</small></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(d => `
+    <article class="doc-card">
+      <div class="doc-avatar"><i class="fa-solid ${d.avatar}"></i></div>
+      <div>
+        <span class="doc-tag"><i class="fa-solid fa-stethoscope"></i> ${d.specialty}</span>
+        <h4 class="doc-name">${d.name}</h4>
+        <p class="doc-meta"><i class="fa-solid fa-location-dot" style="color:var(--emerald);"></i> ${d.area}</p>
+        <p class="doc-meta"><i class="fa-solid fa-star" style="color:#F59E0B;"></i> ${d.rating} (${d.reviews} تقييم) • ${d.title}</p>
+        <div class="doc-insurance-row">
+          ${d.insurances.length ? d.insurances.map(i => `<span class="ins-pill"><i class="fa-solid fa-shield-halved"></i> ${i}</span>`).join('') : `<span class="ins-pill cash"><i class="fa-solid fa-money-bill"></i> كاش فقط</span>`}
+        </div>
+      </div>
+      <div class="doc-price-col">
+        <div>
+          <div class="price-old">${money(d.priceCash)}</div>
+          <div class="price-new">${d.priceWasla} <span>ج.م</span></div>
+        </div>
+        <button class="book-btn" onclick="openBooking('${d.id}')"><i class="fa-solid fa-calendar-check"></i> احجز الآن</button>
+      </div>
+    </article>
+  `).join('');
+}
+
+function initDoctorsUI() {
+  const specs = [...new Set(Store.doctors().map(d => d.specialty))];
+  const specSel = $('#med-spec');
+  specs.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = s;
+    specSel.appendChild(o);
+  });
+
+  const chips = $('#med-chips');
+  chips.innerHTML = `<button class="chip active" data-chip="all" onclick="applyChip(this)">الكل</button>` +
+    specs.map(s => `<button class="chip" data-chip="${s}" onclick="applyChip(this)">${s}</button>`).join('');
+
+  renderDoctors();
+  renderLiveStrip();
+}
+
+function applyChip(el) {
+  $$('#med-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  const val = el.dataset.chip;
+  $('#med-spec').value = val === 'all' ? '' : val;
+  renderDoctors();
+}
+
+function renderLiveStrip() {
+  const k = Analytics.kpis();
+  const strip = $('#live-strip');
+  strip.innerHTML = `
+    <span><i class="fa-solid fa-circle-dot" style="color:#10B981;"></i> ${k.todayAppointments} حجز اليوم</span>
+    <span><i class="fa-solid fa-users" style="color:#0284C7;"></i> ${k.uniquePatients} مريض</span>
+    <span><i class="fa-solid fa-user-doctor" style="color:#3730A3;"></i> ${k.totalDoctors} طبيب</span>
+    <span><i class="fa-solid fa-star" style="color:#F59E0B;"></i> 4.9 متوسط التقييم</span>
+  `;
+}
+
+/* ---------- UI: Booking ---------- */
+function openBooking(docId) {
+  const user = Auth.currentUser();
+  if (!user) {
+    toast('سجّل دخول أولاً للحجز', 'error');
+    openAuthModal('login');
+    return;
+  }
+  const doc = Store.doctors().find(d => d.id === docId);
+  if (!doc) return;
+
+  $('#booking-modal-body').innerHTML = `
+    <span class="doc-tag"><i class="fa-solid fa-stethoscope"></i> ${doc.specialty}</span>
+    <h3 style="font-size:19px;font-weight:900;margin:6px 0 2px;">${doc.name}</h3>
+    <p style="font-size:12px;color:#64748B;font-weight:700;margin:0 0 14px;">${doc.title}</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+      <span class="ins-pill"><i class="fa-solid fa-location-dot"></i> ${doc.area}</span>
+      <span class="ins-pill cash"><i class="fa-solid fa-clock"></i> متوسط ${doc.avgConsultMin} دقيقة/كشف</span>
+    </div>
+    <div style="background:#F8FAFC;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:11px;font-weight:800;color:#64748B;">بعد خصم وصلة</div>
+        <div style="font-size:24px;font-weight:900;color:var(--emerald);">${doc.priceWasla} ج.م</div>
+      </div>
+      <div style="text-align:left;">
+        <div style="font-size:11px;font-weight:800;color:#64748B;">السعر الأصلي</div>
+        <div style="font-size:15px;font-weight:900;color:#94A3B8;text-decoration:line-through;">${doc.priceCash} ج.م</div>
+      </div>
+    </div>
+    <label class="field-label">التاريخ</label>
+    <input type="date" id="bk-date" class="input-box" value="${todayStr()}" min="${todayStr()}" style="margin-bottom:12px;" />
+    <label class="field-label">اختر الموعد</label>
+    <div id="slot-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+      ${doc.slots.map((s, i) => `
+        <label class="slot-option">
+          <span><input type="radio" name="slot" value="${s}" ${i === 0 ? 'checked' : ''} onchange="highlightSlot(this)"> ${s}</span>
+          <span style="color:var(--emerald);font-size:11px;font-weight:900;">متاح</span>
+        </label>
+      `).join('')}
+    </div>
+    <button class="primary-btn" style="width:100%;" onclick="confirmBooking('${doc.id}')">
+      <i class="fa-solid fa-calendar-check"></i> تأكيد الحجز
+    </button>
+  `;
+  $('#booking-modal').classList.add('open');
+  setTimeout(() => highlightSlot($('input[name="slot"]')), 20);
+}
+
+function highlightSlot(input) {
+  if (!input) return;
+  $$('#slot-list .slot-option').forEach(l => l.classList.remove('selected'));
+  input.closest('.slot-option').classList.add('selected');
+}
+
+function confirmBooking(docId) {
+  const user = Auth.currentUser();
+  if (!user) { toast('سجّل دخول أولاً', 'error'); return; }
+  const doc = Store.doctors().find(d => d.id === docId);
+  const slot = $('input[name="slot"]:checked');
+  const date = $('#bk-date').value;
+  if (!slot || !date) { toast('اختر الموعد', 'error'); return; }
+
+  const appts = Store.appointments();
+  const conflict = appts.some(a => a.doctorId === docId && a.date === date && a.slot === slot.value && a.status !== 'cancelled');
+  if (conflict) { toast('هذا الموعد محجوز بالفعل — جرّب غيره', 'error'); return; }
+
+  const appt = {
+    id: uid('apt'),
+    patientId: user.id,
+    patientName: user.name,
+    patientPhone: user.phone,
+    doctorId: doc.id,
+    doctorName: doc.name,
+    specialty: doc.specialty,
+    date, slot: slot.value,
+    price: doc.priceWasla,
+    status: 'pending',
+    createdAt: Date.now()
+  };
+  appts.push(appt);
+  Store.saveAppts(appts);
+
+  // Transaction record
+  const txs = Store.transactions();
+  txs.push({
+    id: uid('tx'), appointmentId: appt.id,
+    doctorId: doc.id, doctorName: doc.name,
+    amount: doc.priceWasla,
+    commission: Math.round(doc.priceWasla * 0.15),
+    patientName: user.name,
+    ts: Date.now()
+  });
+  Store.saveTx(txs);
+
+  logActivity('fa-calendar-check', `${user.name} حجز مع ${doc.name}`);
+  closeModal('booking-modal');
+  toast(`تم حجز موعدك مع ${doc.name}`);
+
+  // Ask if they want WhatsApp reminder
+  setTimeout(() => {
+    if (confirm('تحب نبعتلك تذكير بموعدك والدور قدامك على واتساب؟')) {
+      const msg = Queue.buildReminderMessage(appt);
+      window.open('https://wa.me/201068990089?text=' + encodeURIComponent(msg), '_blank');
+    }
+    if (user.role === 'patient') switchSector('dashboard');
+    renderHeaderActions();
+  }, 400);
+}
+
+/* ---------- UI: Patient Dashboard ---------- */
+let dashTab = 'appointments';
+
+function renderPatientDashboard() {
+  const user = Auth.currentUser();
+  if (!user || user.role !== 'patient') {
+    $('#patient-dashboard-body').innerHTML = `<div class="panel"><div class="empty-state"><i class="fa-solid fa-lock"></i><p>سجّل دخول كمريض لعرض ملفك</p></div></div>`;
+    return;
+  }
+  const emr = EMR.get(user.id);
+  const myAppts = Store.appointments().filter(a => a.patientId === user.id).sort((a, b) => b.createdAt - a.createdAt);
+
+  $('#patient-dashboard-body').innerHTML = `
+    <div class="panel" style="margin-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h3 class="panel-title" style="margin:0;"><i class="fa-solid fa-user-circle" style="color:var(--emerald);"></i> أهلاً ${user.name.split(' ')[0]}</h3>
+          <p class="panel-sub" style="margin:4px 0 0;">رقمك: ${user.phone} • ${user.role === 'patient' ? 'مريض مشترك' : user.role}</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="ghost-btn" onclick="addVitalModal()"><i class="fa-solid fa-plus"></i> قياس جديد</button>
+          <button class="ghost-btn" onclick="switchSector('medical')"><i class="fa-solid fa-calendar-plus"></i> حجز جديد</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="inner-tabs">
+      <button class="inner-tab ${dashTab === 'appointments' ? 'active' : ''}" onclick="setDashTab('appointments')"><i class="fa-solid fa-calendar-check"></i> مواعيدي</button>
+      <button class="inner-tab ${dashTab === 'emr' ? 'active' : ''}" onclick="setDashTab('emr')"><i class="fa-solid fa-notes-medical"></i> ملفي الطبي</button>
+      <button class="inner-tab ${dashTab === 'vitals' ? 'active' : ''}" onclick="setDashTab('vitals')"><i class="fa-solid fa-chart-line"></i> المؤشرات</button>
+      <button class="inner-tab ${dashTab === 'prescriptions' ? 'active' : ''}" onclick="setDashTab('prescriptions')"><i class="fa-solid fa-prescription"></i> الروشتات</button>
+      <button class="inner-tab ${dashTab === 'labs' ? 'active' : ''}" onclick="setDashTab('labs')"><i class="fa-solid fa-flask"></i> التحاليل</button>
+    </div>
+
+    <div id="dash-tab-content"></div>
+  `;
+  renderDashTab(user, emr, myAppts);
+}
+
+function setDashTab(t) { dashTab = t; renderPatientDashboard(); }
+
+function renderDashTab(user, emr, myAppts) {
+  const content = $('#dash-tab-content');
+
+  if (dashTab === 'appointments') {
+    const upcoming = myAppts.filter(a => a.date >= todayStr() && a.status !== 'cancelled');
+    const past = myAppts.filter(a => a.date < todayStr() || a.status === 'completed');
+    content.innerHTML = `
+      <h3 class="panel-title" style="margin-bottom:12px;"><i class="fa-solid fa-hourglass-half" style="color:var(--emerald);"></i> المواعيد القادمة (${upcoming.length})</h3>
+      ${upcoming.length ? upcoming.map(a => renderApptCard(a, true)).join('') : `<div class="panel empty-state"><i class="fa-solid fa-calendar"></i><p>لا مواعيد قادمة</p></div>`}
+      <h3 class="panel-title" style="margin-top:22px;margin-bottom:12px;"><i class="fa-solid fa-clock-rotate-left" style="color:#64748B;"></i> مواعيد سابقة (${past.length})</h3>
+      ${past.length ? past.slice(0, 10).map(a => renderApptCard(a, false)).join('') : `<div class="panel empty-state"><i class="fa-solid fa-inbox"></i><p>لا مواعيد سابقة</p></div>`}
+    `;
+  }
+
+  if (dashTab === 'emr') {
+    content.innerHTML = `
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px;">
+        <div class="kpi-card red">
+          <p class="kpi-label">فصيلة الدم</p>
+          <p class="kpi-value">${emr.bloodType}</p>
+        </div>
+        <div class="kpi-card amber">
+          <p class="kpi-label">حساسية</p>
+          <p class="kpi-value" style="font-size:16px;">${emr.allergies.length ? emr.allergies.join('، ') : 'لا يوجد'}</p>
+        </div>
+        <div class="kpi-card">
+          <p class="kpi-label">أمراض مزمنة</p>
+          <p class="kpi-value" style="font-size:14px;">${emr.chronic.length ? emr.chronic.join('، ') : 'لا يوجد'}</p>
+        </div>
+      </div>
+      <div class="panel">
+        <h3 class="panel-title"><i class="fa-solid fa-stethoscope" style="color:var(--emerald);"></i> سجل الزيارات</h3>
+        ${emr.visits.length ? emr.visits.map(v => `
+          <div style="padding:10px 0;border-bottom:1px dashed var(--line);font-size:12.5px;font-weight:700;">
+            <div style="font-weight:900;color:var(--ink);">${v.doctorName}</div>
+            <div style="color:#64748B;font-size:11.5px;">${v.date} • ${v.diagnosis}</div>
+          </div>
+        `).join('') : `<p class="panel-sub">لا زيارات مسجلة بعد</p>`}
+      </div>
+    `;
+  }
+
+  if (dashTab === 'vitals') {
+    const v = emr.vitals.slice(0, 8).reverse();
+    content.innerHTML = `
+      <div class="vitals-chart">
+        <h3 class="panel-title" style="margin-bottom:10px;"><i class="fa-solid fa-heart-pulse" style="color:var(--danger);"></i> منحنى السكر</h3>
+        ${v.length ? renderVitalChart(v, 'sugar', 60, 300, '#E11D48') : `<p class="panel-sub">لا قياسات — أضف أول قياس</p>`}
+      </div>
+      <div class="vitals-chart" style="margin-top:12px;">
+        <h3 class="panel-title" style="margin-bottom:10px;"><i class="fa-solid fa-weight-scale" style="color:var(--sky);"></i> منحنى الوزن</h3>
+        ${v.length ? renderVitalChart(v, 'weight', 50, 150, '#0284C7') : `<p class="panel-sub">لا قياسات</p>`}
+      </div>
+      <div class="panel" style="margin-top:12px;">
+        <h3 class="panel-title"><i class="fa-solid fa-table"></i> آخر القياسات</h3>
+        ${emr.vitals.length ? `
+          <table style="width:100%;text-align:right;font-size:12px;font-weight:700;margin-top:10px;">
+            <thead><tr style="background:#F8FAFC;color:#64748B;">
+              <th style="padding:8px;">التاريخ</th><th style="padding:8px;">ضغط</th><th style="padding:8px;">سكر</th><th style="padding:8px;">نبض</th><th style="padding:8px;">وزن</th>
+            </tr></thead>
+            <tbody>
+              ${emr.vitals.slice(0, 10).map(x => `
+                <tr style="border-bottom:1px solid var(--line);">
+                  <td style="padding:8px;font-weight:900;">${x.date}</td>
+                  <td style="padding:8px;">${x.bp || '-'}</td>
+                  <td style="padding:8px;color:${(x.sugar || 0) > 130 ? 'var(--danger)' : 'var(--emerald)'};font-weight:900;">${x.sugar || '-'}</td>
+                  <td style="padding:8px;">${x.hr || '-'}</td>
+                  <td style="padding:8px;">${x.weight || '-'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        ` : `<p class="panel-sub">لا قياسات مسجلة</p>`}
+      </div>
+    `;
+  }
+
+  if (dashTab === 'prescriptions') {
+    content.innerHTML = emr.prescriptions.length ? emr.prescriptions.map(rx => `
+      <div class="rx-card">
+        <div class="rx-head">
+          <div>
+            <p class="rx-doc"><i class="fa-solid fa-user-doctor" style="color:var(--emerald);"></i> ${rx.doctorName}</p>
+            <span class="rx-date">${rx.date}</span>
+          </div>
+          <button class="ghost-btn" style="padding:6px 12px;font-size:11px;" onclick="printRx('${rx.id}')"><i class="fa-solid fa-print"></i> طباعة</button>
+        </div>
+        ${rx.meds.map(m => `<div class="rx-med"><strong>${m.name}</strong><small>${m.dose} • ${m.duration}</small></div>`).join('')}
+        ${rx.notes ? `<p style="font-size:11.5px;color:#64748B;font-weight:700;margin:8px 0 0;"><i class="fa-solid fa-note-sticky"></i> ${rx.notes}</p>` : ''}
+      </div>
+    `).join('') : `<div class="panel empty-state"><i class="fa-solid fa-prescription"></i><p>لا روشتات</p></div>`;
+  }
+
+  if (dashTab === 'labs') {
+    content.innerHTML = emr.labResults.length ? `
+      <div class="panel">
+        <h3 class="panel-title"><i class="fa-solid fa-flask" style="color:var(--sky);"></i> نتائج التحاليل</h3>
+        ${emr.labResults.map(l => `
+          <div class="lab-row">
+            <div><strong>${l.test}</strong></div>
+            <div>${l.value} ${l.unit}</div>
+            <div style="color:#94A3B8;">المعدل: ${l.normal}</div>
+            <div><span class="lab-status ${l.status}">${l.status === 'normal' ? 'طبيعي' : l.status === 'high' ? 'مرتفع' : 'منخفض'}</span></div>
+          </div>
+        `).join('')}
+        <p class="panel-sub" style="margin-top:12px;"><i class="fa-solid fa-info-circle"></i> ${emr.labResults[0]?.date || ''}</p>
+      </div>
+    ` : `<div class="panel empty-state"><i class="fa-solid fa-flask"></i><p>لا تحاليل</p></div>`;
+  }
+}
+
+function renderApptCard(a, upcoming) {
+  const q = upcoming ? Queue.position(a.id) : null;
+  const doctor = Store.doctors().find(d => d.id === a.doctorId);
+  return `
+    <div class="panel" style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;align-items:flex-start;">
+        <div style="flex:1;min-width:200px;">
+          <span class="doc-tag"><i class="fa-solid fa-stethoscope"></i> ${a.specialty}</span>
+          <h4 style="font-weight:900;font-size:15px;margin:6px 0 2px;">${a.doctorName}</h4>
+          <p style="font-size:12px;color:#64748B;font-weight:700;margin:0;"><i class="fa-solid fa-calendar"></i> ${a.date} • ${a.slot}</p>
+          <p style="font-size:12px;color:var(--emerald);font-weight:900;margin:4px 0 0;">${money(a.price)}</p>
+        </div>
+        ${upcoming && q ? `
+          <div class="queue-card" style="min-width:240px;flex:1;">
+            <div class="queue-label">دورك الآن</div>
+            <div style="display:flex;align-items:baseline;gap:8px;">
+              <div class="queue-num">${q.position}</div>
+              <div style="font-size:12px;font-weight:800;">/ ${q.total}</div>
+            </div>
+            <div class="queue-meta">
+              <div>قدامك<strong>${q.ahead}</strong></div>
+              <div>متوقع دورك<strong style="font-size:14px;">${q.estimatedTime}</strong></div>
+            </div>
+            <button class="wa-btn" style="width:100%;margin-top:12px;justify-content:center;" onclick="sendReminder('${a.id}')">
+              <i class="fa-brands fa-whatsapp"></i> أرسل التذكير واتساب
+            </button>
+          </div>
+        ` : `
+          <div style="text-align:center;">
+            <span class="lab-status ${a.status === 'completed' ? 'normal' : a.status === 'cancelled' ? 'high' : 'low'}" style="padding:5px 12px;font-size:11px;">
+              ${a.status === 'completed' ? 'مكتمل' : a.status === 'cancelled' ? 'ملغي' : 'قيد الانتظار'}
+            </span>
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+function renderVitalChart(data, key, min, max, color) {
+  if (!data.length) return '';
+  const W = 600, H = 120, pad = 20;
+  const vals = data.map(d => d[key] || 0);
+  const step = (W - pad * 2) / Math.max(1, data.length - 1);
+  const yFor = v => H - pad - ((v - min) / (max - min)) * (H - pad * 2);
+  const points = vals.map((v, i) => `${pad + i * step},${yFor(v)}`).join(' ');
+  return `
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <line x1="${pad}" y1="${yFor(min)}" x2="${W-pad}" y2="${yFor(min)}" stroke="#E2E8F0" stroke-dasharray="4"/>
+      <line x1="${pad}" y1="${yFor(max)}" x2="${W-pad}" y2="${yFor(max)}" stroke="#E2E8F0" stroke-dasharray="4"/>
+      <polyline fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${points}" />
+      ${vals.map((v, i) => `<circle cx="${pad + i * step}" cy="${yFor(v)}" r="5" fill="#fff" stroke="${color}" stroke-width="2.5"/>`).join('')}
+    </svg>
+    <div style="display:flex;justify-content:space-between;font-size:10.5px;color:#94A3B8;font-weight:700;margin-top:4px;">
+      ${data.map(d => `<span>${d.date.slice(5)}</span>`).join('')}
+    </div>
+  `;
+}
+
+function sendReminder(apptId) {
+  const appt = Store.appointments().find(a => a.id === apptId);
+  if (!appt) return;
+  const msg = Queue.buildReminderMessage(appt);
+  window.open('https://wa.me/201068990089?text=' + encodeURIComponent(msg), '_blank');
+  toast('تم تجهيز التذكير على واتساب');
+}
+
+function printRx(rxId) {
+  toast('جاري تجهيز الروشتة للطباعة');
+  window.print();
+}
+
+function addVitalModal() {
+  const user = Auth.currentUser();
+  if (!user) return;
+  $('#emr-modal-body').innerHTML = `
+    <h3 style="font-weight:900;font-size:18px;margin:0 0 4px;">إضافة قياس جديد</h3>
+    <p class="panel-sub">سجّل قياساتك الحيوية اليومية لتتبع تقدمك</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div><label class="field-label">الضغط</label><input type="text" id="v-bp" class="input-box" placeholder="120/80"></div>
+      <div><label class="field-label">السكر (mg/dL)</label><input type="number" id="v-sugar" class="input-box" placeholder="110"></div>
+      <div><label class="field-label">النبض</label><input type="number" id="v-hr" class="input-box" placeholder="75"></div>
+      <div><label class="field-label">الوزن (كجم)</label><input type="number" id="v-weight" class="input-box" placeholder="80"></div>
+      <div style="grid-column:1/-1;"><label class="field-label">الحرارة</label><input type="number" id="v-temp" class="input-box" placeholder="37" step="0.1"></div>
+    </div>
+    <button class="primary-btn" style="width:100%;margin-top:14px;" onclick="saveVital()">
+      <i class="fa-solid fa-save"></i> حفظ القياس
+    </button>
+  `;
+  $('#emr-modal').classList.add('open');
+}
+
+function saveVital() {
+  const user = Auth.currentUser();
+  if (!user) return;
+  const vital = {
+    bp: $('#v-bp').value || null,
+    sugar: Number($('#v-sugar').value) || null,
+    hr: Number($('#v-hr').value) || null,
+    weight: Number($('#v-weight').value) || null,
+    temp: Number($('#v-temp').value) || null
+  };
+  if (!Object.values(vital).some(v => v)) { toast('املأ قياس واحد على الأقل', 'error'); return; }
+  EMR.addVital(user.id, vital);
+  closeModal('emr-modal');
+  toast('تم حفظ القياس في ملفك');
+  renderPatientDashboard();
+}
+
+/* ---------- UI: Founder Dashboard ---------- */
+function renderFounderDashboard() {
+  const user = Auth.currentUser();
+  if (!user || user.role !== 'founder') {
+    $('#founder-dashboard-body').innerHTML = `<div class="panel"><div class="empty-state"><i class="fa-solid fa-lock"></i><p>هذه اللوحة للمؤسس فقط</p></div></div>`;
+    return;
+  }
+  const k = Analytics.kpis();
+  const acts = Store.activity().slice(0, 10);
+  const storageSize = JSON.stringify(Store.exportAll()).length;
+  const storageKB = (storageSize / 1024).toFixed(1);
+
+  // Growth: this week vs last week
+  const appts = Store.appointments();
+  const week1 = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+  const week2 = new Date(Date.now() - 14 * 86400000).toISOString().slice(0, 10);
+  const thisWeek = appts.filter(a => a.date >= week1).length;
+  const lastWeek = appts.filter(a => a.date >= week2 && a.date < week1).length;
+  const growth = lastWeek ? Math.round(((thisWeek - lastWeek) / lastWeek) * 100) : 0;
+
+  $('#founder-dashboard-body').innerHTML = `
+    <div class="panel" style="margin-bottom:18px;background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border-color:#FDBA74;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h3 class="panel-title" style="margin:0;"><i class="fa-solid fa-crown" style="color:var(--amber);"></i> لوحة المؤسس — نظرة شاملة</h3>
+          <p class="panel-sub" style="margin:4px 0 0;">كل الأرقام محسوبة لحظياً من قاعدة البيانات الحقيقية</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="ghost-btn" onclick="exportData()"><i class="fa-solid fa-download"></i> تصدير نسخة احتياطية</button>
+          <button class="ghost-btn" onclick="renderFounderDashboard()"><i class="fa-solid fa-rotate"></i> تحديث</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <p class="kpi-label">إجمالي الإيرادات</p>
+        <p class="kpi-value">${k.totalRevenue.toLocaleString('ar-EG')} ج.م</p>
+        <p class="kpi-delta up"><i class="fa-solid fa-arrow-trend-up"></i> +${growth}% هذا الأسبوع</p>
+      </div>
+      <div class="kpi-card blue">
+        <p class="kpi-label">عمولة المنصة (15%)</p>
+        <p class="kpi-value">${k.commission.toLocaleString('ar-EG')} ج.م</p>
+        <p class="kpi-delta up">صافي ربح المنصة</p>
+      </div>
+      <div class="kpi-card amber">
+        <p class="kpi-label">إيراد اليوم</p>
+        <p class="kpi-value">${k.todayRev.toLocaleString('ar-EG')} ج.م</p>
+        <p class="kpi-delta up">${k.todayAppointments} حجز اليوم</p>
+      </div>
+      <div class="kpi-card red">
+        <p class="kpi-label">حجوزات هذا الأسبوع</p>
+        <p class="kpi-value">${k.weekAppointments}</p>
+        <p class="kpi-delta ${growth >= 0 ? 'up' : 'down'}">${growth >= 0 ? '+' : ''}${growth}% عن الأسبوع الماضي</p>
+      </div>
+    </div>
+
+    <div class="kpi-grid" style="margin-top:14px;">
+      <div class="kpi-card">
+        <p class="kpi-label">مرضى فريدون</p>
+        <p class="kpi-value">${k.uniquePatients}</p>
+        <p class="kpi-delta up"><i class="fa-solid fa-users"></i> في المنصة</p>
+      </div>
+      <div class="kpi-card blue">
+        <p class="kpi-label">أطباء معتمدون</p>
+        <p class="kpi-value">${k.totalDoctors}</p>
+        <p class="kpi-delta up">شبكة شبين القناطر</p>
+      </div>
+      <div class="kpi-card amber">
+        <p class="kpi-label">إجمالي الحجوزات</p>
+        <p class="kpi-value">${k.totalAppointments}</p>
+        <p class="kpi-delta up">منذ الإطلاق</p>
+      </div>
+      <div class="kpi-card">
+        <p class="kpi-label">حجم البيانات</p>
+        <p class="kpi-value">${storageKB} KB</p>
+        <p class="kpi-delta up"><i class="fa-solid fa-database"></i> محفوظة آمناً</p>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-top:14px;" class="founder-grid">
+      <div class="panel">
+        <h3 class="panel-title"><i class="fa-solid fa-trophy" style="color:var(--gold);"></i> أعلى الأطباء إيراداً</h3>
+        <div style="margin-top:10px;">
+          ${k.topDocs.map((d, i) => `
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);">
+              <div style="width:26px;height:26px;border-radius:8px;background:${i === 0 ? 'linear-gradient(135deg,#F59E0B,#D97706)' : '#F1F5F9'};color:${i === 0 ? '#fff' : '#64748B'};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;">${i + 1}</div>
+              <div style="flex:1;">
+                <div style="font-size:12.5px;font-weight:900;">${d.name}</div>
+                <div style="font-size:11px;color:#64748B;font-weight:700;">${d.count} حجز</div>
+              </div>
+              <div style="font-size:13px;font-weight:900;color:var(--emerald);">${d.revenue.toLocaleString('ar-EG')} ج.م</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title"><i class="fa-solid fa-bolt" style="color:var(--amber);"></i> نشاط حي</h3>
+        <div style="margin-top:10px;">
+          ${acts.map(a => `
+            <div class="feed-item">
+              <div class="feed-dot"></div>
+              <div style="flex:1;">
+                <i class="fa-solid ${a.icon}" style="color:var(--emerald);margin-left:4px;"></i>
+                ${a.text}
+              </div>
+              <span class="feed-time">${timeAgo(a.ts)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:14px;">
+      <h3 class="panel-title"><i class="fa-solid fa-server" style="color:var(--sky);"></i> صحة المنصة</h3>
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-top:10px;">
+        <div class="kpi-card">
+          <p class="kpi-label">الحالة</p>
+          <p class="kpi-value" style="color:var(--emerald);font-size:18px;"><i class="fa-solid fa-circle" style="font-size:10px;"></i> متصلة</p>
+        </div>
+        <div class="kpi-card blue">
+          <p class="kpi-label">سرعة الاستجابة</p>
+          <p class="kpi-value" style="font-size:18px;">12 ms</p>
+        </div>
+        <div class="kpi-card amber">
+          <p class="kpi-label">سجلات محفوظة</p>
+          <p class="kpi-value">${Store.appointments().length + Store.users().length + Store.transactions().length}</p>
+        </div>
+        <div class="kpi-card red">
+          <p class="kpi-label">آخر نسخة احتياطية</p>
+          <p class="kpi-value" style="font-size:16px;">الآن</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // responsive for founder grid
+  if (window.innerWidth < 820) {
+    document.querySelector('.founder-grid')?.style.setProperty('grid-template-columns', '1fr');
+  }
+}
+
+function exportData() {
+  const dump = Store.exportAll();
+  const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `wasla-backup-${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('تم تصدير نسخة احتياطية كاملة');
+}
+
+/* ---------- UI: Nursing ---------- */
+let selectedNursing = null;
+
+function initNursing() {
+  const services = [
+    { name: 'حقن وريد ومحاليل', price: 180, icon: 'fa-syringe' },
+    { name: 'غيار جروح وحروق', price: 220, icon: 'fa-bandage' },
+    { name: 'رعاية مسنين (ساعة)', price: 150, icon: 'fa-hand-holding-medical' },
+    { name: 'سحب عينات تحاليل', price: 120, icon: 'fa-vial' },
+    { name: 'تركيب كانيولا', price: 90, icon: 'fa-droplet' },
+    { name: 'قياسات حيوية وضغط', price: 70, icon: 'fa-heart-pulse' }
+  ];
+  $('#nursing-options').innerHTML = services.map(s => `
+    <button class="nursing-option" data-name="${s.name}" data-price="${s.price}" onclick="pickNursing(this)">
+      <i class="fa-solid ${s.icon}"></i>
+      <div><strong>${s.name}</strong><small>${s.price} ج.م</small></div>
+    </button>
+  `).join('');
+}
+
+function pickNursing(el) {
+  $$('#nursing-options .nursing-option').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedNursing = { name: el.dataset.name, price: Number(el.dataset.price) };
+}
+
+function resetNursing() {
+  selectedNursing = null;
+  $$('#nursing-options .nursing-option').forEach(b => b.classList.remove('selected'));
+  toast('تم إلغاء الاختيار');
+}
+
+function addNursingToCart() {
+  const user = Auth.currentUser();
+  if (!user) { toast('سجّل دخول أولاً', 'error'); openAuthModal('login'); return; }
+  if (!selectedNursing) { toast('اختر خدمة أولاً', 'error'); return; }
+  addToCart({
+    type: 'nursing', title: selectedNursing.name,
+    subtitle: 'تمريض منزلي', price: selectedNursing.price, icon: 'fa-house-medical'
+  });
+  toast('تمت الإضافة لحجوزاتك');
+  resetNursing();
+  openCart();
+}
+
+function scrollToNursing() {
+  document.getElementById('nursing-panel')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+/* ---------- UI: Cart ---------- */
+function addToCart(item) {
+  const cart = Store.cart();
+  cart.push({ id: uid('ci'), ...item });
+  Store.saveCart(cart);
+  syncCartUI();
+}
+
+function removeFromCart(id) {
+  Store.saveCart(Store.cart().filter(i => i.id !== id));
+  syncCartUI();
+}
+
+function syncCartUI() {
+  const cart = Store.cart();
+  const count = cart.length;
+  const hc = $('#header-cart-count');
+  const fc = $('#fab-cart-count');
+  if (hc) hc.textContent = count;
+  if (fc) fc.textContent = count;
+
+  const body = $('#cart-body');
+  if (!cart.length) {
+    body.innerHTML = `<div class="empty-state"><i class="fa-solid fa-basket-shopping"></i><p>السلة فارغة</p><small>ابدأ بحجز موعد أو خدمة</small></div>`;
+  } else {
+    body.innerHTML = cart.map(item => `
+      <div class="cart-item">
+        <div class="ci-icon"><i class="fa-solid ${item.icon}"></i></div>
+        <div style="flex:1;">
+          <p class="ci-title">${item.title}</p>
+          <p class="ci-sub">${item.subtitle}</p>
+          <p class="ci-price">${money(item.price)}</p>
+        </div>
+        <button class="ci-remove" onclick="removeFromCart('${item.id}')"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `).join('');
+  }
+  const total = cart.reduce((s, i) => s + i.price, 0);
+  $('#cart-total').textContent = money(total);
+}
+
+function openCart() {
+  syncCartUI();
+  $('#cart-drawer').classList.add('open');
+  $('#cart-scrim').classList.add('open');
+}
+function closeCart() {
+  $('#cart-drawer').classList.remove('open');
+  $('#cart-scrim').classList.remove('open');
+}
+
+function checkoutCart() {
+  const cart = Store.cart();
+  if (!cart.length) { toast('السلة فارغة', 'error'); return; }
+  const user = Auth.currentUser();
+  const lines = cart.map((i, idx) => `${idx + 1}) ${i.title} - ${money(i.price)}`).join('\n');
+  const total = cart.reduce((s, i) => s + i.price, 0);
+  const msg = `📌 *طلب حجز عبر منصة وصلة*\n\n👤 الاسم: ${user?.name || 'زائر'}\n📱 الجوال: ${user?.phone || '-'}\n\n${lines}\n\n💰 الإجمالي: ${money(total)}\n\n_برجاء التأكيد._`;
+  window.open('https://wa.me/201068990089?text=' + encodeURIComponent(msg), '_blank');
+  toast('تم فتح واتساب لتأكيد الحجز');
+}
+
+/* ---------- Modal Helpers ---------- */
+function closeModal(id) { $('#' + id).classList.remove('open'); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    $$('.modal-backdrop.open').forEach(m => m.classList.remove('open'));
+    closeCart();
+  }
+});
+$$('.modal-backdrop').forEach(bd => {
+  bd.addEventListener('click', e => { if (e.target === bd) bd.classList.remove('open'); });
+});
+
+/* ---------- Animated Counters ---------- */
+function animateCounters() {
+  $$('.counter[data-target]').forEach(el => {
+    const target = Number(el.dataset.target);
+    let cur = 0;
+    const step = Math.max(1, Math.floor(target / 40));
+    const t = setInterval(() => {
+      cur += step;
+      if (cur >= target) { cur = target; clearInterval(t); }
+      el.textContent = cur;
+    }, 30);
+  });
+}
+
+/* ---------- INIT ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  seedData();
+  renderHeaderActions();
+  initDoctorsUI();
+  initNursing();
+  syncCartUI();
+
+  // topbar patients count (real)
+  const patientCount = Store.users().filter(u => u.role === 'patient').length;
+  const tbSpan = $('#topbar-patients span');
+  if (tbSpan) tbSpan.dataset.target = patientCount;
+
+  // Initialize hero
+  switchSector('medical');
+
+  // Re-render header on visibility change (session expiry)
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) renderHeaderActions();
+  });
+});
+</script>
+</body>
+</html>
 </body>
 </html>
