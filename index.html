@@ -464,4 +464,641 @@
   <div class="hero-card" id="hero-card" data-sector="medical">
     <div class="hero-pill" id="hero-pill"><i class="fa-solid fa-shield-heart"></i> القطاع الطبي المعتمد - تغطية 6 شركات تأمين</div>
     <h2 id="hero-title">صحتك في شبين القناطر.. على بُعد ضغطة واحدة</h2>
-    <p id="hero-desc">احجز مع نخبة استشاريي شبين القناطر، قار
+    <p id="hero-desc">احجز مع نخبة استشاريي شبين القناطر، قارن سعر الكاش مع التأمين، واطلب تمريض منزلي موثوق بأسعار شفافة. منصة "وصلة" تضمن لك جودة الرعاية وسرعة الاستجابة.</p>
+    <div class="hero-stats" id="hero-stats">
+      <div class="hs"><strong>+48</strong> طبيب واستشاري</div>
+      <div class="hs"><strong>+12</strong> خدمة تمريض منزلي</div>
+      <div class="hs"><strong>6</strong> شركات تأمين</div>
+      <div class="hs"><strong>4.9★</strong> تقييم مواطني شبين</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTOR VIEWS ===================== -->
+<div class="page-shell">
+
+  <!-- ============= SECTOR 1: MEDICAL ============= -->
+  <section class="sector-view active" id="sector-medical">
+    <div class="panel" style="margin-bottom:18px;">
+      <h3 class="panel-title"><i class="fa-solid fa-magnifying-glass" style="color:var(--wasla-emerald);"></i> ابحث عن طبيبك بسهولة</h3>
+      <p class="panel-sub">فلتر حسب التخصص، طريقة الدفع، أو اسم الطبيب - كل النتائج محدثة لحظياً.</p>
+      <div class="filter-grid">
+        <div class="search-wrap">
+          <label class="field-label">اسم الطبيب أو العيادة</label>
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="med-search" class="input-box" placeholder="مثال: د. محمد الشريف، باطنة، عظام..." oninput="renderDoctors()" />
+        </div>
+        <div>
+          <label class="field-label">التخصص</label>
+          <select id="med-spec" class="input-box" onchange="renderDoctors()">
+            <option value="">كل التخصصات</option>
+            <option value="باطنة وكبد وسكر">باطنة وكبد وسكر</option>
+            <option value="جراحة العظام والمفاصل">جراحة العظام والمفاصل</option>
+            <option value="أطفال وحديثي الولادة">أطفال وحديثي الولادة</option>
+            <option value="قلب وأوعية دموية">قلب وأوعية دموية</option>
+            <option value="نساء وتوليد">نساء وتوليد</option>
+            <option value="جلدية وتجميل">جلدية وتجميل</option>
+            <option value="أنف وأذن وحنجرة">أنف وأذن وحنجرة</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">طريقة الدفع</label>
+          <select id="med-payment" class="input-box" onchange="renderDoctors()">
+            <option value="">الكل</option>
+            <option value="cash">كاش</option>
+            <option value="insurance">تأمين</option>
+          </select>
+        </div>
+      </div>
+      <div class="chips-row" id="med-chips">
+        <button class="chip active" data-chip="all" onclick="applyChip(this)">الكل</button>
+        <button class="chip" data-chip="باطنة وكبد وسكر" onclick="applyChip(this)">باطنة</button>
+        <button class="chip" data-chip="جراحة العظام والمفاصل" onclick="applyChip(this)">عظام</button>
+        <button class="chip" data-chip="أطفال وحديثي الولادة" onclick="applyChip(this)">أطفال</button>
+        <button class="chip" data-chip="قلب وأوعية دموية" onclick="applyChip(this)">قلب</button>
+        <button class="chip" data-chip="نساء وتوليد" onclick="applyChip(this)">نساء وتوليد</button>
+        <button class="chip" data-chip="جلدية وتجميل" onclick="applyChip(this)">جلدية</button>
+      </div>
+    </div>
+
+    <div class="doctors-grid" id="doctors-grid"></div>
+
+    <!-- Nursing Panel -->
+    <div class="panel" style="margin-top:22px;">
+      <h3 class="panel-title"><i class="fa-solid fa-house-medical" style="color:var(--wasla-emerald);"></i> طلب تمريض منزلي معتمد</h3>
+      <p class="panel-sub">ممرضون وممرضات موثوقون (فيش وتشبيه + شهادات معتمدة) يصلك في أقل من 60 دقيقة داخل شبين القناطر والقرى.</p>
+      <div class="nursing-grid" id="nursing-options">
+        <button class="nursing-option" data-service="حقن وريد ومحاليل" data-price="180" onclick="selectNursing(this)">
+          <i class="fa-solid fa-syringe"></i>
+          <div><strong>حقن وريد ومحاليل</strong><small>180 ج.م / زيارة</small></div>
+        </button>
+        <button class="nursing-option" data-service="غيار جروح وحروق" data-price="220" onclick="selectNursing(this)">
+          <i class="fa-solid fa-bandage"></i>
+          <div><strong>غيار جروح وحروق</strong><small>220 ج.م / زيارة</small></div>
+        </button>
+        <button class="nursing-option" data-service="رعاية مسنين (ساعة)" data-price="150" onclick="selectNursing(this)">
+          <i class="fa-solid fa-hand-holding-medical"></i>
+          <div><strong>رعاية مسنين (ساعة)</strong><small>150 ج.م / ساعة</small></div>
+        </button>
+        <button class="nursing-option" data-service="سحب عينات تحاليل" data-price="120" onclick="selectNursing(this)">
+          <i class="fa-solid fa-vial"></i>
+          <div><strong>سحب عينات تحاليل</strong><small>120 ج.م / زيارة</small></div>
+        </button>
+        <button class="nursing-option" data-service="تركيب كانيولا" data-price="90" onclick="selectNursing(this)">
+          <i class="fa-solid fa-droplet"></i>
+          <div><strong>تركيب كانيولا</strong><small>90 ج.م / زيارة</small></div>
+        </button>
+        <button class="nursing-option" data-service="قياسات حيوية وضغط" data-price="70" onclick="selectNursing(this)">
+          <i class="fa-solid fa-heart-pulse"></i>
+          <div><strong>قياسات حيوية وضغط</strong><small>70 ج.م / زيارة</small></div>
+        </button>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+        <button class="primary-btn" onclick="addNursingToCart()">
+          <i class="fa-solid fa-plus"></i> أضف الخدمة لحجوزاتي
+        </button>
+        <button class="ghost-btn" onclick="resetNursing()">إلغاء الاختيار</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= SECTOR 2: MARKET (placeholder for Phase 2) ============= -->
+  <section class="sector-view" id="sector-market">
+    <div class="panel">
+      <h3 class="panel-title"><i class="fa-solid fa-cart-shopping" style="color:var(--wasla-amber);"></i> قطاع التسوق والمحلات المحلية</h3>
+      <p class="panel-sub">سيتم بناء بوابة السوبرماركت والمحلات في الجزء الثاني (Phase 2) مع سلة شراء كاملة وربط دليفري.</p>
+      <div class="empty-state">
+        <i class="fa-solid fa-store"></i>
+        <p>المرحلة الثانية قادمة</p>
+        <small>بوابة المحلات + سلة التسوق + تتبع الدليفري</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= SECTOR 3: CARS (placeholder) ============= -->
+  <section class="sector-view" id="sector-cars">
+    <div class="panel">
+      <h3 class="panel-title"><i class="fa-solid fa-car-side" style="color:var(--wasla-indigo);"></i> قطاع خدمات السيارات المتنقلة</h3>
+      <p class="panel-sub">غسيل، كشف أعطال، وتغيير إطارات - في مكانك. سيتم تفعيله في الجزء الثالث.</p>
+      <div class="empty-state">
+        <i class="fa-solid fa-car-burst"></i>
+        <p>المرحلة الثالثة قادمة</p>
+        <small>خدمات السيارات المتنقلة + خرائط الوصول + مواعيد فورية</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= SECTOR 4: HOME (placeholder) ============= -->
+  <section class="sector-view" id="sector-home">
+    <div class="panel">
+      <h3 class="panel-title"><i class="fa-solid fa-screwdriver-wrench" style="color:var(--wasla-sky);"></i> قطاع الصيانة المنزلية المعتمدة</h3>
+      <p class="panel-sub">سباك، كهربائي، نجار، فني تكييف - كلهم بفيش وتشبيه وتقييمات حقيقية. الجزء الرابع.</p>
+      <div class="empty-state">
+        <i class="fa-solid fa-tools"></i>
+        <p>المرحلة الرابعة قادمة</p>
+        <small>الصنايعية المعتمدون + نظام التقييم + ضمان الخدمة</small>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ===================== BOOKING MODAL ===================== -->
+<div class="modal-backdrop" id="booking-modal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeModal('booking-modal')"><i class="fa-solid fa-xmark"></i></button>
+    <div id="booking-modal-body"></div>
+  </div>
+</div>
+
+<!-- ===================== CART DRAWER ===================== -->
+<div class="overlay-scrim" id="cart-scrim" onclick="closeCart()"></div>
+<aside class="cart-drawer" id="cart-drawer">
+  <div class="cart-head">
+    <h3 style="font-weight:900;font-size:16px;margin:0;"><i class="fa-solid fa-basket-shopping" style="color:var(--wasla-emerald);margin-left:6px;"></i> حجوزاتي</h3>
+    <button class="modal-close" style="position:static;" onclick="closeCart()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="cart-body" id="cart-body"></div>
+  <div class="cart-foot">
+    <div class="cart-total-row">
+      <span>الإجمالي</span>
+      <strong id="cart-total">0 ج.م</strong>
+    </div>
+    <button class="primary-btn" style="width:100%;" onclick="checkoutCart()">
+      <i class="fa-brands fa-whatsapp"></i> تأكيد الحجز عبر واتساب
+    </button>
+  </div>
+</aside>
+
+<!-- ===================== FLOATING CART FAB ===================== -->
+<button class="cart-fab" onclick="openCart()" title="حجوزاتي">
+  <i class="fa-solid fa-basket-shopping"></i>
+  <span class="cart-badge" id="fab-cart-count">0</span>
+</button>
+
+<!-- ===================== TOASTS ===================== -->
+<div class="toast-stack" id="toast-stack"></div>
+
+<script>
+/* ============================================================
+   WASLA — PHASE 1 ENGINE (Mock DB + Medical Sector UI)
+   Clean, self-contained, no external state.
+============================================================ */
+
+/* ---------- 1. MOCK DATABASE ---------- */
+const WASLA_DB = {
+  doctors: [
+    {
+      id: 'doc-001',
+      name: 'د. محمد الشريف',
+      specialty: 'باطنة وكبد وسكر',
+      title: 'استشاري الباطنة والسكر - زمالة جامعة عين شمس',
+      area: 'شارع بورسعيد - أعلى صيدلية النور',
+      rating: 4.9,
+      reviews: 212,
+      priceCash: 200,
+      priceWasla: 170,
+      insurances: ['GlobeMed', 'MetLife'],
+      payments: ['cash', 'insurance'],
+      slots: ['5:00 م', '5:30 م', '6:00 م', '6:30 م'],
+      avatar: 'fa-user-doctor'
+    },
+    {
+      id: 'doc-002',
+      name: 'د. أحمد فؤاد النجار',
+      specialty: 'جراحة العظام والمفاصل',
+      title: 'استشاري جراحة العظام - مناظير المفاصل',
+      area: 'ميدان المحطة - برج الأطباء',
+      rating: 4.8,
+      reviews: 168,
+      priceCash: 250,
+      priceWasla: 210,
+      insurances: ['MetLife', 'MedRight'],
+      payments: ['cash', 'insurance'],
+      slots: ['4:00 م', '5:00 م', '7:00 م'],
+      avatar: 'fa-bone'
+    },
+    {
+      id: 'doc-003',
+      name: 'د. سارة عبد الرحمن',
+      specialty: 'أطفال وحديثي الولادة',
+      title: 'أخصائية طب الأطفال وحديثي الولادة',
+      area: 'شارع المستشفى - أمام مركز الأشعة',
+      rating: 5.0,
+      reviews: 301,
+      priceCash: 200,
+      priceWasla: 180,
+      insurances: ['MedRight', 'AXA'],
+      payments: ['cash', 'insurance'],
+      slots: ['3:00 م', '6:00 م', '6:30 م'],
+      avatar: 'fa-baby'
+    },
+    {
+      id: 'doc-004',
+      name: 'د. كريم عبد العزيز',
+      specialty: 'قلب وأوعية دموية',
+      title: 'استشاري القلب والأوعية الدموية - قسطرة القلب',
+      area: 'شارع بورسعيد - مركز القلب التخصصي',
+      rating: 4.9,
+      reviews: 142,
+      priceCash: 350,
+      priceWasla: 300,
+      insurances: ['GlobeMed', 'Bupa'],
+      payments: ['cash', 'insurance'],
+      slots: ['5:00 م', '6:00 م', '8:00 م'],
+      avatar: 'fa-heart-pulse'
+    },
+    {
+      id: 'doc-005',
+      name: 'د. منى سالم',
+      specialty: 'نساء وتوليد',
+      title: 'استشارية أمراض النساء والتوليد - متابعة حمل',
+      area: 'ميدان المحطة - عمارات الشفاء',
+      rating: 4.7,
+      reviews: 189,
+      priceCash: 220,
+      priceWasla: 190,
+      insurances: ['MetLife', 'AXA'],
+      payments: ['cash', 'insurance'],
+      slots: ['4:30 م', '5:30 م', '7:30 م'],
+      avatar: 'fa-person-pregnant'
+    },
+    {
+      id: 'doc-006',
+      name: 'د. هشام الجندي',
+      specialty: 'جلدية وتجميل',
+      title: 'استشاري الأمراض الجلدية والليزر',
+      area: 'شارع الجيش - مركز ديرما كير',
+      rating: 4.6,
+      reviews: 97,
+      priceCash: 180,
+      priceWasla: 150,
+      insurances: [],
+      payments: ['cash'],
+      slots: ['4:00 م', '5:00 م', '6:00 م'],
+      avatar: 'fa-face-smile'
+    },
+    {
+      id: 'doc-007',
+      name: 'د. عمرو حسن',
+      specialty: 'أنف وأذن وحنجرة',
+      title: 'أخصائي أنف وأذن وحنجرة - مناظير',
+      area: 'شارع المستشفى - برج النيل الطبي',
+      rating: 4.8,
+      reviews: 121,
+      priceCash: 180,
+      priceWasla: 160,
+      insurances: ['GlobeMed'],
+      payments: ['cash', 'insurance'],
+      slots: ['3:30 م', '5:30 م', '7:00 م'],
+      avatar: 'fa-ear-listen'
+    },
+    {
+      id: 'doc-008',
+      name: 'د. فاطمة إبراهيم',
+      specialty: 'باطنة وكبد وسكر',
+      title: 'أخصائية الباطنة والجهاز الهضمي',
+      area: 'كفر حمزة - مركز الواحة الطبي',
+      rating: 4.7,
+      reviews: 88,
+      priceCash: 150,
+      priceWasla: 130,
+      insurances: ['MedRight'],
+      payments: ['cash', 'insurance'],
+      slots: ['5:00 م', '6:00 م'],
+      avatar: 'fa-user-nurse'
+    }
+  ]
+};
+
+/* ---------- 2. STATE ---------- */
+const WaslaState = {
+  sector: 'medical',
+  cart: [],
+  nursingSelection: null
+};
+
+/* ---------- 3. UTILITIES ---------- */
+function $(sel, root = document) { return root.querySelector(sel); }
+function $$(sel, root = document) { return Array.from(root.querySelectorAll(sel)); }
+
+function toast(message, type = 'success') {
+  const stack = $('#toast-stack');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type === 'error' ? ' error' : '');
+  el.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> ${message}`;
+  stack.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(-30px)';
+    el.style.transition = 'all .3s';
+    setTimeout(() => el.remove(), 320);
+  }, 2800);
+}
+
+function money(n) { return n.toLocaleString('ar-EG') + ' ج.م'; }
+
+/* ---------- 4. SECTOR SWITCHER ---------- */
+const HERO_CONFIG = {
+  medical: {
+    pill: '<i class="fa-solid fa-shield-heart"></i> القطاع الطبي المعتمد - تغطية 6 شركات تأمين',
+    title: 'صحتك في شبين القناطر.. على بُعد ضغطة واحدة',
+    desc: 'احجز مع نخبة استشاريي شبين القناطر، قارن سعر الكاش مع التأمين، واطلب تمريض منزلي موثوق بأسعار شفافة.',
+    stats: [
+      ['+48', 'طبيب واستشاري'],
+      ['+12', 'خدمة تمريض منزلي'],
+      ['6', 'شركات تأمين'],
+      ['4.9★', 'تقييم مواطني شبين']
+    ]
+  },
+  market: {
+    pill: '<i class="fa-solid fa-truck-fast"></i> توصيل لكل قرى شبين القناطر',
+    title: 'كل احتياجاتك من محلات البلد.. تُوصَّل حتى باب بيتك',
+    desc: 'اطلب من السوبرماركت، الخضار، والصيدلية بضغطة واحدة. أسعار معلنة وتوصيل دليفري خلال ساعة.',
+    stats: [['+120', 'محل وسوبرماركت'], ['60 دق', 'متوسط التوصيل'], ['+2000', 'منتج متاح'], ['4.8★', 'رضا العملاء']]
+  },
+  cars: {
+    pill: '<i class="fa-solid fa-wrench"></i> فنيون متنقلون إلى مكانك',
+    title: 'غسيل، كشف أعطال، وتغيير إطارات.. في مكانك',
+    desc: 'فريق متنقل معتمد يصل إليك أينما كنت في شبين القناطر. خدمة سريعة وأسعار ثابتة قبل الطلب.',
+    stats: [['+15', 'فني متنقل'], ['45 دق', 'زمن الوصول'], ['3', 'خدمات سيارات'], ['4.9★', 'تقييم']]
+  },
+  home: {
+    pill: '<i class="fa-solid fa-shield-halved"></i> صنايعية بفيش وتشبيه وتقييمات',
+    title: 'صيانة منزلك بأيدي فنيين معتمدين وموثوقين',
+    desc: 'سباك، كهربائي، نجار، وفني تكييف. كلهم موثقون بنظام الفيش والتشبيه مع ضمان على الخدمة.',
+    stats: [['+40', 'صنايعي معتمد'], ['24 ساعة', 'استجابة'], ['7', 'تخصصات'], ['4.9★', 'تقييم']]
+  }
+};
+
+function switchSector(sector) {
+  WaslaState.sector = sector;
+  $$('.super-tab').forEach(t => t.classList.toggle('active', t.dataset.sector === sector));
+  $$('.sector-view').forEach(v => v.classList.toggle('active', v.id === `sector-${sector}`));
+  const hero = $('#hero-card');
+  hero.dataset.sector = sector;
+  const cfg = HERO_CONFIG[sector];
+  $('#hero-pill').innerHTML = cfg.pill;
+  $('#hero-title').textContent = cfg.title;
+  $('#hero-desc').textContent = cfg.desc;
+  $('#hero-stats').innerHTML = cfg.stats.map(([n, l]) => `<div class="hs"><strong>${n}</strong> ${l}</div>`).join('');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ---------- 5. FILTERS / CHIPS ---------- */
+function applyChip(chipEl) {
+  $$('#med-chips .chip').forEach(c => c.classList.remove('active'));
+  chipEl.classList.add('active');
+  const val = chipEl.dataset.chip;
+  $('#med-spec').value = val === 'all' ? '' : val;
+  renderDoctors();
+}
+
+/* ---------- 6. RENDER DOCTORS ---------- */
+function renderDoctors() {
+  const q = $('#med-search').value.trim().toLowerCase();
+  const spec = $('#med-spec').value;
+  const payment = $('#med-payment').value;
+  const grid = $('#doctors-grid');
+
+  const list = WASLA_DB.doctors.filter(d => {
+    const matchesQ = !q || d.name.toLowerCase().includes(q) || d.specialty.toLowerCase().includes(q) || d.area.toLowerCase().includes(q);
+    const matchesSpec = !spec || d.specialty === spec;
+    const matchesPay = !payment || d.payments.includes(payment);
+    return matchesQ && matchesSpec && matchesPay;
+  });
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="panel empty-state"><i class="fa-solid fa-user-doctor"></i><p>لا يوجد أطباء مطابقون</p><small>جرب تغيير التخصص أو كلمة البحث</small></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(d => `
+    <article class="doc-card">
+      <div class="doc-avatar"><i class="fa-solid ${d.avatar}"></i></div>
+      <div>
+        <span class="doc-tag"><i class="fa-solid fa-stethoscope"></i> ${d.specialty}</span>
+        <h4 class="doc-name">${d.name}</h4>
+        <p class="doc-meta"><i class="fa-solid fa-location-dot" style="color:var(--wasla-emerald);"></i> ${d.area}</p>
+        <p class="doc-meta"><i class="fa-solid fa-star" style="color:#F59E0B;"></i> ${d.rating} (${d.reviews} تقييم) • ${d.title}</p>
+        <div class="doc-insurance-row">
+          ${d.insurances.length
+            ? d.insurances.map(i => `<span class="ins-pill"><i class="fa-solid fa-shield-halved"></i> ${i}</span>`).join('')
+            : `<span class="ins-pill cash"><i class="fa-solid fa-money-bill"></i> كاش فقط</span>`}
+          ${d.payments.includes('cash') ? `<span class="ins-pill cash"><i class="fa-solid fa-wallet"></i> كاش</span>` : ''}
+        </div>
+      </div>
+      <div class="doc-price-col">
+        <div>
+          <div class="price-old">${money(d.priceCash)}</div>
+          <div class="price-new">${d.priceWasla} <span>ج.م</span></div>
+          <div style="font-size:10.5px;color:#64748B;font-weight:700;">سعر وصلة</div>
+        </div>
+        <button class="book-btn" onclick="openBooking('${d.id}')">
+          <i class="fa-solid fa-calendar-check"></i> احجز الآن
+        </button>
+      </div>
+    </article>
+  `).join('');
+}
+
+/* ---------- 7. BOOKING MODAL ---------- */
+function openBooking(docId) {
+  const doc = WASLA_DB.doctors.find(d => d.id === docId);
+  if (!doc) return;
+  const modal = $('#booking-modal');
+  const body = $('#booking-modal-body');
+
+  body.innerHTML = `
+    <span class="doc-tag"><i class="fa-solid fa-stethoscope"></i> ${doc.specialty}</span>
+    <h3 style="font-size:19px;font-weight:900;margin:6px 0 2px;">${doc.name}</h3>
+    <p style="font-size:12px;color:#64748B;font-weight:700;margin:0 0 14px;">${doc.title}</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+      <span class="ins-pill"><i class="fa-solid fa-location-dot"></i> ${doc.area}</span>
+      <span class="ins-pill cash"><i class="fa-solid fa-star" style="color:#F59E0B;"></i> ${doc.rating} (${doc.reviews})</span>
+    </div>
+    <div style="background:#F8FAFC;border:1px solid var(--wasla-line);border-radius:14px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:11px;font-weight:800;color:#64748B;">سعر الكشف بعد خصم وصلة</div>
+        <div style="font-size:24px;font-weight:900;color:var(--wasla-emerald);">${doc.priceWasla} ج.م</div>
+      </div>
+      <div style="text-align:left;">
+        <div style="font-size:11px;font-weight:800;color:#64748B;">السعر الأصلي</div>
+        <div style="font-size:15px;font-weight:900;color:#94A3B8;text-decoration:line-through;">${doc.priceCash} ج.م</div>
+      </div>
+    </div>
+    <label class="field-label">اختر الموعد المتاح</label>
+    <div id="slot-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+      ${doc.slots.map((s, i) => `
+        <label class="slot-option">
+          <span><input type="radio" name="slot" value="${s}" ${i === 0 ? 'checked' : ''} onchange="highlightSlot(this)"> ${s}</span>
+          <span style="color:var(--wasla-emerald);font-size:11px;font-weight:900;">متاح</span>
+        </label>
+      `).join('')}
+    </div>
+    <label class="field-label">اسم المريض الثلاثي</label>
+    <input type="text" id="bk-name" class="input-box" placeholder="مثال: أحمد محمد علي" style="margin-bottom:12px;" />
+    <label class="field-label">رقم الواتساب</label>
+    <input type="text" id="bk-phone" class="input-box" placeholder="01xxxxxxxxx" style="margin-bottom:16px;" />
+    <button class="primary-btn" style="width:100%;" onclick="confirmBooking('${doc.id}')">
+      <i class="fa-solid fa-cart-plus"></i> أضف إلى حجوزاتي
+    </button>
+  `;
+  modal.classList.add('open');
+  setTimeout(() => highlightSlot($('input[name="slot"]', body)), 30);
+}
+
+function highlightSlot(input) {
+  $$('#slot-list .slot-option').forEach(l => l.classList.remove('selected'));
+  if (input) input.closest('.slot-option').classList.add('selected');
+}
+
+function confirmBooking(docId) {
+  const doc = WASLA_DB.doctors.find(d => d.id === docId);
+  const slot = document.querySelector('input[name="slot"]:checked');
+  const name = $('#bk-name').value.trim();
+  const phone = $('#bk-phone').value.trim();
+
+  if (!name || name.split(' ').length < 2) {
+    toast('اكتب اسم المريض الثلاثي', 'error');
+    return;
+  }
+  if (!/^01[0-9]{9}$/.test(phone)) {
+    toast('رقم واتساب غير صحيح', 'error');
+    return;
+  }
+  if (!slot) {
+    toast('اختر موعداً', 'error');
+    return;
+  }
+
+  addToCart({
+    type: 'doctor',
+    refId: doc.id,
+    title: doc.name,
+    subtitle: `${doc.specialty} • ${slot.value} • ${name}`,
+    price: doc.priceWasla,
+    icon: 'fa-user-doctor'
+  });
+
+  closeModal('booking-modal');
+  toast(`تم إضافة حجز ${doc.name} بنجاح`);
+  openCart();
+}
+
+/* ---------- 8. NURSING ---------- */
+function selectNursing(btn) {
+  $$('.nursing-option').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  WaslaState.nursingSelection = {
+    service: btn.dataset.service,
+    price: Number(btn.dataset.price)
+  };
+}
+
+function resetNursing() {
+  WaslaState.nursingSelection = null;
+  $$('.nursing-option').forEach(b => b.classList.remove('selected'));
+  toast('تم إلغاء الاختيار');
+}
+
+function addNursingToCart() {
+  if (!WaslaState.nursingSelection) {
+    toast('اختر خدمة تمريض أولاً', 'error');
+    return;
+  }
+  const { service, price } = WaslaState.nursingSelection;
+  addToCart({
+    type: 'nursing',
+    refId: 'nur-' + Date.now(),
+    title: service,
+    subtitle: 'طلب تمريض منزلي',
+    price,
+    icon: 'fa-house-medical'
+  });
+  toast('تمت إضافة خدمة التمريض لحجوزاتك');
+  resetNursing();
+  openCart();
+}
+
+/* ---------- 9. CART ---------- */
+function addToCart(item) {
+  WaslaState.cart.push({ ...item, id: 'ci-' + Math.random().toString(36).slice(2, 9) });
+  syncCartUI();
+}
+
+function removeFromCart(id) {
+  WaslaState.cart = WaslaState.cart.filter(i => i.id !== id);
+  syncCartUI();
+}
+
+function syncCartUI() {
+  const count = WaslaState.cart.length;
+  $('#header-cart-count').textContent = count;
+  $('#fab-cart-count').textContent = count;
+  const body = $('#cart-body');
+  if (!count) {
+    body.innerHTML = `<div class="empty-state"><i class="fa-solid fa-basket-shopping"></i><p>سلة الحجوزات فارغة</p><small>ابدأ بحجز موعد أو خدمة تمريض</small></div>`;
+  } else {
+    body.innerHTML = WaslaState.cart.map(item => `
+      <div class="cart-item">
+        <div class="ci-icon"><i class="fa-solid ${item.icon}"></i></div>
+        <div style="flex:1;">
+          <p class="ci-title">${item.title}</p>
+          <p class="ci-sub">${item.subtitle}</p>
+          <p class="ci-price">${money(item.price)}</p>
+        </div>
+        <button class="ci-remove" onclick="removeFromCart('${item.id}')" title="حذف">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    `).join('');
+  }
+  const total = WaslaState.cart.reduce((s, i) => s + i.price, 0);
+  $('#cart-total').textContent = money(total);
+}
+
+function openCart() {
+  syncCartUI();
+  $('#cart-drawer').classList.add('open');
+  $('#cart-scrim').classList.add('open');
+}
+function closeCart() {
+  $('#cart-drawer').classList.remove('open');
+  $('#cart-scrim').classList.remove('open');
+}
+
+function checkoutCart() {
+  if (!WaslaState.cart.length) {
+    toast('السلة فارغة', 'error');
+    return;
+  }
+  const lines = WaslaState.cart.map((i, idx) =>
+    `${idx + 1}) ${i.title} - ${i.subtitle} - ${money(i.price)}`
+  ).join('\n');
+  const total = WaslaState.cart.reduce((s, i) => s + i.price, 0);
+  const msg = `📌 *طلب حجز عبر منصة وصلة*\n\n${lines}\n\n💰 الإجمالي: ${money(total)}\n\n_برجاء التأكيد وإرسال التذكرة._`;
+  window.open('https://wa.me/201068990089?text=' + encodeURIComponent(msg), '_blank');
+  toast('تم فتح واتساب لتأكيد الحجز');
+}
+
+/* ---------- 10. MODAL HELPERS ---------- */
+function closeModal(id) { $('#' + id).classList.remove('open'); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    $$('.modal-backdrop.open').forEach(m => m.classList.remove('open'));
+    closeCart();
+  }
+});
+$$('.modal-backdrop').forEach(bd => {
+  bd.addEventListener('click', e => { if (e.target === bd) bd.classList.remove('open'); });
+});
+
+/* ---------- 11. INIT ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  renderDoctors();
+  syncCartUI();
+});
+</script>
+</body>
+</html>
