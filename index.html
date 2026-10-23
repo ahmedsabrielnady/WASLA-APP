@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة وصلة الفائقة | القطاع الطبي المتكامل</title>
+    <title>منصة وصلة الرقمية | القطاع الطبي الشامل في شبين القناطر</title>
     <style>
         /* ==========================================================================
-           1. نظام الهوية البصرية الأساسي والخطوط (WASLA MEDICAL DESIGN SYSTEM)
+           1. نظام الهوية البصرية، الألوان والتحكم بالحركة (WASLA MEDICAL CORE)
            ========================================================================== */
         @import url('https://googleapis.com');
         
@@ -22,8 +22,7 @@
             --text-muted: #64748b;
             --bg-canvas: #f8fafc;
             --white: #ffffff;
-            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 15px -3px rgba(15, 23, 42, 0.04);
         }
 
         * {
@@ -43,7 +42,7 @@
         }
 
         /* ==========================================================================
-           2. مكونات الهيدر العلوية والتنقل (NAVIGATION LAYOUT)
+           2. شريط التنقل العلوي الفخم والهوية (HEADER & NAVIGATION)
            ========================================================================== */
         header {
             background: rgba(255, 255, 255, 0.96);
@@ -52,7 +51,7 @@
             top: 0;
             z-index: 1000;
             border-bottom: 1px solid #e2e8f0;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
         }
 
         .nav-container {
@@ -114,7 +113,7 @@
         }
 
         /* ==========================================================================
-           3. لوحة الترحيب وقائمة الفرز الطبي (HERO & FILTER ENGINE)
+           3. البانر التعريفي وقسم الفلترة والبحث (HERO & ADVANCED FILTER)
            ========================================================================== */
         .medical-hero {
             background: linear-gradient(135deg, #0f172a 0%, #1e40af 100%);
@@ -130,7 +129,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 8px;
+            height: 6px;
             background: var(--medical-emerald);
         }
 
@@ -170,14 +169,11 @@
             box-shadow: var(--shadow-md);
             border: 1px solid #e2e8f0;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 16px;
         }
 
-        @media (max-width: 960px) {
-            .filter-bar { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             .filter-bar { grid-template-columns: 1fr; }
         }
 
@@ -202,7 +198,7 @@
             font-weight: 600;
             outline: none;
             background-color: var(--bg-canvas);
-            transition: border-color 0.2s;
+            transition: all 0.2s;
         }
 
         .filter-select:focus, .filter-input:focus {
@@ -211,7 +207,7 @@
         }
 
         /* ==========================================================================
-           4. شبكة عرض العيادات الحقيقية (CLINICS GRID)
+           4. شبكة عرض بطاقات العيادات الطبية (CLINICS GRID DISPLAY)
            ========================================================================== */
         .main-content-layout {
             max-width: 1200px;
@@ -225,7 +221,7 @@
         .section-title-wrapper {
             border-right: 4px solid var(--medical-emerald);
             padding-right: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .section-title-wrapper h3 {
@@ -250,7 +246,7 @@
             border: 1px solid #e2e8f0;
             padding: 24px;
             position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .clinic-card:hover {
@@ -309,9 +305,6 @@
             font-size: 12px;
             color: var(--text-muted);
             margin-top: 4px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
         }
 
         .price-insurance-table {
@@ -343,315 +336,10 @@
             font-size: 14px;
             font-weight: 700;
             cursor: pointer;
-    <!-- ==========================================================================
-       6. قطاع التسوق الرقمي وعربة المشتريات المتكاملة (SHOPPING & CART ENGINE)
-       ========================================================================== -->
-    <style>
-        :root {
-            --shopping-amber: #f59e0b;
-            --shopping-amber-hover: #d97706;
-            --shopping-soft: #fffbeb;
-            --shopping-border: #fde68a;
-            --cart-bg: #ffffff;
-        }
-
-        .shopping-hero-badge {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--shopping-amber);
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 700;
-            display: inline-block;
-            margin-bottom: 16px;
-            border: 1px solid rgba(245, 158, 11, 0.2);
-        }
-
-        .shopping-layout-wrapper {
-            max-width: 1400px;
-            margin: 40px auto;
-            padding: 0 24px;
-            display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 30px;
-        }
-
-        @media (max-width: 1024px) {
-            .shopping-layout-wrapper { grid-template-columns: 1fr; }
-        }
-
-        .stores-and-products-zone {
-            display: flex;
-            flex-direction: column;
-            gap: 32px;
-        }
-
-        .store-header-pills {
-            display: flex;
-            gap: 12px;
-            overflow-x: auto;
-            padding-bottom: 8px;
-        }
-
-        .store-pill {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            padding: 10px 20px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-
-        .store-pill.active-store {
-            background: var(--shopping-amber);
-            color: #ffffff;
-            border-color: var(--shopping-amber);
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
-        }
-
-        .products-dense-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .products-dense-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 480px) {
-            .products-dense-grid { grid-template-columns: 1fr; }
-        }
-
-        .product-card {
-            background: #ffffff;
-            border-radius: 20px;
-            border: 1px solid #e2e8f0;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            transition: all 0.25s ease;
-        }
-
-        .product-card:hover {
-            box-shadow: var(--shadow-md);
-            border-color: #cbd5e1;
-        }
-
-        .product-img-holder {
-            width: 100%;
-            height: 130px;
-            background: #f8fafc;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            margin-bottom: 12px;
-        }
-
-        .product-title {
-            font-size: 15px;
-            font-weight: 800;
-            color: var(--wasla-dark);
-            margin-bottom: 4px;
-        }
-
-        .product-desc {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-            line-height: 1.4;
-        }
-
-        .product-meta-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: auto;
-        }
-
-        .product-price {
-            font-size: 16px;
-            font-weight: 900;
-            color: var(--wasla-dark);
-        }
-
-        .product-price span {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-muted);
-        }
-
-        .add-to-cart-btn {
-            background: var(--shopping-amber);
-            color: white;
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: var(--medical-emerald);
+            color: var(--white);
             transition: background 0.2s;
         }
 
-        .add-to-cart-btn:hover {
-            background: var(--shopping-amber-hover);
-        }
+        .book-btn:hover { background: var(--medical-emerald-hover); }
 
-        /* تصميم كارت وعربة التسوق الذكية الجانبية */
-        .cart-sticky-sidebar {
-            background: #ffffff;
-            border-radius: 24px;
-            border: 1px solid #e2e8f0;
-            padding: 24px;
-            box-shadow: var(--shadow-md);
-            height: fit-content;
-            position: sticky;
-            top: 100px;
-        }
-
-        .cart-title-wrapper {
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--wasla-dark);
-            margin-bottom: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 12px;
-        }
-
-        .cart-items-list {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            max-height: 280px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            padding-left: 4px;
-        }
-
-        .cart-item-node {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-            background: #f8fafc;
-            padding: 10px 12px;
-            border-radius: 10px;
-        }
-
-        .cart-item-details h5 {
-            font-weight: 800;
-            color: var(--wasla-dark);
-        }
-
-        .cart-item-details p {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        .cart-remove-item {
-            color: #ef4444;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 12px;
-            background: none;
-            border: none;
-        }
-
-        .invoice-summary-box {
-            border-top: 2px dashed #e2e8f0;
-            padding-top: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            font-size: 13px;
-        }
-
-        .invoice-row {
-            display: flex;
-            justify-content: space-between;
-            color: var(--text-body);
-            font-weight: 600;
-        }
-
-        .invoice-row.total-row {
-            font-size: 16px;
-            font-weight: 900;
-            color: var(--wasla-dark);
-            border-top: 1px solid #f1f5f9;
-            padding-top: 10px;
-        }
-
-        .checkout-btn {
-            width: 100%;
-            background: var(--wasla-dark);
-            color: #ffffff;
-            padding: 14px;
-            border: none;
-            border-radius: 14px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: background 0.2s;
-        }
-
-        .checkout-btn:hover {
-            background: #1e293b;
-        }
-    </style>
-
-    <div id="shopping-section-view" style="display: none;">
-        <section class="medical-hero" style="background: linear-gradient(135deg, #0f172a 0%, #78350f 100%);">
-            <div class="hero-inner">
-                <span class="shopping-hero-badge">سوق شبين المتكامل ديليفري</span>
-                <h1>كل احتياجات بيتك من محلاتك المفضلة <span>واصلة لحد عندك</span></h1>
-                <p>تعاقدنا مع كبرى محلات السوبرماركت، الجزارة، والخضروات في شبين القناطر لنوفر لك تجربة تسوق مريحة بأسعار السوق الرسمية وبأقل رسوم توصيل.</p>
-            </div>
-        </section>
-
-        <div class="shopping-layout-wrapper">
-            <div class="stores-and-products-zone">
-                <!-- أزرار اختيار المتجر الميداني -->
-                <div class="store-header-pills">
-                    <div class="store-pill active-store" onclick="switchStore('all')">كل المحلات</div>
-                    <div class="store-pill" onclick="switchStore('ragab')">سوبرماركت أولاد رجب</div>
-                    <div class="store-pill" onclick="switchStore('amana')">جزارة الأمانة والخير</div>
-                </div>
-
-                <div class="section-title-wrapper" style="border-right-color: var(--shopping-amber);">
-                    <h3>المنتجات الغذائية والسلع المتاحة للتوصيل الآن</h3>
-                </div>
-
-                <!-- شبكة المنتجات الحية للعميل -->
-                <div class="products-dense-grid">
-                    <div class="product-card" data-store="ragab">
-                        <div class="product-img-holder">🥛</div>
-                        <h4 class="product-title">جبنة عبور لاند 1 كيلو</h4>
-                        <p class="product-desc">علبة فيتا كاملة الدسم طازجة من السوبرماركت مباشرة.</p>
-                        <div class="product-meta-row">
-                            <div class="product-price">85 <span>ج.م</span></div>
-                            <button class="add-to-cart-btn" onclick="addItemToWaslaCart('جبنة عبور لاند 1 كيلو', 85)">+</button>
-                        </div>
-                    </div>
-
-                    <div class="product-card" data-store="ragab">
-                        <div class="product-img-holder">🍾</div>
-                        <h4 class="product-title">زيت كريستال عباد شمس 1 لتر</h4>
-                        <p class="product-desc">زيت نقي للطهي والقلي متوفر بأعلى جودة مخزون.</p>
-                        <div class="product-meta-row">
-                            <div class="product-price">110 <span>ج.م</span></div>
-                            <button class="add-to-cart-btn" onclick="addItemToWaslaCart('زيت كريستال 1 لتر', 110)">+</button>
