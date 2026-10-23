@@ -1930,5 +1930,1022 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+  <script>
+/* ================================================================
+   WASLA PHASE 3 — EXTENSIONS
+   لا يعدل أي سطر من الكود القديم — يوسّعه فقط
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const NS = 'wasla_v2_';
+  const S = {
+    get(k, d) { try { const r = localStorage.getItem(NS + k); return r ? JSON.parse(r) : d; } catch (_) { return d; } },
+    set(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); return true; } catch (_) { return false; } }
+  };
+
+  /* ============== 1. البيانات الموسعة ============== */
+
+  const DOCTOR_EXT = {
+    'doc-001': {
+      lat: 30.3546, lng: 31.2153,
+      schedule: {
+        Sun: ['5:00 م','5:30 م','6:00 م','6:30 م','7:00 م'],
+        Mon: ['5:00 م','5:30 م','6:00 م','6:30 م','7:00 م'],
+        Tue: ['5:00 م','5:30 م','6:00 م'],
+        Wed: ['5:00 م','5:30 م','6:00 م','6:30 م','7:00 م'],
+        Thu: ['5:00 م','5:30 م','6:00 م','6:30 م'],
+        Fri: [],
+        Sat: ['10:00 ص','10:30 ص','11:00 ص','11:30 ص']
+      }
+    },
+    'doc-002': {
+      lat: 30.3562, lng: 31.2178,
+      schedule: {
+        Sun: ['4:00 م','5:00 م','6:00 م','7:00 م'],
+        Mon: ['4:00 م','5:00 م','6:00 م'],
+        Tue: ['4:00 م','5:00 م','6:00 م','7:00 م'],
+        Wed: ['4:00 م','5:00 م'],
+        Thu: ['4:00 م','5:00 م','6:00 م','7:00 م'],
+        Fri: [],
+        Sat: ['11:00 ص','12:00 م']
+      }
+    },
+    'doc-003': {
+      lat: 30.3575, lng: 31.2160,
+      schedule: {
+        Sun: ['3:00 م','4:00 م','6:00 م','6:30 م'],
+        Mon: ['3:00 م','4:00 م','6:00 م'],
+        Tue: ['3:00 م','4:00 م','6:00 م','6:30 م'],
+        Wed: ['3:00 م','4:00 م'],
+        Thu: ['3:00 م','4:00 م','6:00 م'],
+        Fri: ['2:00 م','3:00 م'],
+        Sat: ['10:00 ص','11:00 ص','12:00 م']
+      }
+    },
+    'doc-004': {
+      lat: 30.3550, lng: 31.2145,
+      schedule: {
+        Sun: ['5:00 م','6:00 م','7:00 م','8:00 م'],
+        Mon: ['5:00 م','6:00 م','7:00 م'],
+        Tue: ['5:00 م','6:00 م','7:00 م','8:00 م'],
+        Wed: ['5:00 م','6:00 م'],
+        Thu: ['5:00 م','6:00 م','7:00 م','8:00 م'],
+        Fri: [],
+        Sat: ['10:00 ص','11:00 ص']
+      }
+    },
+    'doc-005': {
+      lat: 30.3568, lng: 31.2170,
+      schedule: {
+        Sun: ['4:30 م','5:30 م','7:30 م'],
+        Mon: ['4:30 م','5:30 م','7:30 م'],
+        Tue: ['4:30 م','5:30 م'],
+        Wed: ['4:30 م','5:30 م','7:30 م'],
+        Thu: ['4:30 م','5:30 م','7:30 م'],
+        Fri: [],
+        Sat: ['11:00 ص','12:00 م','1:00 م']
+      }
+    },
+    'doc-006': {
+      lat: 30.3540, lng: 31.2165,
+      schedule: {
+        Sun: ['4:00 م','5:00 م','6:00 م'],
+        Mon: ['4:00 م','5:00 م'],
+        Tue: ['4:00 م','5:00 م','6:00 م'],
+        Wed: [],
+        Thu: ['4:00 م','5:00 م','6:00 م'],
+        Fri: [],
+        Sat: ['10:00 ص','11:00 ص','12:00 م']
+      }
+    },
+    'doc-007': {
+      lat: 30.3572, lng: 31.2155,
+      schedule: {
+        Sun: ['3:30 م','5:30 م','7:00 م'],
+        Mon: ['3:30 م','5:30 م','7:00 م'],
+        Tue: ['3:30 م','5:30 م'],
+        Wed: ['3:30 م','5:30 م','7:00 م'],
+        Thu: ['3:30 م','5:30 م','7:00 م'],
+        Fri: [],
+        Sat: ['10:30 ص','11:30 ص']
+      }
+    },
+    'doc-008': {
+      lat: 30.3620, lng: 31.2240,
+      schedule: {
+        Sun: ['5:00 م','6:00 م','7:00 م'],
+        Mon: ['5:00 م','6:00 م','7:00 م'],
+        Tue: ['5:00 م','6:00 م'],
+        Wed: ['5:00 م','6:00 م','7:00 م'],
+        Thu: ['5:00 م','6:00 م','7:00 م'],
+        Fri: [],
+        Sat: ['10:00 ص','11:00 ص']
+      }
+    }
+  };
+
+  const PHARMACIES_SEED = [
+    { id:'ph-001', name:'صيدلية النور', area:'شارع بورسعيد - شبين القناطر', lat:30.3552, lng:31.2158, insurances:['GlobeMed','MetLife','AXA'], open24h:true, delivery:true, rating:4.8, phone:'0133221111' },
+    { id:'ph-002', name:'صيدلية الشفاء', area:'ميدان المحطة - شبين القناطر', lat:30.3566, lng:31.2175, insurances:['GlobeMed','MedRight'], open24h:false, delivery:true, rating:4.6, phone:'0133221122' },
+    { id:'ph-003', name:'صيدلية الرحمة', area:'طحانوب - مركز القرية', lat:30.3510, lng:31.2090, insurances:['MetLife','Bupa'], open24h:false, delivery:true, rating:4.7, phone:'0133221133' },
+    { id:'ph-004', name:'صيدلية الحياة', area:'كفر حمزة - الشارع الرئيسي', lat:30.3620, lng:31.2240, insurances:['AXA','MedRight'], open24h:true, delivery:true, rating:4.5, phone:'0133221144' },
+    { id:'ph-005', name:'صيدلية 24 ساعة', area:'منية شبين - أمام المستشفى', lat:30.3480, lng:31.2200, insurances:['GlobeMed','MetLife','MedRight','AXA','Bupa'], open24h:true, delivery:true, rating:4.9, phone:'0133221155' }
+  ];
+
+  const CAR_SERVICES = [
+    { id:'sv-tire', name:'تغيير إطار', price:120, duration:'20 دقيقة', icon:'fa-circle-dot' },
+    { id:'sv-wash', name:'غسيل متنقل', price:80, duration:'30 دقيقة', icon:'fa-droplet' },
+    { id:'sv-oil', name:'تغيير زيت', price:250, duration:'35 دقيقة', icon:'fa-oil-can' },
+    { id:'sv-battery', name:'شحن بطارية', price:100, duration:'15 دقيقة', icon:'fa-car-battery' },
+    { id:'sv-diag', name:'كشف أعطال', price:150, duration:'40 دقيقة', icon:'fa-stethoscope' },
+    { id:'sv-fuel', name:'توصيل بنزين', price:60, duration:'25 دقيقة', icon:'fa-gas-pump' }
+  ];
+
+  const DAY_MAP = { 0:'Sun', 1:'Mon', 2:'Tue', 3:'Wed', 4:'Thu', 5:'Fri', 6:'Sat' };
+  const DAY_AR = { Sun:'الأحد', Mon:'الاثنين', Tue:'الثلاثاء', Wed:'الأربعاء', Thu:'الخميس', Fri:'الجمعة', Sat:'السبت' };
+
+  const STATUS_FLOW = ['received','preparing','ready','on_way','delivered'];
+  const STATUS_LABELS = {
+    received: { label: 'تم استلام طلبك', icon: 'fa-inbox', color: '#0284C7' },
+    preparing: { label: 'جاري تجهيز طلبك', icon: 'fa-gears', color: '#D97706' },
+    ready: { label: 'طلبك جاهز', icon: 'fa-box-open', color: '#7C3AED' },
+    on_way: { label: 'في الطريق إليك', icon: 'fa-truck-fast', color: '#059669' },
+    delivered: { label: 'تم التسليم', icon: 'fa-circle-check', color: '#10B981' }
+  };
+
+  /* ============== 2. تهيئة البيانات ============== */
+
+  function enrichDoctors() {
+    const docs = S.get('doctors', []);
+    let changed = false;
+    docs.forEach(d => {
+      const ext = DOCTOR_EXT[d.id];
+      if (ext && (!d.lat || !d.schedule)) {
+        d.lat = ext.lat; d.lng = ext.lng;
+        d.schedule = ext.schedule;
+        changed = true;
+      }
+    });
+    if (changed) S.set('doctors', docs);
+  }
+
+  if (!S.get('pharmacies')) S.set('pharmacies', PHARMACIES_SEED);
+  if (!S.get('orders')) S.set('orders', []);
+  if (!S.get('car_cart')) S.set('car_cart', []);
+  enrichDoctors();
+
+  /* ============== 3. دوال مساعدة ============== */
+
+  function dateToDay(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    return DAY_MAP[d.getDay()];
+  }
+  function slotToMin(slot) {
+    const m = slot.match(/(\d+):(\d+)\s*(ص|م)?/);
+    if (!m) return 0;
+    let h = parseInt(m[1], 10);
+    const mm = parseInt(m[2], 10);
+    const p = m[3] || '';
+    if (p === 'م' && h < 12) h += 12;
+    if (p === 'ص' && h === 12) h = 0;
+    return h * 60 + mm;
+  }
+  function minToTime(min) {
+    const h = Math.floor(min / 60) % 24;
+    const m = min % 60;
+    const p = h >= 12 ? 'م' : 'ص';
+    let hh = h % 12; if (!hh) hh = 12;
+    return `${hh}:${String(m).padStart(2,'0')} ${p}`;
+  }
+  function isSlotBooked(doctorId, date, slot) {
+    const appts = S.get('appointments', []);
+    return appts.some(a => a.doctorId === doctorId && a.date === date && a.slot === slot && a.status !== 'cancelled');
+  }
+  function getBookedSlots(doctorId, date) {
+    return S.get('appointments', [])
+      .filter(a => a.doctorId === doctorId && a.date === date && a.status !== 'cancelled')
+      .map(a => a.slot);
+  }
+  function getDoctor(docId) {
+    return S.get('doctors', []).find(d => d.id === docId);
+  }
+
+  /* ============== 4. نظام تتبع الطلبات ============== */
+
+  function createOrder(data) {
+    const orders = S.get('orders', []);
+    const now = Date.now();
+    const order = {
+      id: 'ord-' + Math.random().toString(36).slice(2,8) + now.toString(36).slice(-3),
+      type: data.type || 'medical',
+      title: data.title,
+      subtitle: data.subtitle || '',
+      price: data.price || 0,
+      icon: data.icon || 'fa-box',
+      refId: data.refId || null,
+      status: 'received',
+      history: [{ status: 'received', ts: now }],
+      createdAt: now
+    };
+    orders.unshift(order);
+    S.set('orders', orders);
+    renderOrdersWidget();
+    return order;
+  }
+
+  function advanceOrder(orderId, status) {
+    const orders = S.get('orders', []);
+    const order = orders.find(o => o.id === orderId);
+    if (!order || ['delivered','cancelled'].includes(order.status)) return;
+    if (STATUS_FLOW.indexOf(status) <= STATUS_FLOW.indexOf(order.status)) return;
+    order.status = status;
+    order.history.push({ status, ts: Date.now() });
+    S.set('orders', orders);
+    renderOrdersWidget();
+    if (document.getElementById('orders-modal')?.classList.contains('open')) {
+      renderOrdersModal();
+    }
+  }
+
+  function autoAdvanceOrders() {
+    const orders = S.get('orders', []);
+    const now = Date.now();
+    let changed = false;
+    orders.forEach(o => {
+      if (['delivered','cancelled'].includes(o.status)) return;
+      const last = o.history[o.history.length - 1].ts;
+      if (now - last > 8000) {
+        const idx = STATUS_FLOW.indexOf(o.status);
+        if (idx < STATUS_FLOW.length - 1) {
+          o.status = STATUS_FLOW[idx + 1];
+          o.history.push({ status: o.status, ts: now });
+          changed = true;
+        }
+      }
+    });
+    if (changed) {
+      S.set('orders', orders);
+      renderOrdersWidget();
+      if (document.getElementById('orders-modal')?.classList.contains('open')) {
+        renderOrdersModal();
+      }
+    }
+  }
+  setInterval(autoAdvanceOrders, 3000);
+
+  /* ============== 5. الـ Orders Widget (العائم) ============== */
+
+  function ensureOrdersWidget() {
+    if (document.getElementById('orders-widget')) return;
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="orders-widget" style="position:fixed;bottom:96px;left:24px;z-index:99;display:none;">
+        <button onclick="window.openOrdersModal()" style="background:linear-gradient(135deg,#3730A3,#6366F1);color:#fff;border:none;padding:12px 18px;border-radius:16px;cursor:pointer;font-family:inherit;font-weight:900;font-size:13px;box-shadow:0 12px 30px rgba(55,48,163,.45);display:flex;align-items:center;gap:10px;">
+          <i class="fa-solid fa-box"></i>
+          <span id="orders-widget-text">لديك طلب نشط</span>
+          <span id="orders-widget-count" style="background:#fff;color:#3730A3;min-width:22px;height:22px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;">0</span>
+        </button>
+      </div>
+
+      <div class="modal-backdrop" id="orders-modal">
+        <div class="modal-card" style="max-width:640px;">
+          <button class="modal-close" onclick="document.getElementById('orders-modal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+          <div id="orders-modal-body"></div>
+        </div>
+      </div>
+
+      <div class="modal-backdrop" id="clinic-location-modal">
+        <div class="modal-card" style="max-width:600px;">
+          <button class="modal-close" onclick="document.getElementById('clinic-location-modal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+          <div id="clinic-location-body"></div>
+        </div>
+      </div>
+    `);
+  }
+
+  function renderOrdersWidget() {
+    ensureOrdersWidget();
+    const orders = S.get('orders', []).filter(o => !['delivered','cancelled'].includes(o.status));
+    const widget = document.getElementById('orders-widget');
+    if (!widget) return;
+    if (!orders.length) { widget.style.display = 'none'; return; }
+    widget.style.display = 'block';
+    document.getElementById('orders-widget-count').textContent = orders.length;
+    const latest = orders[0];
+    document.getElementById('orders-widget-text').textContent = STATUS_LABELS[latest.status]?.label || 'متابعة الطلب';
+  }
+
+  window.openOrdersModal = function (focusId) {
+    ensureOrdersWidget();
+    document.getElementById('orders-modal').classList.add('open');
+    renderOrdersModal(focusId);
+  };
+
+  function renderOrdersModal(focusId) {
+    const body = document.getElementById('orders-modal-body');
+    const orders = S.get('orders', []);
+    if (!orders.length) {
+      body.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open"></i><p>لا يوجد طلبات بعد</p><small>أول حجز أو خدمة ستظهر هنا للتتبع</small></div>`;
+      return;
+    }
+    const sorted = focusId
+      ? [orders.find(o => o.id === focusId), ...orders.filter(o => o.id !== focusId)].filter(Boolean)
+      : orders;
+
+    body.innerHTML = `
+      <h3 style="font-weight:900;font-size:18px;margin:0 0 4px;"><i class="fa-solid fa-box" style="color:#3730A3;"></i> طلباتك على وصلة</h3>
+      <p class="panel-sub">تتبع كل طلب لحظة بلحظة</p>
+      ${sorted.map(o => renderOrderCard(o, o.id === focusId)).join('')}
+    `;
+  }
+
+  function renderOrderCard(order, isFocus) {
+    const idx = STATUS_FLOW.indexOf(order.status);
+    const current = STATUS_LABELS[order.status] || STATUS_LABELS.received;
+    const isDelivered = order.status === 'delivered';
+    return `
+      <div style="border:${isFocus ? '2px solid #3730A3' : '1px solid var(--line)'};border-radius:16px;padding:16px;margin-bottom:12px;background:${isFocus ? '#F5F7FF' : '#FAFCFE'};">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+          <div style="flex:1;min-width:180px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <i class="fa-solid ${order.icon}" style="color:#3730A3;font-size:16px;"></i>
+              <strong style="font-size:13.5px;font-weight:900;color:var(--ink);">${order.title}</strong>
+            </div>
+            <div style="font-size:11.5px;color:#64748B;font-weight:700;">${order.subtitle}</div>
+            <div style="font-size:12px;color:#059669;font-weight:900;margin-top:4px;">${order.price.toLocaleString('ar-EG')} ج.م</div>
+          </div>
+          <div style="text-align:left;">
+            <span style="background:${current.color}22;color:${current.color};padding:5px 12px;border-radius:99px;font-size:11px;font-weight:900;display:inline-flex;align-items:center;gap:5px;">
+              <i class="fa-solid ${current.icon}"></i> ${current.label}
+            </span>
+          </div>
+        </div>
+
+        <div style="position:relative;padding:10px 0;">
+          <div style="position:absolute;top:24px;right:12px;left:12px;height:3px;background:#E2E8F0;border-radius:99px;"></div>
+          <div style="position:absolute;top:24px;right:12px;height:3px;background:linear-gradient(90deg,#3730A3,#10B981);border-radius:99px;transition:width .6s;width:calc(${idx / (STATUS_FLOW.length - 1) * 100}% - 24px * ${idx / (STATUS_FLOW.length - 1)});max-width:calc(100% - 24px);"></div>
+          <div style="display:flex;justify-content:space-between;position:relative;z-index:1;">
+            ${STATUS_FLOW.map((st, i) => {
+              const active = i <= idx;
+              const lbl = STATUS_LABELS[st];
+              return `
+                <div style="text-align:center;flex:1;">
+                  <div style="width:32px;height:32px;border-radius:99px;background:${active ? lbl.color : '#E2E8F0'};color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:12px;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.1);">
+                    <i class="fa-solid ${lbl.icon}"></i>
+                  </div>
+                  <div style="font-size:9.5px;font-weight:800;color:${active ? lbl.color : '#94A3B8'};line-height:1.3;">${lbl.label}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        ${isDelivered ? `
+          <div style="margin-top:12px;padding:10px;background:#ECFDF5;border-radius:10px;text-align:center;font-size:12px;font-weight:900;color:#059669;">
+            <i class="fa-solid fa-circle-check"></i> تم تسليم طلبك بنجاح
+          </div>
+        ` : `
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="window.shareOrderWA('${order.id}')" style="flex:1;min-width:140px;background:#25D366;color:#fff;border:none;padding:9px;border-radius:10px;font-family:inherit;font-weight:900;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;">
+              <i class="fa-brands fa-whatsapp"></i> استفسار واتساب
+            </button>
+            <button onclick="window.cancelOrder('${order.id}')" style="background:#FEE2E2;color:#991B1B;border:1px solid #FECACA;padding:9px 14px;border-radius:10px;font-family:inherit;font-weight:900;font-size:11.5px;cursor:pointer;">
+              إلغاء
+            </button>
+          </div>
+        `}
+
+        <div style="margin-top:10px;font-size:10.5px;color:#94A3B8;font-weight:700;">
+          <i class="fa-solid fa-clock"></i> آخر تحديث: ${new Date(order.history[order.history.length-1].ts).toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'})}
+        </div>
+      </div>
+    `;
+  }
+
+  window.shareOrderWA = function (orderId) {
+    const order = S.get('orders', []).find(o => o.id === orderId);
+    if (!order) return;
+    const status = STATUS_LABELS[order.status]?.label || '';
+    const msg = `📦 *استفسار عن طلب - منصة وصلة*\n\n📋 ${order.title}\n🔖 رقم الطلب: ${order.id.slice(-6).toUpperCase()}\n📍 الحالة: ${status}\n💰 ${order.price} ج.م`;
+    window.open('https://wa.me/201068990089?text=' + encodeURIComponent(msg), '_blank');
+  };
+
+  window.cancelOrder = function (orderId) {
+    if (!confirm('هل تريد إلغاء هذا الطلب؟')) return;
+    const orders = S.get('orders', []);
+    const o = orders.find(x => x.id === orderId);
+    if (o) {
+      o.status = 'cancelled';
+      o.history.push({ status: 'cancelled', ts: Date.now() });
+      S.set('orders', orders);
+      renderOrdersWidget();
+      renderOrdersModal();
+      if (typeof toast === 'function') toast('تم إلغاء الطلب');
+    }
+  };
+
+  /* ============== 6. تحسين تجربة الحجز (Schedule + Conflict + Location) ============== */
+
+  const _oldOpenBooking = window.openBooking;
+  window.openBooking = function (docId) {
+    if (typeof Auth === 'undefined') return;
+    const user = Auth.currentUser();
+    if (!user) { toast('سجّل دخول أولاً للحجز', 'error'); openAuthModal('login'); return; }
+    const doc = getDoctor(docId);
+    if (!doc) return;
+    const schedule = doc.schedule || {};
+
+    const scheduleRows = Object.entries(DAY_AR).map(([k, ar]) => {
+      const slots = schedule[k] || [];
+      return `<tr><td style="padding:6px 8px;font-weight:800;font-size:11.5px;">${ar}</td>
+        <td style="padding:6px 8px;font-weight:700;font-size:11px;color:${slots.length ? '#059669' : '#94A3B8'};">${slots.length ? slots.join(' • ') : 'مغلق'}</td></tr>`;
+    }).join('');
+
+    document.getElementById('booking-modal-body').innerHTML = `
+      <span class="doc-tag"><i class="fa-solid fa-stethoscope"></i> ${doc.specialty}</span>
+      <h3 style="font-size:19px;font-weight:900;margin:6px 0 2px;">${doc.name}</h3>
+      <p style="font-size:12px;color:#64748B;font-weight:700;margin:0 0 12px;">${doc.title}</p>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+        <button onclick="window.openClinicLocation('${doc.id}')" style="background:#F0F9FF;color:#0284C7;border:1px solid #BAE6FD;padding:6px 12px;border-radius:10px;font-family:inherit;font-weight:800;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+          <i class="fa-solid fa-map-location-dot"></i> الموقع على الخريطة
+        </button>
+        <span class="ins-pill cash"><i class="fa-solid fa-clock"></i> ${doc.avgConsultMin} دقيقة/كشف</span>
+      </div>
+
+      <details style="margin-bottom:14px;background:#F8FAFC;border-radius:12px;padding:10px;border:1px solid var(--line);">
+        <summary style="cursor:pointer;font-size:12.5px;font-weight:900;color:#3730A3;list-style:none;display:flex;align-items:center;gap:6px;">
+          <i class="fa-solid fa-calendar-week"></i> جدول عمل الطبيب (الأسبوعي)
+        </summary>
+        <table style="width:100%;margin-top:10px;border-collapse:collapse;">
+          <tbody>${scheduleRows}</tbody>
+        </table>
+      </details>
+
+      <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:14px;padding:14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:11px;font-weight:800;color:#047857;">بعد خصم وصلة</div>
+          <div style="font-size:24px;font-weight:900;color:#059669;">${doc.priceWasla} ج.م</div>
+        </div>
+        <div style="text-align:left;">
+          <div style="font-size:11px;font-weight:800;color:#64748B;">الأصلي</div>
+          <div style="font-size:15px;font-weight:900;color:#94A3B8;text-decoration:line-through;">${doc.priceCash} ج.م</div>
+        </div>
+      </div>
+
+      <label class="field-label">التاريخ</label>
+      <input type="date" id="bk-date" class="input-box" value="${todayStr()}" min="${todayStr()}" onchange="window._updateSlots('${docId}')" style="margin-bottom:12px;" />
+
+      <div id="bk-slots-container"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
+        <button class="primary-btn" style="width:100%;" onclick="window.confirmBooking('${doc.id}')">
+          <i class="fa-solid fa-calendar-check"></i> تأكيد الحجز
+        </button>
+        <button onclick="window.bookViaWhatsApp('${doc.id}')" style="width:100%;background:#25D366;color:#fff;border:none;padding:12px;border-radius:12px;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 6px 16px rgba(37,211,102,.35);">
+          <i class="fa-brands fa-whatsapp"></i> احجز واتساب
+        </button>
+      </div>
+    `;
+    document.getElementById('booking-modal').classList.add('open');
+    setTimeout(() => window._updateSlots(docId), 30);
+  };
+
+  window._updateSlots = function (docId) {
+    const date = document.getElementById('bk-date')?.value;
+    if (!date) return;
+    const doc = getDoctor(docId);
+    if (!doc) return;
+    const day = dateToDay(date);
+    const schedule = doc.schedule || {};
+    const daySlots = schedule[day] || [];
+    const booked = getBookedSlots(docId, date);
+    const container = document.getElementById('bk-slots-container');
+    if (!container) return;
+
+    if (!daySlots.length) {
+      container.innerHTML = `<div style="background:#FEF2F2;color:#991B1B;padding:14px;border-radius:12px;font-size:12px;font-weight:800;text-align:center;border:1px solid #FECACA;">
+        <i class="fa-solid fa-calendar-xmark"></i> الطبيب في إجازة يوم ${DAY_AR[day]}<br>
+        <span style="font-size:10.5px;color:#7F1D1D;">اختر يوماً آخر من الجدول</span>
+      </div>`;
+      return;
+    }
+
+    const availableCount = daySlots.filter(s => !booked.includes(s)).length;
+    if (!availableCount) {
+      container.innerHTML = `<div style="background:#FEF2F2;color:#991B1B;padding:14px;border-radius:12px;font-size:12px;font-weight:800;text-align:center;border:1px solid #FECACA;">
+        <i class="fa-solid fa-lock"></i> كل مواعيد ${DAY_AR[day]} محجوزة — جرّب يوماً آخر
+      </div>`;
+      return;
+    }
+
+    let html = `<label class="field-label">اختر الموعد (${availableCount} متاح من ${daySlots.length})</label>`;
+    html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">`;
+    let firstAvail = null;
+    daySlots.forEach(s => {
+      const isBooked = booked.includes(s);
+      if (!isBooked && !firstAvail) firstAvail = s;
+      html += `<label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 8px;border:1.5px solid ${isBooked ? '#E2E8F0' : '#059669'};border-radius:10px;font-size:12px;font-weight:900;cursor:${isBooked ? 'not-allowed' : 'pointer'};background:${isBooked ? '#F8FAFC' : '#ECFDF5'};color:${isBooked ? '#94A3B8' : '#059669'};${isBooked ? 'opacity:.6;' : ''}transition:all .2s;">
+        <input type="radio" name="bk-slot" value="${s}" ${isBooked ? 'disabled' : ''} ${s === firstAvail ? 'checked' : ''} style="accent-color:#059669;${isBooked ? 'display:none;' : ''}">
+        ${isBooked ? '<i class="fa-solid fa-lock" style="font-size:10px;"></i>' : ''}
+        ${s}
+        ${isBooked ? '<span style="font-size:9px;">محجوز</span>' : ''}
+      </label>`;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+  };
+
+  window.confirmBooking = function (docId) {
+    const user = Auth.currentUser();
+    if (!user) { toast('سجّل دخول أولاً', 'error'); return; }
+    const doc = getDoctor(docId);
+    const slotInput = document.querySelector('input[name="bk-slot"]:checked');
+    const date = document.getElementById('bk-date')?.value;
+    if (!doc || !slotInput || !date) { toast('اختر موعداً وتاريخاً', 'error'); return; }
+    const slot = slotInput.value;
+
+    if (isSlotBooked(docId, date, slot)) {
+      toast('تم حجز هذا الموعد للتو — اختر غيره', 'error');
+      window._updateSlots(docId);
+      return;
+    }
+
+    const appts = S.get('appointments', []);
+    const appt = {
+      id: 'apt-' + Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+      patientId: user.id, patientName: user.name, patientPhone: user.phone,
+      doctorId: docId, doctorName: doc.name, specialty: doc.specialty,
+      date, slot, price: doc.priceWasla, status: 'pending', createdAt: Date.now()
+    };
+    appts.push(appt);
+    S.set('appointments', appts);
+
+    const txs = S.get('transactions', []);
+    txs.push({
+      id: 'tx-' + Date.now().toString(36),
+      appointmentId: appt.id, doctorId: docId, doctorName: doc.name,
+      amount: doc.priceWasla, commission: Math.round(doc.priceWasla * 0.15),
+      patientName: user.name, ts: Date.now()
+    });
+    S.set('transactions', txs);
+
+    createOrder({
+      type: 'medical', title: `كشف - ${doc.name}`,
+      subtitle: `${date} • ${slot}`, price: doc.priceWasla,
+      icon: 'fa-user-doctor', refId: appt.id
+    });
+
+    closeModal('booking-modal');
+    toast(`✅ تم حجز موعدك مع ${doc.name}`);
+    window._updateSlots(docId);
+
+    setTimeout(() => window.openOrdersModal(), 400);
+  };
+
+  /* ============== 7. حجز عبر واتساب ============== */
+
+  window.bookViaWhatsApp = function (docId) {
+    const doc = getDoctor(docId);
+    if (!doc) return;
+    const slotInput = document.querySelector('input[name="bk-slot"]:checked');
+    const date = document.getElementById('bk-date')?.value || todayStr();
+    const slot = slotInput ? slotInput.value : doc.slots[0];
+    const user = Auth.currentUser();
+    const msg = `📌 *طلب حجز كشف - منصة وصلة*\n\n👨‍⚕️ الطبيب: ${doc.name}\n🏥 التخصص: ${doc.specialty}\n📅 التاريخ المطلوب: ${date}\n⏰ الموعد: ${slot}\n💰 السعر: ${doc.priceWasla} ج.م\n\n👤 الاسم: ${user?.name || '—'}\n📱 الجوال: ${user?.phone || '—'}\n\n_برجاء التأكيد وإرسال التذكرة_`;
+    window.open('https://wa.me/201068990089?text=' + encodeURIComponent(msg), '_blank');
+    toast('تم تجهيز رسالة الحجز على واتساب');
+  };
+
+  /* ============== 8. موقع العيادة ============== */
+
+  window.openClinicLocation = function (docId) {
+    const doc = getDoctor(docId);
+    if (!doc || !doc.lat) { toast('لا يوجد موقع محدد', 'error'); return; }
+    const { lat, lng } = doc;
+    const bbox = `${lng - 0.006},${lat - 0.004},${lng + 0.006},${lat + 0.004}`;
+    const embed = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
+    const gmaps = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    const body = document.getElementById('clinic-location-body');
+    body.innerHTML = `
+      <h3 style="font-weight:900;font-size:17px;margin:0 0 4px;"><i class="fa-solid fa-map-location-dot" style="color:#0284C7;"></i> ${doc.name}</h3>
+      <p style="font-size:12px;color:#64748B;font-weight:700;margin:0 0 12px;">${doc.area}</p>
+      <div style="border-radius:14px;overflow:hidden;border:1px solid var(--line);">
+        <iframe src="${embed}" style="width:100%;height:280px;border:none;" loading="lazy"></iframe>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
+        <a href="${gmaps}" target="_blank" style="background:linear-gradient(135deg,#0284C7,#0EA5E9);color:#fff;padding:12px;border-radius:12px;text-decoration:none;font-weight:900;font-size:13px;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:6px;">
+          <i class="fa-solid fa-diamond-turn-right"></i> الاتجاهات
+        </a>
+        <button onclick="window._nearestUserLocation(${lat}, ${lng})" style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;padding:12px;border-radius:12px;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;">
+          <i class="fa-solid fa-location-crosshairs"></i> المسافة منك
+        </button>
+      </div>
+      <div id="clinic-distance-result" style="margin-top:10px;"></div>
+    `;
+    document.getElementById('clinic-location-modal').classList.add('open');
+  };
+
+  window._nearestUserLocation = function (lat, lng) {
+    const result = document.getElementById('clinic-distance-result');
+    if (!navigator.geolocation) { result.innerHTML = '<div style="color:#DC2626;font-size:12px;font-weight:800;">المتصفح لا يدعم GPS</div>'; return; }
+    result.innerHTML = '<div style="color:#0284C7;font-size:12px;font-weight:800;"><i class="fa-solid fa-spinner fa-spin"></i> جاري حساب المسافة...</div>';
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const R = 6371;
+        const dLat = (lat - pos.coords.latitude) * Math.PI / 180;
+        const dLng = (lng - pos.coords.longitude) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(pos.coords.latitude * Math.PI/180) * Math.cos(lat * Math.PI/180) * Math.sin(dLng/2)**2;
+        const km = 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        result.innerHTML = `<div style="background:#ECFDF5;color:#059669;padding:12px;border-radius:10px;font-size:13px;font-weight:900;text-align:center;">
+          <i class="fa-solid fa-route"></i> المسافة: ${km.toFixed(2)} كم — تقديرياً ${Math.round(km * 3 + 5)} دقيقة بالسيارة
+        </div>`;
+      },
+      () => { result.innerHTML = '<div style="color:#DC2626;font-size:12px;font-weight:800;">تعذر الوصول لموقعك</div>'; }
+    );
+  };
+
+  /* ============== 9. صيدليات متعاقدة ============== */
+
+  function renderPharmaciesPanel() {
+    const medSector = document.getElementById('sector-medical');
+    if (!medSector || document.getElementById('pharmacies-panel')) return;
+
+    const pharmacies = S.get('pharmacies', PHARMACIES_SEED);
+    const allInsurances = [...new Set(pharmacies.flatMap(p => p.insurances))];
+
+    medSector.insertAdjacentHTML('beforeend', `
+      <div class="panel" style="margin-top:22px;" id="pharmacies-panel">
+        <h3 class="panel-title"><i class="fa-solid fa-prescription-bottle-medical" style="color:#059669;"></i> صيدليات متعاقدة مع التأمين</h3>
+        <p class="panel-sub">${pharmacies.length} صيدلية معتمدة — خصومات فورية وتوصيل للمنازل</p>
+        <div class="chips-row" style="margin-bottom:14px;">
+          <button class="chip active" data-pharm-chip="all" onclick="window.filterPharmacies('all')">الكل</button>
+          ${allInsurances.map(ins => `<button class="chip" data-pharm-chip="${ins}" onclick="window.filterPharmacies('${ins}')">${ins}</button>`).join('')}
+        </div>
+        <div id="pharmacies-grid" style="display:grid;grid-template-columns:1fr;gap:12px;"></div>
+      </div>
+    `);
+    renderPharmacyCards(pharmacies);
+  }
+
+  function renderPharmacyCards(list) {
+    const grid = document.getElementById('pharmacies-grid');
+    if (!grid) return;
+    if (!list.length) { grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-prescription-bottle"></i><p>لا صيدليات مطابقة</p></div>'; return; }
+    grid.innerHTML = list.map(p => `
+      <div style="border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff;display:flex;gap:14px;flex-wrap:wrap;align-items:center;">
+        <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#ECFDF5,#D1FAE5);color:#059669;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid #A7F3D0;">
+          <i class="fa-solid fa-prescription-bottle-medical"></i>
+        </div>
+        <div style="flex:1;min-width:180px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <h4 style="font-size:15px;font-weight:900;margin:0;color:var(--ink);">${p.name}</h4>
+            ${p.open24h ? '<span style="background:#FEF3C7;color:#92400E;font-size:9.5px;padding:2px 8px;border-radius:99px;font-weight:900;">24 ساعة</span>' : ''}
+            ${p.delivery ? '<span style="background:#DBEAFE;color:#1E40AF;font-size:9.5px;padding:2px 8px;border-radius:99px;font-weight:900;">توصيل</span>' : ''}
+          </div>
+          <p style="font-size:12px;color:#64748B;font-weight:700;margin:4px 0;">
+            <i class="fa-solid fa-location-dot" style="color:#059669;"></i> ${p.area}
+          </p>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;">
+            ${p.insurances.map(i => `<span style="background:#EEF2FF;color:#3730A3;font-size:10px;padding:2px 8px;border-radius:6px;font-weight:800;border:1px solid #C7D2FE;"><i class="fa-solid fa-shield-halved"></i> ${i}</span>`).join('')}
+          </div>
+        </div>
+        <div style="text-align:center;min-width:100px;">
+          <div style="font-size:13px;font-weight:900;color:#F59E0B;"><i class="fa-solid fa-star"></i> ${p.rating}</div>
+          <div style="display:flex;gap:6px;margin-top:8px;flex-direction:column;">
+            <button onclick="window.openPharmacyMap('${p.id}')" style="background:#F0F9FF;color:#0284C7;border:1px solid #BAE6FD;padding:6px 10px;border-radius:8px;font-family:inherit;font-weight:900;font-size:10.5px;cursor:pointer;">
+              <i class="fa-solid fa-map-location-dot"></i> الموقع
+            </button>
+            <a href="tel:${p.phone}" style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;padding:6px 10px;border-radius:8px;font-family:inherit;font-weight:900;font-size:10.5px;text-decoration:none;display:inline-block;text-align:center;">
+              <i class="fa-solid fa-phone"></i> اتصل
+            </a>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  window.filterPharmacies = function (insurance) {
+    document.querySelectorAll('[data-pharm-chip]').forEach(c => {
+      c.classList.toggle('active', c.dataset.pharmChip === insurance);
+    });
+    const pharmacies = S.get('pharmacies', PHARMACIES_SEED);
+    const list = insurance === 'all' ? pharmacies : pharmacies.filter(p => p.insurances.includes(insurance));
+    renderPharmacyCards(list);
+  };
+
+  window.openPharmacyMap = function (phId) {
+    const p = S.get('pharmacies', PHARMACIES_SEED).find(x => x.id === phId);
+    if (!p) return;
+    const bbox = `${p.lng - 0.006},${p.lat - 0.004},${p.lng + 0.006},${p.lat + 0.004}`;
+    const embed = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${p.lat},${p.lng}`;
+    const gmaps = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+    const body = document.getElementById('clinic-location-body');
+    body.innerHTML = `
+      <h3 style="font-weight:900;font-size:17px;margin:0 0 4px;"><i class="fa-solid fa-prescription-bottle-medical" style="color:#059669;"></i> ${p.name}</h3>
+      <p style="font-size:12px;color:#64748B;font-weight:700;margin:0 0 12px;">${p.area}</p>
+      <div style="border-radius:14px;overflow:hidden;border:1px solid var(--line);">
+        <iframe src="${embed}" style="width:100%;height:280px;border:none;" loading="lazy"></iframe>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
+        <a href="${gmaps}" target="_blank" style="background:linear-gradient(135deg,#0284C7,#0EA5E9);color:#fff;padding:12px;border-radius:12px;text-decoration:none;font-weight:900;font-size:13px;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:6px;">
+          <i class="fa-solid fa-diamond-turn-right"></i> الاتجاهات
+        </a>
+        <a href="https://wa.me/2${p.phone}?text=${encodeURIComponent('استفسار من منصة وصلة بخصوص دواء')}" target="_blank" style="background:#25D366;color:#fff;padding:12px;border-radius:12px;text-decoration:none;font-weight:900;font-size:13px;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:6px;">
+          <i class="fa-brands fa-whatsapp"></i> واتساب
+        </a>
+      </div>
+    `;
+    document.getElementById('clinic-location-modal').classList.add('open');
+  };
+
+  /* ============== 10. قطاع السيارات الكامل ============== */
+
+  function renderCarsSector() {
+    const sec = document.getElementById('sector-cars');
+    if (!sec) return;
+    sec.innerHTML = `
+      <div class="panel" style="margin-bottom:16px;background:linear-gradient(135deg,#1E1B4B,#3730A3);color:#fff;border:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h3 style="font-weight:900;font-size:18px;margin:0;"><i class="fa-solid fa-car-side"></i> خدمات السيارات المتنقلة</h3>
+            <p style="font-size:12px;opacity:.85;font-weight:700;margin:4px 0 0;">فنيون معتمدون يصلون لموقعك أينما كنت في شبين القناطر</p>
+          </div>
+          <button onclick="window.emergencyTow()" style="background:linear-gradient(135deg,#DC2626,#E11D48);color:#fff;border:none;padding:12px 20px;border-radius:12px;cursor:pointer;font-family:inherit;font-weight:900;font-size:13px;box-shadow:0 8px 22px rgba(225,29,72,.5);display:inline-flex;align-items:center;gap:8px;animation:pulseTow 2s infinite;">
+            <i class="fa-solid fa-truck-pickup"></i> ونش إنقاذ طارئ
+          </button>
+        </div>
+      </div>
+
+      <style>@keyframes pulseTow{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}</style>
+
+      <div class="panel" style="margin-bottom:16px;">
+        <h3 class="panel-title"><i class="fa-solid fa-location-crosshairs" style="color:#3730A3;"></i> 1. حدد موقع سيارتك</h3>
+        <p class="panel-sub">استخدم GPS للتحديد التلقائي أو أدخل العنوان يدوياً</p>
+        <div style="display:grid;grid-template-columns:1fr;gap:10px;">
+          <button onclick="window.captureCarLocation()" style="background:linear-gradient(135deg,#3730A3,#6366F1);color:#fff;border:none;padding:14px;border-radius:12px;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 22px rgba(55,48,163,.4);">
+            <i class="fa-solid fa-location-crosshairs"></i> استخدم موقعي الحالي (GPS)
+          </button>
+          <div style="text-align:center;font-size:11px;color:#94A3B8;font-weight:800;">أو</div>
+          <input type="text" id="car-manual-loc" class="input-box" placeholder="مثال: شارع بورسعيد أمام مسجد النور، شبين القناطر" oninput="window._updateCarSummary()" />
+        </div>
+        <div id="car-location-status" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px;">
+        <h3 class="panel-title"><i class="fa-solid fa-wrench" style="color:#3730A3;"></i> 2. اختر الخدمة</h3>
+        <p class="panel-sub">أسعار معلنة وشفافة قبل الطلب</p>
+        <div id="car-services-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;">
+          ${CAR_SERVICES.map(s => `
+            <button onclick="window.toggleCarService('${s.id}')" data-car-service="${s.id}" style="background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:16px;cursor:pointer;font-family:inherit;text-align:center;transition:all .2s;">
+              <i class="fa-solid ${s.icon}" style="font-size:24px;color:#3730A3;margin-bottom:8px;display:block;"></i>
+              <strong style="font-size:12.5px;font-weight:900;color:var(--ink);display:block;margin-bottom:3px;">${s.name}</strong>
+              <small style="font-size:10.5px;color:#64748B;font-weight:700;display:block;">${s.price} ج.م • ${s.duration}</small>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title"><i class="fa-solid fa-receipt" style="color:#3730A3;"></i> 3. ملخص الطلب</h3>
+        <div id="car-cart-summary"><p class="panel-sub">لم تختر خدمة بعد — اختر من الأعلى</p></div>
+        <button onclick="window.submitCarRequest()" style="width:100%;margin-top:14px;background:linear-gradient(135deg,#3730A3,#6366F1);color:#fff;border:none;padding:14px;border-radius:12px;font-family:inherit;font-weight:900;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 22px rgba(55,48,163,.4);">
+          <i class="fa-solid fa-paper-plane"></i> إرسال الطلب للفني
+        </button>
+      </div>
+    `;
+    window._updateCarSummary();
+  }
+
+  window.captureCarLocation = function () {
+    const statusEl = document.getElementById('car-location-status');
+    statusEl.innerHTML = '<div style="background:#EEF2FF;color:#3730A3;padding:12px;border-radius:10px;font-size:12px;font-weight:800;text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> جاري تحديد موقعك...</div>';
+    if (!navigator.geolocation) {
+      statusEl.innerHTML = '<div style="background:#FEF2F2;color:#991B1B;padding:12px;border-radius:10px;font-size:12px;font-weight:800;text-align:center;"><i class="fa-solid fa-triangle-exclamation"></i> المتصفح لا يدعم GPS — استخدم العنوان اليدوي</div>';
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude, longitude } = pos.coords;
+        S.set('car_location', { lat: latitude, lng: longitude, source: 'gps', ts: Date.now() });
+        statusEl.innerHTML = `
+          <div style="background:#ECFDF5;color:#047857;padding:12px;border-radius:10px;font-size:12px;font-weight:800;border:1px solid #A7F3D0;">
+            <i class="fa-solid fa-circle-check"></i> تم تحديد موقعك بنجاح
+            <div style="margin-top:6px;font-size:11px;">
+              <a href="https://maps.google.com/?q=${latitude},${longitude}" target="_blank" style="color:#0284C7;text-decoration:underline;">
+                ${latitude.toFixed(4)}, ${longitude.toFixed(4)} — عرض على الخريطة
+              </a>
+            </div>
+          </div>
+        `;
+        window._updateCarSummary();
+      },
+      err => {
+        statusEl.innerHTML = `<div style="background:#FEF2F2;color:#991B1B;padding:12px;border-radius:10px;font-size:12px;font-weight:800;border:1px solid #FECACA;">
+          <i class="fa-solid fa-triangle-exclamation"></i> تعذر الوصول لموقعك — استخدم الإدخال اليدوي
+        </div>`;
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  window.toggleCarService = function (svcId) {
+    let cart = S.get('car_cart', []);
+    if (cart.includes(svcId)) {
+      cart = cart.filter(x => x !== svcId);
+    } else {
+      cart.push(svcId);
+    }
+    S.set('car_cart', cart);
+    document.querySelectorAll('[data-car-service]').forEach(el => {
+      const isSel = cart.includes(el.dataset.carService);
+      el.style.background = isSel ? '#EEF2FF' : '#fff';
+      el.style.borderColor = isSel ? '#3730A3' : 'var(--line)';
+      el.style.borderWidth = isSel ? '2px' : '1.5px';
+    });
+    window._updateCarSummary();
+  };
+
+  window._updateCarSummary = function () {
+    const cart = S.get('car_cart', []);
+    const summary = document.getElementById('car-cart-summary');
+    if (!summary) return;
+    const selected = CAR_SERVICES.filter(s => cart.includes(s.id));
+    const loc = S.get('car_location', null);
+    const manual = document.getElementById('car-manual-loc')?.value.trim() || '';
+    const hasLoc = loc || manual;
+
+    if (!selected.length && !hasLoc) {
+      summary.innerHTML = '<p class="panel-sub">لم تختر خدمة أو موقع بعد</p>';
+      return;
+    }
+    const total = selected.reduce((s, x) => s + x.price, 0);
+    summary.innerHTML = `
+      <div style="background:#F8FAFC;border-radius:12px;padding:14px;border:1px solid var(--line);">
+        <div style="font-size:11.5px;font-weight:800;color:#64748B;margin-bottom:8px;">الخدمات المختارة:</div>
+        ${selected.length ? selected.map(s => `
+          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;font-weight:800;border-bottom:1px dashed #E2E8F0;">
+            <span><i class="fa-solid ${s.icon}" style="color:#3730A3;margin-left:5px;"></i>${s.name}</span>
+            <span style="color:#059669;">${s.price} ج.م</span>
+          </div>
+        `).join('') : '<div style="font-size:11.5px;color:#94A3B8;font-weight:700;padding:6px 0;">لا خدمات مختارة</div>'}
+        ${hasLoc ? `<div style="margin-top:8px;padding:8px;background:#ECFDF5;border-radius:8px;font-size:11px;font-weight:800;color:#047857;"><i class="fa-solid fa-location-dot"></i> الموقع: ${loc ? loc.lat.toFixed(3) + ', ' + loc.lng.toFixed(3) + ' (GPS)' : manual}</div>` : '<div style="margin-top:8px;color:#DC2626;font-size:11px;font-weight:800;"><i class="fa-solid fa-circle-exclamation"></i> لم تحدد موقع السيارة</div>'}
+        <div style="margin-top:10px;padding-top:10px;border-top:2px solid #E2E8F0;display:flex;justify-content:space-between;font-weight:900;">
+          <span style="color:#3730A3;">الإجمالي المتوقع:</span>
+          <span style="color:#059669;font-size:16px;">${total} ج.م</span>
+        </div>
+      </div>
+    `;
+  };
+
+  window.submitCarRequest = function () {
+    const cart = S.get('car_cart', []);
+    const loc = S.get('car_location', null);
+    const manual = document.getElementById('car-manual-loc')?.value.trim();
+    if (!cart.length) { toast('اختر خدمة واحدة على الأقل', 'error'); return; }
+    if (!loc && !manual) { toast('حدد موقع السيارة أولاً', 'error'); return; }
+    const selected = CAR_SERVICES.filter(s => cart.includes(s.id));
+    const total = selected.reduce((s, x) => s + x.price, 0);
+    const locLabel = loc ? `${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)} (GPS)` : manual;
+    const user = Auth.currentUser();
+
+    selected.forEach(svc => {
+      createOrder({
+        type: 'car',
+        title: svc.name,
+        subtitle: `الموقع: ${locLabel.slice(0, 40)}${locLabel.length > 40 ? '...' : ''}`,
+        price: svc.price,
+        icon: svc.icon
+      });
+    });
+
+    S.set('car_cart', []);
+    S.set('car_location', null);
+    document.querySelectorAll('[data-car-service]').forEach(el => { el.style.background = '#fff'; el.style.borderColor = 'var(--line)'; el.style.borderWidth = '1.5px'; });
+    if (document.getElementById('car-manual-loc')) document.getElementById('car-manual-loc').value = '';
+    document.getElementById('car-location-status').innerHTML = '';
+    window._updateCarSummary();
+
+    const msg = `🚗 *طلب خدمة سيارة - منصة وصلة*\n\n👤 ${user?.name || 'زائر'}\n📱 ${user?.phone || '—'}\n📍 الموقع: ${locLabel}\n${loc ? `🗺️ https://maps.google.com/?q=${loc.lat},${loc.lng}\n` : ''}\n🛠️ الخدمات:\n${selected.map((s,i) => `${i+1}) ${s.name} - ${s.price} ج.م`).join('\n')}\n\n💰 الإجمالي: ${total} ج.م`;
+    window.open('https://wa.me/201068990089?text=' + encodeURIComponent(msg), '_blank');
+
+    toast('✅ تم إرسال طلبك — تابع الحالة');
+    setTimeout(() => window.openOrdersModal(), 400);
+  };
+
+  window.emergencyTow = function () {
+    const loc = S.get('car_location', null);
+    let locText = 'موقع غير محدد';
+    let mapsLink = '';
+    if (loc) {
+      locText = `${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}`;
+      mapsLink = `\n🗺️ https://maps.google.com/?q=${loc.lat},${loc.lng}`;
+    }
+    const user = Auth.currentUser();
+    const msg = `🚨 *طلب ونش إنقاذ طارئ - منصة وصلة*\n\n👤 ${user?.name || 'زائر'}\n📱 ${user?.phone || '—'}\n📍 الموقع: ${locText}${mapsLink}\n\n⏰ الوقت: ${new Date().toLocaleString('ar-EG')}\n\n_أحتاج ونش فوراً — سيارتي معطلة_`;
+    window.open('https://wa.me/201068990089?text=' + encodeURIComponent(msg), '_blank');
+    toast('🚨 تم إرسال نداء الطوارئ — سيتم التواصل معك فوراً');
+    createOrder({
+      type: 'car',
+      title: 'ونش إنقاذ طارئ',
+      subtitle: locText,
+      price: 0,
+      icon: 'fa-truck-pickup'
+    });
+  };
+
+  /* ============== 11. توسيع switchSector للقطاعات الجديدة ============== */
+
+  const _oldSwitchSector = window.switchSector;
+  window.switchSector = function (sector) {
+    _oldSwitchSector(sector);
+    if (sector === 'cars') renderCarsSector();
+  };
+
+  /* ============== 12. توسيع renderDoctors بأزرار إضافية ============== */
+
+  const _oldRenderDoctors = window.renderDoctors;
+  window.renderDoctors = function () {
+    _oldRenderDoctors();
+    document.querySelectorAll('.doc-card').forEach(card => {
+      const bookBtn = card.querySelector('.book-btn');
+      if (!bookBtn) return;
+      const onclick = bookBtn.getAttribute('onclick') || '';
+      const m = onclick.match(/openBooking\('([^']+)'\)/);
+      if (!m) return;
+      const docId = m[1];
+      const priceCol = bookBtn.parentElement;
+      if (!priceCol.querySelector('[data-wa-btn]')) {
+        const wa = document.createElement('button');
+        wa.setAttribute('data-wa-btn', docId);
+        wa.style.cssText = 'margin-top:6px;width:100%;background:#25D366;color:#fff;border:none;padding:8px 10px;border-radius:10px;font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;';
+        wa.innerHTML = '<i class="fa-brands fa-whatsapp"></i> واتساب';
+        wa.onclick = () => window.bookViaWhatsApp(docId);
+        priceCol.appendChild(wa);
+      }
+      const infoRow = card.querySelector('.doc-insurance-row');
+      if (infoRow && !card.querySelector('[data-loc-btn]')) {
+        const loc = document.createElement('button');
+        loc.setAttribute('data-loc-btn', docId);
+        loc.style.cssText = 'background:none;border:none;color:#0284C7;font-family:inherit;font-weight:800;font-size:11px;cursor:pointer;padding:4px 0 0;display:inline-flex;align-items:center;gap:4px;';
+        loc.innerHTML = '<i class="fa-solid fa-map-location-dot"></i> موقع العيادة';
+        loc.onclick = () => window.openClinicLocation(docId);
+        infoRow.after(loc);
+      }
+    });
+  };
+
+  /* ============== 13. توسيع checkoutCart لإنشاء طلبات ============== */
+
+  const _oldCheckoutCart = window.checkoutCart;
+  window.checkoutCart = function () {
+    const cart = S.get('cart', []);
+    if (!cart.length) { if (typeof toast === 'function') toast('السلة فارغة', 'error'); return; }
+    const user = Auth.currentUser();
+    cart.forEach(item => {
+      createOrder({
+        type: item.type || 'medical',
+        title: item.title,
+        subtitle: item.subtitle || '',
+        price: item.price || 0,
+        icon: item.icon || 'fa-box'
+      });
+    });
+    S.set('cart', []);
+    if (typeof syncCartUI === 'function') syncCartUI();
+    if (typeof closeCart === 'function') closeCart();
+    if (typeof toast === 'function') toast('✅ تم استلام طلبك — تابع الحالة');
+    setTimeout(() => window.openOrdersModal(), 400);
+
+    const lines = cart.map((i, idx) => `${idx + 1}) ${i.title} - ${i.price} ج.م`).join('\n');
+    const total = cart.reduce((s, i) => s + i.price, 0);
+    const msg = `📌 *طلب جديد - منصة وصلة*\n\n👤 ${user?.name || 'زائر'}\n📱 ${user?.phone || '—'}\n\n${lines}\n\n💰 الإجمالي: ${total} ج.م`;
+    window.open('https://wa.me/201068990089?text=' + encodeURIComponent(msg), '_blank');
+  };
+
+  /* ============== 14. Init Phase 3 ============== */
+
+  function initPhase3() {
+    enrichDoctors();
+    renderPharmaciesPanel();
+    ensureOrdersWidget();
+    renderOrdersWidget();
+    // Enhance existing doctor cards
+    if (typeof window.renderDoctors === 'function') window.renderDoctors();
+    // If cars sector is currently active, render it
+    if (document.getElementById('sector-cars')?.classList.contains('active')) renderCarsSector();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initPhase3, 50));
+  } else {
+    setTimeout(initPhase3, 50);
+  }
+
+  // Expose for debugging
+  window.W3 = { S, createOrder, advanceOrder, renderOrdersWidget, CAR_SERVICES, PHARMACIES_SEED, DOCTOR_EXT };
+  console.log('✅ WASLA Phase 3 loaded — Extensions active');
+})();
+</script>
 </body>
 </html>
