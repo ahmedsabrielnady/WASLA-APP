@@ -3985,5 +3985,368 @@ document.addEventListener('DOMContentLoaded', () => {
 
 })();
 </script>
+  <script>
+/* ================================================================
+   WASLA PHASE 6 — AUTH OVERRIDE, FLOATING BELL, FOOD & MAINTENANCE
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const NS = 'wasla_v2_';
+  const S = {
+    get(k, d) { try { const r = localStorage.getItem(NS + k); return r ? JSON.parse(r) : d; } catch (_) { return d; } },
+    set(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); return true; } catch (_) { return false; } }
+  };
+
+  /* ============== 1. إصلاح الدخول الجذري (Auth Interceptor) ============== */
+  // ننتظر حتى يتم تحميل دالة Auth الأصلية ثم نغلفها
+  setTimeout(() => {
+    if (typeof window.Auth !== 'undefined') {
+      const originalLogin = window.Auth.login;
+      
+      window.Auth.login = async function(credentials) {
+        const { phone, password } = credentials;
+        
+        // 1. التحقق من الحسابات التجريبية (تخطي أي تشفير)
+        if (phone === '01068990089' && password === 'admin123') {
+          let users = S.get('users', []);
+          let founder = users.find(u => u.phone === '01068990089');
+          if (!founder) {
+            // إذا حُذف بطريقة ما، نعيد إنشاءه
+            founder = {
+              id: 'usr-founder', phone: '01068990089', name: 'أحمد صبري (المؤسس)',
+              role: 'founder', waslaId: 'WASLA-00001', salt: 'demo',
+              passwordHash: 'demo', createdAt: Date.now(),
+              emr: { bloodType:'O+', allergies:[], chronic:[], vitals:[], prescriptions:[], labResults:[], visits:[] }
+            };
+            users.push(founder); S.set('users', users);
+          }
+          S.set('session', { userId: founder.id, token: 'mock-token', expiresAt: Date.now() + 86400000 });
+          return { ok: true, user: founder, msg: 'مرحباً بك سيادة المؤسس' };
+        }
+
+        if ((phone === '01000000001' || phone === '01000000002') && password === 'patient123') {
+          let users = S.get('users', []);
+          let patient = users.find(u => u.phone === phone);
+          if (!patient) {
+            patient = {
+              id: 'usr-' + phone, phone: phone, name: phone === '01000000001' ? 'أحمد محمد علي' : 'منى إبراهيم سالم',
+              role: 'patient', waslaId: 'WASLA-0000' + (phone.slice(-1)), salt: 'demo',
+              passwordHash: 'demo', createdAt: Date.now(),
+              emr: { bloodType:'A+', allergies:[], chronic:[], vitals:[], prescriptions:[], labResults:[], visits:[] }
+            };
+            users.push(patient); S.set('users', users);
+          }
+          S.set('session', { userId: patient.id, token: 'mock-token', expiresAt: Date.now() + 86400000 });
+          return { ok: true, user: patient, msg: 'مرحباً بك في وصلة' };
+        }
+
+        // إذا لم يكن حساباً تجريبياً، استخدم الدالة الأصلية
+        return originalLogin.call(window.Auth, credentials);
+      };
+      console.log('✅ Auth Interceptor injected — Demo accounts bypassed.');
+    }
+  }, 100);
+
+  /* ============== 2. الجرس العائم للإشعارات (Floating Bell) ============== */
+  function injectFloatingBell() {
+    if (document.getElementById('floating-bell')) return;
+    
+    const bellHTML = `
+      <div id="floating-bell" style="position:fixed;top:100px;left:20px;z-index:999;display:flex;flex-direction:column;gap:10px;">
+        <button onclick="window.toggleFloatNotif()" style="background:#fff;color:#0B1220;border:2px solid #E2E8F0;width:50px;height:50px;border-radius:50%;box-shadow:0 8px 24px rgba(0,0,0,0.1);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;position:relative;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+          <i class="fa-solid fa-bell" style="color:#3730A3;"></i>
+          <span id="float-bell-badge" style="position:absolute;top:-2px;right:-2px;background:#E11D48;color:#fff;min-width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:900;display:none;align-items:center;justify-content:center;border:2px solid #fff;">0</span>
+        </button>
+      </div>
+
+      <div id="float-notif-panel" style="display:none;position:fixed;top:160px;left:20px;width:320px;max-height:400px;overflow-y:auto;background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,0.15);border:1px solid #E2E8F0;z-index:998;text-align:right;flex-direction:column;">
+        <div style="padding:14px;border-bottom:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;background:#F8FAFC;border-radius:16px 16px 0 0;">
+          <strong style="font-size:14px;font-weight:900;color:#0B1220;"><i class="fa-solid fa-bell" style="color:#3730A3;margin-left:6px;"></i> التنبيهات الحية</strong>
+          <button onclick="window.clearFloatNotifs()" style="background:none;border:none;color:#E11D48;font-size:11px;font-weight:800;cursor:pointer;">مسح الكل</button>
+        </div>
+        <div id="float-notif-list" style="padding:10px;flex:1;">
+          <div style="text-align:center;padding:20px;color:#94A3B8;font-size:12px;font-weight:700;">لا توجد إشعارات</div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', bellHTML);
+  }
+
+  window.WaslaFloatNotifs = {
+    list: S.get('float_notifications', []),
+    add(text, type = 'info') {
+      this.list.unshift({ id: Date.now(), text, type, read: false, ts: Date.now() });
+      S.set('float_notifications', this.list);
+      this.render();
+      this.showPopup(text, type);
+    },
+    render() {
+      const badge = document.getElementById('float-bell-badge');
+      const listEl = document.getElementById('float-notif-list');
+      if (!badge || !listEl) return;
+
+      const unread = this.list.filter(n => !n.read).length;
+      badge.textContent = unread;
+      badge.style.display = unread > 0 ? 'flex' : 'none';
+
+      if (this.list.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94A3B8;font-size:12px;font-weight:700;">لا توجد إشعارات</div>';
+        return;
+      }
+
+      listEl.innerHTML = this.list.map(n => `
+        <div style="padding:10px;border-bottom:1px solid #F1F5F9;display:flex;gap:10px;align-items:flex-start;background:${n.read ? '#fff' : '#F0F9FF'};border-radius:8px;margin-bottom:4px;">
+          <div style="width:30px;height:30px;border-radius:8px;background:${n.type === 'alert' ? '#FEE2E2' : '#DBEAFE'};color:${n.type === 'alert' ? '#E11D48' : '#0284C7'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fa-solid ${n.type === 'alert' ? 'fa-triangle-exclamation' : 'fa-info-circle'}"></i>
+          </div>
+          <div style="flex:1;">
+            <p style="margin:0;font-size:12px;font-weight:800;color:#0B1220;line-height:1.4;">${n.text}</p>
+            <span style="font-size:10px;color:#94A3B8;font-weight:700;margin-top:4px;display:block;">${new Date(n.ts).toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'})}</span>
+          </div>
+        </div>
+      `).join('');
+    },
+    showPopup(text, type) {
+      const t = document.createElement('div');
+      t.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#0B1220;color:#fff;padding:14px 24px;border-radius:12px;font-family:Cairo;font-size:14px;font-weight:900;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,0.3);border-right:5px solid ${type === 'alert' ? '#E11D48' : '#059669'};display:flex;align-items:center;gap:10px;animation:slideDown 0.3s ease;`;
+      t.innerHTML = `<i class="fa-solid ${type === 'alert' ? 'fa-bell' : 'fa-circle-info'}" style="color:${type === 'alert' ? '#FCA5A5' : '#34D399'};font-size:18px;"></i> ${text}`;
+      document.body.appendChild(t);
+      setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(), 300); }, 5000);
+    },
+    markRead() {
+      this.list.forEach(n => n.read = true);
+      S.set('float_notifications', this.list);
+      this.render();
+    }
+  };
+
+  window.toggleFloatNotif = function() {
+    const p = document.getElementById('float-notif-panel');
+    if (!p) return;
+    const isHidden = p.style.display === 'none' || p.style.display === '';
+    p.style.display = isHidden ? 'flex' : 'none';
+    if (isHidden) window.WaslaFloatNotifs.markRead();
+  };
+
+  window.clearFloatNotifs = function() {
+    window.WaslaFloatNotifs.list = [];
+    S.set('float_notifications', []);
+    window.WaslaFloatNotifs.render();
+  };
+
+
+  /* ============== 3. قطاع التسوق (Food Delivery) ============== */
+  const FOOD_DATA = [
+    {
+      id: 'rest-1', name: 'مشويات الشرقاوي', type: 'مشويات', area: 'شارع بورسعيد - شبين',
+      rating: 4.8, deliveryTime: '30-45 دقيقة', icon: 'fa-drumstick-bite', color: '#EA580C',
+      items: [
+        { id: 'f1', name: 'كباب وكفتة مشكل', price: 180 },
+        { id: 'f2', name: 'شيش طاووق', price: 140 },
+        { id: 'f3', name: 'حمام محشي', price: 220 }
+      ]
+    },
+    {
+      id: 'rest-2', name: 'بيتزا روميو', type: 'بيتزا', area: 'ميدان المحطة - شبين',
+      rating: 4.6, deliveryTime: '20-30 دقيقة', icon: 'fa-pizza-slice', color: '#D97706',
+      items: [
+        { id: 'f4', name: 'بيتزا مارجريتا (وسط)', price: 90 },
+        { id: 'f5', name: 'بيتزا سوبر سوبريم (كبيرة)', price: 160 },
+        { id: 'f6', name: 'بيتزا فراخ رانش', price: 140 }
+      ]
+    },
+    {
+      id: 'rest-3', name: 'فراخ التكية', type: 'فراخ', area: 'كفر حمزة - الشارع الرئيسي',
+      rating: 4.9, deliveryTime: '25-40 دقيقة', icon: 'fa-fire-burner', color: '#B45309',
+      items: [
+        { id: 'f7', name: 'وجبة فراخ مشوية (4 قطع)', price: 150 },
+        { id: 'f8', name: 'وجبة بروستد حار', price: 130 },
+        { id: 'f9', name: 'شيش طاووق ساندوتش', price: 60 }
+      ]
+    }
+  ];
+
+  window.renderFoodSector = function() {
+    const sec = document.getElementById('sector-market');
+    if (!sec) return;
+
+    sec.innerHTML = `
+      <div class="panel" style="background:linear-gradient(135deg,#7C2D12,#EA580C);color:#fff;margin-bottom:16px;">
+        <h3 style="font-weight:900;font-size:18px;margin:0;"><i class="fa-solid fa-utensils"></i> اطلب أكلك المفضل الآن</h3>
+        <p style="font-size:12px;opacity:.85;font-weight:700;margin:4px 0 0;">أشهى المشويات، البيتزا، والفراخ.. توصلك لباب البيت ساخنة</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr;gap:16px;">
+        ${FOOD_DATA.map(r => `
+          <div class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+              <div style="display:flex;gap:12px;align-items:center;">
+                <div style="width:50px;height:50px;border-radius:14px;background:${r.color}15;color:${r.color};display:flex;align-items:center;justify-content:center;font-size:24px;">
+                  <i class="fa-solid ${r.icon}"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:16px;font-weight:900;margin:0;color:var(--ink);">${r.name}</h4>
+                  <p style="font-size:11px;color:#64748B;font-weight:700;margin:2px 0 0;"><i class="fa-solid fa-location-dot"></i> ${r.area}</p>
+                  <p style="font-size:11px;color:#059669;font-weight:800;margin:2px 0 0;"><i class="fa-solid fa-clock"></i> ${r.deliveryTime} • ⭐ ${r.rating}</p>
+                </div>
+              </div>
+            </div>
+            <div style="background:#F8FAFC;border-radius:12px;padding:8px;">
+              ${r.items.map(item => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #E2E8F0;last-child:border-0;">
+                  <span style="font-size:13px;font-weight:800;color:var(--ink);">${item.name}</span>
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:13px;font-weight:900;color:#059669;">${item.price} ج.م</span>
+                    <button onclick="window.addFoodToCart('${r.name}', '${item.name}', ${item.price})" style="background:#EA580C;color:#fff;border:none;width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">
+                      <i class="fa-solid fa-plus"></i>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  };
+
+  window.addFoodToCart = function(restName, itemName, price) {
+    if (typeof createOrder === 'function') {
+      createOrder({
+        type: 'food', title: itemName, subtitle: `من ${restName}`, price: price, icon: 'fa-utensils'
+      });
+      toast(`تم إضافة ${itemName} إلى طلباتك`);
+      setTimeout(() => window.openOrdersModal(), 400);
+    }
+  };
+
+
+  /* ============== 4. قطاع الصيانة (Maintenance) ============== */
+  const MAINT_DATA = [
+    {
+      id: 'maint-1', name: 'أسطى محمود - سباكة', type: 'سباكة', area: 'شبين القناطر',
+      rating: 4.9, exp: '15 سنة خبرة', icon: 'fa-wrench', color: '#0284C7',
+      services: ['تسليك مجاري', 'تركيب خلاطات', 'كشف تسريبات المياه', 'تأسيس حمامات']
+    },
+    {
+      id: 'maint-2', name: 'م. كريم - كهربائي', type: 'كهرباء', area: 'شبين القناطر',
+      rating: 4.8, exp: '10 سنوات خبرة', icon: 'fa-bolt', color: '#D97706',
+      services: ['تمديدات كهرباء', 'إصلاح لوحات مفاتيح', 'تركيب نجف وإضاءة', 'كشف أعطال التماس']
+    }
+  ];
+
+  window.renderMaintenanceSector = function() {
+    const sec = document.getElementById('sector-home');
+    if (!sec) return;
+
+    sec.innerHTML = `
+      <div class="panel" style="background:linear-gradient(135deg,#0C4A6E,#0284C7);color:#fff;margin-bottom:16px;">
+        <h3 style="font-weight:900;font-size:18px;margin:0;"><i class="fa-solid fa-screwdriver-wrench"></i> صنايعي معتمد لباب بيتك</h3>
+        <p style="font-size:12px;opacity:.85;font-weight:700;margin:4px 0 0;">فنيون بفيش وتشبيه وتقييمات حقيقية - استجابة سريعة وأسعار شفافة</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr;gap:16px;">
+        ${MAINT_DATA.map(m => `
+          <div class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+              <div style="display:flex;gap:12px;align-items:center;">
+                <div style="width:56px;height:56px;border-radius:16px;background:${m.color}15;color:${m.color};display:flex;align-items:center;justify-content:center;font-size:24px;">
+                  <i class="fa-solid ${m.icon}"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:16px;font-weight:900;margin:0;color:var(--ink);">${m.name} <span style="font-size:10px;background:#ECFDF5;color:#059669;padding:2px 6px;border-radius:6px;margin-right:4px;"><i class="fa-solid fa-shield-check"></i> موثق</span></h4>
+                  <p style="font-size:11px;color:#64748B;font-weight:700;margin:2px 0 0;"><i class="fa-solid fa-star" style="color:#F59E0B;"></i> ${m.rating} • ${m.exp} • ${m.area}</p>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap;">
+              ${m.services.map(s => `<span style="background:#F1F5F9;color:#475569;font-size:11px;padding:4px 10px;border-radius:99px;font-weight:800;border:1px solid #E2E8F0;">${s}</span>`).join('')}
+            </div>
+            <button onclick="window.requestMaintenance('${m.name}', '${m.type}')" style="width:100%;margin-top:14px;background:${m.color};color:#fff;border:none;padding:12px;border-radius:12px;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;display:flex;justify-content:center;align-items:center;gap:8px;">
+              <i class="fa-solid fa-paper-plane"></i> طلب زيارة
+            </button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  };
+
+  window.requestMaintenance = function(techName, type) {
+    if (typeof createOrder === 'function') {
+      createOrder({
+        type: 'maintenance', title: `طلب ${type}`, subtitle: `الفني: ${techName}`, price: 100, icon: 'fa-wrench' // سعر استرشادي للمعاينة
+      });
+      toast(`تم إرسال طلبك للفني ${techName}`);
+      setTimeout(() => window.openOrdersModal(), 400);
+    }
+  };
+
+
+  /* ============== 5. ربط القطاعات بدالة التوجيه (Router Patch) ============== */
+  const _oldSwitchSector = window.switchSector;
+  window.switchSector = function(sector) {
+    _oldSwitchSector(sector);
+    if (sector === 'market') window.renderFoodSector();
+    if (sector === 'home') window.renderMaintenanceSector();
+  };
+
+  /* ============== 6. التهيئة (Init Phase 6) ============== */
+  function initPhase6() {
+    injectFloatingBell();
+    window.WaslaFloatNotifs.render();
+    
+    // رسالة ترحيبية عند الدخول
+    const user = Auth.currentUser();
+    if (user && !sessionStorage.getItem('welcomed_v6')) {
+      setTimeout(() => {
+        window.WaslaFloatNotifs.add(`مرحباً ${user.name.split(' ')[0]}، أهلاً بك في منصة وصلة!`, 'info');
+        sessionStorage.setItem('welcomed_v6', 'true');
+      }, 1000);
+    }
+
+    // مراقبة حالة المواعيد وإرسال إشعارات حية
+    setInterval(() => {
+      const u = Auth.currentUser();
+      if (!u) return;
+      const appts = S.get('appointments', []);
+      let changed = false;
+      
+      appts.forEach(a => {
+        if (a.patientId === u.id && a.status !== 'cancelled' && a.medicalStatus !== 'now') {
+          const elapsed = Date.now() - (a.createdAt || Date.now());
+          
+          // بعد 20 ثانية: تذكير
+          if (elapsed > 20000 && a.medicalStatus === 'received') {
+            a.medicalStatus = 'reminder';
+            window.WaslaFloatNotifs.add(`⏰ تذكير: موعدك مع ${a.doctorName} يوم ${a.date} الساعة ${a.slot}`, 'info');
+            changed = true;
+          }
+          // بعد 40 ثانية: أمامك حالات
+          else if (elapsed > 40000 && a.medicalStatus === 'reminder') {
+            a.medicalStatus = 'ahead';
+            window.WaslaFloatNotifs.add(`⏳ تنبيه: أنت رقم 3 في طابور ${a.doctorName}. برجاء التوجه للعيادة.`, 'alert');
+            changed = true;
+          }
+          // بعد 60 ثانية: دورك الآن
+          else if (elapsed > 60000 && a.medicalStatus === 'ahead') {
+            a.medicalStatus = 'now';
+            window.WaslaFloatNotifs.add(`🔔 حان دورك الآن! برجاء الدخول لغرفة ${a.doctorName}.`, 'alert');
+            changed = true;
+          }
+        }
+      });
+      if (changed) S.set('appointments', appts);
+    }, 5000);
+
+    console.log('✅ WASLA Phase 6 loaded — Auth Interceptor, Floating Bell, Food & Maintenance active.');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initPhase6, 200));
+  } else {
+    setTimeout(initPhase6, 200);
+  }
+
+})();
+</script>
 </body>
 </html>
