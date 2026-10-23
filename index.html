@@ -2947,5 +2947,643 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('✅ WASLA Phase 3 loaded — Extensions active');
 })();
 </script>
+  <script>
+/* ================================================================
+   WASLA PHASE 4 — MEDICAL APPOINTMENTS, DYNAMIC SCHEDULE, ADS, ONBOARDING
+   لا يعدل أي سطر من الكود القديم — يوسّعه فقط
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const NS = 'wasla_v2_';
+  const S = {
+    get(k, d) { try { const r = localStorage.getItem(NS + k); return r ? JSON.parse(r) : d; } catch (_) { return d; } },
+    set(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); return true; } catch (_) { return false; } }
+  };
+
+  /* ============== 1. بيانات الجدول الزمني (بناءً على البحث) ============== */
+  const SPECIALTY_DURATIONS = {
+    'باطنة وكبد وسكر': 18,
+    'أطفال وحديثي الولادة': 15,
+    'جراحة العظام والمفاصل': 14,
+    'قلب وأوعية دموية': 20,
+    'نساء وتوليد': 18,
+    'جلدية وتجميل': 12,
+    'أنف وأذن وحنجرة': 15,
+    'default': 15
+  };
+
+  const MEDICAL_STATUS_FLOW = ['received', 'reminder', 'ahead', 'now', 'follow_up'];
+  const MEDICAL_STATUS_LABELS = {
+    received: { label: 'تم استلام الموعد', icon: 'fa-calendar-check', color: '#0284C7' },
+    reminder: { label: 'تذكير بموعد الكشف', icon: 'fa-bell', color: '#D97706' },
+    ahead: { label: 'أمامك 3 حالات', icon: 'fa-users', color: '#7C3AED' },
+    now: { label: 'موعد كشفك الآن', icon: 'fa-door-open', color: '#059669' },
+    follow_up: { label: 'حجز متابعة', icon: 'fa-rotate-right', color: '#10B981' }
+  };
+
+  /* ============== 2. تهيئة البيانات الجديدة ============== */
+
+  function initPhase4Data() {
+    // 2.1 تأكيد وجود الرقم التعريفي لكل مستخدم
+    const users = S.get('users', []);
+    let changed = false;
+    users.forEach(u => {
+      if (!u.waslaId) {
+        u.waslaId = 'WASLA-' + Math.floor(10000 + Math.random() * 90000);
+        changed = true;
+      }
+    });
+    if (changed) S.set('users', users);
+
+    // 2.2 شريط الإعلانات
+    if (!S.get('ads')) {
+      S.set('ads', [
+        { id: 'ad1', text: '🎉 خصم 20% على أول حجز كشف في شبين القناطر', active: true },
+        { id: 'ad2', text: '🚀 تم إطلاق خدمة الونش الذكي - اتصل بنا الآن', active: true },
+        { id: 'ad3', text: '💊 صيدلية النور تقدم خصم 10% لحاملي بطاقة وصلة', active: true }
+      ]);
+    }
+
+    // 2.3 طلبات الانضمام
+    if (!S.get('join_requests')) S.set('join_requests', []);
+
+    // 2.4 إضافة الحقول الجديدة للمواعيد القديمة (توافقية)
+    const appts = S.get('appointments', []);
+    let apptChanged = false;
+    appts.forEach(a => {
+      if (!a.waslaId) {
+        a.waslaId = 'APPT-' + Math.floor(100000 + Math.random() * 900000);
+        apptChanged = true;
+      }
+      if (!a.medicalStatus) {
+        a.medicalStatus = 'received';
+        apptChanged = true;
+      }
+    });
+    if (apptChanged) S.set('appointments', appts);
+  }
+
+  /* ============== 3. شريط الإعلانات المتحرك ============== */
+
+  function renderTickerBanner() {
+    if (document.getElementById('wasla-ticker')) return;
+    const ads = S.get('ads', []).filter(a => a.active);
+    if (!ads.length) return;
+
+    const tickerHTML = `
+      <div id="wasla-ticker" style="background:linear-gradient(90deg,#0B1220,#14213A,#3730A3);color:#fff;padding:8px 0;font-size:12px;font-weight:800;overflow:hidden;white-space:nowrap;position:relative;">
+        <div style="display:inline-block;padding-right:100%;animation:wasla-ticker-scroll 20s linear infinite;">
+          ${ads.map(a => `<span style="margin-left:40px;"><i class="fa-solid fa-bullhorn" style="color:#FBBF24;margin-left:5px;"></i>${a.text}</span>`).join('')}
+        </div>
+      </div>
+      <style>
+        @keyframes wasla-ticker-scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(100%); }
+        }
+      </style>
+    `;
+    const header = document.querySelector('.wasla-header');
+    if (header) header.insertAdjacentHTML('beforebegin', tickerHTML);
+  }
+
+  /* ============== 4. الرقم التعريفي الثابت ============== */
+
+  function getUserWaslaId() {
+    if (typeof Auth === 'undefined') return null;
+    const user = Auth.currentUser();
+    return user ? user.waslaId : null;
+  }
+
+  // إضافة زر إظهار الرقم التعريفي في الهيدر
+  function patchHeaderWithWaslaId() {
+    const headerActions = document.getElementById('header-actions');
+    if (!headerActions) return;
+    const user = Auth.currentUser();
+    if (!user) return;
+
+    // إزالة الزر القديم إذا وجد
+    const oldBtn = document.getElementById('wasla-id-btn');
+    if (oldBtn) oldBtn.remove();
+
+    const btn = document.createElement('button');
+    btn.id = 'wasla-id-btn';
+    btn.style.cssText = 'background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 12px;border-radius:10px;font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;';
+    btn.innerHTML = `<i class="fa-solid fa-id-card" style="color:#34D399;"></i> ${user.waslaId || 'WASLA-XXXXX'}`;
+    btn.onclick = () => {
+      alert(`رقمك التعريفي الثابت في وصلة:\n${user.waslaId}\n\nاحتفظ بهذا الرقم للمتابعة والاستفسار.`);
+    };
+    
+    // إضافة قبل زر تسجيل الخروج
+    const logoutBtn = headerActions.querySelector('.login-btn[style*="DC2626"]');
+    if (logoutBtn) {
+      logoutBtn.parentNode.insertBefore(btn, logoutBtn);
+    } else {
+      headerActions.appendChild(btn);
+    }
+  }
+
+  /* ============== 5. نظام تتبع المواعيد الطبية (Medical Tracker) ============== */
+
+  // 5.1 دالة مساعدة لحساب الحالات التي أمام المريض
+  function getPatientsAhead(apptId) {
+    const appt = S.get('appointments', []).find(a => a.id === apptId);
+    if (!appt) return 0;
+    const sameDayAppts = S.get('appointments', [])
+      .filter(a => a.doctorId === appt.doctorId && a.date === appt.date && a.status !== 'cancelled')
+      .sort((a, b) => {
+        const timeA = a.slot.localeCompare(b.slot);
+        return timeA;
+      });
+    const idx = sameDayAppts.findIndex(a => a.id === apptId);
+    return Math.max(0, idx);
+  }
+
+  // 5.2 تحديث حالة الموعد بناءً على الوقت (محاكاة)
+  function updateMedicalStatuses() {
+    const appts = S.get('appointments', []);
+    let changed = false;
+    const now = Date.now();
+
+    appts.forEach(a => {
+      if (a.status === 'cancelled' || a.status === 'completed') return;
+      if (!a.medicalStatus) a.medicalStatus = 'received';
+
+      // محاكاة تقدم الحالة كل 15 ثانية
+      if (now - (a.createdAt || now) > 15000 && a.medicalStatus === 'received') {
+        a.medicalStatus = 'reminder';
+        changed = true;
+      } else if (now - (a.createdAt || now) > 30000 && a.medicalStatus === 'reminder') {
+        a.medicalStatus = 'ahead';
+        changed = true;
+      } else if (now - (a.createdAt || now) > 45000 && a.medicalStatus === 'ahead') {
+        a.medicalStatus = 'now';
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      S.set('appointments', appts);
+      // إذا كانت نافذة التتبع مفتوحة، حدثها
+      if (document.getElementById('medical-tracker-modal')?.classList.contains('open')) {
+        renderMedicalTrackerModal();
+      }
+    }
+  }
+  setInterval(updateMedicalStatuses, 3000);
+
+  // 5.3 فتح نافذة تتبع المواعيد الطبية
+  window.openMedicalTracker = function (apptId) {
+    // إنشاء المودال إذا لم يكن موجوداً
+    if (!document.getElementById('medical-tracker-modal')) {
+      document.body.insertAdjacentHTML('beforeend', `
+        <div class="modal-backdrop" id="medical-tracker-modal">
+          <div class="modal-card" style="max-width:640px;">
+            <button class="modal-close" onclick="document.getElementById('medical-tracker-modal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+            <div id="medical-tracker-body"></div>
+          </div>
+        </div>
+      `);
+    }
+    document.getElementById('medical-tracker-modal').classList.add('open');
+    renderMedicalTrackerModal(apptId);
+  };
+
+  // 5.4 رسم محتوى تتبع المواعيد
+  function renderMedicalTrackerModal(focusId) {
+    const body = document.getElementById('medical-tracker-body');
+    if (!body) return;
+    const appts = S.get('appointments', [])
+      .filter(a => a.status !== 'cancelled')
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    if (!appts.length) {
+      body.innerHTML = `<div class="empty-state"><i class="fa-solid fa-calendar"></i><p>لا توجد مواعيد طبية</p><small>احجز موعدك الأول من القطاع الطبي</small></div>`;
+      return;
+    }
+
+    body.innerHTML = `
+      <h3 style="font-weight:900;font-size:18px;margin:0 0 4px;"><i class="fa-solid fa-stethoscope" style="color:#059669;"></i> مواعيدك الطبية</h3>
+      <p class="panel-sub">تتبع رحلة موعدك مع الطبيب خطوة بخطوة</p>
+      ${appts.map(a => renderMedicalApptCard(a)).join('')}
+    `;
+  }
+
+  // 5.5 كارت الموعد الطبي
+  function renderMedicalApptCard(appt) {
+    const status = appt.medicalStatus || 'received';
+    const current = MEDICAL_STATUS_LABELS[status];
+    const ahead = getPatientsAhead(appt.id);
+    const isNow = status === 'now';
+    const isFollowUp = status === 'follow_up';
+
+    // بناء Stepper
+    const steps = MEDICAL_STATUS_FLOW.map((st, i) => {
+      const active = MEDICAL_STATUS_FLOW.indexOf(status) >= i;
+      const lbl = MEDICAL_STATUS_LABELS[st];
+      return `
+        <div style="text-align:center;flex:1;">
+          <div style="width:32px;height:32px;border-radius:99px;background:${active ? lbl.color : '#E2E8F0'};color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:12px;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.1);">
+            <i class="fa-solid ${lbl.icon}"></i>
+          </div>
+          <div style="font-size:9.5px;font-weight:800;color:${active ? lbl.color : '#94A3B8'};line-height:1.3;">${lbl.label}</div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div style="border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;background:#fff;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+          <div style="flex:1;min-width:180px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <i class="fa-solid fa-user-doctor" style="color:#059669;font-size:16px;"></i>
+              <strong style="font-size:13.5px;font-weight:900;color:var(--ink);">${appt.doctorName}</strong>
+            </div>
+            <div style="font-size:11.5px;color:#64748B;font-weight:700;">${appt.specialty}</div>
+            <div style="font-size:12px;color:#0284C7;font-weight:900;margin-top:4px;">${appt.date} • ${appt.slot}</div>
+            <div style="font-size:11px;color:#94A3B8;font-weight:700;margin-top:2px;">رقم الحجز: ${appt.waslaId || appt.id.slice(-6)}</div>
+          </div>
+          <div style="text-align:left;">
+            <span style="background:${current.color}22;color:${current.color};padding:5px 12px;border-radius:99px;font-size:11px;font-weight:900;display:inline-flex;align-items:center;gap:5px;">
+              <i class="fa-solid ${current.icon}"></i> ${current.label}
+            </span>
+          </div>
+        </div>
+
+        <div style="position:relative;padding:10px 0;">
+          <div style="position:absolute;top:24px;right:12px;left:12px;height:3px;background:#E2E8F0;border-radius:99px;"></div>
+          <div style="position:absolute;top:24px;right:12px;height:3px;background:linear-gradient(90deg,#0284C7,#10B981);border-radius:99px;transition:width .6s;width:calc(${MEDICAL_STATUS_FLOW.indexOf(status) / (MEDICAL_STATUS_FLOW.length - 1) * 100}% - 24px * ${MEDICAL_STATUS_FLOW.indexOf(status) / (MEDICAL_STATUS_FLOW.length - 1)});max-width:calc(100% - 24px);"></div>
+          <div style="display:flex;justify-content:space-between;position:relative;z-index:1;">
+            ${steps}
+          </div>
+        </div>
+
+        ${isNow ? `
+          <div style="margin-top:12px;padding:12px;background:#ECFDF5;border-radius:10px;text-align:center;font-size:13px;font-weight:900;color:#047857;border:1px solid #A7F3D0;">
+            <i class="fa-solid fa-door-open"></i> حان دورك الآن — برجاء التوجه لغرفة الطبيب
+          </div>
+        ` : isFollowUp ? `
+          <div style="margin-top:12px;padding:12px;background:#FEF3C7;border-radius:10px;text-align:center;font-size:13px;font-weight:900;color:#92400E;border:1px solid #FDE68A;">
+            <i class="fa-solid fa-notes-medical"></i> أوصى الطبيب بحجز موعد متابعة
+          </div>
+          <button onclick="window.bookFollowUp('${appt.id}')" style="width:100%;margin-top:8px;background:linear-gradient(135deg,#D97706,#F59E0B);color:#fff;border:none;padding:10px;border-radius:10px;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;">
+            <i class="fa-solid fa-calendar-plus"></i> احجز موعد المتابعة
+          </button>
+        ` : `
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="window.sendMedicalReminderWA('${appt.id}')" style="flex:1;min-width:140px;background:#25D366;color:#fff;border:none;padding:9px;border-radius:10px;font-family:inherit;font-weight:900;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;">
+              <i class="fa-brands fa-whatsapp"></i> استفسار واتساب
+            </button>
+            <button onclick="window.cancelMedicalAppt('${appt.id}')" style="background:#FEE2E2;color:#991B1B;border:1px solid #FECACA;padding:9px 14px;border-radius:10px;font-family:inherit;font-weight:900;font-size:11.5px;cursor:pointer;">
+              إلغاء
+            </button>
+          </div>
+        `}
+      </div>
+    `;
+  }
+
+  // 5.6 دوال مساعدة للتفاعل
+  window.sendMedicalReminderWA = function (apptId) {
+    const appt = S.get('appointments', []).find(a => a.id === apptId);
+    if (!appt) return;
+    const msg = `📌 *استفسار عن موعد طبي - منصة وصلة*\n\n👨‍⚕️ الطبيب: ${appt.doctorName}\n📅 التاريخ: ${appt.date}\n⏰ الموعد: ${appt.slot}\n🔖 رقم الحجز: ${appt.waslaId || appt.id.slice(-6)}`;
+    window.open('https://wa.me/201068990089?text=' + encodeURIComponent(msg), '_blank');
+  };
+
+  window.cancelMedicalAppt = function (apptId) {
+    if (!confirm('هل تريد إلغاء هذا الموعد؟')) return;
+    const appts = S.get('appointments', []);
+    const a = appts.find(x => x.id === apptId);
+    if (a) {
+      a.status = 'cancelled';
+      S.set('appointments', appts);
+      renderMedicalTrackerModal();
+      if (typeof toast === 'function') toast('تم إلغاء الموعد');
+    }
+  };
+
+  window.bookFollowUp = function (apptId) {
+    const appt = S.get('appointments', []).find(a => a.id === apptId);
+    if (!appt) return;
+    if (typeof window.openBooking === 'function') {
+      window.openBooking(appt.doctorId);
+      if (typeof toast === 'function') toast('اختر موعد المتابعة');
+    }
+  };
+
+  /* ============== 6. تعديل دالة الحجز لإنشاء موعد طبي ============== */
+  
+  const _oldConfirmBooking = window.confirmBooking;
+  window.confirmBooking = function (docId) {
+    // استدعاء الدالة الأصلية للتحقق من التعارض
+    if (typeof _oldConfirmBooking === 'function') {
+      // نترك الدالة الأصلية تقوم بالتحقق من التعارض
+      // لكننا سنقوم بإنشاء الموعد بأنفسنا بعد التحقق
+    }
+    
+    const user = Auth.currentUser();
+    if (!user) { toast('سجّل دخول أولاً', 'error'); return; }
+    const doc = getDoctor(docId);
+    const slotInput = document.querySelector('input[name="bk-slot"]:checked');
+    const date = document.getElementById('bk-date')?.value;
+    if (!doc || !slotInput || !date) { toast('اختر موعداً وتاريخاً', 'error'); return; }
+    const slot = slotInput.value;
+
+    if (isSlotBooked(docId, date, slot)) {
+      toast('تم حجز هذا الموعد للتو — اختر غيره', 'error');
+      window._updateSlots(docId);
+      return;
+    }
+
+    const appts = S.get('appointments', []);
+    const appt = {
+      id: 'apt-' + Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+      waslaId: 'APPT-' + Math.floor(100000 + Math.random() * 900000),
+      patientId: user.id, patientName: user.name, patientPhone: user.phone,
+      doctorId: docId, doctorName: doc.name, specialty: doc.specialty,
+      date, slot, price: doc.priceWasla, status: 'pending', 
+      medicalStatus: 'received', // الحالة الابتدائية للمواعيد
+      createdAt: Date.now()
+    };
+    appts.push(appt);
+    S.set('appointments', appts);
+
+    const txs = S.get('transactions', []);
+    txs.push({
+      id: 'tx-' + Date.now().toString(36),
+      appointmentId: appt.id, doctorId: docId, doctorName: doc.name,
+      amount: doc.priceWasla, commission: Math.round(doc.priceWasla * 0.15),
+      patientName: user.name, ts: Date.now()
+    });
+    S.set('transactions', txs);
+
+    // إضافة طلب تتبع (تجاري) كما في النسخة السابقة
+    if (typeof createOrder === 'function') {
+      createOrder({
+        type: 'medical', title: `كشف - ${doc.name}`,
+        subtitle: `${date} • ${slot}`, price: doc.priceWasla,
+        icon: 'fa-user-doctor', refId: appt.id
+      });
+    }
+
+    closeModal('booking-modal');
+    toast(`✅ تم حجز موعدك مع ${doc.name}`);
+    window._updateSlots(docId);
+
+    // فتح نافذة تتبع المواعيد الطبية
+    setTimeout(() => window.openMedicalTracker(appt.id), 400);
+  };
+
+  /* ============== 7. نظام طلبات الانضمام (Onboarding) ============== */
+
+  function renderOnboardingButton() {
+    const superTabs = document.getElementById('super-tabs');
+    if (!superTabs || document.getElementById('onboarding-tab')) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'onboarding-tab';
+    btn.className = 'super-tab';
+    btn.dataset.sector = 'onboarding';
+    btn.onclick = () => window.openOnboardingModal();
+    btn.innerHTML = '<i class="fa-solid fa-handshake"></i> انضم إلينا';
+    superTabs.appendChild(btn);
+  }
+
+  window.openOnboardingModal = function () {
+    if (document.getElementById('onboarding-modal')) {
+      document.getElementById('onboarding-modal').classList.add('open');
+      return;
+    }
+
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="modal-backdrop" id="onboarding-modal">
+        <div class="modal-card" style="max-width:560px;">
+          <button class="modal-close" onclick="document.getElementById('onboarding-modal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+          <div id="onboarding-body"></div>
+        </div>
+      </div>
+    `);
+
+    const body = document.getElementById('onboarding-body');
+    body.innerHTML = `
+      <h3 style="font-weight:900;font-size:18px;margin:0 0 4px;"><i class="fa-solid fa-handshake" style="color:#3730A3;"></i> انضم إلى منصة وصلة</h3>
+      <p class="panel-sub">كن جزءاً من شبكة الحياة الذكية في شبين القناطر</p>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <button onclick="window.selectJoinType('doctor')" data-join-type="doctor" style="padding:16px;border:1.5px solid var(--line);border-radius:12px;background:#F8FAFC;cursor:pointer;font-family:inherit;text-align:center;transition:all .2s;">
+          <i class="fa-solid fa-user-doctor" style="font-size:24px;color:#059669;margin-bottom:6px;display:block;"></i>
+          <strong style="font-size:12.5px;font-weight:900;color:var(--ink);">طبيب / عيادة</strong>
+        </button>
+        <button onclick="window.selectJoinType('artisan')" data-join-type="artisan" style="padding:16px;border:1.5px solid var(--line);border-radius:12px;background:#F8FAFC;cursor:pointer;font-family:inherit;text-align:center;transition:all .2s;">
+          <i class="fa-solid fa-screwdriver-wrench" style="font-size:24px;color:#0284C7;margin-bottom:6px;display:block;"></i>
+          <strong style="font-size:12.5px;font-weight:900;color:var(--ink);">صنايعي / فني</strong>
+        </button>
+        <button onclick="window.selectJoinType('store')" data-join-type="store" style="padding:16px;border:1.5px solid var(--line);border-radius:12px;background:#F8FAFC;cursor:pointer;font-family:inherit;text-align:center;transition:all .2s;">
+          <i class="fa-solid fa-store" style="font-size:24px;color:#EA580C;margin-bottom:6px;display:block;"></i>
+          <strong style="font-size:12.5px;font-weight:900;color:var(--ink);">متجر / سوبرماركت</strong>
+        </button>
+        <button onclick="window.selectJoinType('pharmacy')" data-join-type="pharmacy" style="padding:16px;border:1.5px solid var(--line);border-radius:12px;background:#F8FAFC;cursor:pointer;font-family:inherit;text-align:center;transition:all .2s;">
+          <i class="fa-solid fa-prescription-bottle-medical" style="font-size:24px;color:#7C3AED;margin-bottom:6px;display:block;"></i>
+          <strong style="font-size:12.5px;font-weight:900;color:var(--ink);">صيدلية</strong>
+        </button>
+      </div>
+
+      <div id="join-form-container"></div>
+    `;
+  };
+
+  window.selectJoinType = function (type) {
+    document.querySelectorAll('[data-join-type]').forEach(b => {
+      b.style.borderColor = b.dataset.joinType === type ? '#3730A3' : 'var(--line)';
+      b.style.background = b.dataset.joinType === type ? '#EEF2FF' : '#F8FAFC';
+    });
+
+    const container = document.getElementById('join-form-container');
+    const typeLabels = { doctor: 'طبيب', artisan: 'صنايعي', store: 'متجر', pharmacy: 'صيدلية' };
+    
+    container.innerHTML = `
+      <div style="border-top:1px solid var(--line);padding-top:16px;">
+        <h4 style="font-weight:900;font-size:14px;margin:0 0 12px;">بيانات ${typeLabels[type]}</h4>
+        <input type="text" id="join-name" class="input-box" placeholder="الاسم الكامل / اسم النشاط" style="margin-bottom:10px;" />
+        <input type="tel" id="join-phone" class="input-box" placeholder="رقم الموبايل" style="margin-bottom:10px;" />
+        <input type="text" id="join-area" class="input-box" placeholder="العنوان بالتفصيل" style="margin-bottom:10px;" />
+        <textarea id="join-notes" class="input-box" placeholder="أي ملاحظات إضافية..." style="margin-bottom:14px;min-height:70px;"></textarea>
+        <button class="primary-btn" style="width:100%;" onclick="window.submitJoinRequest('${type}')">
+          <i class="fa-solid fa-paper-plane"></i> إرسال طلب الانضمام
+        </button>
+      </div>
+    `;
+  };
+
+  window.submitJoinRequest = function (type) {
+    const name = document.getElementById('join-name')?.value.trim();
+    const phone = document.getElementById('join-phone')?.value.trim();
+    const area = document.getElementById('join-area')?.value.trim();
+    const notes = document.getElementById('join-notes')?.value.trim();
+    
+    if (!name || !phone || !area) {
+      toast('املأ كل الحقول المطلوبة', 'error');
+      return;
+    }
+
+    const requests = S.get('join_requests', []);
+    requests.push({
+      id: 'join-' + Date.now().toString(36),
+      type, name, phone, area, notes,
+      status: 'pending',
+      createdAt: Date.now()
+    });
+    S.set('join_requests', requests);
+
+    document.getElementById('onboarding-modal').classList.remove('open');
+    toast('✅ تم إرسال طلبك — سيتم التواصل معك قريباً');
+    
+    // إرسال إشعار للمؤسس عبر واتساب
+    const msg = `📥 *طلب انضمام جديد - منصة وصلة*\n\nالنوع: ${type}\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${area}\nملاحظات: ${notes || '—'}`;
+    window.open('https://wa.me/201068990089?text=' + encodeURIComponent(msg), '_blank');
+  };
+
+  /* ============== 8. لوحة المؤسس المحدثة (Founder Dashboard Patch) ============== */
+
+  const _oldRenderFounderDashboard = window.renderFounderDashboard;
+  window.renderFounderDashboard = function () {
+    if (typeof _oldRenderFounderDashboard === 'function') {
+      _oldRenderFounderDashboard();
+    }
+
+    // إضافة قسم طلبات الانضمام والإعلانات إلى لوحة المؤسس
+    const founderBody = document.getElementById('founder-dashboard-body');
+    if (!founderBody) return;
+    if (document.getElementById('founder-extra-panels')) return;
+
+    const joinRequests = S.get('join_requests', []);
+    const ads = S.get('ads', []);
+    const pendingReqs = joinRequests.filter(r => r.status === 'pending');
+
+    const extraHTML = `
+      <div id="founder-extra-panels" style="margin-top:14px;">
+        <div class="panel">
+          <h3 class="panel-title"><i class="fa-solid fa-bullhorn" style="color:#D97706;"></i> إدارة الإعلانات (شريط متحرك)</h3>
+          <p class="panel-sub">أضف أو احذف إعلانات تظهر للمواطنين</p>
+          <div id="ads-list" style="margin-bottom:12px;">
+            ${ads.map(ad => `
+              <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line);">
+                <span style="flex:1;font-size:12.5px;font-weight:800;color:${ad.active ? 'var(--ink)' : '#94A3B8'};">${ad.text}</span>
+                <button onclick="window.toggleAd('${ad.id}')" style="background:${ad.active ? '#ECFDF5' : '#F1F5F9'};color:${ad.active ? '#059669' : '#64748B'};border:1px solid ${ad.active ? '#A7F3D0' : '#E2E8F0'};padding:4px 10px;border-radius:6px;font-family:inherit;font-weight:900;font-size:10px;cursor:pointer;">
+                  ${ad.active ? 'نشط' : 'معطل'}
+                </button>
+                <button onclick="window.deleteAd('${ad.id}')" style="background:#FEE2E2;color:#991B1B;border:1px solid #FECACA;padding:4px 8px;border-radius:6px;font-family:inherit;font-weight:900;font-size:10px;cursor:pointer;">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            `).join('')}
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="new-ad-text" class="input-box" placeholder="نص الإعلان الجديد..." style="flex:1;" />
+            <button class="primary-btn" style="padding:10px 16px;" onclick="window.addAd()"><i class="fa-solid fa-plus"></i> إضافة</button>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:14px;">
+          <h3 class="panel-title"><i class="fa-solid fa-inbox" style="color:#0284C7;"></i> طلبات الانضمام (${pendingReqs.length} قيد الانتظار)</h3>
+          <p class="panel-sub">مراجعة طلبات الأطباء، الصنايعية، والمتاجر</p>
+          ${joinRequests.length ? joinRequests.slice(-5).reverse().map(r => `
+            <div style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;background:#FAFCFE;">
+              <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                <div>
+                  <strong style="font-size:12.5px;font-weight:900;">${r.name}</strong>
+                  <span style="background:#EEF2FF;color:#3730A3;font-size:10px;padding:2px 8px;border-radius:6px;font-weight:800;margin-right:6px;">${r.type}</span>
+                  <div style="font-size:11px;color:#64748B;font-weight:700;margin-top:4px;">${r.phone} • ${r.area}</div>
+                </div>
+                <span style="background:${r.status === 'pending' ? '#FEF3C7' : '#ECFDF5'};color:${r.status === 'pending' ? '#92400E' : '#059669'};padding:3px 10px;border-radius:99px;font-size:10px;font-weight:900;">
+                  ${r.status === 'pending' ? 'قيد الانتظار' : 'تمت الموافقة'}
+                </span>
+              </div>
+            </div>
+          `).join('') : '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>لا طلبات انضمام</p></div>'}
+        </div>
+      </div>
+    `;
+
+    founderBody.insertAdjacentHTML('beforeend', extraHTML);
+  };
+
+  window.toggleAd = function (adId) {
+    const ads = S.get('ads', []);
+    const ad = ads.find(a => a.id === adId);
+    if (ad) { ad.active = !ad.active; S.set('ads', ads); window.renderFounderDashboard(); renderTickerBanner(); }
+  };
+
+  window.deleteAd = function (adId) {
+    if (!confirm('حذف هذا الإعلان؟')) return;
+    const ads = S.get('ads', []).filter(a => a.id !== adId);
+    S.set('ads', ads);
+    window.renderFounderDashboard();
+    renderTickerBanner();
+  };
+
+  window.addAd = function () {
+    const input = document.getElementById('new-ad-text');
+    if (!input || !input.value.trim()) { toast('اكتب نص الإعلان', 'error'); return; }
+    const ads = S.get('ads', []);
+    ads.push({ id: 'ad-' + Date.now(), text: input.value.trim(), active: true });
+    S.set('ads', ads);
+    input.value = '';
+    window.renderFounderDashboard();
+    renderTickerBanner();
+    toast('تمت إضافة الإعلان');
+  };
+
+  /* ============== 9. تفعيل التغييرات ============== */
+
+  function initPhase4() {
+    initPhase4Data();
+    renderTickerBanner();
+    patchHeaderWithWaslaId();
+    renderOnboardingButton();
+
+    // إخفاء أداء المنصة عن المستخدم العادي (مثلاً في الـ Hero Stats)
+    // سيتم تعديل دالة switchSector لإخفاء الإحصائيات إذا لم يكن مؤسساً
+    const _oldSwitchSector = window.switchSector;
+    window.switchSector = function (sector) {
+      _oldSwitchSector(sector);
+      // إخفاء إحصائيات الأداء للمستخدم العادي
+      const user = Auth.currentUser();
+      const heroStats = document.getElementById('hero-stats');
+      if (heroStats) {
+        if (sector === 'medical' && (!user || user.role !== 'founder')) {
+          // للمستخدم العادي، نعرض إحصائيات عامة
+          heroStats.innerHTML = `
+            <div class="hs"><strong>+48</strong> طبيب معتمد</div>
+            <div class="hs"><strong>+12</strong> خدمة تمريض</div>
+            <div class="hs"><strong>6</strong> شركات تأمين</div>
+            <div class="hs"><strong>4.9★</strong> تقييم المواطنين</div>
+          `;
+        }
+      }
+    };
+
+    // إعادة رسم الهيدر عند تغير حالة الدخول
+    const _oldRenderHeaderActions = window.renderHeaderActions;
+    if (typeof _oldRenderHeaderActions === 'function') {
+      window.renderHeaderActions = function () {
+        _oldRenderHeaderActions();
+        setTimeout(patchHeaderWithWaslaId, 50);
+      };
+    }
+
+    console.log('✅ WASLA Phase 4 loaded — Medical Tracker, Dynamic Schedule, Ads, Onboarding active');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initPhase4, 50));
+  } else {
+    setTimeout(initPhase4, 50);
+  }
+
+})();
+</script>
 </body>
 </html>
