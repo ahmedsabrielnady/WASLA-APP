@@ -2,248 +2,160 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>وصلة | لوحة التحكم</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة وصلة | منصتك الموحدة لكل الخدمات</title>
+    <!-- تضمين مكتبة Tailwind CSS للتصميم العصري -->
+    <script src="https://tailwindcss.com"></script>
+    <!-- تضمين مكتبة الأيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <!-- تخصيص الألوان الهادئة المطلوبة (سماوي وزيتوني) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sky: {
+                            light: '#e0f2fe',
+                            DEFAULT: '#0ea5e9',
+                            dark: '#0369a1',
+                        },
+                        olive: {
+                            light: '#f4f6f0',
+                            DEFAULT: '#606c38',
+                            dark: '#283618',
+                        },
+                        pastel: {
+                            blue: '#f0f7f9',
+                            olive: '#fcfdfa'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #F1F5F9; }
-        .glass-panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        
-        /* Custom Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-
-        /* Mobile Sidebar Overlay */
-        .sidebar-overlay { display: none; }
-        .sidebar-overlay.active { display: block; }
-        
-        @media (min-width: 1024px) {
-            .sidebar-overlay { display: none !important; }
+        @import url('https://googleapis.com');
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #fcfdfa;
         }
     </style>
 </head>
-<body class="text-slate-800 antialiased h-screen flex overflow-hidden">
+<body class="text-gray-800 antialiased">
 
-    <!-- Mobile Overlay (Dark background when sidebar is open) -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 lg:hidden sidebar-overlay" onclick="toggleSidebar()"></div>
-
-    <!-- =========================================
-         SIDEBAR (Hidden on mobile, Fixed on Desktop)
-    ========================================= -->
-    <aside id="sidebar" class="fixed lg:static inset-y-0 right-0 z-50 w-64 bg-slate-900 text-white flex flex-col h-full shrink-0 transform translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
-        <div class="p-6 flex items-center justify-between border-b border-slate-800">
-            <div class="flex items-center gap-3">
-                <div class="bg-emerald-500 p-2 rounded-xl text-xl"><i class="fa-solid fa-heart-pulse"></i></div>
-                <div>
-                    <h1 class="text-xl font-black leading-tight">وَصْلَة</h1>
-                    <p class="text-[9px] text-emerald-400 font-bold">منصة شبين القناطر</p>
+    <!-- شريط التنقل العلوي (Header) -->
+    <header class="bg-white shadow-sm sticky top-0 z-50 border-b border-olive-light">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <!-- الشعار -->
+            <div class="flex items-center space-x-reverse space-x-2">
+                <div class="bg-sky-light p-2 rounded-xl text-sky-dark">
+                    <i class="fa-solid fa-circle-nodes text-2xl"></i>
                 </div>
+                <span class="text-2xl font-bold text-olive-dark tracking-wide">وصـلة</span>
             </div>
-            <!-- Close button for mobile -->
-            <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-        </div>
-        
-        <nav class="flex-grow p-4 space-y-2 overflow-y-auto custom-scrollbar text-sm font-bold">
-            <div class="text-slate-500 text-xs mb-2 mt-2 px-2">إدارة العمليات</div>
-            <button onclick="switchView('dashboard')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 transition">
-                <i class="fa-solid fa-chart-pie w-5 text-center"></i> لوحة القيادة
-            </button>
-            <button onclick="switchView('dispatcher')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
-                <i class="fa-solid fa-map-location-dot w-5 text-center"></i> مركز التوجيه
-            </button>
-            <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
-                <i class="fa-brands fa-whatsapp w-5 text-center"></i> غرفة الفرز
-                <span class="bg-red-500 text-[10px] px-2 py-0.5 rounded-full mr-auto">14</span>
-            </button>
             
-            <div class="text-slate-500 text-xs mb-2 mt-6 px-2">إدارة النظام</div>
-            <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
-                <i class="fa-solid fa-user-doctor w-5 text-center"></i> الأطباء والعيادات
-            </button>
-            <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
-                <i class="fa-solid fa-users w-5 text-center"></i> المرضى
-            </button>
-        </nav>
+            <!-- القائمة الرئيسية -->
+            <nav class="hidden md:flex space-x-reverse space-x-8 text-gray-600 font-medium">
+                <a href="#home" class="hover:text-sky transition">الرئيسية</a>
+                <a href="#services" class="hover:text-sky transition">الخدمات</a>
+                <a href="#features" class="hover:text-sky transition">مميزاتنا</a>
+                <a href="#about" class="hover:text-sky transition">عن المنصة</a>
+            </nav>
 
-        <div class="p-4 border-t border-slate-800">
-            <div class="flex items-center gap-3 bg-slate-800 p-3 rounded-xl">
-                <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center font-bold text-white">أ</div>
-                <div>
-                    <div class="text-sm font-bold text-white">أحمد صبحي</div>
-                    <div class="text-[10px] text-slate-400">المؤسس</div>
-                </div>
+            <!-- أزرار الحساب -->
+            <div class="flex items-center space-x-reverse space-x-3">
+                <button class="text-olive font-semibold px-4 py-2 hover:text-olive-dark transition">تسجيل دخول</button>
+                <button class="bg-olive text-white px-5 py-2 rounded-xl shadow-md hover:bg-olive-dark transition font-medium">ابدأ الآن</button>
             </div>
         </div>
-    </aside>
+    </header>
 
-    <!-- =========================================
-         MAIN CONTENT AREA
-    ========================================= -->
-    <main class="flex-grow flex flex-col h-full overflow-hidden w-full relative">
-        
-        <!-- Top Header (Mobile Friendly) -->
-        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 lg:px-6 shrink-0 z-30">
-            <div class="flex items-center gap-4">
-                <!-- Hamburger Menu (Only Mobile) -->
-                <button onclick="toggleSidebar()" class="lg:hidden text-slate-600 hover:text-slate-900 text-xl">
-                    <i class="fa-solid fa-bars"></i>
+    <!-- القسم الرئيسي (Hero Section) مع محرك البحث الموحد -->
+    <section id="home" class="bg-gradient-to-b from-sky-light via-pastel-blue to-transparent py-20 px-4">
+        <div class="container mx-auto text-center max-w-4xl">
+            <span class="bg-white text-olive font-semibold px-4 py-1.5 rounded-full text-sm shadow-sm border border-olive-light inline-block mb-4">كل ما تحتاجه في مكان واحد</span>
+            <h1 class="text-4xl md:text-5xl font-bold text-olive-dark leading-tight mb-6">
+                منصة <span class="text-sky-dark font-extrabold">All-In-One</span> للعيادات، التسوق، والخدمات اليومية
+            </h1>
+            <p class="text-gray-600 text-lg mb-10 max-w-2xl mx-auto">
+                صل إلى عيادتك المفضلة، تسوق احتياجاتك، بع واشترِ بسهولة، واطلب خدمات الصيانة وسياراتك بضغطة زر واحدة ومن واجهة برمجية موحدة وهادئة.
+            </p>
+
+            <!-- شريط البحث الموحد (Mega Search Bar) -->
+            <div class="bg-white p-3 rounded-2xl shadow-xl border border-gray-100 flex flex-col md:flex-row gap-3 max-w-3xl mx-auto">
+                <div class="flex-1 flex items-center px-3 border-b md:border-b-0 md:border-l border-gray-100 py-2">
+                    <i class="fa-solid fa-magnifying-glass text-gray-400 ml-3"></i>
+                    <input type="text" placeholder="عن ماذا تبحث اليوم؟ (طبيب، قطعة غيار، صيانة...)" class="w-full bg-transparent focus:outline-none text-gray-700">
+                </div>
+                <div class="w-full md:w-48 flex items-center px-3 py-2">
+                    <i class="fa-solid fa-location-dot text-gray-400 ml-3"></i>
+                    <select class="w-full bg-transparent focus:outline-none text-gray-600 cursor-pointer">
+                        <option>كل المدن</option>
+                        <option>القاهرة</option>
+                        <option>الإسكندرية</option>
+                        <option>الجيزة</option>
+                    </select>
+                </div>
+                <button class="bg-sky text-white px-8 py-3 rounded-xl shadow-md hover:bg-sky-dark transition-all font-semibold flex items-center justify-center gap-2">
+                    <span>ابـحـث</span>
                 </button>
-                <h2 id="page-title" class="text-lg font-black text-slate-800">لوحة القيادة</h2>
-            </div>
-            
-            <div class="flex items-center gap-3">
-                <button class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
-                    <i class="fa-solid fa-bell"></i>
-                </button>
-                <img src="https://ui-avatars.com/api/?name=Ahmed+Sobhy&background=0A8754&color=fff" class="w-10 h-10 rounded-full border border-slate-200 hidden sm:block">
-            </div>
-        </header>
-
-        <!-- Scrollable Content -->
-        <div class="flex-grow overflow-y-auto p-4 lg:p-6 custom-scrollbar relative">
-            
-            <!-- VIEW 1: MAIN DASHBOARD -->
-            <div id="view-dashboard" class="space-y-6 fade-in">
-                <!-- Welcome -->
-                <div class="bg-slate-900 rounded-3xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center justify-between shadow-xl relative overflow-hidden">
-                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-2xl"></div>
-                    <div class="relative z-10 text-center sm:text-right mb-4 sm:mb-0">
-                        <h2 class="text-2xl font-black mb-1">أهلاً بك يا دكتور</h2>
-                        <p class="text-sm text-slate-300 font-bold">لديك <span class="text-emerald-400 font-black">12 مريض</span> في قائمة الانتظار اليوم.</p>
-                    </div>
-                    <div class="flex gap-4 relative z-10 w-full sm:w-auto">
-                        <div class="bg-white/10 px-4 py-3 rounded-2xl text-center flex-1 sm:flex-none border border-white/10">
-                            <span class="block text-[10px] text-slate-300 mb-1">إيرادات اليوم</span>
-                            <span class="text-xl font-black text-emerald-400">3,400 <span class="text-xs text-white">ج.م</span></span>
-                        </div>
-                        <div class="bg-white/10 px-4 py-3 rounded-2xl text-center flex-1 sm:flex-none border border-white/10">
-                            <span class="block text-[10px] text-slate-300 mb-1">إجمالي الشهر</span>
-                            <span class="text-xl font-black text-white">42,500 <span class="text-xs">ج.م</span></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Patients List (Responsive) -->
-                <div class="glass-panel p-4 lg:p-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
-                        <h3 class="font-black text-lg text-slate-800"><i class="fa-solid fa-calendar-day text-emerald-500 ml-2"></i> عيادة اليوم</h3>
-                        <span class="text-xs font-bold bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full">الأحد، 22 أكتوبر</span>
-                    </div>
-
-                    <div class="space-y-3">
-                        <!-- Patient 1 -->
-                        <div class="border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-emerald-500 transition">
-                            <div class="flex items-center gap-4 w-full sm:w-auto">
-                                <div class="w-12 h-12 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center font-black">م</div>
-                                <div>
-                                    <div class="font-bold text-slate-800">محمود علي <span class="text-[10px] text-slate-400 font-mono bg-slate-100 px-1 rounded">WS-582</span></div>
-                                    <div class="text-xs text-slate-500 font-bold mt-1"><i class="fa-regular fa-clock ml-1 text-emerald-500"></i> 05:15 م - كشف باطنة</div>
-                                </div>
-                            </div>
-                            <div class="flex gap-2 w-full sm:w-auto">
-                                <button onclick="openEMR()" class="flex-1 sm:flex-none bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-200 transition"><i class="fa-solid fa-file-medical"></i> الملف الطبي</button>
-                                <button class="flex-1 sm:flex-none bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-600 transition"><i class="fa-solid fa-stethoscope"></i> بدء الكشف</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VIEW 2: DISPATCHER (Hidden by default) -->
-            <div id="view-dispatcher" class="hidden space-y-4 fade-in">
-                <div class="glass-panel p-4 flex gap-2">
-                    <input type="text" placeholder="ابحث عن مريض أو رقم تذكرة..." class="w-full bg-slate-100 border-none rounded-lg px-4 py-2 text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none">
-                </div>
-                
-                <!-- Task Card -->
-                <div class="glass-panel p-4 cursor-pointer border-r-4 border-amber-500 hover:bg-slate-50 transition relative overflow-hidden">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-1 rounded">تمريض منزلي</span>
-                        <span class="text-xs font-bold text-slate-400">منذ 5 دقائق</span>
-                    </div>
-                    <h4 class="font-black text-slate-800">الحاج عاطف المليجي</h4>
-                    <p class="text-xs text-slate-500 font-bold mt-1"><i class="fa-solid fa-location-dot text-red-500 ml-1"></i> طحانوب - ميدان السوق</p>
-                    <div class="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
-                        <span class="text-xs font-bold text-slate-600">حقن ومحاليل</span>
-                        <button class="bg-slate-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg hover:bg-slate-800">إسناد لممرض</button>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <!-- =========================================
-         MODALS (Fixed positioning)
-    ========================================= -->
-    <!-- EMR Modal -->
-    <div id="emr-modal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fade-in">
-            <div class="bg-slate-900 text-white p-4 flex justify-between items-center shrink-0">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-file-medical text-emerald-400"></i>
-                    <div>
-                        <div class="font-bold">الملف الطبي: محمود علي</div>
-                        <div class="text-[10px] text-slate-400">32 سنة - فصيلة الدم O+</div>
-                    </div>
-                </div>
-                <button onclick="closeEMR()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            
-            <div class="p-4 sm:p-6 overflow-y-auto flex-grow custom-scrollbar">
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-6">
-                    <h4 class="font-black text-sm text-slate-800 mb-3"><i class="fa-solid fa-pen ml-1"></i> إضافة سجل جديد</h4>
-                    <textarea class="w-full p-3 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-emerald-500" rows="3" placeholder="اكتب الشكوى والروشتة..."></textarea>
-                    <button onclick="alert('تم الحفظ!')" class="bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-emerald-600 transition mt-2">حفظ</button>
-                </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <script>
-        // 1. Sidebar Toggle (Mobile)
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
+    <!-- قسم لوحة الخدمات الأيقونية الموحدة (Iconic Services Grid) -->
+    <section id="services" class="py-16 container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-olive-dark mb-3">تصفح أقسام المنصة الأساسية</h2>
+            <p class="text-gray-500 max-w-md mx-auto">اختر الخدمة التي تحتاجها الآن واستمتع بتجربة مستخدم سلسة ومباشرة</p>
+        </div>
+
+        <!-- شبكة الخدمات الأيقونية الخمسة -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             
-            sidebar.classList.toggle('translate-x-full');
-            overlay.classList.toggle('active');
-        }
+            <!-- 1. عيادات وخدمات طبية -->
+            <div class="bg-white rounded-2xl p-6 text-center border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group">
+                <div class="w-16 h-16 bg-sky-light text-sky-dark rounded-2xl flex items-center justify-center mx-auto mb-5 text-2xl group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-user-doctor"></i>
+                </div>
+                <h3 class="font-bold text-lg text-olive-dark mb-2">عيادات وخدمات طبية</h3>
+                <p class="text-gray-500 text-sm leading-relaxed mb-4">احجز موعدك مع أمهر الأطباء واستشر متخصصين عبر الإنترنت.</p>
+                <a href="#" class="text-sky font-semibold text-sm hover:text-sky-dark inline-flex items-center gap-1">دخول القسم <i class="fa-solid fa-arrow-left text-xs"></i></a>
+            </div>
 
-        // 2. View Switching (SPA Logic)
-        function switchView(viewName) {
-            // Hide all views
-            document.getElementById('view-dashboard').classList.add('hidden');
-            document.getElementById('view-dispatcher').classList.add('hidden');
-            
-            // Show selected view
-            document.getElementById('view-' + viewName).classList.remove('hidden');
+            <!-- 2. تسوق (E-commerce) -->
+            <div class="bg-white rounded-2xl p-6 text-center border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group">
+                <div class="w-16 h-16 bg-olive-light text-olive rounded-2xl flex items-center justify-center mx-auto mb-5 text-2xl group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                </div>
+                <h3 class="font-bold text-lg text-olive-dark mb-2">سوق المنتجات والتسوق</h3>
+                <p class="text-gray-500 text-sm leading-relaxed mb-4">آلاف المنتجات المتنوعة بانتظارك من ملابس، إلكترونيات وأدوات.</p>
+                <a href="#" class="text-olive font-semibold text-sm hover:text-olive-dark inline-flex items-center gap-1">دخول القسم <i class="fa-solid fa-arrow-left text-xs"></i></a>
+            </div>
 
-            // Update Title
-            const titles = {
-                'dashboard': 'لوحة القيادة',
-                'dispatcher': 'مركز التوجيه'
-            };
-            document.getElementById('page-title').innerText = titles[viewName];
+            <!-- 3. بيع وشراء (Classifieds) -->
+            <div class="bg-white rounded-2xl p-6 text-center border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group">
+                <div class="w-16 h-16 bg-sky-light text-sky-dark rounded-2xl flex items-center justify-center mx-auto mb-5 text-2xl group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-handshake"></i>
+                </div>
+                <h3 class="font-bold text-lg text-olive-dark mb-2">سوق البيع والشراء</h3>
+                <p class="text-gray-500 text-sm leading-relaxed mb-4">اعرض أغراضك المستعملة أو الجديدة للبيع أو تصفح عروض المستخدمين.</p>
+                <a href="#" class="text-sky font-semibold text-sm hover:text-sky-dark inline-flex items-center gap-1">دخول القسم <i class="fa-solid fa-arrow-left text-xs"></i></a>
+            </div>
 
-            // Close sidebar on mobile after clicking
-            if (window.innerWidth < 1024) {
-                toggleSidebar();
-            }
-        }
+            <!-- 4. خدمات سيارات -->
+            <div class="bg-white rounded-2xl p-6 text-center border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group">
+                <div class="w-16 h-16 bg-olive-light text-olive rounded-2xl flex items-center justify-center mx-auto mb-5 text-2xl group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-car"></i>
+                </div>
+                <h3 class="font-bold text-lg text-olive-dark mb-2">خدمات سيارات</h3>
+                <p class="text-gray-500 text-sm leading-relaxed mb-4">ونش إنقاذ، غسيل سيارات، وتوفير قطع غيار أصلية لمركبتك.</p>
+                <a href="#" class="text-olive font-semibold text-sm hover:text-olive-dark inline-flex items-center gap-1">دخول القسم <i class="fa-solid fa-arrow-left text-xs"></i></a>
+            </div>
 
-        // 3. EMR Modal Logic
-        function openEMR() {
-            document.getElementById('emr-modal').classList.remove('hidden');
-        }
-
-        function closeEMR() {
-            document.getElementById('emr-modal').classList.add('hidden');
-        }
-    </script>
-</body>
-</html>
+            <!-- 5. صيانة منزلية وفنية -->
+            <div class="bg-white rounded-2xl p-6 text-center border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group">
+                <div class="w-16 h-16 bg-sky-light text-sky-dark rounded-2xl flex items-center justify-center mx-auto mb-5 text-2xl group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </div>
+                <h3 class="font-bold text-lg text-olive-dark mb-2">خدمات الصيانة</h3>
