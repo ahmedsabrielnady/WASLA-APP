@@ -2908,5 +2908,539 @@ window.onload = () => {
 
 })();
         </script>
+  <script>
+/* ==========================================================================
+   WASLA MASTER ENGINE — PART 7 (ENTERPRISE MEDICAL & FOUNDER GOD MODE)
+   Clean Modular Architecture
+   ========================================================================== */
+(function() {
+  'use strict';
+
+  // =========================================================================
+  // 1. توسيع قاعدة البيانات (Data Layer)
+  // =========================================================================
+  // شركات التأمين المتعاقدة
+  if (!DB.insuranceCompanies) {
+    DB.insuranceCompanies = [
+      { id: 'ins1', name: 'جلوب ميد (GlobeMed)', coverage: 80, discount: 20, logo: 'fa-shield-halved', active: true },
+      { id: 'ins2', name: 'ميتلايف (MetLife)', coverage: 85, discount: 15, logo: 'fa-shield', active: true },
+      { id: 'ins3', name: 'ميد رايت (MedRight)', coverage: 75, discount: 25, logo: 'fa-heart-pulse', active: true }
+    ];
+  }
+
+  // الصيدليات المتعاقدة (منفصلة عن التسوق)
+  if (!DB.pharmacies) {
+    DB.pharmacies = [
+      { id: 'ph1', name: 'صيدلية النور', area: 'شارع بورسعيد', phone: '01000000001', insurances: ['ins1', 'ins2'], rating: 4.8, active: true },
+      { id: 'ph2', name: 'صيدلية الشفاء', area: 'ميدان المحطة', phone: '01000000002', insurances: ['ins1', 'ins3'], rating: 4.6, active: true }
+    ];
+  }
+
+  // خدمات التمريض والمعامل
+  if (!DB.nursingServices) {
+    DB.nursingServices = [
+      { id: 'ns1', name: 'حقن وريد ومحاليل', price: 150, icon: 'fa-syringe', category: 'nursing' },
+      { id: 'ns2', name: 'غيار جروح وحروق', price: 200, icon: 'fa-bandage', category: 'nursing' },
+      { id: 'ns3', name: 'رعاية مسنين (زيارة)', price: 250, icon: 'fa-hand-holding-medical', category: 'nursing' },
+      { id: 'ns4', name: 'سحب عينات تحاليل منزلية', price: 100, icon: 'fa-vial', category: 'lab' },
+      { id: 'ns5', name: 'تحاليل شاملة (منزلية)', price: 500, icon: 'fa-flask', category: 'lab' }
+    ];
+  }
+
+  // =========================================================================
+  // 2. وحدة القطاع الطبي (Medical Module)
+  // =========================================================================
+  const MedicalModule = {
+    
+    // 2.1 عرض القطاع الطبي الشامل (عيادات + خدمات)
+    renderMedicalHub: () => {
+      const el = document.getElementById('view-medical');
+      
+      // شريط البحث
+      let html = `
+        <div class="card" style="background:linear-gradient(135deg, var(--primary), #1E293B); color:#fff; border:none; margin-bottom:16px;">
+          <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-stethoscope"></i> القطاع الطبي الشامل</h2>
+          <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">كل ما يخص صحتك في مكان واحد</p>
+        </div>
+
+        <!-- الخدمات السريعة -->
+        <h3 class="section-title"><i class="fa-solid fa-house-medical" style="color:var(--emerald);"></i> الخدمات الطبية المنزلية</h3>
+        <div class="grid-2">
+          ${DB.nursingServices.map(s => `
+            <div class="card text-center" onclick="MedicalModule.orderService('${s.id}')" style="cursor:pointer; padding:16px;">
+              <i class="fa-solid ${s.icon}" style="font-size:28px; color:var(--emerald); margin-bottom:8px;"></i>
+              <h4 style="font-weight:900; font-size:12px; margin:0;">${s.name}</h4>
+              <div style="font-size:11px; color:var(--emerald); font-weight:900;">${Utils.money(s.price)}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- دليل الأطباء -->
+        <h3 class="section-title mt-4"><i class="fa-solid fa-user-doctor" style="color:var(--sky);"></i> دليل الأطباء</h3>
+        <div class="grid-list" id="doctors-list">
+          ${DB.doctors.map(d => MedicalModule.renderDoctorCard(d)).join('')}
+        </div>
+
+        <!-- شركات التأمين -->
+        <h3 class="section-title mt-4"><i class="fa-solid fa-shield-halved" style="color:var(--gold);"></i> شركات التأمين المتعاقدة</h3>
+        <div class="grid-list">
+          ${DB.insuranceCompanies.map(ins => `
+            <div class="item-box">
+              <div class="item-icon" style="background:var(--gold-light); color:var(--gold);"><i class="fa-solid ${ins.logo}"></i></div>
+              <div class="item-info">
+                <div class="item-title">${ins.name}</div>
+                <div class="item-sub">تغطية ${ins.coverage}% • خصم ${ins.discount}%</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- الصيدليات المتعاقدة -->
+        <h3 class="section-title mt-4"><i class="fa-solid fa-pills" style="color:var(--emerald);"></i> الصيدليات المتعاقدة</h3>
+        <div class="grid-list">
+          ${DB.pharmacies.map(ph => `
+            <div class="item-box" onclick="MedicalModule.openPharmacy('${ph.id}')" style="cursor:pointer;">
+              <div class="item-icon" style="background:var(--sky-light); color:var(--sky);"><i class="fa-solid fa-prescription-bottle-medical"></i></div>
+              <div class="item-info">
+                <div class="item-title">${ph.name}</div>
+                <div class="item-sub"><i class="fa-solid fa-location-dot"></i> ${ph.area} • ⭐ ${ph.rating}</div>
+              </div>
+              <i class="fa-solid fa-chevron-left" style="color:var(--gray);"></i>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      el.innerHTML = html;
+    },
+
+    // 2.2 كارت الطبيب
+    renderDoctorCard: (doc) => {
+      const docReviews = DB.reviews ? DB.reviews.filter(r => r.targetId === doc.id && r.targetType === 'doctor') : [];
+      const avgRating = docReviews.length ? (docReviews.reduce((s, r) => s + r.rating, 0) / docReviews.length).toFixed(1) : 'جديد';
+      
+      return `
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="flex:1;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h4 style="margin:0; font-weight:900; font-size:16px;">${doc.name}</h4>
+              <span style="background:var(--emerald-light); color:var(--emerald); font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">${doc.spec}</span>
+            </div>
+            <p style="margin:8px 0 4px; font-size:11px; color:var(--gray); font-weight:700;">
+              <i class="fa-solid fa-location-dot"></i> ${doc.area}
+            </p>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <span style="background:var(--gray-light); padding:2px 8px; border-radius:6px; font-size:10px; font-weight:900;">⭐ ${avgRating}</span>
+              <span style="background:var(--gray-light); padding:2px 8px; border-radius:6px; font-size:10px; font-weight:900;">${doc.avgTime} دقيقة</span>
+            </div>
+          </div>
+          <div style="text-align:left;">
+            <div style="font-weight:900; color:var(--emerald); font-size:20px;">${Utils.money(doc.price)}</div>
+            <button onclick="MedicalModule.openBooking('${doc.id}')" class="btn-action" style="margin-top:10px; padding:10px 20px;">حجز</button>
+          </div>
+        </div>
+      `;
+    },
+
+    // 2.3 الحجز (كاش أو تأمين)
+    openBooking: (docId) => {
+      if (!Auth.currentUser) return AuthUI.open();
+      const doc = DB.doctors.find(d => d.id === docId);
+      
+      document.getElementById('modal-book-body').innerHTML = `
+        <button class="modal-close" onclick="Utils.closeModal('modal-book')"><i class="fa-solid fa-xmark"></i></button>
+        <h3 style="margin:0 0 4px; font-weight:900; font-size:20px;">${doc.name}</h3>
+        <p style="margin:0 0 16px; font-size:13px; color:var(--gray); font-weight:700;">${doc.spec} • الكشف: ${Utils.money(doc.price)}</p>
+        
+        <label style="font-size:13px; font-weight:900; display:block; margin-bottom:12px;">طريقة الدفع:</label>
+        <div class="grid-2" style="margin-bottom:16px;">
+          <label style="border:2px solid var(--emerald); background:var(--emerald-light); padding:12px; border-radius:var(--radius-sm); text-align:center; cursor:pointer;">
+            <input type="radio" name="payment" value="cash" checked class="hidden" onchange="MedicalModule.updatePrice('${doc.id}')">
+            <i class="fa-solid fa-money-bill" style="font-size:20px; color:var(--emerald);"></i>
+            <div style="font-weight:900; font-size:12px; margin-top:4px;">كاش</div>
+          </label>
+          <label style="border:2px solid var(--line); padding:12px; border-radius:var(--radius-sm); text-align:center; cursor:pointer;">
+            <input type="radio" name="payment" value="insurance" class="hidden" onchange="MedicalModule.updatePrice('${doc.id}')">
+            <i class="fa-solid fa-shield-halved" style="font-size:20px; color:var(--gold);"></i>
+            <div style="font-weight:900; font-size:12px; margin-top:4px;">تأمين</div>
+          </label>
+        </div>
+        
+        <div id="insurance-options" style="display:none; margin-bottom:16px;">
+          <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px;">اختر شركة التأمين:</label>
+          <select class="input-field" onchange="MedicalModule.updatePrice('${doc.id}')">
+            ${DB.insuranceCompanies.map(ins => `<option value="${ins.id}">${ins.name} (تغطية ${ins.coverage}%)</option>`).join('')}
+          </select>
+        </div>
+        
+        <div id="booking-price-display" style="background:var(--gray-light); padding:12px; border-radius:12px; margin-bottom:16px; text-align:center;">
+          <div style="font-size:11px; color:var(--gray);">المبلغ المستحق</div>
+          <div style="font-size:24px; font-weight:900; color:var(--emerald);">${Utils.money(doc.price)}</div>
+        </div>
+        
+        <label style="font-size:13px; font-weight:900; display:block; margin-bottom:12px;">اختر الموعد:</label>
+        <div class="grid-2" style="margin-bottom:24px;">
+          ${doc.schedule.map((slot, idx) => `
+            <label style="border:2px solid var(--emerald); background:var(--emerald-light); padding:14px; border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-weight:900; font-size:14px; color:var(--emerald);">
+              <input type="radio" name="slot" value="${slot}" ${idx === 0 ? 'checked' : ''} class="hidden"> ${slot}
+            </label>
+          `).join('')}
+        </div>
+        
+        <button onclick="MedicalModule.confirmBooking('${doc.id}')" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد الحجز</button>
+      `;
+      Utils.openModal('modal-book');
+    },
+
+    // 2.4 تحديث السعر حسب التأمين
+    updatePrice: (docId) => {
+      const doc = DB.doctors.find(d => d.id === docId);
+      const paymentType = document.querySelector('input[name="payment"]:checked').value;
+      const insuranceOptions = document.getElementById('insurance-options');
+      const priceDisplay = document.getElementById('booking-price-display');
+      
+      if (paymentType === 'insurance') {
+        insuranceOptions.style.display = 'block';
+        const selectedInsuranceId = insuranceOptions.querySelector('select').value;
+        const insurance = DB.insuranceCompanies.find(i => i.id === selectedInsuranceId);
+        const patientShare = doc.price * (1 - (insurance.coverage / 100));
+        priceDisplay.innerHTML = `
+          <div style="font-size:11px; color:var(--gray);">المبلغ المستحق (بعد تغطية التأمين)</div>
+          <div style="font-size:24px; font-weight:900; color:var(--emerald);">${Utils.money(Math.round(patientShare))}</div>
+        `;
+      } else {
+        insuranceOptions.style.display = 'none';
+        priceDisplay.innerHTML = `
+          <div style="font-size:11px; color:var(--gray);">المبلغ المستحق</div>
+          <div style="font-size:24px; font-weight:900; color:var(--emerald);">${Utils.money(doc.price)}</div>
+        `;
+      }
+    },
+
+    // 2.5 تأكيد الحجز
+    confirmBooking: (docId) => {
+      const doc = DB.doctors.find(d => d.id === docId);
+      const slotInput = document.querySelector('input[name="slot"]:checked');
+      const paymentType = document.querySelector('input[name="payment"]:checked').value;
+      
+      if(!slotInput) return Utils.toast('اختر موعداً', true);
+
+      let finalPrice = doc.price;
+      let insuranceId = null;
+      
+      if (paymentType === 'insurance') {
+        const selectedInsuranceId = document.querySelector('#insurance-options select').value;
+        const insurance = DB.insuranceCompanies.find(i => i.id === selectedInsuranceId);
+        finalPrice = Math.round(doc.price * (1 - (insurance.coverage / 100)));
+        insuranceId = selectedInsuranceId;
+      }
+
+      const apptId = Utils.id();
+      DB.appointments.push({ 
+        id: apptId, 
+        patientId: Auth.currentUser.id, 
+        patientName: Auth.currentUser.name, 
+        doctorId: doc.id, 
+        doctorName: doc.name, 
+        slot: slotInput.value, 
+        price: finalPrice, 
+        originalPrice: doc.price,
+        paymentType: paymentType,
+        insuranceId: insuranceId,
+        status: 'waiting', 
+        ts: Date.now() 
+      });
+
+      saveDB();
+      Utils.closeModal('modal-book');
+      
+      const waMsg = `مرحباً، تم تأكيد حجزك.\n👨‍⚕️ الطبيب: ${doc.name}\n⏰ الموعد: ${slotInput.value}\n💰 السعر: ${finalPrice} ج.م\nطريقة الدفع: ${paymentType === 'insurance' ? 'تأمين' : 'كاش'}`;
+      const waUrl = `https://wa.me/2${Auth.currentUser.phone || '01000000000'}?text=${encodeURIComponent(waMsg)}`;
+
+      document.getElementById('modal-map-body').innerHTML = `
+        <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+        <div style="text-align:center;">
+          <div style="width:70px; height:70px; background:var(--emerald-light); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px;"><i class="fa-solid fa-check"></i></div>
+          <h3 style="margin:0 0 8px; font-weight:900; color:var(--emerald);">تم الحجز!</h3>
+          <a href="${waUrl}" target="_blank" class="btn-action" style="width:100%; background:#25D366; text-decoration:none; margin-bottom:12px;"><i class="fa-brands fa-whatsapp"></i> تأكيد واتساب</a>
+          <button onclick="Utils.closeModal('modal-map'); router.navigate('dashboard');" class="btn-action" style="width:100%; background:var(--primary);">لوحة التحكم</button>
+        </div>
+      `;
+      Utils.openModal('modal-map');
+    },
+
+    // 2.6 طلب خدمة منزلية (تمريض/معامل)
+    orderService: (serviceId) => {
+      if (!Auth.currentUser) return AuthUI.open();
+      const service = DB.nursingServices.find(s => s.id === serviceId);
+      
+      document.getElementById('modal-map-body').innerHTML = `
+        <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+        <h3 style="margin:0 0 16px; font-weight:900;">${service.name}</h3>
+        <p style="margin:0 0 16px; font-size:13px; color:var(--gray);">${Utils.money(service.price)}</p>
+        
+        <label style="font-size:13px; font-weight:900; display:block; margin-bottom:8px;">العنوان:</label>
+        <input type="text" class="input-field" placeholder="اكتب عنوانك بالتفصيل" id="service-address">
+        
+        <button onclick="MedicalModule.confirmServiceOrder('${service.id}')" class="btn-action" style="width:100%; padding:16px;">تأكيد الطلب</button>
+      `;
+      Utils.openModal('modal-map');
+    },
+
+    confirmServiceOrder: (serviceId) => {
+      const service = DB.nursingServices.find(s => s.id === serviceId);
+      const address = document.getElementById('service-address').value.trim();
+      
+      if (!address) return Utils.toast('أدخل العنوان', true);
+
+      DB.orders.push({
+        id: Utils.id(),
+        userId: Auth.currentUser.id,
+        title: service.name,
+        price: service.price,
+        status: 'preparing',
+        type: service.category,
+        address: address,
+        ts: Date.now()
+      });
+      saveDB();
+      
+      Utils.closeModal('modal-map');
+      Utils.toast('تم إرسال طلبك! سيتم التواصل معك قريباً');
+      router.navigate('dashboard');
+    },
+
+    // 2.7 فتح الصيدلية (منفصلة عن التسوق)
+    openPharmacy: (pharmacyId) => {
+      const pharmacy = DB.pharmacies.find(p => p.id === pharmacyId);
+      
+      document.getElementById('modal-map-body').innerHTML = `
+        <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+        <h3 style="margin:0 0 4px; font-weight:900;">${pharmacy.name}</h3>
+        <p style="margin:0 0 16px; font-size:12px; color:var(--gray);"><i class="fa-solid fa-location-dot"></i> ${pharmacy.area}</p>
+        
+        <div class="grid-list">
+          <div class="item-box" onclick="Utils.toast('اطلب دواءك من خلال رفع الروشتة')">
+            <div class="item-icon" style="background:var(--sky-light); color:var(--sky);"><i class="fa-solid fa-prescription"></i></div>
+            <div class="item-info">
+              <div class="item-title">اطلب بالأدوية</div>
+              <div class="item-sub">ارفع صورة الروشتة وسنوفرها لك</div>
+            </div>
+          </div>
+          <div class="item-box" onclick="Utils.toast('سيتم إضافة المنتجات قريباً')">
+            <div class="item-icon" style="background:var(--emerald-light); color:var(--emerald);"><i class="fa-solid fa-pills"></i></div>
+            <div class="item-info">
+              <div class="item-title">أدوية بدون روشتة</div>
+              <div class="item-sub">مسكنات، فيتامينات، إسعافات أولية</div>
+            </div>
+          </div>
+        </div>
+      `;
+      Utils.openModal('modal-map');
+    }
+  };
+
+  // =========================================================================
+  // 3. وحدة المؤسس (Founder God Mode Module)
+  // =========================================================================
+  const FounderModule = {
+    
+    renderDashboard: () => {
+      if (!Auth.currentUser || Auth.currentUser.role !== 'founder') return;
+      
+      const el = document.getElementById('view-founder');
+      const totalUsers = DB.users.length;
+      const totalDoctors = DB.doctors.length;
+      const totalPharmacies = DB.pharmacies.length;
+      const totalAppointments = DB.appointments.length;
+      const totalRevenue = DB.orders.reduce((s, o) => s + o.price, 0) + DB.appointments.reduce((s, a) => s + a.price, 0);
+      const platformCommission = Math.round(totalRevenue * 0.15);
+
+      el.innerHTML = `
+        <div class="card" style="background:var(--primary); color:#fff; border:none;">
+          <h2 style="margin:0 0 16px; font-weight:900;"><i class="fa-solid fa-crown" style="color:var(--gold);"></i> God Mode - لوحة المؤسس</h2>
+          <div class="grid-2" style="gap:12px;">
+            <div style="background:rgba(255,255,255,0.1); padding:16px; border-radius:12px;">
+              <div style="font-size:11px; color:#94A3B8;">إجمالي الإيرادات</div>
+              <div style="font-size:20px; font-weight:900; color:#34D399;">${Utils.money(totalRevenue)}</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.1); padding:16px; border-radius:12px;">
+              <div style="font-size:11px; color:#94A3B8;">أرباح المنصة (15%)</div>
+              <div style="font-size:20px; font-weight:900; color:var(--gold);">${Utils.money(platformCommission)}</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.1); padding:16px; border-radius:12px;">
+              <div style="font-size:11px; color:#94A3B8;">المستخدمين</div>
+              <div style="font-size:20px; font-weight:900; color:#fff;">${totalUsers}</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.1); padding:16px; border-radius:12px;">
+              <div style="font-size:11px; color:#94A3B8;">الحجوزات</div>
+              <div style="font-size:20px; font-weight:900; color:#60A5FA;">${totalAppointments}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="inner-tabs" style="margin-top:16px;">
+          <button class="inner-tab active" onclick="FounderModule.switchTab('users')">المستخدمين</button>
+          <button class="inner-tab" onclick="FounderModule.switchTab('doctors')">الأطباء</button>
+          <button class="inner-tab" onclick="FounderModule.switchTab('pharmacies')">الصيدليات</button>
+          <button class="inner-tab" onclick="FounderModule.switchTab('finance')">المالية</button>
+        </div>
+        <div id="founder-tab-content"></div>
+      `;
+
+      FounderModule.switchTab('users');
+    },
+
+    switchTab: (tab) => {
+      document.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      const content = document.getElementById('founder-tab-content');
+      
+      if (tab === 'users') {
+        content.innerHTML = `
+          <div class="card">
+            <h3 class="section-title">إدارة المستخدمين</h3>
+            <div class="grid-list">
+              ${DB.users.filter(u => u.role !== 'founder').map(u => `
+                <div class="item-box" style="padding:10px;">
+                  <div class="item-info">
+                    <div class="item-title">${u.name}</div>
+                    <div class="item-sub">${u.phone} • ${u.role} • ${u.waslaId || 'N/A'}</div>
+                  </div>
+                  <button onclick="FounderModule.toggleUserBlock('${u.id}')" style="background:${u.isBlocked ? 'var(--emerald-light)' : 'var(--danger-light)'}; color:${u.isBlocked ? 'var(--emerald)' : 'var(--danger)'}; border:none; padding:6px 12px; border-radius:8px; font-weight:900; font-size:11px;">
+                    ${u.isBlocked ? 'تنشيط' : 'حظر'}
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
+      if (tab === 'doctors') {
+        content.innerHTML = `
+          <div class="card">
+            <h3 class="section-title">إدارة الأطباء</h3>
+            <div class="grid-list">
+              ${DB.doctors.map(d => `
+                <div class="item-box" style="padding:10px;">
+                  <div class="item-info">
+                    <div class="item-title">${d.name}</div>
+                    <div class="item-sub">${d.spec} • ${Utils.money(d.price)}</div>
+                  </div>
+                  <button onclick="FounderModule.deleteDoctor('${d.id}')" style="background:var(--danger-light); color:var(--danger); border:none; padding:6px 12px; border-radius:8px; font-weight:900; font-size:11px;">حذف</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
+      if (tab === 'pharmacies') {
+        content.innerHTML = `
+          <div class="card">
+            <h3 class="section-title">إدارة الصيدليات</h3>
+            <div class="grid-list">
+              ${DB.pharmacies.map(p => `
+                <div class="item-box" style="padding:10px;">
+                  <div class="item-info">
+                    <div class="item-title">${p.name}</div>
+                    <div class="item-sub">${p.area} • ⭐ ${p.rating}</div>
+                  </div>
+                  <button onclick="FounderModule.deletePharmacy('${p.id}')" style="background:var(--danger-light); color:var(--danger); border:none; padding:6px 12px; border-radius:8px; font-weight:900; font-size:11px;">حذف</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
+      if (tab === 'finance') {
+        const totalRevenue = DB.orders.reduce((s, o) => s + o.price, 0) + DB.appointments.reduce((s, a) => s + a.price, 0);
+        const platformCommission = Math.round(totalRevenue * 0.15);
+        content.innerHTML = `
+          <div class="card">
+            <h3 class="section-title">التقارير المالية</h3>
+            <div class="grid-2">
+              <div class="item-box"><div class="item-info"><div class="item-title">إجمالي الإيرادات</div><div class="item-sub">${Utils.money(totalRevenue)}</div></div></div>
+              <div class="item-box"><div class="item-info"><div class="item-title">عمولة المنصة</div><div class="item-sub">${Utils.money(platformCommission)}</div></div></div>
+            </div>
+          </div>
+        `;
+      }
+    },
+
+    toggleUserBlock: (userId) => {
+      const user = DB.users.find(u => u.id === userId);
+      if (user) {
+        user.isBlocked = !user.isBlocked;
+        saveDB();
+        FounderModule.renderDashboard();
+        FounderModule.switchTab('users');
+      }
+    },
+
+    deleteDoctor: (docId) => {
+      if (!confirm('تأكيد حذف الطبيب؟')) return;
+      DB.doctors = DB.doctors.filter(d => d.id !== docId);
+      saveDB();
+      FounderModule.renderDashboard();
+      FounderModule.switchTab('doctors');
+    },
+
+    deletePharmacy: (phId) => {
+      if (!confirm('تأكيد حذف الصيدلية؟')) return;
+      DB.pharmacies = DB.pharmacies.filter(p => p.id !== phId);
+      saveDB();
+      FounderModule.renderDashboard();
+      FounderModule.switchTab('pharmacies');
+    }
+  };
+
+  // =========================================================================
+  // 4. تحديث الـ Router والـ UI لربط الوحدات الجديدة
+  // =========================================================================
+  
+  // ربط القطاع الطبي الجديد
+  const originalNavigate = router.navigate;
+  router.navigate = (sector) => {
+    if (sector === 'medical') {
+      document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-medical').classList.add('active');
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelector('.tab[data-sector="medical"]').classList.add('active');
+      MedicalModule.renderMedicalHub();
+    } else if (sector === 'founder') {
+      document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-founder').classList.add('active');
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      const founderTab = document.querySelector('.tab[data-sector="founder"]');
+      if (founderTab) founderTab.classList.add('active');
+      FounderModule.renderDashboard();
+    } else {
+      originalNavigate(sector);
+    }
+    window.scrollTo(0,0);
+  };
+
+  // إتاحة الوحدات عالمياً عشان الأزرار تشتغل
+  window.MedicalModule = MedicalModule;
+  window.FounderModule = FounderModule;
+
+  console.log('✅ WASLA PART 7 LOADED: Enterprise Medical Module & Founder God Mode.');
+
+  // إعادة بناء الواجهة لتطبيق التغييرات
+  setTimeout(() => {
+    UI.renderHeader();
+    UI.renderTicker();
+    // إذا كان المستخدم الحالي مؤسس، افتح لوحة التحكم
+    if (Auth.currentUser && Auth.currentUser.role === 'founder') {
+      router.navigate('founder');
+    } else {
+      router.navigate('medical');
+    }
+  }, 100);
+
+})();
+</script>
 </body>
 </html>
