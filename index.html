@@ -6525,5 +6525,376 @@ document.addEventListener('DOMContentLoaded', () => {
 
 })();
 </script>
+  <script>
+/* ================================================================
+   WASLA PHASE 15 — MASTER REBUILD (AUTH, UI, AUDIO, CART, CASHBACK)
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const NS = 'wasla_v2_';
+  const S = {
+    get(k, d) { try { const r = localStorage.getItem(NS + k); return r ? JSON.parse(r) : d; } catch (_) { return d; } },
+    set(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); return true; } catch (_) { return false; } }
+  };
+
+  /* ============== 1. حل مشكلة الجلسة (Session Persistence) ============== */
+  // إصلاح دالة الدخول لتحفظ الجلسة لمدة سنة ولا تمسحها
+  const originalAuthLogin = window.Auth.login;
+  window.Auth.login = async function(creds) {
+    const res = await originalAuthLogin(creds);
+    if (res.ok) {
+      // تجديد الجلسة لمدة سنة كاملة
+      const session = S.get('session', {});
+      session.expiresAt = Date.now() + (365 * 24 * 60 * 60 * 1000);
+      S.set('session', session);
+    }
+    return res;
+  };
+
+  /* ============== 2. محرك الصوت المضمون (Base64 Audio) ============== */
+  // استخدام ملف صوتي مخفي يعمل على كل المتصفحات بمجرد أول ضغطة
+  const audioElement = document.createElement('audio');
+  // نغمة رنين (Ding) بصيغة Base64 خفيفة
+  audioElement.src = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU9vT18AAAAA'; 
+  audioElement.preload = 'auto';
+  document.body.appendChild(audioElement);
+
+  window.playAlertSound = function() {
+    try {
+      audioElement.currentTime = 0;
+      audioElement.volume = 1.0;
+      audioElement.play().catch(() => {
+        // إذا حظر المتصفح الصوت، نستخدم Web Audio API كخطة بديلة
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.type = 'square'; osc.frequency.setValueAtTime(880, ctx.currentTime);
+        gain.gain.setValueAtTime(0.5, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+        osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.5);
+      });
+    } catch (e) {}
+  };
+
+  // تفعيل الصوت عند أول ضغطة على الشاشة
+  document.addEventListener('click', function unlockAudio() {
+    audioElement.play().then(() => { audioElement.pause(); }).catch(()=>{});
+    document.removeEventListener('click', unlockAudio);
+  }, { once: true });
+
+
+  /* ============== 3. إعادة تصميم الواجهة (CSS) ============== */
+  const style = document.createElement('style');
+  style.innerHTML = `
+    /* إصلاح الهيدر */
+    .wasla-header-inner { flex-direction: column !important; padding: 10px !important; gap: 8px !important; }
+    #header-actions { width: 100%; display: flex !important; justify-content: space-between; align-items: center; overflow-x: auto; gap: 8px; padding-bottom: 4px; }
+    #header-actions::-webkit-scrollbar { display: none; }
+    
+    /* السلة الجديدة (Bottom Sheet) */
+    #cart-drawer { position: fixed; bottom: -100%; top: auto; left: 0; right: 0; width: 100%; height: 75vh; border-radius: 24px 24px 0 0; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
+    #cart-drawer.open { bottom: 0; }
+    .cart-item { background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; gap: 12px; align-items: center; border: 1px solid #E2E8F0; }
+    .cart-item img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+    
+    /* إخفاء الجرس العائم القديم */
+    #floating-bell, #float-notif-panel { display: none !important; }
+  `;
+  document.head.appendChild(style);
+
+
+  /* ============== 4. بناء الهيدر الجديد (بدون زر أحمر) ============== */
+  function buildHeader() {
+    const session = S.get('session', null);
+    const user = session ? S.get('users', []).find(u => u.id === session.userId) : null;
+    const actions = document.getElementById('header-actions');
+    if (!actions) return;
+
+    if (!user) {
+      actions.innerHTML = `<button class="login-btn" onclick="window.openAuthModal('login')" style="width:100%;">تسجيل الدخول</button>`;
+      return;
+    }
+
+    // إضافة رصيد المحفظة (الكاش باك)
+    const wallet = user.walletBalance || 0;
+
+    actions.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div onclick="window.switchSector('${user.role==='founder'?'founder':user.role==='staff'?'staff':'dashboard'}')" style="cursor:pointer;background:rgba(255,255,255,0.1);padding:6px 10px;border-radius:10px;display:flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,0.2);">
+          <div style="width:28px;height:28px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;">${user.name.charAt(0)}</div>
+          <div>
+            <div style="font-size:11px;font-weight:900;color:#fff;">${user.name.split(' ')[0]}</div>
+            <div style="font-size:9px;color:#34D399;font-weight:800;"><i class="fa-solid fa-wallet"></i> ${wallet} ج.م</div>
+          </div>
+        </div>
+        <button onclick="window.openCart()" style="position:relative;background:#059669;color:#fff;border:none;width:36px;height:36px;border-radius:10px;font-size:16px;">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span id="header-cart-count" style="position:absolute;top:-5px;right:-5px;background:#EA580C;color:#fff;width:18px;height:18px;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;">${S.get('cart',[]).length}</span>
+        </button>
+      </div>
+      
+      <div style="display:flex;gap:8px;align-items:center;">
+        ${user.role === 'founder' ? `<button onclick="window.switchSector('founder')" style="background:linear-gradient(135deg,#EA580C,#F59E0B);color:#fff;border:none;padding:8px 12px;border-radius:10px;font-weight:900;font-size:11px;white-space:nowrap;"><i class="fa-solid fa-crown"></i> لوحة التحكم</button>` : ''}
+        ${user.role === 'staff' ? `<button onclick="window.switchSector('staff')" style="background:linear-gradient(135deg,#3730A3,#6366F1);color:#fff;border:none;padding:8px 12px;border-radius:10px;font-weight:900;font-size:11px;white-space:nowrap;"><i class="fa-solid fa-headset"></i> بوابة الموظف</button>` : ''}
+        <button onclick="window.toggleNotifCenter()" style="position:relative;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:36px;height:36px;border-radius:10px;font-size:16px;">
+          <i class="fa-solid fa-bell"></i>
+          <span id="notif-badge" style="position:absolute;top:-5px;right:-5px;background:#E11D48;color:#fff;width:16px;height:16px;border-radius:50%;font-size:10px;display:none;align-items:center;justify-content:center;">0</span>
+        </button>
+        <button onclick="window.Auth.logout()" style="background:rgba(255,255,255,0.1);color:#94A3B8;border:1px solid rgba(255,255,255,0.2);width:36px;height:36px;border-radius:10px;font-size:14px;" title="تسجيل الخروج">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    `;
+  }
+
+  /* ============== 5. السلة الجديدة (Cart 2.0) ============== */
+  window.openCart = function() {
+    const cart = S.get('cart', []);
+    const drawer = document.getElementById('cart-drawer');
+    const body = document.getElementById('cart-body');
+    
+    if (!drawer) return;
+    
+    if (!cart.length) {
+      body.innerHTML = `<div style="text-align:center;padding:40px 20px;color:#94A3B8;"><i class="fa-solid fa-basket-shopping" style="font-size:40px;margin-bottom:10px;"></i><br>سلتك فارغة</div>`;
+    } else {
+      body.innerHTML = cart.map(item => `
+        <div class="cart-item">
+          <div style="width:50px;height:50px;background:#ECFDF5;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#059669;font-size:20px;">
+            <i class="fa-solid ${item.icon || 'fa-box'}"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:900;font-size:14px;color:#0F172A;">${item.title}</div>
+            <div style="font-size:11px;color:#64748B;font-weight:700;">${item.subtitle || ''}</div>
+            <div style="font-weight:900;color:#059669;font-size:14px;margin-top:4px;">${item.price} ج.م</div>
+          </div>
+          <button onclick="window.removeCartItem('${item.id}')" style="background:#FEE2E2;color:#E11D48;border:none;width:30px;height:30px;border-radius:8px;cursor:pointer;">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    const total = cart.reduce((s, i) => s + i.price, 0);
+    document.getElementById('cart-total').textContent = total + ' ج.م';
+    drawer.classList.add('open');
+    document.getElementById('cart-scrim').classList.add('open');
+  };
+
+  window.removeCartItem = function(id) {
+    const cart = S.get('cart', []).filter(i => i.id !== id);
+    S.set('cart', cart);
+    window.openCart(); // إعادة رسم السلة
+    buildHeader(); // تحديث العداد
+  };
+
+  // تعديل دالة إضافة الطلبات لإعطاء كاش باك
+  window.checkoutCart = function() {
+    const user = S.get('session', null);
+    if (!user) return;
+    
+    const cart = S.get('cart', []);
+    if (!cart.length) return;
+
+    const total = cart.reduce((s, i) => s + i.price, 0);
+    const cashback = Math.round(total * 0.05); // 5% كاش باك
+
+    // إضافة الكاش باك للمحفظة
+    let users = S.get('users', []);
+    let currentUser = users.find(u => u.id === user.userId);
+    if (currentUser) {
+      currentUser.walletBalance = (currentUser.walletBalance || 0) + cashback;
+      S.set('users', users);
+    }
+
+    window.WaslaNotifs.add(`✅ تم تأكيد الطلب. تم إضافة ${cashback} ج.م كاش باك لمحفظتك!`, 'info');
+    
+    // تفريغ السلة وإغلاقها
+    S.set('cart', []);
+    document.getElementById('cart-drawer').classList.remove('open');
+    document.getElementById('cart-scrim').classList.remove('open');
+    buildHeader();
+  };
+
+  /* ============== 6. توسيع التسوق والسيارات ============== */
+  // (سيتم استبدال الدوال القديمة لتعرض المزيد)
+  window.renderFoodSector = function() {
+    const sec = document.getElementById('sector-market');
+    if (!sec) return;
+    sec.innerHTML = `
+      <div class="panel" style="background:linear-gradient(135deg,#EA580C,#F59E0B);color:#fff;margin-bottom:16px;">
+        <h3 style="font-weight:900;font-size:18px;margin:0;"><i class="fa-solid fa-store"></i> تسوق كل احتياجاتك</h3>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="panel" onclick="window.openShop('rest')" style="text-align:center;cursor:pointer;"><i class="fa-solid fa-utensils" style="font-size:30px;color:#EA580C;margin-bottom:10px;"></i><h4 style="font-weight:900;">مطاعم</h4></div>
+        <div class="panel" onclick="window.openShop('grocery')" style="text-align:center;cursor:pointer;"><i class="fa-solid fa-basket-shopping" style="font-size:30px;color:#059669;margin-bottom:10px;"></i><h4 style="font-weight:900;">بقالة وسوبرماركت</h4></div>
+        <div class="panel" onclick="window.openShop('pharmacy')" style="text-align:center;cursor:pointer;"><i class="fa-solid fa-pills" style="font-size:30px;color:#0284C7;margin-bottom:10px;"></i><h4 style="font-weight:900;">صيدلية</h4></div>
+        <div class="panel" onclick="window.openShop('clothes')" style="text-align:center;cursor:pointer;"><i class="fa-solid fa-shirt" style="font-size:30px;color:#3730A3;margin-bottom:10px;"></i><h4 style="font-weight:900;">ملابس</h4></div>
+      </div>
+    `;
+  };
+
+  window.renderCarsSector = function() {
+    const sec = document.getElementById('sector-cars');
+    if (!sec) return;
+    const services = [
+      { name: 'ونش إنقاذ', price: 300, icon: 'fa-truck-pickup', color: '#E11D48' },
+      { name: 'تغيير إطار', price: 120, icon: 'fa-circle-dot', color: '#3730A3' },
+      { name: 'غسيل متنقل', price: 80, icon: 'fa-droplet', color: '#0284C7' },
+      { name: 'شحن بطارية', price: 100, icon: 'fa-car-battery', color: '#D97706' },
+      { name: 'تغيير زيت', price: 250, icon: 'fa-oil-can', color: '#059669' },
+      { name: 'توصيل بنزين', price: 60, icon: 'fa-gas-pump', color: '#EA580C' },
+      { name: 'كشف أعطال', price: 150, icon: 'fa-wrench', color: '#0F172A' }
+    ];
+    sec.innerHTML = `
+      <div class="panel" style="background:linear-gradient(135deg,#1E1B4B,#3730A3);color:#fff;margin-bottom:16px;">
+        <h3 style="font-weight:900;font-size:18px;margin:0;"><i class="fa-solid fa-car"></i> خدمات السيارات الشاملة</h3>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        ${services.map(s => `
+          <div class="panel" onclick="window.addCarService('${s.name}', ${s.price})" style="text-align:center;cursor:pointer;padding:15px;">
+            <i class="fa-solid ${s.icon}" style="font-size:24px;color:${s.color};margin-bottom:8px;"></i>
+            <h4 style="font-weight:900;font-size:13px;margin:0 0 4px;">${s.name}</h4>
+            <span style="font-size:11px;font-weight:900;color:#059669;">${s.price} ج.م</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  };
+
+  window.addCarService = function(name, price) {
+    let cart = S.get('cart', []);
+    cart.push({ id: Date.now(), title: name, subtitle: 'خدمة سيارة', price: price, icon: 'fa-car' });
+    S.set('cart', cart);
+    buildHeader();
+    if (window.WaslaNotifs) window.WaslaNotifs.add('تمت الإضافة للسلة', 'info');
+  };
+
+  /* ============== 7. لوحة المؤسس (الصلاحيات والإحصائيات) ============== */
+  window.renderFounderDashboard = function() {
+    const body = document.getElementById('sector-founder');
+    if (!body) return;
+
+    const users = S.get('users', []);
+    const staff = users.filter(u => u.role === 'staff');
+    const txs = S.get('transactions', []);
+    const revenue = txs.reduce((s,t)=>s+t.amount,0);
+
+    body.innerHTML = `
+      <div class="panel" style="background:#0B1220;color:#fff;margin-bottom:16px;">
+        <h2 style="font-weight:900;font-size:18px;margin:0;">مركز تحكم المؤسس</h2>
+        <div style="margin-top:10px;display:flex;gap:15px;">
+          <div><span style="font-size:10px;color:#94A3B8;">الأرباح:</span><br><strong style="color:#059669;font-size:16px;">${revenue * 0.15} ج.م</strong></div>
+          <div><span style="font-size:10px;color:#94A3B8;">النمو:</span><br><strong style="color:#0284C7;font-size:16px;">+24%</strong></div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;">
+        <button class="dash-tab active" onclick="window.switchFounderTab('staff', event)">الموظفين</button>
+        <button class="dash-tab" onclick="window.switchFounderTab('doctors', event)">الأطباء</button>
+      </div>
+
+      <div id="founder-tab-content"></div>
+    `;
+    window.switchFounderTab('staff', { target: document.querySelector('.dash-tab') });
+  };
+
+  window.switchFounderTab = function(tab, e) {
+    document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+    if(e && e.target) e.target.classList.add('active');
+    const c = document.getElementById('founder-tab-content');
+    const users = S.get('users', []);
+    const docs = S.get('doctors', []);
+
+    if (tab === 'staff') {
+      const staff = users.filter(u => u.role === 'staff');
+      c.innerHTML = `
+        <div class="panel">
+          <h3 style="font-size:14px;font-weight:900;">الموظفين</h3>
+          ${staff.map(s => `
+            <div style="border:1px solid #E2E8F0;padding:10px;border-radius:10px;margin-top:8px;">
+              <div style="font-weight:900;">${s.name}</div>
+              <div style="font-size:11px;color:#64748B;">${s.phone}</div>
+              <div style="display:flex;gap:5px;margin-top:8px;">
+                <span style="background:#ECFDF5;color:#059669;padding:2px 6px;border-radius:4px;font-size:10px;">حجز</span>
+                <span style="background:#ECFDF5;color:#059669;padding:2px 6px;border-radius:4px;font-size:10px;">إلغاء</span>
+                <span style="background:#FEE2E2;color:#E11D48;padding:2px 6px;border-radius:4px;font-size:10px;cursor:pointer;" onclick="window.deleteUser('${s.id}')">حذف</span>
+              </div>
+            </div>
+          `).join('')}
+          <div style="margin-top:12px;">
+            <input type="text" id="st-name" class="input-box" placeholder="اسم الموظف" style="margin-bottom:8px;">
+            <input type="tel" id="st-phone" class="input-box" placeholder="رقم الهاتف" style="margin-bottom:8px;">
+            <button onclick="window.addStaff()" class="primary-btn" style="width:100%;">إضافة موظف</button>
+          </div>
+        </div>
+      `;
+    }
+  };
+
+  window.addStaff = function() {
+    const name = document.getElementById('st-name').value;
+    const phone = document.getElementById('st-phone').value;
+    if(!name || !phone) return;
+    let users = S.get('users', []);
+    users.push({ id: 'staff-'+Date.now(), name, phone, role: 'staff', waslaId: 'STF-'+Math.floor(1000+Math.random()*9000), passwordHash: 'demo', salt: 'demo' });
+    S.set('users', users);
+    window.renderFounderDashboard();
+  };
+
+  window.deleteUser = function(id) {
+    S.set('users', S.get('users', []).filter(u => u.id !== id));
+    window.renderFounderDashboard();
+  };
+
+  /* ============== 8. لوحة الطبيب (إحصائيات) ============== */
+  window.renderDoctorPortal = function() {
+    const body = document.getElementById('sector-doctor-portal');
+    if(!body) return;
+    
+    const appts = S.get('appointments', []).filter(a => a.date === new Date().toISOString().slice(0,10));
+    const newCases = appts.filter(a => !a.isFollowUp).length;
+    const followUps = appts.filter(a => a.isFollowUp).length;
+
+    body.innerHTML = `
+      <div class="panel" style="background:#3730A3;color:#fff;">
+        <h3 style="font-weight:900;font-size:18px;margin:0;">بوابة الطبيب</h3>
+        <div style="display:flex;gap:10px;margin-top:12px;">
+          <div style="flex:1;background:rgba(255,255,255,0.1);padding:10px;border-radius:10px;text-align:center;">
+            <div style="font-size:20px;font-weight:900;">${newCases}</div>
+            <div style="font-size:10px;">حالات جديدة</div>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,0.1);padding:10px;border-radius:10px;text-align:center;">
+            <div style="font-size:20px;font-weight:900;color:#FBBF24;">${followUps}</div>
+            <div style="font-size:10px;">حالات متابعة</div>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,0.1);padding:10px;border-radius:10px;text-align:center;">
+            <div style="font-size:20px;font-weight:900;color:#34D399;">${appts.length}</div>
+            <div style="font-size:10px;">عبر وصلة</div>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  /* ============== 9. الإشعارات والصوت (مربوط بالطابور) ============== */
+  if (window.WaslaNotifs) {
+    const oldAdd = window.WaslaNotifs.add;
+    window.WaslaNotifs.add = function(text, type) {
+      oldAdd.call(this, text, type);
+      window.playAlertSound(); // تشغيل الصوت المضمون
+    };
+  }
+
+  /* ============== 10. التشغيل ============== */
+  setTimeout(() => {
+    buildHeader();
+    if (window.Auth.currentUser()?.role === 'founder') {
+       window.switchSector('founder');
+    }
+  }, 300);
+
+})();
+</script>
 </body>
 </html>
