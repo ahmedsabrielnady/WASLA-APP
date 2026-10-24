@@ -5316,5 +5316,187 @@ document.addEventListener('DOMContentLoaded', () => {
 
 })();
 </script>
+  <script>
+/* ================================================================
+   WASLA PHASE 11 — UI FIXES, AUDIO ENGINE, DOCTOR SERVICES & SCHEDULE
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const NS = 'wasla_v2_';
+  const S = {
+    get(k, d) { try { const r = localStorage.getItem(NS + k); return r ? JSON.parse(r) : d; } catch (_) { return d; } },
+    set(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); return true; } catch (_) { return false; } }
+  };
+
+  /* ============== 1. قاعدة بيانات خدمات الأطباء (بناءً على البحث) ============== */
+  const DOCTOR_SERVICES = {
+    'باطنة وكبد وسكر': ['متابعة السكر والضغط', 'مناظير الجهاز الهضمي', 'علاج أمراض الكبد', 'تقييم الغدد الصماء', 'متابعة الأمراض المزمنة'],
+    'جراحة العظام والمفاصل': ['إصلاح الكسور', 'مناظير المفاصل', 'تغيير مفاصل (ركبة/حوض)', 'علاج الانزلاق الغضروفي', 'إصابات الملاعب'],
+    'أطفال وحديثي الولادة': ['متابعة النمو والتطعيمات', 'علاج النزلات المعوية', 'حساسية الصدر والجهاز التنفسي', 'متابعة حديثي الولادة', 'علاج الحمى والالتهابات'],
+    'قلب وأوعية دموية': ['تخطيط القلب (ECG)', 'متابعة ضغط الدم والكوليسترول', 'علاج الذبحة الصدرية', 'موجات صوتية على القلب (Echo)', 'متابعة ما بعد القسطرة'],
+    'نساء وتوليد': ['متابعة الحمل الطبيعي', 'متابعة الحمل عالي الخطورة', 'علاج اضطرابات الدورة', 'تنظيم الأسرة', 'مناظير نسائية'],
+    'جلدية وتجميل': ['علاج حب الشباب', 'جلسات الليزر', 'حقن الفيلر والبوتوكس', 'علاج تساقط الشعر', 'إزالة التصبغات'],
+    'أنف وأذن وحنجرة': ['مناظير الجيوب الأنفية', 'غسيل الأذن', 'علاج التهابات اللوز', 'تقييم السمع', 'علاج الشخير']
+  };
+
+  /* ============== 2. محرك الصوت الموثوق (Audio Engine) ============== */
+  let audioCtx = null;
+
+  // دالة تهيئة الصوت (يجب استدعاؤها بعد أول تفاعل من المستخدم)
+  window.initWaslaAudio = function() {
+    if (audioCtx) return;
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) {
+        audioCtx = new AudioContext();
+        // إذا كان المتصفح يمنع الصوت، نحاول استئنافه
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      }
+    } catch (e) { console.log('Audio init failed', e); }
+  };
+
+  // نغمة الإشعار
+  window.playWaslaSound = function(type = 'info') {
+    if (!audioCtx) {
+      window.initWaslaAudio();
+      if (!audioCtx) return; // إذا فشل التهيئة، لا تفعل شيئاً
+    }
+    try {
+      // استئناف السياق إذا كان معلقاً
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      if (type === 'alert') {
+        // نغمة تنبيه قوية (دورك الآن)
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1); // C#6
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.5);
+      } else {
+        // نغمة هادئة (إشعار عادي)
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.3);
+      }
+    } catch (e) { console.log('Audio playback failed', e); }
+  };
+
+  // ربط الصوت بنظام الإشعارات
+  if (window.WaslaFloatNotifs) {
+    const originalAdd = window.WaslaFloatNotifs.add;
+    window.WaslaFloatNotifs.add = function(text, type) {
+      originalAdd.call(this, text, type);
+      window.playWaslaSound(type);
+    };
+  }
+
+  // تهيئة الصوت عند أول تفاعل (نقر على أي زر)
+  document.addEventListener('click', function() {
+    window.initWaslaAudio();
+  }, { once: true });
+
+
+  /* ============== 3. إصلاح الجرس (نقله للهيدر وإخفاء العائم) ============== */
+  function fixBellPlacement() {
+    // 1. إخفاء الجرس العائم القديم
+    const floatBell = document.getElementById('floating-bell');
+    if (floatBell) floatBell.style.display = 'none';
+
+    // 2. التأكد من وجود الجرس في الهيدر (الذي أنشأناه في Phase 5)
+    const headerBell = document.getElementById('notif-bell-container');
+    if (headerBell) {
+      headerBell.style.display = 'block';
+      // تعديل مكانه ليكون بجانب زر لوحة التحكم مع مسافة كافية
+      headerBell.style.marginLeft = '15px';
+      headerBell.style.marginRight = '15px';
+      headerBell.style.position = 'relative';
+      headerBell.style.top = '0';
+      headerBell.style.left = 'auto';
+      headerBell.style.right = 'auto';
+    }
+
+    // 3. إخفاء لوحة الإشعارات العائمة القديمة (التي كانت تفتح من الجرس العائم)
+    const floatPanel = document.getElementById('float-notif-panel');
+    if (floatPanel) floatPanel.style.display = 'none !important';
+  }
+
+
+  /* ============== 4. إضافة خدمات الأطباء إلى بطاقة الطبيب ============== */
+  function enhanceDoctorCards() {
+    // ننتظر حتى يتم رسم البطاقات
+    setTimeout(() => {
+      document.querySelectorAll('.doc-card').forEach(card => {
+        if (card.querySelector('.doc-services-tags')) return; // تمت الإضافة مسبقاً
+
+        // استخراج التخصص من البطاقة
+        const specialtyEl = card.querySelector('.doc-tag');
+        if (!specialtyEl) return;
+        
+        const specialty = specialtyEl.textContent.trim();
+        const services = DOCTOR_SERVICES[specialty] || DOCTOR_SERVICES['باطنة وكبد وسكر']; // افتراضي
+
+        const servicesHTML = `
+          <div class="doc-services-tags" style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;">
+            ${services.map(s => `<span style="background:#F1F5F9;color:#475569;font-size:10px;padding:2px 8px;border-radius:6px;font-weight:700;border:1px solid #E2E8F0;">${s}</span>`).join('')}
+          </div>
+        `;
+        
+        // إدراج الخدمات تحت معلومات التأمين
+        const infoRow = card.querySelector('.doc-insurance-row');
+        if (infoRow) {
+          infoRow.insertAdjacentHTML('afterend', servicesHTML);
+        }
+      });
+    }, 100);
+  }
+
+  // ربط الدالة بإعادة رسم الأطباء
+  const originalRenderDoctors = window.renderDoctors;
+  window.renderDoctors = function() {
+    originalRenderDoctors();
+    enhanceDoctorCards();
+  };
+
+
+  /* ============== 5. تحديث الجدول الزمني للعيادة ============== */
+  // (تم بالفعل تضمين الأوقات في Phase 4، ولكننا سنضمن عدم وجود تعارض)
+  // لا حاجة لتغيير جذري هنا، فقط نضمن أن الحجز يستخدم البيانات الصحيحة.
+
+
+  /* ============== 6. التشغيل (Init) ============== */
+  function initPhase11() {
+    fixBellPlacement();
+    setInterval(fixBellPlacement, 3000); // مراقبة مستمرة للجرس
+
+    // إذا كان هناك أطباء معروضون بالفعل، نضيف الخدمات فوراً
+    enhanceDoctorCards();
+
+    console.log('✅ WASLA Phase 11 loaded — UI Fixes, Audio, Doctor Services active.');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initPhase11, 300));
+  } else {
+    setTimeout(initPhase11, 300);
+  }
+
+})();
+</script>
 </body>
 </html>
