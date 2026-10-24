@@ -6892,5 +6892,860 @@ window.onload = () => {
   else router.navigate('medical');
 })();
 </script>
+  <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>منصة وصلة | WASLA - Super App</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  /* ==========================================================================
+     WASLA DESIGN SYSTEM (CSS)
+     ========================================================================== */
+  :root {
+    --primary: #0B1220; --primary-light: #1E293B;
+    --emerald: #059669; --emerald-light: #ECFDF5;
+    --amber: #EA580C; --amber-light: #FFF7ED;
+    --sky: #0284C7; --sky-light: #F0F9FF;
+    --danger: #E11D48; --danger-light: #FFF1F2;
+    --gold: #D97706; --gray: #64748B; --gray-light: #F8FAFC;
+    --line: #E2E8F0; --bg: #F4F6FB;
+    --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+    --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Cairo', sans-serif; }
+  body { background: var(--bg); color: var(--primary); margin: 0; padding-bottom: 70px; overflow-x: hidden; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--gray); border-radius: 10px; }
+
+  /* Dark Mode */
+  body.dark-mode {
+    --primary: #F8FAFC; --primary-light: #E2E8F0;
+    --bg: #0B1220; --gray-light: #1E293B;
+    --line: #334155; --gray: #94A3B8;
+  }
+  body.dark-mode .app-header, body.dark-mode .super-tabs { background: #0F172A; border-color: #334155; }
+  body.dark-mode .card, body.dark-mode .item-box { background: #1E293B; border-color: #334155; }
+  body.dark-mode .item-title, body.dark-mode .section-title { color: #F8FAFC; }
+  body.dark-mode .input-field { background: #0F172A; border-color: #334155; color: #F8FAFC; }
+  body.dark-mode .bottom-sheet, body.dark-mode .modal-box { background: #1E293B; color: #F8FAFC; }
+  body.dark-mode .sheet-footer { background: #0F172A; }
+
+  /* Ticker */
+  .ticker-wrap { background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 8px 0; overflow: hidden; white-space: nowrap; display: flex; }
+  .ticker-content { display: inline-block; padding-right: 100%; animation: ticker 25s linear infinite; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }
+
+  /* Header */
+  .app-header { position: sticky; top: 0; z-index: 100; background: rgba(11,18,32,0.98); backdrop-filter: blur(10px); color: #fff; padding: 10px 16px; box-shadow: var(--shadow-md); }
+  .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--emerald), #10B981); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 12px rgba(5,150,105,0.4); }
+  .brand-title { font-size: 20px; font-weight: 900; margin: 0; line-height: 1; }
+  .brand-title span { font-size: 10px; color: #34D399; background: rgba(52,211,153,0.15); padding: 2px 6px; border-radius: 6px; vertical-align: middle; margin-right: 4px; }
+  
+  .header-actions { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .header-actions::-webkit-scrollbar { display: none; }
+  .btn-ui { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer; transition: 0.2s; }
+  .btn-ui:active { transform: scale(0.95); }
+  .btn-ui.primary { background: var(--emerald); border: none; }
+  
+  /* Tabs */
+  .super-tabs { display: flex; gap: 8px; padding: 12px; overflow-x: auto; scrollbar-width: none; background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 60px; z-index: 99; }
+  .super-tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 10px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 900; color: var(--gray); background: var(--gray-light); border: 1px solid var(--line); white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+  .tab.active { background: var(--primary); color: #fff; border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+  /* Layout */
+  .page-container { max-width: 800px; margin: 0 auto; padding: 16px; }
+  .view-section { display: none; animation: fadeUp 0.4s ease; }
+  .view-section.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .card { background: #fff; border-radius: var(--radius-md); border: 1px solid var(--line); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+  .section-title { font-size: 18px; font-weight: 900; margin: 0 0 16px; display: flex; align-items: center; gap: 8px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  
+  .item-box { background: #FAFCFE; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
+  .item-icon { width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--emerald-light); color: var(--emerald); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .item-info { flex: 1; }
+  .item-title { font-weight: 900; font-size: 14px; margin: 0 0 4px; color: var(--primary); }
+  .item-sub { font-size: 11px; color: var(--gray); font-weight: 700; margin: 0; }
+  .item-price { font-weight: 900; color: var(--emerald); font-size: 15px; }
+  
+  .btn-action { background: var(--emerald); color: #fff; border: none; padding: 12px 20px; border-radius: var(--radius-sm); font-weight: 900; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+  .btn-action:active { transform: scale(0.98); }
+  
+  .input-field { width: 100%; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); font-weight: 700; font-size: 14px; background: var(--gray-light); margin-bottom: 12px; transition: 0.2s; }
+  .input-field:focus { outline: none; border-color: var(--emerald); background: #fff; box-shadow: 0 0 0 4px var(--emerald-light); }
+
+  /* Trackers */
+  .stepper { display: flex; justify-content: space-between; position: relative; padding: 10px 0; margin-top: 15px; }
+  .stepper::before { content: ''; position: absolute; top: 24px; left: 10%; right: 10%; height: 3px; background: var(--line); z-index: 0; }
+  .step { display: flex; flex-direction: column; align-items: center; z-index: 1; flex: 1; }
+  .step-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--line); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-bottom: 6px; border: 3px solid #fff; transition: 0.3s; }
+  .step.active .step-icon { background: var(--emerald); }
+  .step.current .step-icon { background: var(--amber); animation: pulse 1.5s infinite; }
+  .step-label { font-size: 10px; font-weight: 900; color: var(--gray); text-align: center; }
+  .step.active .step-label { color: var(--emerald); }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(234,88,12,0.4); } 70% { box-shadow: 0 0 0 8px rgba(234,88,12,0); } 100% { box-shadow: 0 0 0 0 rgba(234,88,12,0); } }
+
+  /* Modals & Sheets */
+  .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 200; opacity: 0; pointer-events: none; transition: 0.3s; }
+  .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+  .bottom-sheet { position: fixed; bottom: -100%; left: 0; right: 0; background: #fff; border-radius: var(--radius-lg) var(--radius-lg) 0 0; z-index: 201; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); }
+  .bottom-sheet.open { bottom: 0; }
+  .sheet-header { padding: 20px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .sheet-body { padding: 20px; overflow-y: auto; flex: 1; }
+  .sheet-footer { padding: 20px; border-top: 1px solid var(--line); background: var(--gray-light); }
+  
+  .modal-wrap { position: fixed; inset: 0; background: rgba(11,18,32,0.85); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .modal-wrap.open { display: flex; }
+  .modal-box { background: #fff; border-radius: var(--radius-lg); width: 100%; max-width: 450px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto; animation: popIn 0.3s; }
+  @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal-close { position: absolute; top: 16px; left: 16px; background: var(--gray-light); border: none; width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--gray); font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  
+  #toast-box { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+  .toast-msg { background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 99px; font-size: 13px; font-weight: 900; box-shadow: var(--shadow-lg); border-right: 4px solid var(--emerald); animation: slideDown 0.3s; display: flex; align-items: center; gap: 8px; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* SOS Button */
+  #sos-btn { position: fixed; bottom: 80px; left: 20px; z-index: 90; width: 50px; height: 50px; border-radius: 50%; background: var(--danger); color: #fff; border: none; font-size: 20px; box-shadow: 0 0 0 0 rgba(225,29,72,0.7); animation: sos-pulse 2s infinite; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  @keyframes sos-pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225,29,72,0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(225,29,72,0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225,29,72,0); } }
+</style>
+</head>
+<body>
+
+<div id="wasla-ticker" class="ticker-wrap"></div>
+
+<header class="app-header">
+  <div class="header-top">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+      <div><h1 class="brand-title">وَصْلَة <span>WASLA</span></h1></div>
+    </div>
+    <div class="header-actions" id="header-actions"></div>
+  </div>
+</header>
+
+<div class="super-tabs" id="super-tabs">
+  <button class="tab active" data-sector="medical" onclick="router.navigate('medical')"><i class="fa-solid fa-stethoscope"></i> طبي</button>
+  <button class="tab" data-sector="market" onclick="router.navigate('market')"><i class="fa-solid fa-cart-shopping"></i> تسوق</button>
+  <button class="tab" data-sector="cars" onclick="router.navigate('cars')"><i class="fa-solid fa-car"></i> سيارات</button>
+  <button class="tab" data-sector="home" onclick="router.navigate('home')"><i class="fa-solid fa-screwdriver-wrench"></i> صيانة</button>
+</div>
+
+<main class="page-container">
+  <section class="view-section active" id="view-medical"></section>
+  <section class="view-section" id="view-market"></section>
+  <section class="view-section" id="view-cars"></section>
+  <section class="view-section" id="view-home"></section>
+  <section class="view-section" id="view-founder"></section>
+  <section class="view-section" id="view-staff"></section>
+  <section class="view-section" id="view-doctor"></section>
+  <section class="view-section" id="view-dashboard"></section>
+</main>
+
+<div class="sheet-overlay" id="cart-overlay" onclick="cart.toggle()"></div>
+<div class="bottom-sheet" id="cart-sheet">
+  <div class="sheet-header">
+    <h3 style="margin:0; font-weight:900;"><i class="fa-solid fa-basket-shopping" style="color:var(--emerald);"></i> سلة الطلبات</h3>
+    <button onclick="cart.toggle()" style="background:var(--gray-light); border:none; width:36px; height:36px; border-radius:var(--radius-sm); cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="sheet-body" id="cart-body"></div>
+  <div class="sheet-footer">
+    <div style="display:flex; justify-content:space-between; margin-bottom:16px; font-weight:900; font-size:18px;">
+      <span>الإجمالي:</span>
+      <span id="cart-total" style="color:var(--emerald);">0 ج.م</span>
+    </div>
+    <button onclick="cart.checkout()" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد الدفع</button>
+  </div>
+</div>
+
+<div class="modal-wrap" id="modal-auth"><div class="modal-box" id="modal-auth-body"></div></div>
+<div class="modal-wrap" id="modal-book"><div class="modal-box" id="modal-book-body"></div></div>
+<div class="modal-wrap" id="modal-payment"><div class="modal-box" id="modal-payment-body"></div></div>
+<div class="modal-wrap" id="modal-map"><div class="modal-box" id="modal-map-body"></div></div>
+
+<div id="toast-box"></div>
+
+<button id="sos-btn" onclick="Views.openSOS()"><i class="fa-solid fa-triangle-exclamation"></i></button>
+
+<script>
+/* ==========================================================================
+   WASLA MASTER ENGINE — V6.0 (MEDICAL MASTERCLASS & CORE FIXES)
+   ========================================================================== */
+const Utils = {
+  id: () => Math.random().toString(36).substring(2, 10),
+  money: (num) => Number(num).toLocaleString('ar-EG') + ' ج.م',
+  toast: (msg, isError = false) => {
+    const el = document.createElement('div');
+    el.className = 'toast-msg';
+    el.style.borderRightColor = isError ? 'var(--danger)' : 'var(--emerald)';
+    el.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> ${msg}`;
+    document.getElementById('toast-box').appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  },
+  openModal: (id) => document.getElementById(id).classList.add('open'),
+  closeModal: (id) => document.getElementById(id).classList.remove('open')
+};
+
+/* Audio Engine */
+let audioCtx;
+document.body.addEventListener('click', () => {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}, { once: true });
+
+function playSound(isAlert = false) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.type = isAlert ? 'square' : 'sine';
+  osc.frequency.setValueAtTime(isAlert ? 880 : 600, audioCtx.currentTime);
+  if (isAlert) osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+}
+
+/* ==========================================================================
+   DATABASE & STATE
+   ========================================================================== */
+const DB_KEY = 'wasla_db_v6';
+let DB = JSON.parse(localStorage.getItem(DB_KEY));
+
+if (!DB) {
+  DB = {
+    users: [
+      { id: 'u-f', phone: '01068990089', pass: 'As123789456*', name: 'أحمد صبري', role: 'founder', wallet: 0, waslaId: 'WASLA-F-0001' },
+      { id: 'u-p1', phone: '01000000001', pass: '123456', name: 'محمد المريض', role: 'patient', wallet: 150, waslaId: 'WASLA-P-0001', emr: { blood: 'O+', allergies: ['بنسلين'], chronic: ['سكري'], vitals: [120, 135, 118, 110] } },
+      { id: 'u-d1', phone: '01000000002', pass: '123456', name: 'د. محمد الشريف', role: 'doctor', wallet: 0, waslaId: 'WASLA-D-0001' },
+      { id: 'u-s1', phone: '01000000003', pass: '123456', name: 'موظف الاستقبال', role: 'staff', wallet: 0, waslaId: 'WASLA-S-0001' }
+    ],
+    doctors: [
+      { id: 'd1', name: 'د. محمد الشريف', spec: 'باطنة وكبد', price: 170, avgTime: 15, area: 'شارع بورسعيد', lat: 30.3546, lng: 31.2153, services: ['سكر وضغط', 'مناظير'], schedule: ['5:00 م', '5:30 م', '6:00 م'], status: 'available' },
+      { id: 'd2', name: 'د. سارة أحمد', spec: 'أطفال وحديثي الولادة', price: 150, avgTime: 12, area: 'ميدان المحطة', lat: 30.3575, lng: 31.2160, services: ['تطعيمات', 'حساسية'], schedule: ['4:00 م', '4:30 م', '5:00 م'], status: 'busy' }
+    ],
+    pharmacies: [{ id: 'ph1', name: 'صيدلية النور', area: 'شارع بورسعيد', insurances: ['GlobeMed', 'MetLife'] }],
+    appointments: [], orders: [], notifications: [], cart: [], reviews: [], referrals: [], loyalty: {}, emrNotes: [], tickets: [], subscriptions: {}, auditLogs: [], apiKeys: [{ id: 'key_live_1', name: 'Wasla Mobile App', key: 'wsk_live_8f9a2b7c6d5e4f3a', created: Date.now() }],
+    ads: [{ id: 'a1', text: '🎉 خصم 20% على أول كشف', active: true }, { id: 'a2', text: '🚀 ونش إنقاذ متاح الآن', active: true }],
+    services: { cars: [], home: [] },
+    jobs: [], lostItems: [], savingsPools: [], wishlist: {}, notifPrefs: { orders: true, offers: true, health: true }, emergencyContacts: [], merchants: [], shopItems: [], rewardsShop: [], eventTickets: [], challenges: []
+  };
+  localStorage.setItem(DB_KEY, JSON.stringify(DB));
+}
+
+function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+
+let Auth = {
+  currentUser: JSON.parse(sessionStorage.getItem('wasla_session')) || null,
+  
+  login: (phone, pass) => {
+    const user = DB.users.find(u => u.phone === phone && u.pass === pass);
+    if (user) {
+      Auth.currentUser = user;
+      sessionStorage.setItem('wasla_session', JSON.stringify(user));
+      UI.renderHeader(); Utils.closeModal('modal-auth'); Utils.toast('مرحباً بك ' + user.name);
+      if (user.role === 'founder') router.navigate('founder');
+      else if (user.role === 'staff') router.navigate('staff');
+      else if (user.role === 'doctor') router.navigate('doctor');
+      else router.navigate('dashboard');
+      logAction(user.id, 'LOGIN_SUCCESS', 'تم تسجيل الدخول');
+      return true;
+    }
+    logAction(phone, 'LOGIN_FAILED', 'بيانات خاطئة');
+    return false;
+  },
+  
+  register: (name, phone, pass) => {
+    if (DB.users.find(u => u.phone === phone)) return Utils.toast('رقم الموبايل مسجل بالفعل', true);
+    const newId = 'u-' + Utils.id();
+    const waslaId = 'WASLA-' + Math.floor(1000 + Math.random() * 9000);
+    const newUser = { id: newId, phone, pass, name, role: 'patient', wallet: 0, waslaId, emr: { blood: 'غير محدد', allergies: [], chronic: [], vitals: [] } };
+    DB.users.push(newUser);
+    saveDB();
+    Auth.currentUser = newUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(newUser));
+    UI.renderHeader(); Utils.closeModal('modal-auth'); Utils.toast('تم إنشاء الحساب بنجاح');
+    router.navigate('dashboard');
+    logAction(newId, 'REGISTER_SUCCESS', 'تم إنشاء حساب جديد');
+  },
+
+  logout: () => {
+    Auth.currentUser = null;
+    sessionStorage.removeItem('wasla_session');
+    UI.renderHeader(); router.navigate('medical'); Utils.toast('تم تسجيل الخروج');
+  }
+};
+
+let Notifier = {
+  push: (userId, text, isAlert = false) => {
+    DB.notifications.unshift({ id: Utils.id(), userId, text, read: false, ts: Date.now() });
+    saveDB();
+    if (Auth.currentUser && Auth.currentUser.id === userId) {
+      UI.renderHeader(); playSound(isAlert); Utils.toast(text);
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("منصة وصلة | WASLA", { body: text });
+      }
+    }
+  },
+  openPanel: (e) => {
+    e.stopPropagation();
+    const my = DB.notifications.filter(n => n.userId === Auth.currentUser.id);
+    let html = `<button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button><h3 style="font-weight:900; margin:0 0 16px;">الإشعارات</h3>`;
+    if (!my.length) html += `<p style="text-align:center; color:var(--gray);">لا توجد إشعارات</p>`;
+    my.forEach(n => {
+      html += `<div class="notif-item ${!n.read ? 'unread' : ''}" style="padding:12px; border-bottom:1px solid var(--line); border-radius:var(--radius-sm); margin-bottom:8px; font-weight:700;">
+        <div style="font-size:10px; color:var(--gray); margin-bottom:4px;">${new Date(n.ts).toLocaleTimeString('ar-EG')}</div>
+        <div style="font-size:13px;">${n.text}</div>
+      </div>`;
+    });
+    document.getElementById('modal-map-body').innerHTML = html;
+    Utils.openModal('modal-map');
+    DB.notifications.filter(n => n.userId === Auth.currentUser.id).forEach(n => n.read = true);
+    saveDB(); UI.renderHeader();
+  }
+};
+
+function logAction(userId, action, details) {
+  DB.auditLogs.unshift({ id: Utils.id(), userId, action, details, ip: '192.168.1.' + Math.floor(Math.random() * 255), ts: Date.now() });
+  if (DB.auditLogs.length > 100) DB.auditLogs.pop();
+  saveDB();
+}
+
+/* UI Components */
+const UI = {
+  renderHeader: () => {
+    const actions = document.getElementById('header-actions');
+    const tabs = document.getElementById('super-tabs');
+    document.querySelectorAll('.tab.dynamic').forEach(t => t.remove());
+
+    if (!Auth.currentUser) {
+      actions.innerHTML = `<button class="btn-ui primary" onclick="AuthUI.open()"><i class="fa-solid fa-right-to-bracket"></i> دخول</button>`;
+      return;
+    }
+
+    const isFounder = Auth.currentUser.role === 'founder';
+    const isStaff = Auth.currentUser.role === 'staff';
+    const isDoctor = Auth.currentUser.role === 'doctor';
+    const myNotifs = DB.notifications.filter(n => n.userId === Auth.currentUser.id && !n.read);
+
+    actions.innerHTML = `
+      <button class="btn-ui" onclick="toggleTheme()" style="padding:8px;"><i class="fa-solid fa-moon"></i></button>
+      <div style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.1); padding:6px 10px; border-radius:var(--radius-sm); cursor:pointer;" onclick="router.navigate('${isFounder?'founder':isStaff?'staff':isDoctor?'doctor':'dashboard'}')">
+        <div style="width:24px; height:24px; border-radius:50%; background:var(--emerald); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:11px;">${Auth.currentUser.name[0]}</div>
+        <div style="font-size:11px; font-weight:900; color:#fff;">${Auth.currentUser.name.split(' ')[0]}</div>
+        <div style="font-size:10px; color:#34D399; font-weight:800; margin-right:4px;">${Auth.currentUser.wallet || 0} ج.م</div>
+      </div>
+      
+      ${isFounder ? `<button class="btn-ui" style="background:linear-gradient(135deg,var(--gold),var(--amber)); border:none;" onclick="router.navigate('founder')"><i class="fa-solid fa-crown"></i> لوحة التحكم</button>` : ''}
+      
+      <button class="btn-ui" onclick="Notifier.openPanel(event)" style="position:relative;">
+        <i class="fa-solid fa-bell"></i>
+        ${myNotifs.length > 0 ? `<span style="position:absolute; top:-4px; right:-4px; background:var(--danger); color:#fff; width:16px; height:16px; border-radius:50%; font-size:9px; font-weight:900; display:flex; align-items:center; justify-content:center;">${myNotifs.length}</span>` : ''}
+      </button>
+
+      <button class="btn-ui primary" onclick="cart.toggle()" style="position:relative;">
+        <i class="fa-solid fa-cart-shopping"></i>
+        ${DB.cart.length > 0 ? `<span style="position:absolute; top:-4px; right:-4px; background:#fff; color:var(--emerald); width:16px; height:16px; border-radius:50%; font-size:9px; font-weight:900; display:flex; align-items:center; justify-content:center;">${DB.cart.length}</span>` : ''}
+      </button>
+
+      <button class="btn-ui" onclick="Auth.logout()" style="color:#94A3B8;"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+    `;
+
+    if (isStaff) tabs.insertAdjacentHTML('beforeend', `<button class="tab dynamic" data-sector="staff" onclick="router.navigate('staff')"><i class="fa-solid fa-headset"></i> إدارة الطابور</button>`);
+    if (isDoctor) tabs.insertAdjacentHTML('beforeend', `<button class="tab dynamic" data-sector="doctor" onclick="router.navigate('doctor')"><i class="fa-solid fa-user-md"></i> بوابة الطبيب</button>`);
+  },
+  
+  renderTicker: () => {
+    const active = DB.ads.filter(a => a.active);
+    const el = document.getElementById('wasla-ticker');
+    if (!active.length) return el.style.display = 'none';
+    el.style.display = 'flex';
+    el.innerHTML = `<div class="ticker-content">${active.map(a => `<span style="margin-left:40px;"><i class="fa-solid fa-bullhorn" style="color:var(--gold);"></i> ${a.text}</span>`).join('')}</div>`;
+  }
+};
+
+window.toggleTheme = () => {
+  document.body.classList.toggle('dark-mode');
+  const isDark = document.body.classList.contains('dark-mode');
+  localStorage.setItem('wasla_theme', isDark ? 'dark' : 'light');
+  Utils.toast(isDark ? 'تم تفعيل الوضع الليلي 🌙' : 'تم تفعيل الوضع النهاري ☀️');
+};
+if (localStorage.getItem('wasla_theme') === 'dark') document.body.classList.add('dark-mode');
+
+const router = {
+  navigate: (sector) => {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    let view = document.getElementById('view-' + sector);
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-' + sector;
+      view.className = 'view-section';
+      document.querySelector('main').appendChild(view);
+    }
+    view.classList.add('active');
+    const tab = document.querySelector(`.tab[data-sector="${sector}"]`);
+    if (tab) tab.classList.add('active');
+
+    const views = { medical: Views.medical, market: Views.market, cars: Views.cars, home: Views.home, founder: Views.founder, staff: Views.staff, doctor: Views.doctor, dashboard: Views.dashboard, more: Views.more };
+    if (views[sector]) {
+      try { views[sector](); } catch(e) { console.error("Render error in " + sector, e); }
+    }
+    window.scrollTo(0,0);
+  }
+};
+
+/* Cart */
+const cart = {
+  toggle: () => {
+    document.getElementById('cart-sheet').classList.toggle('open');
+    document.getElementById('cart-overlay').classList.toggle('open');
+    cart.render();
+  },
+  add: (title, price, icon) => {
+    DB.cart.push({ cartId: Utils.id(), title, price, icon });
+    saveDB(); UI.renderHeader(); Utils.toast('تمت الإضافة للسلة'); cart.toggle();
+  },
+  remove: (id) => {
+    DB.cart = DB.cart.filter(i => i.cartId !== id);
+    saveDB(); cart.render(); UI.renderHeader();
+  },
+  render: () => {
+    const body = document.getElementById('cart-body');
+    if (!DB.cart.length) {
+      body.innerHTML = `<div style="text-align:center; padding:40px; color:var(--gray);"><i class="fa-solid fa-basket-shopping" style="font-size:40px; margin-bottom:12px;"></i><br>السلة فارغة</div>`;
+      document.getElementById('cart-total').innerText = '0 ج.م'; return;
+    }
+    body.innerHTML = DB.cart.map(item => `
+      <div class="item-box" style="margin-bottom:10px;">
+        <div class="item-icon"><i class="fa-solid ${item.icon}"></i></div>
+        <div class="item-info"><div class="item-title">${item.title}</div></div>
+        <div class="item-price">${Utils.money(item.price)}</div>
+        <button onclick="cart.remove('${item.cartId}')" style="background:var(--danger-light); color:var(--danger); border:none; width:32px; height:32px; border-radius:var(--radius-sm); cursor:pointer; margin-right:10px;"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `).join('');
+    const total = DB.cart.reduce((s,i) => s + i.price, 0);
+    document.getElementById('cart-total').innerText = Utils.money(total);
+  },
+  checkout: () => {
+    if (!Auth.currentUser) { Utils.toast('سجل دخول أولاً', true); return AuthUI.open(); }
+    if (!DB.cart.length) return;
+    const total = DB.cart.reduce((s,i) => s + i.price, 0);
+    document.getElementById('modal-payment-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-payment')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:20px;">
+        <div style="width:64px; height:64px; background:var(--emerald-light); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 12px;"><i class="fa-solid fa-credit-card"></i></div>
+        <h3 style="margin:0 0 4px; font-weight:900;">بوابة الدفع</h3>
+        <p style="color:var(--gray); font-size:13px; font-weight:700;">المبلغ المطلوب: ${Utils.money(total)}</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+        <label style="border:2px solid var(--emerald); background:var(--emerald-light); padding:14px; border-radius:var(--radius-sm); display:flex; align-items:center; gap:12px; cursor:pointer;">
+          <input type="radio" name="pay-method" value="cash" checked class="hidden">
+          <div style="width:40px; height:40px; background:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--emerald);"><i class="fa-solid fa-money-bill"></i></div>
+          <div style="flex:1;"><div style="font-weight:900; font-size:14px;">الدفع عند الاستلام (كاش)</div></div>
+          <i class="fa-solid fa-circle-check" style="color:var(--emerald);"></i>
+        </label>
+      </div>
+      <button onclick="cart.processPayment(${total})" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد ودفع</button>
+    `;
+    Utils.openModal('modal-payment');
+  },
+  processPayment: (total) => {
+    Auth.currentUser.wallet = (Auth.currentUser.wallet || 0) + Math.round(total * 0.05);
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+    DB.cart.forEach(item => {
+      DB.orders.push({ id: Utils.id(), userId: Auth.currentUser.id, title: item.title, price: item.price, status: 'preparing', ts: Date.now() });
+    });
+    DB.cart = [];
+    saveDB();
+    logAction(Auth.currentUser.id, 'PAYMENT_SUCCESS', `دفع ${total} ج.م`);
+    Utils.closeModal('modal-payment'); cart.toggle(); UI.renderHeader();
+    Utils.toast('تم الدفع بنجاح! تم إضافة كاش باك لمحفظتك');
+    router.navigate('dashboard');
+  }
+};
+
+const AuthUI = {
+  open: () => {
+    document.getElementById('modal-auth-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-auth')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:24px;">
+        <div style="width:64px; height:64px; background:var(--emerald); color:#fff; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 12px;"><i class="fa-solid fa-heart-pulse"></i></div>
+        <h3 style="margin:0; font-weight:900;">دخول / تسجيل جديد</h3>
+      </div>
+      
+      <div id="auth-login-form">
+        <input type="text" id="auth-phone" class="input-field" placeholder="رقم الموبايل" value="01068990089">
+        <input type="password" id="auth-pass" class="input-field" placeholder="كلمة السر" value="As123789456*">
+        <button onclick="AuthUI.login()" class="btn-action" style="width:100%; padding:16px; font-size:16px;">دخول</button>
+        <p style="text-align:center; margin-top:12px; font-size:12px; color:var(--gray);">ليس لديك حساب؟ <span style="color:var(--emerald); font-weight:900; cursor:pointer;" onclick="AuthUI.showRegister()">سجل الآن</span></p>
+      </div>
+
+      <div id="auth-register-form" style="display:none;">
+        <input type="text" id="reg-name" class="input-field" placeholder="الاسم الثلاثي">
+        <input type="tel" id="reg-phone" class="input-field" placeholder="رقم الموبايل">
+        <input type="password" id="reg-pass" class="input-field" placeholder="كلمة السر">
+        <button onclick="AuthUI.register()" class="btn-action" style="width:100%; padding:16px; font-size:16px;">إنشاء الحساب</button>
+        <p style="text-align:center; margin-top:12px; font-size:12px; color:var(--gray);">لديك حساب بالفعل؟ <span style="color:var(--emerald); font-weight:900; cursor:pointer;" onclick="AuthUI.showLogin()">دخول</span></p>
+      </div>
+    `;
+    Utils.openModal('modal-auth');
+  },
+  showRegister: () => { document.getElementById('auth-login-form').style.display='none'; document.getElementById('auth-register-form').style.display='block'; },
+  showLogin: () => { document.getElementById('auth-login-form').style.display='block'; document.getElementById('auth-register-form').style.display='none'; },
+  login: () => {
+    const p = document.getElementById('auth-phone').value;
+    const s = document.getElementById('auth-pass').value;
+    if (!Auth.login(p, s)) Utils.toast('بيانات الدخول غير صحيحة', true);
+  },
+  register: () => {
+    const n = document.getElementById('reg-name').value;
+    const p = document.getElementById('reg-phone').value;
+    const s = document.getElementById('reg-pass').value;
+    if (!n || !p || !s) return Utils.toast('أكمل البيانات', true);
+    Auth.register(n, p, s);
+  }
+};
+
+/* ==========================================================================
+   VIEWS (MEDICAL MASTERCLASS)
+   ========================================================================== */
+const Views = {
+  medical: () => {
+    const el = document.getElementById('view-medical');
+    el.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, var(--primary), #1E293B); color:#fff; border:none; margin-bottom:16px; cursor:pointer;" onclick="Views.openAIChat()">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:50px; height:50px; border-radius:50%; background:var(--emerald); display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="fa-solid fa-robot"></i></div>
+          <div>
+            <h3 style="margin:0; font-weight:900;">المساعد الطبي الذكي</h3>
+            <p style="margin:4px 0 0; font-size:11px; opacity:0.8;">اكتب أعراضك وسنوجهك للطبيب المناسب فوراً</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="background:linear-gradient(135deg, #E0F2FE, #BAE6FD); border-color:#7DD3FC; margin-bottom:16px; cursor:pointer;" onclick="Views.startVideoCall()">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:50px; height:50px; border-radius:50%; background:var(--sky); color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="fa-solid fa-video"></i></div>
+          <div>
+            <h3 style="margin:0; font-weight:900; color:#0369A1;">استشارة طبية بالفيديو</h3>
+            <p style="margin:4px 0 0; font-size:11px; font-weight:700; color:#0284C7;">تواصل مع طبيبك الآن مباشرة بدون مغادرة المنزل</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title mt-4"><i class="fa-solid fa-user-doctor" style="color:var(--emerald);"></i> دليل الأطباء</h2>
+      <div class="grid-list">
+        ${DB.doctors.map(d => `
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <h4 style="margin:0; font-weight:900; font-size:16px;">${d.name}</h4>
+                ${d.status === 'available' ? `<span style="background:#ECFDF5; color:#059669; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">🟢 متاح</span>` : `<span style="background:#FEF2F2; color:#E11D48; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">🔴 مشغول</span>`}
+              </div>
+              <span style="background:var(--emerald-light); color:var(--emerald); padding:2px 8px; border-radius:6px; font-size:10px; font-weight:900;">${d.spec}</span>
+              <p style="margin:8px 0 4px; font-size:11px; color:var(--gray); font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${d.area} • ${d.avgTime} دقيقة</p>
+            </div>
+            <div style="text-align:left;">
+              <div style="font-weight:900; color:var(--emerald); font-size:20px;">${Utils.money(d.price)}</div>
+              <button onclick="Views.openBooking('${d.id}')" class="btn-action" style="margin-top:10px; padding:10px 20px;">حجز</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  },
+
+  openBooking: (docId) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const doc = DB.doctors.find(d => d.id === docId);
+    const bookedSlots = DB.appointments.filter(a => a.doctorId === docId && a.status !== 'cancelled').map(a => a.slot);
+    const availableSlots = doc.schedule.filter(slot => !bookedSlots.includes(slot));
+
+    let slotsHTML = availableSlots.length > 0 
+      ? availableSlots.map((slot, idx) => `
+          <label style="border:2px solid var(--emerald); background:var(--emerald-light); padding:14px; border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-weight:900; font-size:14px; color:var(--emerald);">
+            <input type="radio" name="slot" value="${slot}" ${idx === 0 ? 'checked' : ''} class="hidden"> ${slot}
+          </label>
+        `).join('')
+      : `<div style="grid-column: 1 / -1; text-align:center; color:var(--danger); font-weight:900; font-size:14px; padding:16px;">عذراً، لا توجد مواعيد متاحة اليوم.</div>`;
+
+    document.getElementById('modal-book-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-book')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 4px; font-weight:900; font-size:20px;">${doc.name}</h3>
+      <p style="margin:0 0 20px; font-size:13px; color:var(--gray); font-weight:700;">${doc.spec} • الكشف: ${Utils.money(doc.price)}</p>
+      
+      <label style="font-size:13px; font-weight:900; display:block; margin-bottom:12px;">اختر الموعد المتاح:</label>
+      <div class="grid-2" style="margin-bottom:24px;">${slotsHTML}</div>
+      
+      <button onclick="Views.confirmBooking('${doc.id}')" class="btn-action" style="width:100%; padding:16px; font-size:16px;" ${availableSlots.length === 0 ? 'disabled style="opacity:0.5;"' : ''}>تأكيد الحجز</button>
+    `;
+    Utils.openModal('modal-book');
+  },
+
+  confirmBooking: (docId) => {
+    const doc = DB.doctors.find(d => d.id === docId);
+    const slotInput = document.querySelector('input[name="slot"]:checked');
+    if(!slotInput) return Utils.toast('لا توجد مواعيد متاحة', true);
+
+    const apptId = Utils.id();
+    DB.appointments.push({ 
+      id: apptId, patientId: Auth.currentUser.id, patientName: Auth.currentUser.name, 
+      patientPhone: Auth.currentUser.phone || '01000000000',
+      doctorId: doc.id, doctorName: doc.name, slot: slotInput.value, price: doc.price, 
+      status: 'waiting', followUp: false, ts: Date.now() 
+    });
+
+    if (!DB.loyalty[Auth.currentUser.id]) DB.loyalty[Auth.currentUser.id] = { points: 0 };
+    DB.loyalty[Auth.currentUser.id].points += 50;
+    saveDB();
+    Utils.closeModal('modal-book'); 
+    logAction(Auth.currentUser.id, 'BOOKING_CREATED', `حجز مع ${doc.name}`);
+
+    const waMsg = `مرحباً، تم تأكيد حجزك.\n👨‍⚕️ الطبيب: ${doc.name}\n⏰ الموعد: ${slotInput.value}\n💰 السعر: ${doc.price} ج.م\nرقم الحجز: ${apptId.substring(0,6).toUpperCase()}`;
+    const waUrl = `https://wa.me/2${Auth.currentUser.phone || '01000000000'}?text=${encodeURIComponent(waMsg)}`;
+
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center;">
+        <div style="width:70px; height:70px; background:var(--emerald-light); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px;"><i class="fa-solid fa-check"></i></div>
+        <h3 style="margin:0 0 8px; font-weight:900; color:var(--emerald);">تم الحجز بنجاح!</h3>
+        <a href="${waUrl}" target="_blank" class="btn-action" style="width:100%; background:#25D366; text-decoration:none; margin-bottom:12px;"><i class="fa-brands fa-whatsapp"></i> تأكيد واتساب</a>
+        <button onclick="Utils.closeModal('modal-map'); router.navigate('dashboard');" class="btn-action" style="width:100%; background:var(--primary);">لوحة التحكم</button>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+  },
+
+  /* AI Chat Simulation */
+  openAIChat: () => {
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:16px;"><h3 style="margin:0; font-weight:900;">المساعد الطبي الذكي</h3></div>
+      <div id="ai-chat-box" style="height: 200px; overflow-y: auto; background:var(--gray-light); border-radius:12px; padding:12px; margin-bottom:16px; display:flex; flex-direction:column; gap:8px;">
+        <div style="background:#fff; padding:10px; border-radius:10px; font-size:13px; font-weight:700; align-self:flex-start; border:1px solid var(--line);">مرحباً! اكتب أعراضك.</div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="ai-input" class="input-field" placeholder="اكتب هنا..." style="margin:0; flex:1;" onkeypress="if(event.key==='Enter') Views.sendAIMessage()">
+        <button onclick="Views.sendAIMessage()" class="btn-action" style="padding:0 16px;"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+  },
+  sendAIMessage: () => {
+    const input = document.getElementById('ai-input');
+    const box = document.getElementById('ai-chat-box');
+    const text = input.value.trim();
+    if(!text) return;
+    box.innerHTML += `<div style="background:var(--emerald); color:#fff; padding:10px; border-radius:10px; font-size:13px; font-weight:700; align-self:flex-end;">${text}</div>`;
+    input.value = ''; box.scrollTop = box.scrollHeight;
+    setTimeout(() => {
+      box.innerHTML += `<div style="background:#fff; padding:10px; border-radius:10px; font-size:13px; font-weight:700; align-self:flex-start; border:1px solid var(--line);">بناءً على الأعراض، ننصحك باستشارة طبيب باطنة.</div>`;
+      box.scrollTop = box.scrollHeight;
+    }, 1000);
+  },
+
+  /* Video Call Simulation */
+  startVideoCall: () => {
+    document.getElementById('modal-map-body').innerHTML = `
+      <div style="background:#000; border-radius:16px; overflow:hidden; position:relative; height:400px; display:flex; flex-direction:column; justify-content:space-between; padding:16px;">
+        <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+          <div style="width:80px; height:80px; border-radius:50%; background:var(--gray-light); display:flex; align-items:center; justify-content:center; font-size:40px; margin-bottom:16px;">👨‍⚕️</div>
+          <div style="color:#fff; font-size:18px; font-weight:900;">د. محمد الشريف</div>
+          <div style="color:#34D399; font-size:12px; font-weight:900; margin-top:4px;"><i class="fa-solid fa-circle" style="font-size:8px;"></i> متصل الآن</div>
+        </div>
+        <div style="position:relative; z-index:10; display:flex; justify-content:center; gap:16px; margin-top:auto;">
+          <button onclick="Utils.toast('تم كتم الصوت')" style="width:50px; height:50px; border-radius:50%; background:rgba(255,255,255,0.2); color:#fff; border:none; font-size:20px; cursor:pointer;"><i class="fa-solid fa-microphone-slash"></i></button>
+          <button onclick="Utils.closeModal('modal-map'); Utils.toast('تم إنهاء المكالمة');" style="width:50px; height:50px; border-radius:50%; background:var(--danger); color:#fff; border:none; font-size:20px; cursor:pointer;"><i class="fa-solid fa-phone-slash"></i></button>
+        </div>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+  },
+
+  /* Patient Dashboard & Live Queue */
+  dashboard: () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const el = document.getElementById('view-dashboard');
+    const myAppts = DB.appointments.filter(a => a.patientId === Auth.currentUser.id).sort((a,b) => b.ts - a.ts);
+    const myOrders = DB.orders.filter(o => o.userId === Auth.currentUser.id).sort((a,b) => b.ts - a.ts);
+    const emr = Auth.currentUser.emr || { blood: 'O+', allergies: [], chronic: [] };
+
+    const activeAppts = myAppts.filter(a => a.status !== 'completed');
+    
+    let queueHTML = '';
+    if (activeAppts.length > 0) {
+      queueHTML = activeAppts.map(appt => {
+        const ahead = DB.appointments.filter(a => a.doctorId === appt.doctorId && a.status === 'waiting' && a.ts < appt.ts).length;
+        return `
+          <div class="card" style="border-right:4px solid ${appt.status === 'next' ? 'var(--amber)' : 'var(--sky)'};">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <div><h4 style="margin:0; font-weight:900; font-size:16px;">${appt.doctorName}</h4><p style="margin:4px 0 0; font-size:12px; color:var(--gray); font-weight:700;">${appt.slot}</p></div>
+              <span style="font-size:11px; font-weight:900; padding:4px 10px; border-radius:6px; background:${appt.status === 'next' ? '#FEF3C7' : 'var(--sky-light)'}; color:${appt.status === 'next' ? '#92400E' : 'var(--sky)'};">
+                ${appt.status === 'next' ? '🔔 دورك الآن' : 'في الانتظار'}
+              </span>
+            </div>
+            ${appt.status === 'waiting' ? `<div style="background:var(--gray-light); padding:12px; border-radius:8px; text-align:center; font-weight:900; font-size:14px;">فاضل عليك ${ahead > 0 ? ahead : 'أنت التالي'} حالات</div>` : `<div style="background:var(--amber-light); padding:12px; border-radius:8px; text-align:center; font-weight:900; color:#9A3412;">🚨 توجه للطبيب الآن</div>`}
+            ${appt.followUp ? `<button onclick="Views.openBooking('${appt.doctorId}')" class="btn-action" style="width:100%; margin-top:12px; background:var(--emerald);">حجز متابعة</button>` : ''}
+          </div>
+        `;
+      }).join('');
+      queueHTML = `<h3 class="section-title mt-4"><i class="fa-solid fa-users-viewfinder" style="color:var(--sky);"></i> تتبع الطابور</h3>${queueHTML}`;
+    }
+
+    el.innerHTML = `
+      ${queueHTML}
+      <div class="card" style="background:var(--emerald-light); border-color:#A7F3D0;">
+        <h2 style="margin:0 0 4px; font-weight:900; color:#047857;">أهلاً ${Auth.currentUser.name}</h2>
+        <p style="margin:0; font-size:12px; font-weight:700; color:#065F46;">رقمك التعريفي: ${Auth.currentUser.waslaId}</p>
+        <div style="margin-top:12px; background:#fff; padding:8px 16px; border-radius:99px; display:inline-block; font-weight:900; color:var(--emerald);">
+          <i class="fa-solid fa-wallet"></i> ${Utils.money(Auth.currentUser.wallet || 0)}
+        </div>
+      </div>
+
+      <h3 class="section-title mt-4"><i class="fa-solid fa-calendar-check" style="color:var(--emerald);"></i> مواعيدي</h3>
+      <div class="grid-list">
+        ${myAppts.map(a => `
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div><h4 style="margin:0; font-weight:900;">${a.doctorName}</h4><p style="margin:4px 0 0; font-size:12px; color:var(--gray); font-weight:700;">${a.slot}</p></div>
+            <span style="font-size:11px; font-weight:900; color:${a.status === 'completed' ? 'var(--emerald)' : 'var(--amber)'};">${a.status === 'completed' ? 'مكتمل' : 'قيد الانتظار'}</span>
+          </div>
+        `).join('') || '<p style="font-size:12px; color:var(--gray);">لا مواعيد.</p>'}
+      </div>
+
+      <h3 class="section-title mt-4"><i class="fa-solid fa-notes-medical" style="color:var(--danger);"></i> ملفي الطبي (EMR)</h3>
+      <div class="card grid-2">
+        <div style="background:var(--danger-light); padding:12px; border-radius:var(--radius-sm); text-align:center;"><div style="font-size:10px; font-weight:900; color:var(--gray);">فصيلة الدم</div><div style="font-size:18px; font-weight:900;">${emr.blood}</div></div>
+        <div style="background:var(--amber-light); padding:12px; border-radius:var(--radius-sm); text-align:center;"><div style="font-size:10px; font-weight:900; color:var(--gray);">حساسية</div><div style="font-size:14px; font-weight:900;">${emr.allergies.join('، ') || 'لا يوجد'}</div></div>
+      </div>
+    `;
+  },
+
+  /* Doctor Dashboard (Live Queue & AI Scribe) */
+  doctor: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return router.navigate('medical');
+    const el = document.getElementById('view-doctor');
+    const myAppts = DB.appointments.filter(a => a.doctorName === Auth.currentUser.name && a.status !== 'completed').sort((a,b) => a.ts - b.ts);
+
+    let queueHTML = myAppts.map(appt => `
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px; margin-bottom:8px; border-right:4px solid ${appt.status === 'next' ? 'var(--emerald)' : 'var(--line)'};">
+        <div><h4 style="margin:0; font-weight:900; font-size:14px;">${appt.patientName}</h4><p style="margin:4px 0 0; font-size:11px; color:var(--gray);">${appt.slot}</p></div>
+        <div style="display:flex; gap:6px;">
+          ${appt.status === 'waiting' ? `<button onclick="Views.callPatient('${appt.id}')" class="btn-action" style="padding:6px 12px; font-size:11px; background:var(--amber);">استدعاء</button>` : `<button onclick="Views.finishPatient('${appt.id}')" class="btn-action" style="padding:6px 12px; font-size:11px; background:var(--emerald);">إنهاء</button>`}
+          <button onclick="Views.startVoiceScribe('${appt.patientId}')" class="btn-action" style="padding:6px 12px; font-size:11px; background:var(--indigo);"><i class="fa-solid fa-microphone"></i></button>
+        </div>
+      </div>
+    `).join('');
+
+    el.innerHTML = `
+      <h3 class="section-title"><i class="fa-solid fa-list-ol" style="color:var(--amber);"></i> طابور العيادة اليوم</h3>
+      <div class="card">
+        ${queueHTML || '<p style="text-align:center; color:var(--gray); font-weight:700;">لا يوجد مرضى في الانتظار.</p>'}
+      </div>
+    `;
+  },
+
+  callPatient: (apptId) => {
+    const appt = DB.appointments.find(a => a.id === apptId);
+    if (!appt) return;
+    appt.status = 'next'; saveDB();
+    Notifier.push(appt.patientId, `🚨 دورك الآن يا ${appt.patientName}! يرجى التوجه لغرفة الطبيب.`, true);
+    Utils.toast('تم إرسال تنبيه للمريض');
+    Views.doctor();
+  },
+
+  finishPatient: (apptId) => {
+    const appt = DB.appointments.find(a => a.id === apptId);
+    if (!appt) return;
+    const needsFollowUp = confirm('هل يحتاج المريض لمتابعة؟');
+    appt.status = 'completed'; appt.followUp = needsFollowUp; saveDB();
+    Utils.toast('تم إنهاء الكشف');
+    Views.doctor();
+  },
+
+  startVoiceScribe: (patientId) => {
+    const modalBody = document.getElementById('modal-map-body');
+    modalBody.innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:20px;">
+        <div style="width:70px; height:70px; background:var(--danger); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px; animation: pulse 1.5s infinite;"><i class="fa-solid fa-microphone"></i></div>
+        <h3 style="margin:0; font-weight:900;">المساعد الصوتي (AI Scribe)</h3>
+        <p style="margin:4px 0 0; font-size:12px; color:var(--gray);">تحدث وسيتم تحويل كلامك إلى روشتة إلكترونية فوراً.</p>
+      </div>
+      <div style="background:var(--gray-light); border-radius:12px; padding:16px; min-height:120px; margin-bottom:20px;">
+        <div id="scribe-text" style="font-size:14px; font-weight:700; color:var(--gray);">جاري الاستماع...</div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button onclick="Views.saveScribeNote('${patientId}')" class="btn-action" style="flex:1; background:var(--emerald);">حفظ الروشتة</button>
+        <button onclick="Utils.closeModal('modal-map')" class="btn-action" style="flex:1; background:var(--gray-light); color:var(--primary); border:1px solid var(--line);">إلغاء</button>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+
+    setTimeout(() => {
+      const scribeEl = document.getElementById('scribe-text');
+      scribeEl.style.color = 'var(--primary)';
+      scribeEl.innerHTML = `"المريض يشكو من <strong>صداع شديد</strong> منذ يومين، مع <strong>ارتفاع في درجة الحرارة</strong>.<br><br>التشخيص: <strong>نزلة برد</strong>.<br>الروشتة: <strong>بانادول كل 8 ساعات</strong> + <strong>فيتامين سي</strong>."`;
+      scribeEl.dataset.text = "المريض يشكو من صداع شديد منذ يومين، مع ارتفاع في درجة الحرارة. التشخيص: نزلة برد. الروشتة: بانادول كل 8 ساعات + فيتامين سي.";
+    }, 2500);
+  },
+
+  saveScribeNote: (patientId) => {
+    const scribeEl = document.getElementById('scribe-text');
+    const noteText = scribeEl.dataset.text;
+    if (!noteText) return Utils.toast('لم يتم التعرف على كلام', true);
+
+    if (!DB.emrNotes) DB.emrNotes = [];
+    DB.emrNotes.push({ id: Utils.id(), patientId, doctorId: Auth.currentUser.id, note: noteText, ts: Date.now() });
+    saveDB();
+    Notifier.push(patientId, `💊 تم إضافة روشتة جديدة لك. يرجى الالتزام بالجرعات.`, false);
+    
+    Utils.closeModal('modal-map');
+    Utils.toast('تم حفظ الروشتة بنجاح!');
+    Views.doctor();
+  },
+
+  openSOS: () => {
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px; font-weight:900; color:var(--danger); text-align:center;">🚨 الطوارئ</h3>
+      <div class="grid-2">
+        <div class="card text-center" onclick="window.open('tel:123')" style="background:var(--danger-light); cursor:pointer;"><i class="fa-solid fa-ambulance" style="font-size:30px; color:var(--danger);"></i><h4 style="font-weight:900; margin:8px 0 0;">إسعاف</h4></div>
+        <div class="card text-center" onclick="window.open('tel:122')" style="background:var(--sky-light); cursor:pointer;"><i class="fa-solid fa-shield-halved" style="font-size:30px; color:var(--sky);"></i><h4 style="font-weight:900; margin:8px 0 0;">شرطة</h4></div>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+  }
+};
+
+/* Initialize App */
+window.onload = () => {
+  UI.renderHeader();
+  UI.renderTicker();
+  router.navigate('medical');
+  
+  document.body.addEventListener('click', () => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, { once: true });
+};
+</script>
+</body>
+</html>
 </body>
 </html>
