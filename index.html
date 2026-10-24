@@ -2282,7 +2282,2969 @@ window.onload = () => {
   router.navigate('medical');
 };
 </script>
-</body>
-</html>
+  <script>
+/* ==========================================================================
+   WASLA PART 4 — THE WHALE CORE (AI, GAMIFICATION, BNPL, FLEET)
+   ========================================================================== */
+(function() {
+  // --- 1. توسيع قاعدة البيانات ---
+  if (!DB.reviews) DB.reviews = [];
+  if (!DB.referrals) DB.referrals = [];
+  if (!DB.loyalty) DB.loyalty = {};
+  if (!DB.aiSessions) DB.aiSessions = {};
+  if (!DB.merchantOrders) DB.merchantOrders = [];
+  
+  // تهيئة نقاط الولاء للمستخدم الحالي
+  if (Auth.currentUser && !DB.loyalty[Auth.currentUser.id]) {
+    DB.loyalty[Auth.currentUser.id] = { points: 100, tier: 'Bronze' };
+    saveDB();
+  }
+
+  // --- 2. المساعد الطبي الذكي (AI Triage) ---
+  Views.aiTriage = () => {
+    const el = document.getElementById('view-medical');
+    // إضافة زر في القطاع الطبي
+    if (!document.getElementById('ai-triage-btn')) {
+      el.insertAdjacentHTML('afterbegin', `
+        <div class="card" style="background:linear-gradient(135deg, var(--primary), #1E293B); color:#fff; border:none; margin-bottom:20px;" id="ai-triage-btn">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:50px; height:50px; border-radius:50%; background:var(--emerald); display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="fa-solid fa-robot"></i></div>
+            <div>
+              <h3 style="margin:0; font-weight:900;">المساعد الطبي الذكي</h3>
+              <p style="margin:4px 0 0; font-size:11px; opacity:0.8;">اكتب أعراضك وسنوجهك للطبيب المناسب فوراً</p>
+            </div>
+            <button onclick="Views.openAIChat()" class="btn-action" style="margin-right:auto; background:#fff; color:var(--primary); padding:8px 16px;">ابدأ</button>
+          </div>
+        </div>
+      `);
+    }
+  };
+
+  Views.openAIChat = () => {
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:16px;">
+        <div style="width:60px; height:60px; background:var(--emerald-light); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 12px;"><i class="fa-solid fa-robot"></i></div>
+        <h3 style="margin:0; font-weight:900;">المساعد الطبي الذكي</h3>
+        <p style="margin:4px 0 0; font-size:12px; color:var(--gray);">أنا هنا لمساعدتك في تحديد التخصص المناسب</p>
+      </div>
+      
+      <div id="ai-chat-box" style="height: 250px; overflow-y: auto; background:var(--gray-light); border-radius:12px; padding:12px; margin-bottom:16px; display:flex; flex-direction:column; gap:8px;">
+        <div style="background:#fff; padding:10px; border-radius:10px; font-size:13px; font-weight:700; align-self:flex-start; border:1px solid var(--line);">
+          مرحباً بك! من فضلك اكتب الأعراض التي تشعر بها (مثال: صداع، حرارة، ألم في الصدر، إلخ).
+        </div>
+      </div>
+      
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="ai-input" class="input-field" placeholder="اكتب أعراضك هنا..." style="margin:0; flex:1;" onkeypress="if(event.key==='Enter') Views.sendAIMessage()">
+        <button onclick="Views.sendAIMessage()" class="btn-action" style="padding:0 16px;"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+      <div id="ai-suggestion" style="margin-top:12px;"></div>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  Views.sendAIMessage = () => {
+    const input = document.getElementById('ai-input');
+    const box = document.getElementById('ai-chat-box');
+    const text = input.value.trim();
+    if(!text) return;
+
+    // إضافة رسالة المستخدم
+    box.innerHTML += `<div style="background:var(--emerald); color:#fff; padding:10px; border-radius:10px; font-size:13px; font-weight:700; align-self:flex-end;">${text}</div>`;
+    input.value = '';
+    box.scrollTop = box.scrollHeight;
+
+    // محاكاة رد الذكاء الاصطناعي (Triage Logic)
+    setTimeout(() => {
+      let spec = 'باطنة';
+      let advice = 'ننصحك بزيارة طبيب باطنة.';
+      
+      const lower = text.toLowerCase();
+      if (lower.includes('صدر') || lower.includes('قلب') || lower.includes('ضيق تنفس')) {
+        spec = 'قلب وأوعية دموية'; advice = 'قد تكون هذه أعراض تتعلق بالقلب. ننصحك باستشارة طبيب قلب فوراً.';
+      } else if (lower.includes('طفل') || lower.includes('حرارة') || lower.includes('تطعيم')) {
+        spec = 'أطفال وحديثي الولادة'; advice = 'يبدو أن الحالة تتعلق بطفل. ننصحك بطبيب أطفال.';
+      } else if (lower.includes('عظام') || lower.includes('كسر') || lower.includes('ظهر')) {
+        spec = 'جراحة العظام والمفاصل'; advice = 'يبدو أنها مشكلة في العظام. ننصحك بطبيب عظام.';
+      } else if (lower.includes('جلد') || lower.includes('حكة') || lower.includes('طفح')) {
+        spec = 'جلدية وتجميل'; advice = 'هذه أعراض جلدية. ننصحك بطبيب جلدية.';
+      }
+
+      box.innerHTML += `<div style="background:#fff; padding:10px; border-radius:10px; font-size:13px; font-weight:700; align-self:flex-start; border:1px solid var(--line);">
+        ${advice}
+      </div>`;
+      box.scrollTop = box.scrollHeight;
+
+      document.getElementById('ai-suggestion').innerHTML = `
+        <button onclick="Utils.closeModal('modal-map'); router.navigate('medical');" class="btn-action" style="width:100%;">عرض أطباء ${spec} <i class="fa-solid fa-arrow-left"></i></button>
+      `;
+    }, 1000);
+  };
+
+  // --- 3. نظام الولاء والتلعيب (Loyalty & Gamification) ---
+  Views.loyalty = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const el = document.getElementById('view-dashboard');
+    const l = DB.loyalty[Auth.currentUser.id] || { points: 0, tier: 'Bronze' };
+    
+    el.insertAdjacentHTML('beforeend', `
+      <div class="card mt-4" style="background:linear-gradient(135deg, #FEF3C7, #FDE68A); border-color:#FCD34D;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h3 style="margin:0; font-weight:900; color:#92400E;"><i class="fa-solid fa-star"></i> نقاط وصلة (Wasla Points)</h3>
+            <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#B45309;">اجمع النقاط واستبدلها بخصومات</p>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:28px; font-weight:900; color:#92400E;">${l.points}</div>
+            <div style="font-size:10px; font-weight:900; color:#B45309;">نقطة</div>
+          </div>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:8px;">
+          <button onclick="Views.spinWheel()" class="btn-action" style="flex:1; background:var(--amber);"><i class="fa-solid fa-dharmachakra"></i> عجلة الحظ</button>
+          <button onclick="Views.redeemPoints()" class="btn-action" style="flex:1; background:#fff; color:var(--amber); border:1px solid var(--amber);">استبدال النقاط</button>
+        </div>
+      </div>
+    `);
+  };
+
+  Views.spinWheel = () => {
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:16px;">
+        <h3 style="font-weight:900;">عجلة الحظ</h3>
+        <p style="font-size:12px; color:var(--gray);">جرب حظك واربح نقاط أو خصومات</p>
+      </div>
+      <div id="wheel-container" style="width:200px; height:200px; margin:0 auto 20px; border-radius:50%; background:conic-gradient(var(--emerald) 0deg 90deg, var(--amber) 90deg 180deg, var(--sky) 180deg 270deg, var(--danger) 270deg 360deg); display:flex; align-items:center; justify-content:center; transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1);">
+        <div style="width:180px; height:180px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px;">اضغط للدوران</div>
+      </div>
+      <button onclick="Views.spinAction()" id="spin-btn" class="btn-action" style="width:100%;">دور العجلة</button>
+      <div id="spin-result" style="text-align:center; margin-top:12px; font-weight:900; color:var(--emerald);"></div>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  Views.spinAction = () => {
+    const wheel = document.getElementById('wheel-container');
+    const btn = document.getElementById('spin-btn');
+    const result = document.getElementById('spin-result');
+    btn.disabled = true;
+    btn.innerText = 'جاري الدوران...';
+    
+    const randomDeg = Math.floor(Math.random() * 360) + 720; // 2+ دورات
+    wheel.style.transform = `rotate(${randomDeg}deg)`;
+    
+    setTimeout(() => {
+      const prizes = ['50 نقطة', 'خصم 10%', 'توصيل مجاني', '100 نقطة'];
+      const won = prizes[Math.floor(Math.random() * prizes.length)];
+      
+      // تحديث النقاط
+      let l = DB.loyalty[Auth.currentUser.id] || { points: 0 };
+      if (won.includes('نقطة')) l.points += parseInt(won);
+      else l.points += 20; // مكافأة ترضية
+      DB.loyalty[Auth.currentUser.id] = l;
+      saveDB();
+      
+      result.innerText = `🎉 مبروك! لقد ربحت: ${won}`;
+      btn.innerText = 'تم';
+      btn.disabled = false;
+      UI.renderHeader();
+    }, 3000);
+  };
+
+  Views.redeemPoints = () => {
+    let l = DB.loyalty[Auth.currentUser.id];
+    if (l.points < 100) return Utils.toast('تحتاج 100 نقطة على الأقل للاستبدال', true);
+    l.points -= 100;
+    Auth.currentUser.wallet += 10; // 10 جنيه مقابل 100 نقطة
+    saveDB();
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+    UI.renderHeader();
+    Utils.toast('تم استبدال 100 نقطة بـ 10 ج.م في محفظتك');
+  };
+
+  // --- 4. التسويق الفيروسي (Referral System) ---
+  Views.referral = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const refCode = Auth.currentUser.id.toUpperCase();
+    const refs = DB.referrals.filter(r => r.referrerId === Auth.currentUser.id);
+    const earnings = refs.length * 20; // 20 جنيه لكل إحالة
+
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:20px;">
+        <div style="width:60px; height:60px; background:var(--indigo-light); color:var(--indigo); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 12px;"><i class="fa-solid fa-users"></i></div>
+        <h3 style="margin:0; font-weight:900;">اربح مع وصلة</h3>
+        <p style="margin:4px 0 0; font-size:12px; color:var(--gray);">شارك كودك واربح 20 ج.م عن كل صديق ينضم</p>
+      </div>
+      
+      <div style="background:var(--gray-light); border:2px dashed var(--line); border-radius:12px; padding:16px; text-align:center; margin-bottom:16px;">
+        <div style="font-size:12px; color:var(--gray); font-weight:700; margin-bottom:4px;">كود الإحالة الخاص بك</div>
+        <div style="font-size:24px; font-weight:900; color:var(--indigo); letter-spacing:2px;">${refCode}</div>
+      </div>
+      
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <button onclick="navigator.clipboard.writeText('${refCode}'); Utils.toast('تم نسخ الكود');" class="btn-action" style="flex:1; background:var(--gray-light); color:var(--primary); border:1px solid var(--line);">نسخ الكود</button>
+        <button onclick="window.open('https://wa.me/?text=انضم%20لمنصة%20وصلة%20واستخدم%20كود%20${refCode}%20لتحصل%20على%20خصم', '_blank');" class="btn-action" style="flex:1; background:#25D366;">مشاركة واتساب</button>
+      </div>
+
+      <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="font-size:12px; font-weight:700; color:var(--gray);">عدد الإحالات الناجحة:</span>
+          <span style="font-size:14px; font-weight:900;">${refs.length}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="font-size:12px; font-weight:700; color:var(--gray);">أرباحك من الإحالات:</span>
+          <span style="font-size:14px; font-weight:900; color:var(--emerald);">${Utils.money(earnings)}</span>
+        </div>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  // إضافة زر الإحالة في لوحة المريض
+  const origDash = Views.dashboard;
+  Views.dashboard = () => {
+    origDash();
+    if (Auth.currentUser) {
+      document.getElementById('view-dashboard').insertAdjacentHTML('beforeend', `
+        <div class="card mt-4" style="background:linear-gradient(135deg, #E0E7FF, #C7D2FE); border-color:#A5B4FC;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h3 style="margin:0; font-weight:900; color:#3730A3;"><i class="fa-solid fa-gift"></i> اربح مع وصلة</h3>
+              <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#4338CA;">شارك كودك واربح 20 ج.م عن كل صديق</p>
+            </div>
+            <button onclick="Views.referral()" class="btn-action" style="background:var(--indigo); padding:8px 16px;">ادعُ أصدقاءك</button>
+          </div>
+        </div>
+      `);
+    }
+  };
+
+  // --- 5. الدفع المرن والتأمين (BNPL & Insurance) ---
+  const origCheckout = cart.checkout;
+  cart.checkout = () => {
+    if (!Auth.currentUser) { Utils.toast('سجل دخول أولاً', true); return AuthUI.open(); }
+    if (!DB.cart.length) return;
+    
+    const total = DB.cart.reduce((s,i) => s + i.price, 0);
+    
+    document.getElementById('modal-payment-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-payment')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:20px;">
+        <div style="width:64px; height:64px; background:var(--emerald-light); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 12px;"><i class="fa-solid fa-credit-card"></i></div>
+        <h3 style="margin:0 0 4px; font-weight:900;">بوابة الدفع</h3>
+        <p style="color:var(--gray); font-size:13px; font-weight:700;">المبلغ المطلوب: ${Utils.money(total)}</p>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+        <!-- دفع كاش -->
+        <label style="border:2px solid var(--emerald); background:var(--emerald-light); padding:14px; border-radius:var(--radius-sm); display:flex; align-items:center; gap:12px; cursor:pointer;">
+          <input type="radio" name="pay-method" value="cash" checked class="hidden">
+          <div style="width:40px; height:40px; background:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--emerald);"><i class="fa-solid fa-money-bill"></i></div>
+          <div style="flex:1;"><div style="font-weight:900; font-size:14px;">الدفع عند الاستلام (كاش)</div></div>
+          <i class="fa-solid fa-circle-check" style="color:var(--emerald);"></i>
+        </label>
+
+        <!-- دفع BNPL (قسطها) -->
+        <label style="border:1px solid var(--line); padding:14px; border-radius:var(--radius-sm); display:flex; align-items:center; gap:12px; cursor:pointer;">
+          <input type="radio" name="pay-method" value="bnpl" class="hidden">
+          <div style="width:40px; height:40px; background:var(--amber-light); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--amber);"><i class="fa-solid fa-calendar-alt"></i></div>
+          <div style="flex:1;">
+            <div style="font-weight:900; font-size:14px;">قسطها (BNPL)</div>
+            <div style="font-size:10px; color:var(--gray); font-weight:700;">ادفع ${Utils.money(total/3)} على 3 شهور بدون فوائد</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- التأمين المدمج -->
+      <div style="background:var(--sky-light); border:1px solid #BAE6FD; border-radius:12px; padding:12px; margin-bottom:20px;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="checkbox" id="add-insurance" style="accent-color:var(--sky); width:18px; height:18px;">
+          <div style="flex:1;">
+            <div style="font-weight:900; font-size:13px; color:#0369A1;">أضف تأمين على الطلب (+15 ج.م)</div>
+            <div style="font-size:10px; color:#0284C7; font-weight:700;">تغطية كاملة ضد التلف أو الفقدان</div>
+          </div>
+          <i class="fa-solid fa-shield-halved" style="color:var(--sky);"></i>
+        </label>
+      </div>
+
+      <button onclick="cart.processPaymentAdvanced(${total})" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد ودفع</button>
+    `;
+    Utils.openModal('modal-payment');
+  };
+
+  cart.processPaymentAdvanced = (baseTotal) => {
+    const method = document.querySelector('input[name="pay-method"]:checked').value;
+    const hasInsurance = document.getElementById('add-insurance').checked;
+    const finalTotal = baseTotal + (hasInsurance ? 15 : 0);
+    const cashback = Math.round(finalTotal * 0.05);
+    
+    // إضافة كاش باك
+    Auth.currentUser.wallet = (Auth.currentUser.wallet || 0) + cashback;
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+
+    // حفظ الطلبات
+    DB.cart.forEach(item => {
+      DB.orders.push({ 
+        id: Utils.id(), userId: Auth.currentUser.id, title: item.title, 
+        price: item.price, status: 'preparing', 
+        paymentMethod: method, insured: hasInsurance, ts: Date.now() 
+      });
+    });
+
+    DB.cart = [];
+    saveDB();
+    
+    Utils.closeModal('modal-payment'); cart.toggle(); UI.renderHeader();
+    
+    let msg = `تم الدفع بنجاح! كاش باك ${cashback} ج.م`;
+    if (method === 'bnpl') msg += ` (تم تقسيط ${finalTotal} على 3 شهور)`;
+    if (hasInsurance) msg += ` + تم تفعيل التأمين`;
+    Utils.toast(msg);
+    
+    if(Auth.currentUser.role === 'patient') router.navigate('dashboard');
+  };
+
+  // --- 6. تتبع الأسطول الحي (Fleet Tracking) ---
+  Views.fleet = (orderId) => {
+    const order = DB.orders.find(o => o.id === orderId);
+    if (!order) return;
+    
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 4px; font-weight:900;">تتبع الطلب</h3>
+      <p style="margin:0 0 16px; font-size:12px; color:var(--gray);">${order.title}</p>
+      
+      <div style="height:200px; background:var(--gray-light); border-radius:12px; position:relative; overflow:hidden; border:1px solid var(--line); margin-bottom:16px;">
+        <div style="position:absolute; inset:0; opacity:0.1; background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+        <div id="driver-marker" style="position:absolute; top:50%; left:20%; font-size:24px; transition: all 3s linear;">🛵</div>
+        <div style="position:absolute; bottom:10px; right:10px; background:#fff; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:900; box-shadow:var(--shadow-sm);">المندوب في الطريق إليك</div>
+      </div>
+      
+      <div style="display:flex; align-items:center; gap:12px; background:var(--emerald-light); padding:12px; border-radius:12px; margin-bottom:16px;">
+        <div style="width:40px; height:40px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px;">👨‍✈️</div>
+        <div style="flex:1;">
+          <div style="font-weight:900; font-size:14px;">أحمد المندوب</div>
+          <div style="font-size:11px; color:var(--gray); font-weight:700;">تقييم 4.9 ⭐ • دراجة نارية</div>
+        </div>
+        <button class="btn-action" style="padding:8px; border-radius:50%; width:36px; height:36px;"><i class="fa-solid fa-phone"></i></button>
+      </div>
+
+      <button onclick="Utils.closeModal('modal-map')" class="btn-action" style="width:100%;">إغلاق</button>
+    `;
+    Utils.openModal('modal-map');
+    
+    setTimeout(() => {
+      const marker = document.getElementById('driver-marker');
+      if(marker) marker.style.left = '80%';
+    }, 500);
+  };
+
+  // --- 7. بوابة التاجر (Merchant Portal) ---
+  Views.merchant = () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'merchant') return Utils.toast('هذه البوابة للتجار فقط', true);
+    
+    const el = document.getElementById('view-dashboard');
+    const myOrders = DB.merchantOrders.filter(o => o.merchantId === Auth.currentUser.id);
+    
+    el.innerHTML = `
+      <div class="card" style="background:var(--primary); color:#fff;">
+        <h2 style="margin:0; font-weight:900;">بوابة التاجر</h2>
+        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">إدارة طلباتك ومخزونك</p>
+      </div>
+      
+      <div class="grid-2 mb-4">
+        <div class="card text-center"><div style="font-size:24px; font-weight:900; color:var(--emerald);">${myOrders.length}</div><div style="font-size:10px; color:var(--gray);">إجمالي الطلبات</div></div>
+        <div class="card text-center"><div style="font-size:24px; font-weight:900; color:var(--amber);">${myOrders.filter(o=>o.status==='new').length}</div><div style="font-size:10px; color:var(--gray);">طلبات جديدة</div></div>
+      </div>
+
+      <h3 class="section-title">الطلبات الواردة</h3>
+      <div class="grid-list">
+        ${myOrders.map(o => `
+          <div class="card">
+            <div style="display:flex; justify-content:space-between;">
+              <div><h4 style="margin:0; font-weight:900;">${o.customerName}</h4><p style="margin:4px 0; font-size:11px; color:var(--gray);">${o.items}</p></div>
+              <span style="font-size:11px; font-weight:900; color:${o.status==='new'?'var(--amber)':'var(--emerald)'};">${o.status==='new'?'جديد':'تم التنفيذ'}</span>
+            </div>
+          </div>
+        `).join('') || '<div class="card text-center" style="color:var(--gray);">لا توجد طلبات</div>'}
+      </div>
+    `;
+  };
+
+  // --- 8. التقييمات والمراجعات (Reviews) ---
+  Views.openReview = (targetId, targetType) => {
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px; font-weight:900;">قيّم تجربتك</h3>
+      <div style="display:flex; justify-content:center; gap:8px; margin-bottom:20px; font-size:30px; color:var(--gold);">
+        <i class="fa-solid fa-star" onclick="Views.setRating(1)"></i>
+        <i class="fa-solid fa-star" onclick="Views.setRating(2)"></i>
+        <i class="fa-solid fa-star" onclick="Views.setRating(3)"></i>
+        <i class="fa-solid fa-star" onclick="Views.setRating(4)"></i>
+        <i class="fa-solid fa-star" onclick="Views.setRating(5)"></i>
+      </div>
+      <input type="hidden" id="review-rating" value="5">
+      <textarea id="review-text" class="input-field" placeholder="اكتب ملاحظاتك..." style="height:80px;"></textarea>
+      <button onclick="Views.submitReview('${targetId}', '${targetType}')" class="btn-action" style="width:100%;">إرسال التقييم</button>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  Views.setRating = (val) => {
+    document.getElementById('review-rating').value = val;
+    const stars = document.querySelectorAll('#modal-map-body .fa-star');
+    stars.forEach((s, i) => { s.style.opacity = i < val ? '1' : '0.3'; });
+  };
+
+  Views.submitReview = (targetId, targetType) => {
+    const rating = document.getElementById('review-rating').value;
+    const text = document.getElementById('review-text').value;
+    DB.reviews.push({ id: Utils.id(), targetId, targetType, userId: Auth.currentUser.id, rating: parseInt(rating), text, ts: Date.now() });
+    saveDB();
+    Utils.closeModal('modal-map');
+    Utils.toast('شكراً لتقييمك!');
+  };
+
+  // --- 9. إضافة زر التتبع الحي في لوحة المريض ---
+  const origDash2 = Views.dashboard;
+  Views.dashboard = () => {
+    origDash2();
+    if (Auth.currentUser) {
+      const myOrders = DB.orders.filter(o => o.userId === Auth.currentUser.id && o.status !== 'delivered');
+      if (myOrders.length > 0) {
+        document.getElementById('view-dashboard').insertAdjacentHTML('afterbegin', `
+          <div class="card" style="background:var(--amber-light); border-color:#FED7AA; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <h4 style="margin:0; font-weight:900; color:#9A3412;"><i class="fa-solid fa-truck-fast"></i> طلبك في الطريق!</h4>
+                <p style="margin:4px 0 0; font-size:11px; color:#C2410C;">اضغط لتتبع المندوب على الخريطة</p>
+              </div>
+              <button onclick="Views.fleet('${myOrders[0].id}')" class="btn-action" style="background:var(--amber); padding:8px 12px;">تتبع</button>
+            </div>
+          </div>
+        `);
+      }
+    }
+  };
+
+  // --- 10. تحديث الراوتر لإضافة الأقسام الجديدة ---
+  const origNavigate = router.navigate;
+  router.navigate = (sector) => {
+    if (sector === 'merchant') { Views.merchant(); return; }
+    origNavigate(sector);
+  };
+
+  console.log('✅ WASLA PART 4 LOADED: AI, Loyalty, Referral, BNPL, Fleet, Merchant, Reviews.');
+})();
+  </script>
+  <script>
+/* ==========================================================================
+   WASLA PART 5 — ENTERPRISE LAYER (SOS, DARK MODE, PRO, TICKETS, BI, EMR)
+   ========================================================================== */
+(function() {
+  // --- 1. توسيع قاعدة البيانات ---
+  if (!DB.tickets) DB.tickets = [];
+  if (!DB.subscriptions) DB.subscriptions = {};
+  if (!DB.emrNotes) DB.emrNotes = []; // ملاحظات وروشتات الأطباء
+
+  // --- 2. محرك الثيمات (Dark Mode) ---
+  const themeCSS = `
+    body.dark-mode {
+      --primary: #F8FAFC; --primary-light: #E2E8F0;
+      --bg: #0B1220; --gray-light: #1E293B;
+      --line: #334155; --gray: #94A3B8;
+    }
+    body.dark-mode .app-header, body.dark-mode .super-tabs { background: #0F172A; border-color: #334155; }
+    body.dark-mode .card, body.dark-mode .item-box { background: #1E293B; border-color: #334155; }
+    body.dark-mode .item-title, body.dark-mode .section-title { color: #F8FAFC; }
+    body.dark-mode .input-field { background: #0F172A; border-color: #334155; color: #F8FAFC; }
+    body.dark-mode .bottom-sheet, body.dark-mode .modal-box { background: #1E293B; color: #F8FAFC; }
+    body.dark-mode .sheet-footer { background: #0F172A; }
+  `;
+  const styleEl = document.createElement('style');
+  styleEl.innerHTML = themeCSS;
+  document.head.appendChild(styleEl);
+
+  window.toggleTheme = () => {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('wasla_theme', isDark ? 'dark' : 'light');
+    Utils.toast(isDark ? 'تم تفعيل الوضع الليلي 🌙' : 'تم تفعيل الوضع النهاري ☀️');
+  };
+
+  // استرجاع الثيم المحفوظ
+  if (localStorage.getItem('wasla_theme') === 'dark') {
+    document.body.classList.add('dark-mode');
+  }
+
+  // إضافة زر الثيم في الهيدر
+  const originalRenderHeader = UI.renderHeader;
+  UI.renderHeader = () => {
+    originalRenderHeader();
+    const actions = document.getElementById('header-actions');
+    if (actions && !document.getElementById('theme-btn')) {
+      actions.insertAdjacentHTML('afterbegin', `
+        <button id="theme-btn" class="btn-ui" onclick="toggleTheme()" style="padding:8px;"><i class="fa-solid fa-moon"></i></button>
+      `);
+    }
+  };
+
+  // --- 3. زر الطوارئ SOS ---
+  const sosHTML = `
+    <button id="sos-btn" onclick="Views.openSOS()" style="position:fixed; bottom:20px; right:20px; z-index:999; width:60px; height:60px; border-radius:50%; background:var(--danger); color:#fff; border:none; font-size:24px; box-shadow:0 0 0 0 rgba(225,29,72,0.7); animation: sos-pulse 2s infinite; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </button>
+    <style>
+      @keyframes sos-pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225,29,72,0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(225,29,72,0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225,29,72,0); }
+      }
+    </style>
+  `;
+  document.body.insertAdjacentHTML('beforeend', sosHTML);
+
+  Views.openSOS = () => {
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:20px;">
+        <h3 style="margin:0; font-weight:900; color:var(--danger);">🚨 خدمات الطوارئ</h3>
+        <p style="margin:4px 0 0; font-size:12px; color:var(--gray);">اختر الخدمة التي تحتاجها فوراً</p>
+      </div>
+      <div class="grid-2">
+        <div class="card text-center" onclick="window.open('tel:123')" style="background:var(--danger-light); border-color:#FECACA; cursor:pointer;">
+          <i class="fa-solid fa-ambulance" style="font-size:30px; color:var(--danger); margin-bottom:8px;"></i><h4 style="font-weight:900; margin:0;">إسعاف</h4>
+        </div>
+        <div class="card text-center" onclick="window.open('tel:122')" style="background:#F0F9FF; border-color:#BAE6FD; cursor:pointer;">
+          <i class="fa-solid fa-shield-halved" style="font-size:30px; color:var(--sky); margin-bottom:8px;"></i><h4 style="font-weight:900; margin:0;">شرطة</h4>
+        </div>
+        <div class="card text-center" onclick="window.open('tel:180')" style="background:var(--amber-light); border-color:#FED7AA; cursor:pointer;">
+          <i class="fa-solid fa-fire-extinguisher" style="font-size:30px; color:var(--amber); margin-bottom:8px;"></i><h4 style="font-weight:900; margin:0;">مطافئ</h4>
+        </div>
+        <div class="card text-center" onclick="Utils.closeModal('modal-map'); cart.add('ونش إنقاذ طارئ', 300, 'fa-truck-pickup');" style="background:var(--gray-light); cursor:pointer;">
+          <i class="fa-solid fa-truck-pickup" style="font-size:30px; color:var(--primary); margin-bottom:8px;"></i><h4 style="font-weight:900; margin:0;">ونش إنقاذ</h4>
+        </div>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  // --- 4. اشتراك Wasla PRO ---
+  Views.subscribePro = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const isPro = DB.subscriptions[Auth.currentUser.id]?.active;
+    
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:20px;">
+        <div style="width:70px; height:70px; background:linear-gradient(135deg, var(--gold), var(--amber)); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 12px; box-shadow:0 10px 20px rgba(217,119,6,0.4);"><i class="fa-solid fa-crown"></i></div>
+        <h3 style="margin:0; font-weight:900;">اشتراك Wasla PRO</h3>
+        <p style="margin:4px 0 0; font-size:13px; color:var(--gray);">عيش التجربة الكاملة بدون قيود</p>
+      </div>
+      
+      <div style="background:var(--gray-light); border-radius:12px; padding:16px; margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; font-weight:700; font-size:13px;"><i class="fa-solid fa-check" style="color:var(--emerald);"></i> توصيل مجاني لكل الطلبات</div>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; font-weight:700; font-size:13px;"><i class="fa-solid fa-check" style="color:var(--emerald);"></i> خصم إضافي 10% على الأطباء</div>
+        <div style="display:flex; align-items:center; gap:8px; font-weight:700; font-size:13px;"><i class="fa-solid fa-check" style="color:var(--emerald);"></i> دعم فني مخصص 24/7</div>
+      </div>
+
+      <div style="text-align:center; margin-bottom:20px;">
+        <span style="font-size:32px; font-weight:900;">50</span>
+        <span style="font-size:16px; color:var(--gray); font-weight:700;">ج.م / شهرياً</span>
+      </div>
+
+      ${isPro 
+        ? `<button class="btn-action" style="width:100%; background:var(--gray);" disabled>أنت مشترك بالفعل (PRO)</button>`
+        : `<button onclick="Views.confirmPro()" class="btn-action" style="width:100%; background:linear-gradient(135deg, var(--gold), var(--amber));">اشترك الآن</button>`
+      }
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  Views.confirmPro = () => {
+    if (Auth.currentUser.wallet < 50) return Utils.toast('رصيدك غير كافٍ (تحتاج 50 ج.م)', true);
+    
+    Auth.currentUser.wallet -= 50;
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+    
+    DB.subscriptions[Auth.currentUser.id] = { active: true, ts: Date.now() };
+    saveDB();
+    UI.renderHeader();
+    
+    Utils.closeModal('modal-map');
+    Utils.toast('🎉 مبروك! تم تفعيل اشتراك Wasla PRO');
+  };
+
+  // --- 5. مركز الدعم (Ticketing System) ---
+  Views.openSupport = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const myTickets = DB.tickets.filter(t => t.userId === Auth.currentUser.id);
+    
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px; font-weight:900;">مركز الدعم</h3>
+      
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <input type="text" id="ticket-text" class="input-field" placeholder="اكتب شكوتك أو استفسارك..." style="margin:0;">
+        <button onclick="Views.createTicket()" class="btn-action" style="padding:0 16px;">إرسال</button>
+      </div>
+
+      <div class="grid-list">
+        ${myTickets.map(t => `
+          <div class="card" style="padding:12px; margin:0;">
+            <div style="font-size:12px; font-weight:700;">${t.text}</div>
+            <div style="font-size:10px; color:var(--gray); margin-top:8px;">الحالة: ${t.status === 'open' ? 'قيد المراجعة' : 'تم الحل'} • ${new Date(t.ts).toLocaleDateString('ar-EG')}</div>
+          </div>
+        `).join('') || '<p style="font-size:12px; color:var(--gray); text-align:center;">لا توجد تذاكر سابقة</p>'}
+      </div>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  Views.createTicket = () => {
+    const txt = document.getElementById('ticket-text').value;
+    if(!txt) return;
+    DB.tickets.push({ id: Utils.id(), userId: Auth.currentUser.id, userName: Auth.currentUser.name, text: txt, status: 'open', ts: Date.now() });
+    saveDB();
+    Utils.toast('تم إرسال تذكرتك بنجاح');
+    Views.openSupport(); // إعادة تحميل القائمة
+  };
+
+  // إضافة زر الدعم في لوحة المريض
+  const origDash3 = Views.dashboard;
+  Views.dashboard = () => {
+    origDash3();
+    if (Auth.currentUser) {
+      const isPro = DB.subscriptions[Auth.currentUser.id]?.active;
+      document.getElementById('view-dashboard').insertAdjacentHTML('beforeend', `
+        <div class="grid-2 mt-4">
+          <div class="card" style="background:linear-gradient(135deg, #FEF3C7, #FDE68A); border-color:#FCD34D; cursor:pointer;" onclick="Views.subscribePro()">
+            <i class="fa-solid fa-crown" style="font-size:24px; color:var(--gold); margin-bottom:8px;"></i>
+            <h4 style="margin:0; font-weight:900;">Wasla PRO</h4>
+            <div style="font-size:10px; font-weight:700; color:var(--amber);">${isPro ? 'مشترك (نشط)' : 'اشترك الآن'}</div>
+          </div>
+          <div class="card" style="background:#F0F9FF; border-color:#BAE6FD; cursor:pointer;" onclick="Views.openSupport()">
+            <i class="fa-solid fa-headset" style="font-size:24px; color:var(--sky); margin-bottom:8px;"></i>
+            <h4 style="margin:0; font-weight:900;">الدعم الفني</h4>
+            <div style="font-size:10px; font-weight:700; color:var(--sky);">اتصل بنا</div>
+          </div>
+        </div>
+      `);
+    }
+  };
+
+  // --- 6. بث الإشعارات والتحليلات المتقدمة (للمؤسس) ---
+  const origFounder = Views.founder;
+  Views.founder = () => {
+    origFounder();
+    if (!Auth.currentUser || Auth.currentUser.role !== 'founder') return;
+    
+    const el = document.getElementById('view-founder');
+    
+    // إضافة تحليلات BI
+    el.insertAdjacentHTML('beforeend', `
+      <div class="card mt-4">
+        <h3 class="section-title">تحليلات النمو (BI)</h3>
+        <div style="display:flex; align-items:flex-end; gap:8px; height:100px; padding-top:10px;">
+          <div style="flex:1; background:var(--emerald-light); height:40%; border-radius:4px; text-align:center; font-size:10px; font-weight:900; padding-top:4px;">1</div>
+          <div style="flex:1; background:var(--emerald-light); height:60%; border-radius:4px; text-align:center; font-size:10px; font-weight:900; padding-top:4px;">2</div>
+          <div style="flex:1; background:var(--emerald-light); height:80%; border-radius:4px; text-align:center; font-size:10px; font-weight:900; padding-top:4px;">3</div>
+          <div style="flex:1; background:var(--emerald); height:100%; border-radius:4px; text-align:center; font-size:10px; font-weight:900; color:#fff; padding-top:4px;">4</div>
+        </div>
+        <p style="text-align:center; font-size:10px; color:var(--gray); margin-top:8px;">نمو الحجوزات (آخر 4 أيام)</p>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">إدارة تذاكر الدعم</h3>
+        <div class="grid-list">
+          ${DB.tickets.map(t => `
+            <div class="card" style="padding:12px; margin:0;">
+              <div style="font-weight:900; font-size:13px;">${t.userName}</div>
+              <div style="font-size:12px; color:var(--gray); margin:4px 0;">${t.text}</div>
+              ${t.status === 'open' ? `<button onclick="Views.resolveTicket('${t.id}')" class="btn-action" style="padding:6px 12px; font-size:11px;">حل المشكلة</button>` : '<span style="color:var(--emerald); font-size:11px; font-weight:900;">تم الحل</span>'}
+            </div>
+          `).join('') || '<p style="font-size:12px; color:var(--gray);">لا توجد تذاكر</p>'}
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">بث إشعار جماعي</h3>
+        <textarea id="broadcast-msg" class="input-field" placeholder="نص الإشعار..." style="height:80px;"></textarea>
+        <button onclick="Views.sendBroadcast()" class="btn-action" style="width:100%;">إرسال للجميع</button>
+      </div>
+    `);
+  };
+
+  Views.resolveTicket = (id) => {
+    const t = DB.tickets.find(x => x.id === id);
+    t.status = 'closed';
+    saveDB();
+    Views.founder();
+    Utils.toast('تم حل التذكرة');
+  };
+
+  Views.sendBroadcast = () => {
+    const msg = document.getElementById('broadcast-msg').value;
+    if(!msg) return;
+    DB.users.forEach(u => {
+      DB.notifications.unshift({ id: Utils.id(), userId: u.id, text: `📢 إعلان عام: ${msg}`, read: false, ts: Date.now() });
+    });
+    saveDB();
+    Utils.toast('تم إرسال الإشعار للجميع');
+    document.getElementById('broadcast-msg').value = '';
+  };
+
+  // --- 7. كتابة الروشتة (Doctor EMR Writer) ---
+  const origDoctor = Views.doctor;
+  Views.doctor = () => {
+    origDoctor();
+    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return;
+    
+    const el = document.getElementById('view-doctor');
+    const appts = DB.appointments.filter(a => a.doctorName === Auth.currentUser.name && a.status === 'completed');
+    
+    el.insertAdjacentHTML('beforeend', `
+      <div class="card mt-4">
+        <h3 class="section-title">كتابة ملاحظات / روشتة</h3>
+        <select id="emr-patient" class="input-field">
+          <option value="">اختر المريض...</option>
+          ${appts.map(a => `<option value="${a.patientId}">${a.patientName} (${a.slot})</option>`).join('')}
+        </select>
+        <textarea id="emr-note" class="input-field" placeholder="الروشتة أو التشخيص..." style="height:80px;"></textarea>
+        <button onclick="Views.saveEMR()" class="btn-action" style="width:100%;">حفظ في ملف المريض</button>
+      </div>
+    `);
+  };
+
+  Views.saveEMR = () => {
+    const pId = document.getElementById('emr-patient').value;
+    const note = document.getElementById('emr-note').value;
+    if(!pId || !note) return Utils.toast('أكمل البيانات', true);
+    
+    DB.emrNotes.push({ id: Utils.id(), patientId: pId, doctorId: Auth.currentUser.id, note, ts: Date.now() });
+    saveDB();
+    Utils.toast('تم حفظ الروشتة في ملف المريض');
+    document.getElementById('emr-note').value = '';
+  };
+
+  // --- 8. عرض الروشتات في لوحة المريض ---
+  const origDash4 = Views.dashboard;
+  Views.dashboard = () => {
+    origDash4();
+    if (!Auth.currentUser) return;
+    
+    const myNotes = DB.emrNotes.filter(n => n.patientId === Auth.currentUser.id).sort((a,b)=>b.ts-a.ts);
+    if (myNotes.length) {
+      const el = document.getElementById('view-dashboard');
+      el.insertAdjacentHTML('beforeend', `
+        <h3 class="section-title mt-4"><i class="fa-solid fa-prescription" style="color:var(--emerald);"></i> الروشتات الطبية</h3>
+        <div class="grid-list">
+          ${myNotes.map(n => `
+            <div class="card" style="padding:12px; margin:0; border-right:4px solid var(--emerald);">
+              <div style="font-size:12px; font-weight:900; color:var(--emerald);">${n.note}</div>
+              <div style="font-size:10px; color:var(--gray); margin-top:8px;">${new Date(n.ts).toLocaleDateString('ar-EG')}</div>
+            </div>
+          `).join('')}
+        </div>
+      `);
+    }
+  };
+
+  console.log('✅ WASLA PART 5 LOADED: SOS, Dark Mode, PRO, Tickets, BI, EMR Writer.');
+  
+  // تحديث الواجهة لتعكس التغييرات
+  UI.renderHeader();
+})();
+</script>
+  <script>
+/* ==========================================================================
+   WASLA PART 6 — ENTERPRISE ADMIN (AUDIT, BACKUP, PUSH, API)
+   ========================================================================== */
+(function() {
+  // --- 1. توسيع قاعدة البيانات ---
+  if (!DB.auditLogs) DB.auditLogs = [];
+  if (!DB.apiKeys) DB.apiKeys = [{ id: 'key_live_1', name: 'Wasla Mobile App', key: 'wsk_live_8f9a2b7c6d5e4f3a', created: Date.now() }];
+
+  // --- 2. محرك سجلات التدقيق (Audit Logger) ---
+  const logAction = (userId, action, details) => {
+    DB.auditLogs.unshift({
+      id: Utils.id(),
+      userId: userId || 'system',
+      action,
+      details,
+      ip: '192.168.1.' + Math.floor(Math.random() * 255),
+      ts: Date.now()
+    });
+    // الاحتفاظ بآخر 100 سجل فقط لتجنب امتلاء الذاكرة
+    if (DB.auditLogs.length > 100) DB.auditLogs.pop();
+    saveDB();
+  };
+
+  // دمج السجلات مع العمليات الحيوية (Interception)
+  const origLogin = Auth.login;
+  Auth.login = (phone, pass) => {
+    const success = origLogin(phone, pass);
+    logAction(phone, success ? 'LOGIN_SUCCESS' : 'LOGIN_FAILED', success ? 'تم تسجيل الدخول' : 'بيانات خاطئة');
+    return success;
+  };
+
+  const origConfirmBooking = Views.confirmBooking;
+  Views.confirmBooking = (docId) => {
+    origConfirmBooking(docId);
+    if (Auth.currentUser) logAction(Auth.currentUser.id, 'BOOKING_CREATED', `حجز طبيب ID: ${docId}`);
+  };
+
+  const origProcessPayment = cart.processPaymentAdvanced;
+  cart.processPaymentAdvanced = (total) => {
+    origProcessPayment(total);
+    if (Auth.currentUser) logAction(Auth.currentUser.id, 'PAYMENT_SUCCESS', `دفع مبلغ ${total} ج.م`);
+  };
+
+  // --- 3. إشعارات المتصفح الأصلية (Native Web Push) ---
+  const origNotifierPush = Notifier.push;
+  Notifier.push = (userId, text, isAlert = false) => {
+    origNotifierPush(userId, text, isAlert);
+    
+    // إشعار المتصفح
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "granted") {
+      new Notification("منصة وصلة | WASLA", { 
+        body: text, 
+        icon: "https://cdn-icons-png.flaticon.com/512/2966/2966487.png",
+        vibrate: isAlert ? [200, 100, 200] : [100]
+      });
+    }
+  };
+
+  // طلب إذن الإشعارات عند أول تفاعل
+  document.body.addEventListener('click', () => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, { once: true });
+
+  // --- 4. توسيع لوحة المؤسس (System Health, Backup, API, Audit) ---
+  const origFounder = Views.founder;
+  Views.founder = () => {
+    origFounder();
+    if (!Auth.currentUser || Auth.currentUser.role !== 'founder') return;
+    
+    const el = document.getElementById('view-founder');
+    
+    // حساب حجم قاعدة البيانات
+    const dbSize = new Blob([JSON.stringify(DB)]).size;
+    const dbSizeKB = (dbSize / 1024).toFixed(2);
+
+    el.insertAdjacentHTML('beforeend', `
+      <!-- System Health -->
+      <div class="card mt-4">
+        <h3 class="section-title"><i class="fa-solid fa-server" style="color:var(--sky);"></i> صحة النظام (System Health)</h3>
+        <div class="grid-2">
+          <div style="background:var(--gray-light); padding:12px; border-radius:8px; text-align:center;">
+            <div style="font-size:10px; color:var(--gray); font-weight:900;">حالة السيرفر</div>
+            <div style="font-size:16px; font-weight:900; color:var(--emerald);">🟢 متصل</div>
+          </div>
+          <div style="background:var(--gray-light); padding:12px; border-radius:8px; text-align:center;">
+            <div style="font-size:10px; color:var(--gray); font-weight:900;">حجم البيانات</div>
+            <div style="font-size:16px; font-weight:900; color:var(--primary);">${dbSizeKB} KB</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backup & Restore -->
+      <div class="card">
+        <h3 class="section-title"><i class="fa-solid fa-database" style="color:var(--gold);"></i> النسخ الاحتياطي (Backup)</h3>
+        <p style="font-size:11px; color:var(--gray); margin-bottom:12px;">تصدير قاعدة البيانات كاملة (JSON) أو استعادتها من ملف.</p>
+        <div style="display:flex; gap:8px;">
+          <button onclick="Views.exportBackup()" class="btn-action" style="flex:1; background:var(--primary);"><i class="fa-solid fa-download"></i> تصدير النسخة</button>
+          <label class="btn-action" style="flex:1; background:var(--gray-light); color:var(--primary); border:1px solid var(--line); cursor:pointer; text-align:center; justify-content:center; display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid fa-upload"></i> استعادة
+            <input type="file" accept=".json" onchange="Views.importBackup(event)" style="display:none;">
+          </label>
+        </div>
+      </div>
+
+      <!-- Developer API -->
+      <div class="card">
+        <h3 class="section-title"><i class="fa-solid fa-code" style="color:var(--indigo);"></i> بوابة المطورين (API)</h3>
+        <div style="background:#1E293B; color:#34D399; padding:12px; border-radius:8px; font-family:monospace; font-size:11px; overflow-x:auto; direction:ltr; text-align:left; margin-bottom:12px;">
+          GET /api/v1/doctors<br>
+          POST /api/v1/bookings<br>
+          GET /api/v1/user/wallet
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--gray-light); padding:12px; border-radius:8px;">
+          <div>
+            <div style="font-size:11px; font-weight:900;">API Key (Live)</div>
+            <div style="font-size:10px; color:var(--gray); font-family:monospace;">${DB.apiKeys[0].key}</div>
+          </div>
+          <button onclick="navigator.clipboard.writeText('${DB.apiKeys[0].key}'); Utils.toast('تم نسخ المفتاح');" class="btn-action" style="padding:6px 12px; font-size:11px;"><i class="fa-solid fa-copy"></i> نسخ</button>
+        </div>
+      </div>
+
+      <!-- Audit Logs -->
+      <div class="card">
+        <h3 class="section-title"><i class="fa-solid fa-list-ul" style="color:var(--danger);"></i> سجل النظام (Audit Logs)</h3>
+        <div style="max-height:250px; overflow-y:auto; border:1px solid var(--line); border-radius:8px;">
+          <table style="width:100%; text-align:right; font-size:11px; font-weight:700;">
+            <thead style="position:sticky; top:0; background:var(--gray-light);"><tr><th style="padding:8px;">الحدث</th><th style="padding:8px;">المستخدم</th><th style="padding:8px;">الوقت</th></tr></thead>
+            <tbody>
+              ${DB.auditLogs.map(log => `
+                <tr style="border-bottom:1px solid var(--line);">
+                  <td style="padding:8px; color:${log.action.includes('FAILED')?'var(--danger)':'var(--emerald)'};">${log.action}</td>
+                  <td style="padding:8px; font-family:monospace;">${log.userId.substring(0,8)}...</td>
+                  <td style="padding:8px; color:var(--gray);">${new Date(log.ts).toLocaleTimeString('ar-EG')}</td>
+                </tr>
+              `).join('') || '<tr><td colspan="3" style="text-align:center; padding:12px; color:var(--gray);">لا توجد سجلات</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `);
+  };
+
+  // --- 5. منطق النسخ الاحتياطي والاستعادة ---
+  Views.exportBackup = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(DB, null, 2));
+    const dlAnchorElem = document.createElement('a');
+    dlAnchorElem.setAttribute("href", dataStr);
+    dlAnchorElem.setAttribute("download", `wasla_backup_${new Date().toISOString().slice(0,10)}.json`);
+    dlAnchorElem.click();
+    Utils.toast('تم تصدير النسخة الاحتياطية');
+    logAction(Auth.currentUser.id, 'BACKUP_EXPORTED', 'تم تصدير قاعدة البيانات');
+  };
+
+  Views.importBackup = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (parsed.users && parsed.doctors) {
+          DB = parsed;
+          saveDB();
+          logAction(Auth.currentUser.id, 'BACKUP_RESTORED', 'تم استعادة قاعدة البيانات');
+          Utils.toast('تم استعادة النسخة الاحتياطية بنجاح');
+          setTimeout(() => location.reload(), 1500); // إعادة تحميل الواجهة لتطبيق التغييرات
+        } else {
+          Utils.toast('ملف غير صالح', true);
+        }
+      } catch (err) {
+        Utils.toast('خطأ في قراءة الملف', true);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  console.log('✅ WASLA PART 6 LOADED: Audit Logs, Push Notifications, Backup, API Portal.');
+  
+  // إعادة بناء الواجهة لتعكس التغييرات
+  UI.renderHeader();
+})();
+</script>
+  <script>
+/* ==========================================================================
+   WASLA PART 7 — GROWTH & OPERATIONS ENGINE (PROMOS, FLASH SALES, CHAT, CAPTAIN)
+   ========================================================================== */
+(function() {
+  'use strict';
+
+  // --- 1. توسيع قاعدة البيانات ---
+  if (!DB.promos) DB.promos = [
+    { code: 'WASLA20', discount: 20, type: 'percent', active: true },
+    { code: 'FREE5', discount: 5, type: 'fixed', active: true }
+  ];
+  if (!DB.flashSales) DB.flashSales = [
+    { id: 'f1', title: 'خصم على المشويات', endTime: Date.now() + 3600000, active: true }
+  ];
+  if (!DB.chats) DB.chats = {};
+  if (!DB.captainEarnings) DB.captainEarnings = { total: 450, today: 120, trips: 12 };
+
+  // --- 2. خصم الأكواد (Promo Codes) ---
+  const origCheckout = cart.checkout;
+  cart.checkout = () => {
+    if (!Auth.currentUser) { Utils.toast('سجل دخول أولاً', true); return AuthUI.open(); }
+    if (!DB.cart.length) return;
+    
+    const total = DB.cart.reduce((s,i) => s + i.price, 0);
+    
+    document.getElementById('modal-payment-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-payment')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:20px;">
+        <div style="width:64px; height:64px; background:var(--emerald-light); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 12px;"><i class="fa-solid fa-credit-card"></i></div>
+        <h3 style="margin:0 0 4px; font-weight:900;">بوابة الدفع</h3>
+        <p style="color:var(--gray); font-size:13px; font-weight:700;" id="pay-total-text">المبلغ المطلوب: ${Utils.money(total)}</p>
+      </div>
+
+      <!-- كود الخصم -->
+      <div style="display:flex; gap:8px; margin-bottom:20px;">
+        <input type="text" id="promo-code-input" class="input-field" placeholder="كود الخصم (مثال: WASLA20)" style="margin:0;">
+        <button onclick="Views.applyPromo(${total})" class="btn-action" style="background:var(--gold); padding:0 16px;">تطبيق</button>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+        <label style="border:2px solid var(--emerald); background:var(--emerald-light); padding:14px; border-radius:var(--radius-sm); display:flex; align-items:center; gap:12px; cursor:pointer;">
+          <input type="radio" name="pay-method" value="cash" checked class="hidden">
+          <div style="width:40px; height:40px; background:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--emerald);"><i class="fa-solid fa-money-bill"></i></div>
+          <div style="flex:1;"><div style="font-weight:900; font-size:14px;">الدفع عند الاستلام (كاش)</div></div>
+          <i class="fa-solid fa-circle-check" style="color:var(--emerald);"></i>
+        </label>
+      </div>
+
+      <button onclick="cart.processPaymentAdvanced(${total})" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد ودفع</button>
+    `;
+    Utils.openModal('modal-payment');
+  };
+
+  Views.applyPromo = (originalTotal) => {
+    const code = document.getElementById('promo-code-input').value.trim().toUpperCase();
+    const promo = DB.promos.find(p => p.code === code && p.active);
+    
+    if (!promo) return Utils.toast('كود غير صحيح أو منتهي', true);
+
+    let newTotal = originalTotal;
+    if (promo.type === 'percent') newTotal = originalTotal - (originalTotal * (promo.discount / 100));
+    else newTotal = originalTotal - promo.discount;
+
+    if (newTotal < 0) newTotal = 0;
+
+    document.getElementById('pay-total-text').innerHTML = `
+      <span style="text-decoration:line-through; color:var(--danger); font-size:12px; margin-left:8px;">${Utils.money(originalTotal)}</span>
+      المبلغ المطلوب: ${Utils.money(newTotal)}
+    `;
+    
+    // تغيير الأكشن عشان يدفع بالمبلغ الجديد
+    const btn = document.querySelector('#modal-payment-body button.btn-action:last-child');
+    btn.setAttribute('onclick', `cart.processPaymentAdvanced(${newTotal})`);
+    
+    Utils.toast(`تم تطبيق كود الخصم: ${promo.discount}${promo.type === 'percent' ? '%' : ' ج.م'}`);
+  };
+
+  // --- 3. Flash Sales (العداد التنازلي) ---
+  Views.market = () => {
+    const el = document.getElementById('view-market');
+    const now = Date.now();
+    const activeFlash = DB.flashSales.find(f => f.active && f.endTime > now);
+    
+    let flashHTML = '';
+    if (activeFlash) {
+      const diff = activeFlash.endTime - now;
+      const hours = Math.floor(diff / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      
+      flashHTML = `
+        <div class="card" style="background:linear-gradient(135deg, #FFEDD5, #FED7AA); border-color:#FDBA74; margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h3 style="margin:0; font-weight:900; color:#9A3412;">⚡ Flash Sale</h3>
+              <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#C2410C;">${activeFlash.title}</p>
+            </div>
+            <div style="background:#fff; padding:8px 12px; border-radius:8px; font-weight:900; color:var(--danger); font-family:monospace; font-size:16px;">
+              ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    el.innerHTML = `
+      ${flashHTML}
+      <h2 class="section-title"><i class="fa-solid fa-store" style="color:var(--amber);"></i> تسوق الآن</h2>
+      <div class="grid-2">
+        <div class="card text-center" onclick="cart.add('وجبة مشويات', 180, 'fa-utensils')" style="cursor:pointer;">
+          <div class="item-icon" style="margin:0 auto 12px; width:60px; height:60px; font-size:26px; background:var(--amber-light); color:var(--amber);"><i class="fa-solid fa-utensils"></i></div><h4 style="font-weight:900; margin:0;">مطاعم ومشويات</h4>
+        </div>
+        <div class="card text-center" onclick="cart.add('طلب بقالة', 150, 'fa-basket-shopping')" style="cursor:pointer;">
+          <div class="item-icon" style="margin:0 auto 12px; width:60px; height:60px; font-size:26px; background:var(--emerald-light); color:var(--emerald);"><i class="fa-solid fa-basket-shopping"></i></div><h4 style="font-weight:900; margin:0;">بقالة</h4>
+        </div>
+      </div>
+    `;
+  };
+
+  // --- 4. بوابة الكابتن / المندوب (Captain Dashboard) ---
+  Views.captain = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    
+    const el = document.getElementById('view-dashboard');
+    el.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, var(--primary), #1E293B); color:#fff;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-motorcycle"></i> بوابة الكابتن</h2>
+            <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">أهلاً بك، إليك ملخص أرباحك اليوم</p>
+          </div>
+          <div style="width:50px; height:50px; border-radius:50%; background:#34D399; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:900;">${Auth.currentUser.name[0]}</div>
+        </div>
+      </div>
+
+      <div class="grid-2 mb-4">
+        <div class="card text-center" style="background:var(--emerald-light); border-color:#A7F3D0;">
+          <div style="font-size:12px; color:#047857; font-weight:900;">أرباح اليوم</div>
+          <div style="font-size:24px; font-weight:900; color:#059669;">${Utils.money(DB.captainEarnings.today)}</div>
+        </div>
+        <div class="card text-center">
+          <div style="font-size:12px; color:var(--gray); font-weight:900;">إجمالي الرحلات</div>
+          <div style="font-size:24px; font-weight:900; color:var(--primary);">${DB.captainEarnings.trips}</div>
+        </div>
+      </div>
+
+      <h3 class="section-title">الطلبات المتاحة الآن (Surge Pricing ⚡)</h3>
+      <div class="grid-list">
+        <div class="card" style="border-right:4px solid var(--danger);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:900;">طلب توصيل (عاجل)</div>
+              <div style="font-size:12px; color:var(--gray); margin-top:4px;">المسافة: 3 كم • السعر أعلى بنسبة 1.5x</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-weight:900; color:var(--emerald); font-size:18px;">${Utils.money(45)}</div>
+              <button onclick="Views.acceptTrip()" class="btn-action" style="margin-top:8px; padding:6px 12px; font-size:11px;">قبول</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:900;">طلب توصيل عادي</div>
+              <div style="font-size:12px; color:var(--gray); margin-top:4px;">المسافة: 1.5 كم • السعر العادي</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-weight:900; color:var(--emerald); font-size:18px;">${Utils.money(25)}</div>
+              <button onclick="Views.acceptTrip()" class="btn-action" style="margin-top:8px; padding:6px 12px; font-size:11px;">قبول</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  Views.acceptTrip = () => {
+    Utils.toast('تم قبول الرحلة! جاري التوجه للعميل...');
+    DB.captainEarnings.today += 25;
+    DB.captainEarnings.trips += 1;
+    saveDB();
+    setTimeout(() => { Views.captain(); }, 1500);
+  };
+
+  // إضافة زرار بوابة الكابتن للهيدر لو المستخدم مندوب
+  const origRenderHeader = UI.renderHeader;
+  UI.renderHeader = () => {
+    origRenderHeader();
+    if (Auth.currentUser && (Auth.currentUser.role === 'captain' || Auth.currentUser.role === 'staff')) {
+      const actions = document.getElementById('header-actions');
+      if (!document.getElementById('captain-btn')) {
+        actions.insertAdjacentHTML('afterbegin', `
+          <button id="captain-btn" class="btn-ui" style="background:var(--amber); border:none;" onclick="Views.captain()"><i class="fa-solid fa-motorcycle"></i> بوابة الكابتن</button>
+        `);
+      }
+    }
+  };
+
+  // --- 5. الدردشة الحية (Live Chat Simulation) ---
+  Views.openChat = (targetName = 'الدعم الفني') => {
+    if (!DB.chats[Auth.currentUser.id]) {
+      DB.chats[Auth.currentUser.id] = [
+        { sender: 'system', text: 'أهلاً بك! كيف يمكننا مساعدتك؟', ts: Date.now() }
+      ];
+    }
+    
+    const messages = DB.chats[Auth.currentUser.id];
+    
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:12px;">
+        <div style="width:40px; height:40px; border-radius:50%; background:var(--emerald-light); color:var(--emerald); display:flex; align-items:center; justify-content:center; font-size:18px;"><i class="fa-solid fa-headset"></i></div>
+        <div>
+          <h3 style="margin:0; font-weight:900;">${targetName}</h3>
+          <p style="margin:2px 0 0; font-size:10px; color:var(--emerald); font-weight:900;">🟢 متصل الآن</p>
+        </div>
+      </div>
+
+      <div id="chat-box" style="height: 250px; overflow-y: auto; display:flex; flex-direction:column; gap:8px; padding-bottom:12px;">
+        ${messages.map(m => `
+          <div style="background:${m.sender === 'user' ? 'var(--emerald)' : '#fff'}; color:${m.sender === 'user' ? '#fff' : 'var(--primary)'}; padding:10px 14px; border-radius:12px; font-size:13px; font-weight:700; align-self:${m.sender === 'user' ? 'flex-end' : 'flex-start'}; border:${m.sender === 'user' ? 'none' : '1px solid var(--line)'}; max-width:80%;">
+            ${m.text}
+          </div>
+        `).join('')}
+      </div>
+
+      <div style="display:flex; gap:8px; border-top:1px solid var(--line); padding-top:12px;">
+        <input type="text" id="chat-input" class="input-field" placeholder="اكتب رسالتك..." style="margin:0; flex:1;" onkeypress="if(event.key==='Enter') Views.sendChat()">
+        <button onclick="Views.sendChat()" class="btn-action" style="padding:0 16px;"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+    
+    const box = document.getElementById('chat-box');
+    box.scrollTop = box.scrollHeight;
+  };
+
+  Views.sendChat = () => {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if(!text) return;
+    
+    DB.chats[Auth.currentUser.id].push({ sender: 'user', text, ts: Date.now() });
+    input.value = '';
+    saveDB();
+    
+    // تحديث الواجهة
+    const box = document.getElementById('chat-box');
+    box.innerHTML += `<div style="background:var(--emerald); color:#fff; padding:10px 14px; border-radius:12px; font-size:13px; font-weight:700; align-self:flex-end; max-width:80%;">${text}</div>`;
+    box.scrollTop = box.scrollHeight;
+
+    // محاكاة رد الدعم
+    setTimeout(() => {
+      const reply = 'تم استلام رسالتك، جاري مراجعتها والرد عليك في أقرب وقت.';
+      DB.chats[Auth.currentUser.id].push({ sender: 'system', text: reply, ts: Date.now() });
+      saveDB();
+      
+      box.innerHTML += `<div style="background:#fff; color:var(--primary); padding:10px 14px; border-radius:12px; font-size:13px; font-weight:700; align-self:flex-start; border:1px solid var(--line); max-width:80%;">${reply}</div>`;
+      box.scrollTop = box.scrollHeight;
+    }, 1500);
+  };
+
+  // إضافة زر الدردشة في لوحة المريض
+  const origDash5 = Views.dashboard;
+  Views.dashboard = () => {
+    origDash5();
+    if (Auth.currentUser) {
+      document.getElementById('view-dashboard').insertAdjacentHTML('beforeend', `
+        <div class="card mt-4" style="background:#F8FAFC; cursor:pointer;" onclick="Views.openChat('الدعم الفني')">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; border-radius:50%; background:var(--sky-light); color:var(--sky); display:flex; align-items:center; justify-content:center; font-size:20px;"><i class="fa-solid fa-comments"></i></div>
+            <div style="flex:1;">
+              <h3 style="margin:0; font-weight:900;">الدردشة الحية</h3>
+              <p style="margin:4px 0 0; font-size:11px; color:var(--gray);">تحدث مع الدعم أو المندوب</p>
+            </div>
+            <i class="fa-solid fa-chevron-left" style="color:var(--gray);"></i>
+          </div>
+        </div>
+      `);
+    }
+  };
+
+  console.log('✅ WASLA PART 7 LOADED: Promos, Flash Sales, Captain Wallet, Live Chat, Surge Pricing.');
+  
+  // إعادة بناء الواجهة
+  UI.renderHeader();
+})();
+</script>
+  <script>
+/* ==========================================================================
+   WASLA PART 8 — HYPER-PERSONALIZATION & ECOSYSTEM (WALLET, TIERS, SEARCH, JOBS, CONFETTI)
+   ========================================================================== */
+(function() {
+  'use strict';
+
+  // --- 1. توسيع قاعدة البيانات ---
+  if (!DB.jobs) DB.jobs = [
+    { id: 'j1', title: 'ويتر شيف', company: 'مطعم الشرقاوي', salary: '4000 ج.م', type: 'دوام كامل' },
+    { id: 'j2', title: 'كاشير', company: 'سوبرماركت النور', salary: '3500 ج.م', type: 'دوام جزئي' }
+  ];
+  if (!DB.transfers) DB.transfers = [];
+
+  // --- 2. محرك الاحتفالات (Confetti Engine) ---
+  const confettiCSS = `
+    #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+  `;
+  const styleEl = document.createElement('style');
+  styleEl.innerHTML = confettiCSS;
+  document.head.appendChild(styleEl);
+
+  window.fireConfetti = () => {
+    const canvas = document.createElement('canvas');
+    canvas.id = 'confetti-canvas';
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const colors = ['#059669', '#EA580C', '#0284C7', '#D97706', '#E11D48'];
+    
+    for (let i = 0; i < 100; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        w: Math.random() * 10 + 5,
+        h: Math.random() * 10 + 5,
+        c: colors[Math.floor(Math.random() * colors.length)],
+        vx: Math.random() * 4 - 2,
+        vy: Math.random() * 4 + 2
+      });
+    }
+
+    let frames = 0;
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        ctx.fillStyle = p.c;
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+      });
+      frames++;
+      if (frames < 150) requestAnimationFrame(animate);
+      else canvas.remove();
+    };
+    animate();
+  };
+
+  // --- 3. نظام مستويات الولاء (Tiers) ---
+  const getTier = (points) => {
+    if (points >= 1000) return { name: 'Platinum', color: '#E5E4E2', text: '#0B1220', icon: 'fa-gem' };
+    if (points >= 500) return { name: 'Gold', color: '#FCD34D', text: '#92400E', icon: 'fa-crown' };
+    return { name: 'Bronze', color: '#FDBA74', text: '#9A3412', icon: 'fa-medal' };
+  };
+
+  // تحديث الهيدر عشان يوضح المستوى بتاع المستخدم
+  const origRenderHeader = UI.renderHeader;
+  UI.renderHeader = () => {
+    origRenderHeader();
+    if (!Auth.currentUser) return;
+
+    const points = DB.loyalty[Auth.currentUser.id]?.points || 0;
+    const tier = getTier(points);
+    const actions = document.getElementById('header-actions');
+    
+    if (actions && !document.getElementById('tier-badge')) {
+      // إضافة شارة المستوى
+      actions.insertAdjacentHTML('beforeend', `
+        <div id="tier-badge" style="background:${tier.color}; color:${tier.text}; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:900; display:flex; align-items:center; gap:4px; box-shadow:var(--shadow-sm); cursor:pointer;" onclick="Views.openWallet()">
+          <i class="fa-solid ${tier.icon}"></i> ${tier.name}
+        </div>
+      `);
+    }
+    
+    // إضافة زرار البحث الشامل
+    if (actions && !document.getElementById('global-search-btn')) {
+      actions.insertAdjacentHTML('afterbegin', `
+        <button id="global-search-btn" class="btn-ui" onclick="Views.openGlobalSearch()" style="padding:8px;"><i class="fa-solid fa-magnifying-glass"></i></button>
+      `);
+    }
+  };
+
+  // --- 4. المحفظة والتحويلات (Wallet & P2P) ---
+  Views.openWallet = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const points = DB.loyalty[Auth.currentUser.id]?.points || 0;
+    const tier = getTier(points);
+
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:20px;">
+        <div style="width:70px; height:70px; background:linear-gradient(135deg, var(--emerald), #10B981); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 12px; box-shadow:0 10px 20px rgba(5,150,105,0.4);"><i class="fa-solid fa-wallet"></i></div>
+        <h3 style="margin:0; font-weight:900;">محفظة وصلة</h3>
+        <div style="font-size:32px; font-weight:900; color:var(--primary); margin-top:8px;">${Utils.money(Auth.currentUser.wallet || 0)}</div>
+        <div style="display:inline-flex; align-items:center; gap:6px; background:${tier.color}; color:${tier.text}; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:900; margin-top:8px;">
+          <i class="fa-solid ${tier.icon}"></i> مستوى ${tier.name}
+        </div>
+      </div>
+
+      <div class="grid-2 mb-4">
+        <button onclick="Views.depositWallet()" class="btn-action" style="background:var(--primary);"><i class="fa-solid fa-plus"></i> إيداع رصيد</button>
+        <button onclick="Views.transferWallet()" class="btn-action" style="background:var(--sky);"><i class="fa-solid fa-paper-plane"></i> تحويل أموال</button>
+      </div>
+
+      <h4 style="font-size:13px; font-weight:900; margin-bottom:12px;">آخر العمليات</h4>
+      <div class="grid-list" style="max-height:150px; overflow-y:auto;">
+        ${(DB.transfers.filter(t => t.senderId === Auth.currentUser.id || t.receiverId === Auth.currentUser.id)).map(t => `
+          <div class="item-box" style="padding:8px;">
+            <div class="item-icon" style="width:36px; height:36px; font-size:14px; background:${t.senderId === Auth.currentUser.id ? 'var(--danger-light)' : 'var(--emerald-light)'}; color:${t.senderId === Auth.currentUser.id ? 'var(--danger)' : 'var(--emerald)'};">
+              <i class="fa-solid ${t.senderId === Auth.currentUser.id ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+            </div>
+            <div class="item-info">
+              <div class="item-title" style="font-size:12px;">${t.senderId === Auth.currentUser.id ? 'تحويل إلى ' + t.receiverName : 'استلام من ' + t.senderName}</div>
+              <div class="item-sub">${new Date(t.ts).toLocaleDateString('ar-EG')}</div>
+            </div>
+            <div style="font-weight:900; color:${t.senderId === Auth.currentUser.id ? 'var(--danger)' : 'var(--emerald)'};">${t.senderId === Auth.currentUser.id ? '-' : '+'}${t.amount} ج.م</div>
+          </div>
+        `).join('') || '<p style="font-size:12px; color:var(--gray); text-align:center;">لا توجد عمليات سابقة</p>'}
+      </div>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  Views.depositWallet = () => {
+    const amount = prompt('أدخل المبلغ المراد إيداعه (محاكاة):', '100');
+    if (!amount || isNaN(amount)) return;
+    
+    Auth.currentUser.wallet = (Auth.currentUser.wallet || 0) + Number(amount);
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+    saveDB();
+    
+    fireConfetti();
+    Utils.toast(`تم إيداع ${amount} ج.م بنجاح`);
+    Views.openWallet();
+    UI.renderHeader();
+  };
+
+  Views.transferWallet = () => {
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px; font-weight:900;">تحويل أموال</h3>
+      <input type="text" id="transfer-to" class="input-field" placeholder="رقم المستلم التعريفي (WASLA-ID)">
+      <input type="number" id="transfer-amount" class="input-field" placeholder="المبلغ بالجنيه">
+      <button onclick="Views.confirmTransfer()" class="btn-action" style="width:100%;">تحويل الآن</button>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  Views.confirmTransfer = () => {
+    const toId = document.getElementById('transfer-to').value.trim().toUpperCase();
+    const amount = Number(document.getElementById('transfer-amount').value);
+
+    if (!amount || amount <= 0) return Utils.toast('مبلغ غير صحيح', true);
+    if (Auth.currentUser.wallet < amount) return Utils.toast('رصيدك غير كافٍ', true);
+
+    // البحث عن المستخدم
+    const receiver = DB.users.find(u => u.id.toUpperCase() === toId);
+    if (!receiver) return Utils.toast('المستخدم غير موجود', true);
+    if (receiver.id === Auth.currentUser.id) return Utils.toast('لا يمكنك التحويل لنفسك', true);
+
+    // خصم وإضافة
+    Auth.currentUser.wallet -= amount;
+    receiver.wallet = (receiver.wallet || 0) + amount;
+
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    const rIdx = DB.users.findIndex(u => u.id === receiver.id);
+    DB.users[rIdx] = receiver;
+    
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+
+    // تسجيل العملية
+    DB.transfers.unshift({
+      id: Utils.id(),
+      senderId: Auth.currentUser.id,
+      senderName: Auth.currentUser.name,
+      receiverId: receiver.id,
+      receiverName: receiver.name,
+      amount,
+      ts: Date.now()
+    });
+    saveDB();
+    
+    fireConfetti();
+    Utils.toast(`تم تحويل ${amount} ج.م إلى ${receiver.name}`);
+    Views.openWallet();
+    UI.renderHeader();
+  };
+
+  // --- 5. البحث الشامل (Global Search) ---
+  Views.openGlobalSearch = () => {
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px; font-weight:900;">البحث الشامل</h3>
+      <input type="text" id="global-search-input" class="input-field" placeholder="ابحث عن طبيب، مطعم، فني..." onkeyup="Views.performGlobalSearch(this.value)">
+      <div id="global-search-results" style="margin-top:16px;"></div>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  Views.performGlobalSearch = (query) => {
+    const resBox = document.getElementById('global-search-results');
+    if (query.length < 2) return resBox.innerHTML = '';
+
+    const q = query.toLowerCase();
+    let results = [];
+
+    // بحث في الأطباء
+    DB.doctors.forEach(d => {
+      if (d.name.toLowerCase().includes(q) || d.spec.toLowerCase().includes(q)) {
+        results.push({ type: 'طبيب', name: d.name, icon: 'fa-user-doctor', action: `Utils.closeModal('modal-map'); router.navigate('medical')` });
+      }
+    });
+
+    // بحث في الوظائف (كإضافة)
+    DB.jobs.forEach(j => {
+      if (j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q)) {
+        results.push({ type: 'وظيفة', name: `${j.title} (${j.company})`, icon: 'fa-briefcase', action: `Utils.closeModal('modal-map'); router.navigate('jobs')` });
+      }
+    });
+
+    if (!results.length) {
+      resBox.innerHTML = '<p style="text-align:center; font-size:12px; color:var(--gray);">لا توجد نتائج</p>';
+      return;
+    }
+
+    resBox.innerHTML = results.map(r => `
+      <div class="item-box mb-2" style="cursor:pointer; padding:10px;" onclick="${r.action}">
+        <div class="item-icon" style="width:36px; height:36px; font-size:14px;"><i class="fa-solid ${r.icon}"></i></div>
+        <div class="item-info">
+          <div class="item-title" style="font-size:12px;">${r.name}</div>
+          <div class="item-sub">${r.type}</div>
+        </div>
+        <i class="fa-solid fa-chevron-left" style="color:var(--gray); font-size:10px;"></i>
+      </div>
+    `).join('');
+  };
+
+  // --- 6. قسم الوظائف (Wasla Jobs) ---
+  Views.jobs = () => {
+    const el = document.getElementById('view-home'); // هنستخدمها كـ placeholder أو نعمل view جديدة
+    let jobsView = document.getElementById('view-jobs');
+    if (!jobsView) {
+      jobsView = document.createElement('section');
+      jobsView.id = 'view-jobs';
+      jobsView.className = 'view-section';
+      document.querySelector('main').appendChild(jobsView);
+    }
+
+    // إخفاء كل الأقسام وإظهار الوظائف
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    jobsView.classList.add('active');
+
+    jobsView.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, #E0E7FF, #C7D2FE); border-color:#A5B4FC;">
+        <h2 style="margin:0; font-weight:900; color:#3730A3;"><i class="fa-solid fa-briefcase"></i> وظائف وصلة</h2>
+        <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#4338CA;">ابحث عن عمل أو وظّف شخصاً في قريتك</p>
+      </div>
+
+      <div class="grid-list mt-4">
+        ${DB.jobs.map(j => `
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <h4 style="margin:0; font-weight:900; font-size:16px;">${j.title}</h4>
+                <p style="margin:4px 0; font-size:12px; color:var(--gray); font-weight:700;">${j.company}</p>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                  <span style="background:var(--emerald-light); color:var(--emerald); padding:2px 8px; border-radius:6px; font-size:10px; font-weight:900;">${j.salary}</span>
+                  <span style="background:var(--gray-light); color:var(--primary); padding:2px 8px; border-radius:6px; font-size:10px; font-weight:900;">${j.type}</span>
+                </div>
+              </div>
+              <button onclick="Utils.toast('تم إرسال طلبك للتقديم على الوظيفة!'); fireConfetti();" class="btn-action" style="padding:8px 12px; font-size:11px;">تقديم</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    // إضافة زرار في التبويبات (مرة واحدة بس)
+    const tabs = document.getElementById('super-tabs');
+    if (tabs && !document.getElementById('tab-jobs')) {
+      tabs.insertAdjacentHTML('beforeend', `
+        <button id="tab-jobs" class="tab dynamic" data-sector="jobs" onclick="Views.jobs()"><i class="fa-solid fa-briefcase"></i> وظائف</button>
+      `);
+    }
+  };
+
+  // --- 7. تفعيل الاحتفالات (Confetti) مع العمليات ---
+  const origConfirmBooking = Views.confirmBooking;
+  Views.confirmBooking = (docId) => {
+    origConfirmBooking(docId);
+    fireConfetti(); // احتفال بعد الحجز
+  };
+
+  const origPayment = cart.processPaymentAdvanced;
+  cart.processPaymentAdvanced = (baseTotal) => {
+    origPayment(baseTotal);
+    fireConfetti(); // احتفال بعد الدفع
+  };
+
+  console.log('✅ WASLA PART 8 LOADED: Wallet, Tiers, Global Search, Jobs, Confetti.');
+  
+  // إعادة بناء الواجهة لتطبيق التغييرات
+  UI.renderHeader();
+})();
+</script>
+  <script>
+/* ==========================================================================
+   WASLA PART 9 — BIG DATA, MERCHANT PORTAL, MEDICAL QR, DAILY REWARDS
+   ========================================================================== */
+(function() {
+  'use strict';
+
+  // --- 1. توسيع قاعدة البيانات وإضافة تاجر ---
+  if (!DB.merchantOrders) DB.merchantOrders = [
+    { id: 'ord-1', merchantId: 'u-m1', customerName: 'محمد المريض', items: 'وجبة مشويات + بيتزا', total: 300, status: 'new', ts: Date.now() }
+  ];
+  
+  // إضافة حساب تاجر للتجربة لو مش موجود
+  if (!DB.users.find(u => u.phone === '01000000004')) {
+    DB.users.push({ id: 'u-m1', phone: '01000000004', pass: '123456', name: 'مطعم الشرقاوي', role: 'merchant', wallet: 0 });
+    saveDB();
+  }
+
+  // --- 2. هدية الدخول اليومي (Daily Rewards) ---
+  const checkDailyReward = () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'patient') return;
+    
+    const lastClaim = localStorage.getItem('wasla_daily_' + Auth.currentUser.id);
+    const today = new Date().toDateString();
+    
+    if (lastClaim !== today) {
+      setTimeout(() => {
+        document.getElementById('modal-map-body').innerHTML = `
+          <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+          <div style="text-align:center; margin-bottom:20px;">
+            <div style="width:80px; height:80px; background:linear-gradient(135deg, #FCD34D, #F59E0B); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:40px; margin:0 auto 16px; box-shadow:0 10px 30px rgba(245,158,11,0.4); animation: pulse 2s infinite;"><i class="fa-solid fa-gift"></i></div>
+            <h3 style="margin:0; font-weight:900; font-size:22px;">هدية اليوم!</h3>
+            <p style="margin:8px 0 0; font-size:13px; color:var(--gray); font-weight:700;">أنت تدخل المنصة باستمرار، لذلك لديك هدية.</p>
+          </div>
+          <button onclick="claimDailyReward()" class="btn-action" style="width:100%; padding:16px; font-size:16px; background:linear-gradient(135deg, #F59E0B, #D97706);">استلام الهدية 🎁</button>
+        `;
+        Utils.openModal('modal-map');
+      }, 2000); // تظهر بعد ثانيتين من الدخول
+    }
+  };
+
+  window.claimDailyReward = () => {
+    const reward = Math.floor(Math.random() * 20) + 10; // بين 10 و 30 ج.م
+    Auth.currentUser.wallet = (Auth.currentUser.wallet || 0) + reward;
+    
+    // إضافة نقاط
+    if (!DB.loyalty[Auth.currentUser.id]) DB.loyalty[Auth.currentUser.id] = { points: 0 };
+    DB.loyalty[Auth.currentUser.id].points += 50;
+
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+    
+    localStorage.setItem('wasla_daily_' + Auth.currentUser.id, new Date().toDateString());
+    saveDB();
+    
+    Utils.closeModal('modal-map');
+    fireConfetti();
+    UI.renderHeader();
+    Utils.toast(`مبروك! ربحت ${reward} ج.م + 50 نقطة`);
+  };
+
+  // --- 3. الهوية الطبية الطارئة (Medical ID QR) ---
+  const origDashboard = Views.dashboard;
+  Views.dashboard = () => {
+    origDashboard();
+    if (!Auth.currentUser) return;
+
+    const emr = Auth.currentUser.emr || { blood: 'غير محدد', allergies: [], chronic: [] };
+    const qrData = encodeURIComponent(`WASLA ID: ${Auth.currentUser.id} | Blood: ${emr.blood} | Allergies: ${emr.allergies.join(', ')} | Name: ${Auth.currentUser.name}`);
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}`;
+
+    const el = document.getElementById('view-dashboard');
+    el.insertAdjacentHTML('beforeend', `
+      <h3 class="section-title mt-4"><i class="fa-solid fa-qrcode" style="color:var(--danger);"></i> الهوية الطبية (الطوارئ)</h3>
+      <div class="card" style="display:flex; gap:16px; align-items:center; border-right:4px solid var(--danger);">
+        <div style="background:#fff; padding:8px; border-radius:8px; border:1px solid var(--line);">
+          <img src="${qrUrl}" alt="Medical ID" style="width:100px; height:100px; display:block;">
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:12px; font-weight:900; color:var(--danger); margin-bottom:4px;">امسح الكود في حالة الطوارئ</div>
+          <div style="font-size:11px; color:var(--gray); font-weight:700; line-height:1.6;">
+            يحتوي هذا الكود على فصيلة دمك، حساسية الأدوية، وأمراضك المزمنة. يمكن لأي طبيب أو مسعف مسحه للوصول لبياناتك فوراً.
+          </div>
+        </div>
+      </div>
+    `);
+  };
+
+  // --- 4. البحث الصوتي (Voice Search) ---
+  const origOpenGlobalSearch = Views.openGlobalSearch;
+  Views.openGlobalSearch = () => {
+    origOpenGlobalSearch();
+    
+    // إضافة زرار المايك في مربع البحث
+    const searchInputContainer = document.querySelector('#modal-map-body input#global-search-input').parentElement;
+    if (searchInputContainer) {
+      searchInputContainer.style.position = 'relative';
+      searchInputContainer.insertAdjacentHTML('beforeend', `
+        <button onclick="Views.startVoiceSearch()" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--danger); font-size:18px; cursor:pointer;">
+          <i class="fa-solid fa-microphone" id="mic-icon"></i>
+        </button>
+      `);
+    }
+  };
+
+  Views.startVoiceSearch = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return Utils.toast('المتصفح لا يدعم البحث الصوتي', true);
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'ar-EG';
+    recognition.interimResults = false;
+    
+    const micIcon = document.getElementById('mic-icon');
+    micIcon.style.color = 'var(--emerald)';
+    micIcon.classList.add('fa-bounce');
+    Utils.toast('جاري الاستماع...');
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      document.getElementById('global-search-input').value = transcript;
+      Views.performGlobalSearch(transcript);
+      micIcon.style.color = 'var(--danger)';
+      micIcon.classList.remove('fa-bounce');
+    };
+
+    recognition.onerror = () => {
+      Utils.toast('تعذر الاستماع، حاول مرة أخرى', true);
+      micIcon.style.color = 'var(--danger)';
+      micIcon.classList.remove('fa-bounce');
+    };
+
+    recognition.start();
+  };
+
+  // --- 5. تصدير البيانات كـ CSV للمؤسس ---
+  const origFounder = Views.founder;
+  Views.founder = () => {
+    origFounder();
+    if (!Auth.currentUser || Auth.currentUser.role !== 'founder') return;
+
+    const el = document.getElementById('view-founder');
+    el.insertAdjacentHTML('beforeend', `
+      <div class="card mt-4">
+        <h3 class="section-title"><i class="fa-solid fa-file-csv" style="color:var(--emerald);"></i> تصدير التقارير (CSV)</h3>
+        <p style="font-size:12px; color:var(--gray); margin-bottom:12px;">تحميل بيانات الحجوزات أو الطلبات كملف إكسيل لفتحه على الكمبيوتر.</p>
+        <div class="grid-2">
+          <button onclick="Views.exportCSV('appointments')" class="btn-action" style="background:var(--primary);"><i class="fa-solid fa-calendar-check"></i> تقرير الحجوزات</button>
+          <button onclick="Views.exportCSV('orders')" class="btn-action" style="background:var(--amber);"><i class="fa-solid fa-box"></i> تقرير الطلبات</button>
+        </div>
+      </div>
+    `);
+  };
+
+  Views.exportCSV = (type) => {
+    let data = type === 'appointments' ? DB.appointments : DB.orders;
+    if (!data.length) return Utils.toast('لا توجد بيانات لتصديرها', true);
+
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF لدعم اللغة العربية في الإكسيل
+    csvContent += "ID,Name,Date,Price,Status\n"; // Headers
+
+    data.forEach(row => {
+      const name = row.patientName || row.title || 'N/A';
+      const date = new Date(row.ts).toLocaleDateString('ar-EG');
+      csvContent += `${row.id},${name},${date},${row.price},${row.status}\n`;
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `wasla_${type}_report.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    Utils.toast('تم تصدير التقرير بنجاح');
+  };
+
+  // --- 6. بوابة التاجر (Merchant Portal) ---
+  Views.merchant = () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'merchant') return Utils.toast('هذه البوابة للتجار فقط', true);
+    
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    let merView = document.getElementById('view-merchant');
+    if (!merView) {
+      merView = document.createElement('section');
+      merView.id = 'view-merchant';
+      merView.className = 'view-section';
+      document.querySelector('main').appendChild(merView);
+    }
+    merView.classList.add('active');
+
+    const myOrders = DB.merchantOrders.filter(o => o.merchantId === Auth.currentUser.id);
+    
+    merView.innerHTML = `
+      <div class="card" style="background:var(--primary); color:#fff;">
+        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-store"></i> بوابة التاجر</h2>
+        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">أهلاً ${Auth.currentUser.name}، إدارة الطلبات</p>
+      </div>
+      
+      <div class="grid-2 mb-4">
+        <div class="card text-center" style="border-right:4px solid var(--amber);">
+          <div style="font-size:24px; font-weight:900; color:var(--amber);">${myOrders.filter(o=>o.status==='new').length}</div>
+          <div style="font-size:10px; color:var(--gray); font-weight:900;">طلبات جديدة</div>
+        </div>
+        <div class="card text-center" style="border-right:4px solid var(--emerald);">
+          <div style="font-size:24px; font-weight:900; color:var(--emerald);">${myOrders.filter(o=>o.status==='completed').length}</div>
+          <div style="font-size:10px; color:var(--gray); font-weight:900;">طلبات مكتملة</div>
+        </div>
+      </div>
+
+      <h3 class="section-title">الطلبات الواردة</h3>
+      <div class="grid-list">
+        ${myOrders.map(o => `
+          <div class="card" style="border-right:4px solid ${o.status === 'new' ? 'var(--amber)' : (o.status === 'preparing' ? 'var(--sky)' : 'var(--emerald)')};">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <h4 style="margin:0; font-weight:900;">${o.customerName}</h4>
+                <p style="margin:4px 0; font-size:12px; color:var(--gray); font-weight:700;">${o.items}</p>
+                <div style="font-weight:900; color:var(--emerald); font-size:14px; margin-top:4px;">${Utils.money(o.total)}</div>
+              </div>
+              <div style="text-align:left;">
+                ${o.status === 'new' ? `<button onclick="Views.updateOrderStatus('${o.id}', 'preparing')" class="btn-action" style="background:var(--amber); font-size:12px; padding:8px 12px;">قبول وتجهيز</button>` : ''}
+                ${o.status === 'preparing' ? `<button onclick="Views.updateOrderStatus('${o.id}', 'completed')" class="btn-action" style="background:var(--sky); font-size:12px; padding:8px 12px;">تم التسليم</button>` : ''}
+                ${o.status === 'completed' ? `<span style="color:var(--emerald); font-weight:900; font-size:12px;"><i class="fa-solid fa-check"></i> مكتمل</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `).join('') || '<div class="card text-center" style="color:var(--gray);">لا توجد طلبات جديدة حالياً</div>'}
+      </div>
+    `;
+
+    // إضافة تبويب في الهيدر للتاجر
+    const tabs = document.getElementById('super-tabs');
+    if (tabs && !document.getElementById('tab-merchant')) {
+      tabs.insertAdjacentHTML('beforeend', `<button id="tab-merchant" class="tab dynamic" data-sector="merchant" onclick="Views.merchant()"><i class="fa-solid fa-store"></i> متجري</button>`);
+    }
+  };
+
+  Views.updateOrderStatus = (orderId, status) => {
+    const order = DB.merchantOrders.find(o => o.id === orderId);
+    if(order) {
+      order.status = status;
+      saveDB();
+      Views.merchant();
+      if (status === 'completed') Utils.toast('تم إنهاء الطلب بنجاح');
+      else Utils.toast('جاري تجهيز الطلب...');
+    }
+  };
+
+  // تشغيل فحص الهدية اليومية عند الدخول
+  setTimeout(checkDailyReward, 3000);
+
+  console.log('✅ WASLA PART 9 LOADED: Daily Rewards, Medical ID QR, Voice Search, CSV Export, Merchant Portal.');
+  
+  // إعادة بناء الواجهة
+  UI.renderHeader();
+})();
+</script>
+  <script>
+/* ==========================================================================
+   WASLA PART 10 — SMART CITY, SOCIAL, IOT & DIGITAL CONTRACTS
+   ========================================================================== */
+(function() {
+  'use strict';
+
+  // --- 1. توسيع قاعدة البيانات ---
+  if (!DB.posts) DB.posts = [
+    { id: 'p1', userId: 'u-f', name: 'أحمد صبري', role: 'founder', text: 'مرحباً بكم في مجتمع وصلة! منصة واحدة لكل احتياجاتكم.', likes: 45, comments: [], ts: Date.now() - 86400000 },
+    { id: 'p2', userId: 'u-d1', name: 'د. محمد الشريف', role: 'doctor', text: 'نصيحة اليوم: شرب المياه بكثرة وتقليل الملح هما سر صحة الكلى. متنسوش تتابعوا ضغطكم.', likes: 120, comments: [], ts: Date.now() - 3600000 }
+  ];
+  if (!DB.challenges) DB.challenges = [
+    { id: 'c1', title: 'تحدي المشي 10 آلاف خطوة', participants: 145, reward: 50, active: true },
+    { id: 'c2', title: 'تحدي شرب 2 لتر ماء يومياً', participants: 89, reward: 30, active: true }
+  ];
+  if (!DB.bills) DB.bills = { electricity: 350, water: 120, gas: 80, internet: 250 };
+
+  // --- 2. التوقيع الرقمي (Digital E-Signature) ---
+  Views.openSignature = (taskName = 'إتمام الصيانة') => {
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:16px;">
+        <h3 style="margin:0; font-weight:900;">تأكيد استلام العمل</h3>
+        <p style="margin:4px 0 0; font-size:12px; color:var(--gray);">يرجى التوقيع في المربع أدناه لتأكيد ${taskName}.</p>
+      </div>
+      <div style="border: 2px dashed var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 16px; background:#fff;">
+        <canvas id="signature-pad" width="350" height="200" style="touch-action: none; width: 100%; cursor: crosshair;"></canvas>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button onclick="Views.clearSignature()" class="btn-action" style="flex:1; background:var(--gray-light); color:var(--primary); border:1px solid var(--line);">مسح</button>
+        <button onclick="Views.saveSignature()" class="btn-action" style="flex:1; background:var(--emerald);">حفظ التوقيع</button>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+    Views.initSignaturePad();
+  };
+
+  let sigCanvas, sigCtx, drawing = false;
+
+  Views.initSignaturePad = () => {
+    sigCanvas = document.getElementById('signature-pad');
+    sigCtx = sigCanvas.getContext('2d');
+    sigCtx.lineWidth = 3;
+    sigCtx.lineCap = 'round';
+    sigCtx.strokeStyle = '#0B1220';
+
+    const getPos = (e) => {
+      const rect = sigCanvas.getBoundingClientRect();
+      const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+      const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+      return { x: x * (sigCanvas.width / rect.width), y: y * (sigCanvas.height / rect.height) };
+    };
+
+    const start = (e) => { drawing = true; const p = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); };
+    const move = (e) => { if (!drawing) return; const p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); };
+    const end = () => { drawing = false; };
+
+    sigCanvas.addEventListener('mousedown', start);
+    sigCanvas.addEventListener('mousemove', move);
+    sigCanvas.addEventListener('mouseup', end);
+    sigCanvas.addEventListener('touchstart', start, {passive: false});
+    sigCanvas.addEventListener('touchmove', move, {passive: false});
+    sigCanvas.addEventListener('touchend', end);
+  };
+
+  Views.clearSignature = () => {
+    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+  };
+
+  Views.saveSignature = () => {
+    const dataUrl = sigCanvas.toDataURL();
+    Utils.closeModal('modal-map');
+    fireConfetti();
+    Utils.toast('تم حفظ توقيعك بنجاح، شكراً لك!');
+    logAction(Auth.currentUser.id, 'SIGNATURE_SAVED', 'تم توقيع استلام عمل');
+  };
+
+  // --- 3. تتبع الصنايعي المباشر (Live Tracking) ---
+  Views.trackTechnician = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px; font-weight:900;">تتبع الصنايعي</h3>
+      
+      <div style="height:250px; background:#E2E8F0; border-radius:12px; position:relative; overflow:hidden; border:1px solid var(--line); margin-bottom:16px;">
+        <!-- Map Background -->
+        <img src="https://www.openstreetmap.org/export/embed.html?bbox=31.2,30.3,31.3,30.4&layer=mapnik" style="width:100%; height:100%; object-fit:cover; opacity:0.3;" alt="Map">
+        
+        <!-- Markers -->
+        <div style="position:absolute; top:20%; left:20%; font-size:24px; transition:all 0.5s;">🧑‍🔧</div>
+        <div style="position:absolute; bottom:20%; right:20%; font-size:24px;">🏠</div>
+        
+        <!-- Route Line -->
+        <svg width="100%" height="100%" style="position:absolute; inset:0; pointer-events:none;">
+          <line x1="20%" y1="20%" x2="80%" y2="80%" stroke="var(--emerald)" stroke-width="3" stroke-dasharray="5,5" />
+        </svg>
+      </div>
+      
+      <div style="background:var(--emerald-light); padding:12px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-weight:900; font-size:14px;">الأسطى محمود (سباك)</div>
+          <div style="font-size:11px; color:var(--gray); font-weight:700;">في الطريق إليك • يصل خلال 10 دقائق</div>
+        </div>
+        <button class="btn-action" style="padding:8px; border-radius:50%; width:40px; height:40px;"><i class="fa-solid fa-phone"></i></button>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+    
+    // محاكاة حركة الصنايعي
+    let step = 0;
+    const interval = setInterval(() => {
+      const marker = document.querySelector('#modal-map-body div[style*="top:20%"]');
+      if (marker) {
+        step++;
+        marker.style.top = (20 + step * 3) + '%';
+        marker.style.left = (20 + step * 3) + '%';
+        if (step > 15) clearInterval(interval);
+      }
+    }, 1000);
+  };
+
+  // --- 4. مجتمع وصلة (Community Feed) ---
+  Views.community = () => {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    let feedView = document.getElementById('view-community');
+    if (!feedView) {
+      feedView = document.createElement('section');
+      feedView.id = 'view-community';
+      feedView.className = 'view-section';
+      document.querySelector('main').appendChild(feedView);
+    }
+    feedView.classList.add('active');
+
+    feedView.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, #F3E8FF, #E9D5FF); border-color:#D8B4FE;">
+        <h2 style="margin:0; font-weight:900; color:#6B21A8;"><i class="fa-solid fa-users"></i> مجتمع وصلة</h2>
+        <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#7E22CE;">تواصل مع جيرانك، شارك الأخبار والنصائح.</p>
+      </div>
+
+      <div class="card mb-4">
+        <textarea id="new-post-text" class="input-field" placeholder="بماذا تفكر؟ شارك مجتمعك..." style="height:80px; margin:0; margin-bottom:10px;"></textarea>
+        <button onclick="Views.createPost()" class="btn-action" style="width:100%; background:var(--indigo);"><i class="fa-solid fa-paper-plane"></i> نشر</button>
+      </div>
+
+      <div class="grid-list">
+        ${DB.posts.map(p => `
+          <div class="card">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+              <div style="width:40px; height:40px; border-radius:50%; background:var(--emerald-light); color:var(--emerald); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:16px;">${p.name[0]}</div>
+              <div>
+                <div style="font-weight:900; font-size:14px;">${p.name}</div>
+                <div style="font-size:10px; color:var(--gray); font-weight:700;">${p.role === 'founder' ? '👑 المؤسس' : p.role === 'doctor' ? '🩺 طبيب' : 'مستخدم'} • ${new Date(p.ts).toLocaleTimeString('ar-EG')}</div>
+              </div>
+            </div>
+            <p style="font-size:13px; font-weight:700; margin:0 0 12px; line-height:1.6;">${p.text}</p>
+            <div style="display:flex; gap:16px; border-top:1px solid var(--line); padding-top:12px;">
+              <button onclick="Views.likePost('${p.id}')" style="background:none; border:none; color:var(--gray); font-weight:900; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-heart" style="color:${p.likedBy?.includes(Auth.currentUser?.id) ? 'var(--danger)' : 'inherit'};"></i> ${p.likes}
+              </button>
+              <button onclick="Utils.toast('التعليقات ستتوفر قريباً')" style="background:none; border:none; color:var(--gray); font-weight:900; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-comment"></i> تعليق
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    // إضافة التبويب
+    const tabs = document.getElementById('super-tabs');
+    if (tabs && !document.getElementById('tab-community')) {
+      tabs.insertAdjacentHTML('beforeend', `<button id="tab-community" class="tab dynamic" data-sector="community" onclick="Views.community()"><i class="fa-solid fa-users"></i> المجتمع</button>`);
+    }
+  };
+
+  Views.createPost = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const text = document.getElementById('new-post-text').value.trim();
+    if (!text) return;
+    
+    DB.posts.unshift({ id: Utils.id(), userId: Auth.currentUser.id, name: Auth.currentUser.name, role: Auth.currentUser.role, text, likes: 0, comments: [], ts: Date.now() });
+    saveDB();
+    Views.community();
+    fireConfetti();
+    Utils.toast('تم النشر بنجاح');
+  };
+
+  Views.likePost = (postId) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const post = DB.posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    if (!post.likedBy) post.likedBy = [];
+    
+    if (post.likedBy.includes(Auth.currentUser.id)) {
+      post.likedBy = post.likedBy.filter(id => id !== Auth.currentUser.id);
+      post.likes--;
+    } else {
+      post.likedBy.push(Auth.currentUser.id);
+      post.likes++;
+    }
+    saveDB();
+    Views.community();
+  };
+
+  // --- 5. تحديات الصحة (Health Challenges) ---
+  const origDash = Views.dashboard;
+  Views.dashboard = () => {
+    origDash();
+    if (!Auth.currentUser) return;
+    
+    const el = document.getElementById('view-dashboard');
+    el.insertAdjacentHTML('beforeend', `
+      <h3 class="section-title mt-4"><i class="fa-solid fa-trophy" style="color:var(--gold);"></i> تحديات الصحة</h3>
+      <div class="grid-list">
+        ${DB.challenges.map(c => `
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h4 style="margin:0; font-weight:900; font-size:14px;">${c.title}</h4>
+              <p style="margin:4px 0 0; font-size:11px; color:var(--gray); font-weight:700;"><i class="fa-solid fa-users"></i> ${c.participants} مشارك • جائزة: ${c.reward} نقطة</p>
+            </div>
+            <button onclick="Views.joinChallenge('${c.id}')" class="btn-action" style="padding:8px 12px; font-size:11px; background:var(--gold);">انضم</button>
+          </div>
+        `).join('')}
+      </div>
+    `);
+  };
+
+  Views.joinChallenge = (id) => {
+    const ch = DB.challenges.find(c => c.id === id);
+    if (!ch) return;
+    
+    if (!DB.loyalty[Auth.currentUser.id]) DB.loyalty[Auth.currentUser.id] = { points: 0 };
+    DB.loyalty[Auth.currentUser.id].points += ch.reward;
+    
+    ch.participants++;
+    saveDB();
+    UI.renderHeader();
+    fireConfetti();
+    Utils.toast(`مبروك! حصلت على ${ch.reward} نقطة للانضمام للتحدي`);
+  };
+
+  // --- 6. بوابة الفواتير الذكية (Smart City Bills) ---
+  Views.bills = () => {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    let billsView = document.getElementById('view-bills');
+    if (!billsView) {
+      billsView = document.createElement('section');
+      billsView.id = 'view-bills';
+      billsView.className = 'view-section';
+      document.querySelector('main').appendChild(billsView);
+    }
+    billsView.classList.add('active');
+
+    billsView.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, #FEF3C7, #FDE68A); border-color:#FCD34D;">
+        <h2 style="margin:0; font-weight:900; color:#92400E;"><i class="fa-solid fa-file-invoice-dollar"></i> دفع الفواتير</h2>
+        <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#B45309;">سدد فواتيرك بأمان من محفظتك.</p>
+      </div>
+
+      <div class="grid-list">
+        ${Object.entries(DB.bills).map(([key, value]) => {
+          const names = { electricity: 'الكهرباء', water: 'المياه', gas: 'الغاز', internet: 'الإنترنت' };
+          const icons = { electricity: 'fa-bolt', water: 'fa-droplet', gas: 'fa-fire', internet: 'fa-wifi' };
+          return `
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div class="item-icon"><i class="fa-solid ${icons[key]}"></i></div>
+                <div>
+                  <h4 style="margin:0; font-weight:900;">فاتورة ${names[key]}</h4>
+                  <p style="margin:4px 0 0; font-size:12px; color:var(--danger); font-weight:900;">${Utils.money(value)}</p>
+                </div>
+              </div>
+              <button onclick="Views.payBill('${key}', ${value})" class="btn-action" style="padding:8px 16px; font-size:12px;">سداد</button>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    // إضافة التبويب
+    const tabs = document.getElementById('super-tabs');
+    if (tabs && !document.getElementById('tab-bills')) {
+      tabs.insertAdjacentHTML('beforeend', `<button id="tab-bills" class="tab dynamic" data-sector="bills" onclick="Views.bills()"><i class="fa-solid fa-file-invoice"></i> الفواتير</button>`);
+    }
+  };
+
+  Views.payBill = (type, amount) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    if (Auth.currentUser.wallet < amount) return Utils.toast('رصيد المحفظة غير كافٍ', true);
+    
+    Auth.currentUser.wallet -= amount;
+    DB.bills[type] = 0; // تصفير الفاتورة
+    
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+    saveDB();
+    
+    fireConfetti();
+    UI.renderHeader();
+    Views.bills();
+    Utils.toast(`تم سداد فاتورة ${type} بنجاح!`);
+  };
+
+  console.log('✅ WASLA PART 10 LOADED: E-Signature, Live Tracking, Community Feed, Health Challenges, Smart Bills.');
+  
+  // إعادة بناء الواجهة
+  UI.renderHeader();
+})();
+</script>
+  <script>
+/* ==========================================================================
+   WASLA PART 11 — RIDE HAILING, CLASSIFIEDS, CHARITY, IOT & TTS
+   ========================================================================== */
+(function() {
+  'use strict';
+
+  // --- 1. توسيع قاعدة البيانات ---
+  if (!DB.classifieds) DB.classifieds = [
+    { id: 'c1', title: 'آيفون 13 برو - حالة الزيرو', price: 15000, category: 'موبايلات', seller: 'أحمد محمود', phone: '01000000001', img: 'fa-mobile-alt', ts: Date.now() },
+    { id: 'c2', title: 'شقة للإيجار - 3 غرف - بورسعيد', price: 3500, category: 'عقارات', seller: 'الحاج سعيد', phone: '01100000000', img: 'fa-building', ts: Date.now() }
+  ];
+  if (!DB.charity) DB.charity = [
+    { id: 'ch1', title: 'عملية قلب مفتوح - الحاجة فاطمة', target: 50000, raised: 32000, icon: 'fa-heart-pulse' },
+    { id: 'ch2', title: 'سقف بيت - أرملة وأيتام', target: 20000, raised: 15000, icon: 'fa-house-chimney' }
+  ];
+  if (!DB.rides) DB.rides = [];
+
+  // --- 2. وصلة رايد (Wasla Ride) ---
+  Views.ride = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    let rideView = document.getElementById('view-ride');
+    if (!rideView) {
+      rideView = document.createElement('section');
+      rideView.id = 'view-ride';
+      rideView.className = 'view-section';
+      document.querySelector('main').appendChild(rideView);
+    }
+    rideView.classList.add('active');
+
+    rideView.innerHTML = `
+      <div class="card" style="background:var(--primary); color:#fff;">
+        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-motorcycle"></i> وصلة رايد</h2>
+        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">اطلب مركبتك بأمان وسرعة</p>
+      </div>
+      
+      <div class="card mb-4">
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid fa-circle-dot" style="color:var(--emerald);"></i>
+            <input type="text" id="ride-from" class="input-field" placeholder="موقع الانطلاق (مثال: شارع بورسعيد)" style="margin:0;">
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid fa-location-dot" style="color:var(--danger);"></i>
+            <input type="text" id="ride-to" class="input-field" placeholder="إلى أين؟ (مثال: ميدان المحطة)" style="margin:0;">
+          </div>
+        </div>
+        
+        <div class="grid-2">
+          <div class="card text-center" onclick="Views.confirmRide('توكتوك', 15)" style="cursor:pointer; padding:12px; margin:0;">
+            <i class="fa-solid fa-motorcycle" style="font-size:24px; margin-bottom:8px;"></i><h4 style="margin:0; font-weight:900; font-size:13px;">توكتوك</h4>
+            <div style="font-size:11px; color:var(--emerald); font-weight:900;">15 ج.م</div>
+          </div>
+          <div class="card text-center" onclick="Views.confirmRide('سيارة ملاكي', 40)" style="cursor:pointer; padding:12px; margin:0;">
+            <i class="fa-solid fa-car" style="font-size:24px; margin-bottom:8px;"></i><h4 style="margin:0; font-weight:900; font-size:13px;">ملاكي</h4>
+            <div style="font-size:11px; color:var(--emerald); font-weight:900;">40 ج.م</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // إضافة التبويب
+    const tabs = document.getElementById('super-tabs');
+    if (tabs && !document.getElementById('tab-ride')) {
+      tabs.insertAdjacentHTML('beforeend', `<button id="tab-ride" class="tab dynamic" data-sector="ride" onclick="Views.ride()"><i class="fa-solid fa-motorcycle"></i> رايد</button>`);
+    }
+  };
+
+  Views.confirmRide = (type, basePrice) => {
+    const from = document.getElementById('ride-from').value || 'موقعك الحالي';
+    const to = document.getElementById('ride-to').value || 'وجهة غير محددة';
+    const finalPrice = basePrice + Math.floor(Math.random() * 10);
+    
+    DB.rides.push({ id: Utils.id(), userId: Auth.currentUser.id, type, from, to, price: finalPrice, status: 'searching', ts: Date.now() });
+    saveDB();
+    
+    fireConfetti();
+    Utils.toast(`تم طلب ${type}، جاري البحث عن سائق...`);
+    
+    // محاكاة قبول السائق
+    setTimeout(() => {
+      Utils.toast('الكابتن أحمد قبل طلبك وهو في الطريق!');
+      Views.trackRide();
+    }, 3000);
+  };
+
+  Views.trackRide = () => {
+    const ride = DB.rides[DB.rides.length - 1];
+    if(!ride) return;
+
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px; font-weight:900;">جاري التوصيل</h3>
+      
+      <div style="height:200px; background:#E2E8F0; border-radius:12px; position:relative; margin-bottom:16px;">
+        <div style="position:absolute; top:40%; left:30%; font-size:30px; animation: pulse 2s infinite;">🛺</div>
+        <div style="position:absolute; bottom:10px; right:10px; background:#fff; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:900;">السائق متجه إليك</div>
+      </div>
+      
+      <div style="background:var(--emerald-light); padding:12px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div>
+          <div style="font-weight:900;">أحمد السائق</div>
+          <div style="font-size:11px; color:var(--gray);">رقم اللوحة: 1234 أ ب ج</div>
+        </div>
+        <button class="btn-action" style="padding:8px; border-radius:50%; width:40px; height:40px;"><i class="fa-solid fa-phone"></i></button>
+      </div>
+      
+      <div style="text-align:center; font-size:20px; font-weight:900; color:var(--emerald);">${Utils.money(ride.price)}</div>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  // --- 3. ماركت المستعمل والعقارات (Wasla Classifieds) ---
+  Views.classifieds = () => {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    let clView = document.getElementById('view-classifieds');
+    if (!clView) {
+      clView = document.createElement('section');
+      clView.id = 'view-classifieds';
+      clView.className = 'view-section';
+      document.querySelector('main').appendChild(clView);
+    }
+    clView.classList.add('active');
+
+    clView.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, #E0F2FE, #BAE6FD); border-color:#7DD3FC;">
+        <h2 style="margin:0; font-weight:900; color:#0369A1;"><i class="fa-solid fa-shop"></i> سوق وصلة</h2>
+        <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#0284C7;">بيع واشتري مستعمل، أو اعرض عقارك.</p>
+      </div>
+      
+      <div class="grid-list mt-4">
+        ${DB.classifieds.map(c => `
+          <div class="card" style="display:flex; gap:12px; align-items:center;">
+            <div style="width:60px; height:60px; background:var(--gray-light); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:24px; color:var(--gray);">
+              <i class="fa-solid ${c.img}"></i>
+            </div>
+            <div style="flex:1;">
+              <span style="font-size:10px; background:var(--sky-light); color:var(--sky); padding:2px 6px; border-radius:4px; font-weight:900;">${c.category}</span>
+              <h4 style="margin:4px 0; font-weight:900; font-size:14px;">${c.title}</h4>
+              <div style="font-weight:900; color:var(--emerald); font-size:16px;">${Utils.money(c.price)}</div>
+            </div>
+            <a href="tel:${c.phone}" class="btn-action" style="padding:8px; border-radius:50%; width:40px; height:40px;"><i class="fa-solid fa-phone"></i></a>
+          </div>
+        `).join('')}
+      </div>
+      
+      <button onclick="Utils.toast('سيتم تفعيل إضافة إعلان قريباً')" class="btn-action" style="width:100%; margin-top:16px;"><i class="fa-solid fa-plus"></i> أضف إعلانك</button>
+    `;
+
+    const tabs = document.getElementById('super-tabs');
+    if (tabs && !document.getElementById('tab-classifieds')) {
+      tabs.insertAdjacentHTML('beforeend', `<button id="tab-classifieds" class="tab dynamic" data-sector="classifieds" onclick="Views.classifieds()"><i class="fa-solid fa-shop"></i> سوق وصلة</button>`);
+    }
+  };
+
+  // --- 4. صندوق التبرعات (Wasla Charity) ---
+  Views.charity = () => {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    let chView = document.getElementById('view-charity');
+    if (!chView) {
+      chView = document.createElement('section');
+      chView.id = 'view-charity';
+      chView.className = 'view-section';
+      document.querySelector('main').appendChild(chView);
+    }
+    chView.classList.add('active');
+
+    chView.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, #D1FAE5, #A7F3D0); border-color:#6EE7B7;">
+        <h2 style="margin:0; font-weight:900; color:#047857;"><i class="fa-solid fa-hand-holding-heart"></i> صندوق البر</h2>
+        <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#059669;">تبرع للحالات الإنسانية، كل جنيه بيوصل لمستحقه.</p>
+      </div>
+      
+      <div class="grid-list mt-4">
+        ${DB.charity.map(c => {
+          const percent = Math.round((c.raised / c.target) * 100);
+          return `
+            <div class="card">
+              <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div style="width:40px; height:40px; border-radius:50%; background:var(--emerald-light); color:var(--emerald); display:flex; align-items:center; justify-content:center; font-size:18px;"><i class="fa-solid ${c.icon}"></i></div>
+                <h4 style="margin:0; font-weight:900; font-size:14px;">${c.title}</h4>
+              </div>
+              
+              <div style="background:var(--gray-light); height:8px; border-radius:10px; overflow:hidden; margin-bottom:8px;">
+                <div style="background:var(--emerald); height:100%; width:${percent}%;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; color:var(--gray); margin-bottom:12px;">
+                <span>تم جمع: ${Utils.money(c.raised)}</span>
+                <span>الهدف: ${Utils.money(c.target)}</span>
+              </div>
+              
+              <button onclick="Views.donate('${c.id}')" class="btn-action" style="width:100%; background:var(--emerald);">تبرع الآن</button>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    const tabs = document.getElementById('super-tabs');
+    if (tabs && !document.getElementById('tab-charity')) {
+      tabs.insertAdjacentHTML('beforeend', `<button id="tab-charity" class="tab dynamic" data-sector="charity" onclick="Views.charity()"><i class="fa-solid fa-hand-holding-heart"></i> تبرع</button>`);
+    }
+  };
+
+  Views.donate = (id) => {
+    const amount = prompt('أدخل مبلغ التبرع:', '100');
+    if (!amount || isNaN(amount)) return;
+    
+    const val = Number(amount);
+    if (Auth.currentUser.wallet < val) return Utils.toast('رصيد المحفظة غير كافٍ', true);
+
+    Auth.currentUser.wallet -= val;
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+    
+    const charity = DB.charity.find(c => c.id === id);
+    charity.raised += val;
+    
+    saveDB();
+    fireConfetti();
+    UI.renderHeader();
+    Views.charity();
+    Utils.toast('شكراً لتبرعك! جزاك الله خيراً.');
+  };
+
+  // --- 5. المنزل الذكي (Smart Home IoT) ---
+  const origDash = Views.dashboard;
+  Views.dashboard = () => {
+    origDash();
+    if (!Auth.currentUser) return;
+    
+    const el = document.getElementById('view-dashboard');
+    el.insertAdjacentHTML('beforeend', `
+      <h3 class="section-title mt-4"><i class="fa-solid fa-house-signal" style="color:var(--sky);"></i> المنزل الذكي</h3>
+      <div class="card grid-3">
+        <div style="text-align:center; cursor:pointer;" onclick="this.querySelector('i').style.color = this.querySelector('i').style.color === 'rgb(2, 132, 199)' ? '#94A3B8' : 'var(--sky)'">
+          <i class="fa-solid fa-snowflake" style="font-size:24px; color:#94A3B8; margin-bottom:8px; transition:0.2s;"></i>
+          <div style="font-size:10px; font-weight:900;">تكييف</div>
+        </div>
+        <div style="text-align:center; cursor:pointer;" onclick="this.querySelector('i').style.color = this.querySelector('i').style.color === 'rgb(2, 132, 199)' ? '#94A3B8' : 'var(--sky)'">
+          <i class="fa-solid fa-lightbulb" style="font-size:24px; color:#94A3B8; margin-bottom:8px; transition:0.2s;"></i>
+          <div style="font-size:10px; font-weight:900;">إنارة</div>
+        </div>
+        <div style="text-align:center; cursor:pointer;" onclick="this.querySelector('i').style.color = this.querySelector('i').style.color === 'rgb(2, 132, 199)' ? '#94A3B8' : 'var(--sky)'">
+          <i class="fa-solid fa-fire-flame-simple" style="font-size:24px; color:#94A3B8; margin-bottom:8px; transition:0.2s;"></i>
+          <div style="font-size:10px; font-weight:900;">سخان</div>
+        </div>
+      </div>
+    `);
+  };
+
+  // --- 6. قارئ الروشتات الصوتي (Text-to-Speech) ---
+  const origDashboardTTS = Views.dashboard;
+  Views.dashboard = () => {
+    origDashboardTTS();
+    if (!Auth.currentUser) return;
+
+    // إضافة زر القراءة الصوتية لو فيه روشتات
+    const myNotes = DB.emrNotes ? DB.emrNotes.filter(n => n.patientId === Auth.currentUser.id) : [];
+    if (myNotes.length > 0) {
+      const el = document.getElementById('view-dashboard');
+      // بنضيفه في بداية قسم الروشتات
+      const rxSection = document.querySelector('h3.section-title i.fa-prescription');
+      if (rxSection) {
+        const parent = rxSection.closest('h3');
+        parent.innerHTML += `
+          <button onclick="Views.readPrescription('${myNotes[0].note}')" style="margin-right:auto; background:var(--emerald); color:#fff; border:none; border-radius:8px; padding:4px 12px; font-size:12px; font-weight:900; display:flex; align-items:center; gap:4px;">
+            <i class="fa-solid fa-volume-high"></i> استمع
+          </button>
+        `;
+      }
+    }
+  };
+
+  Views.readPrescription = (text) => {
+    if (!('speechSynthesis' in window)) return Utils.toast('المتصفح لا يدعم القراءة الصوتية', true);
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ar-EG';
+    utterance.rate = 0.9;
+    
+    window.speechSynthesis.speak(utterance);
+    Utils.toast('جاري قراءة الروشتة...');
+  };
+
+  console.log('✅ WASLA PART 11 LOADED: Ride Hailing, Classifieds, Charity, Smart Home, TTS.');
+
+  // إعادة بناء الواجهة
+  UI.renderHeader();
+})();
+</script>
+  <script>
+/* ==========================================================================
+   WASLA PART 12 — EVENTS, ACADEMY, EMERGENCY ALERTS, RELIGIOUS & FINANCE
+   ========================================================================== */
+(function() {
+  'use strict';
+
+  // --- 1. توسيع قاعدة البيانات ---
+  if (!DB.events) DB.events = [
+    { id: 'ev1', title: 'حفل أفراح شبين القناطر', date: '2026-11-15', time: '8:00 م', price: 150, icon: 'fa-music', color: '#8B5CF6' },
+    { id: 'ev2', title: 'مباراة كرة القدم (قدام شبين)', date: '2026-11-20', time: '5:00 م', price: 50, icon: 'fa-futbol', color: '#059669' }
+  ];
+  if (!DB.courses) DB.courses = [
+    { id: 'crs1', title: 'كورس تأسيس الرياضيات (أولى ثانوي)', instructor: 'أ. محمود حسن', price: 200, lessons: 12, icon: 'fa-square-root-variable', color: '#0284C7' },
+    { id: 'crs2', title: 'دبلومة صيانة الموبايل', instructor: 'م. كريم فؤاد', price: 500, lessons: 20, icon: 'fa-mobile-screen', color: '#D97706' }
+  ];
+  if (!DB.eventTickets) DB.eventTickets = [];
+
+  // --- 2. وصلة إيفنتس (Events & Ticketing) ---
+  Views.events = () => {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    let evView = document.getElementById('view-events');
+    if (!evView) {
+      evView = document.createElement('section');
+      evView.id = 'view-events';
+      evView.className = 'view-section';
+      document.querySelector('main').appendChild(evView);
+    }
+    evView.classList.add('active');
+
+    evView.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, #F3E8FF, #E9D5FF); border-color:#D8B4FE;">
+        <h2 style="margin:0; font-weight:900; color:#6B21A8;"><i class="fa-solid fa-ticket"></i> وصلة إيفنتس</h2>
+        <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#7E22CE;">احضر أقوى الفعاليات في مدينتك بضغطة زر.</p>
+      </div>
+      
+      <div class="grid-list mt-4">
+        ${DB.events.map(ev => `
+          <div class="card" style="display:flex; gap:12px; align-items:center;">
+            <div style="width:60px; height:60px; background:${ev.color}15; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:28px; color:${ev.color}; flex-shrink:0;">
+              <i class="fa-solid ${ev.icon}"></i>
+            </div>
+            <div style="flex:1;">
+              <h4 style="margin:0; font-weight:900; font-size:15px;">${ev.title}</h4>
+              <p style="margin:4px 0; font-size:11px; color:var(--gray); font-weight:700;"><i class="fa-solid fa-calendar"></i> ${ev.date} • ${ev.time}</p>
+              <div style="font-weight:900; color:var(--emerald); font-size:14px;">${Utils.money(ev.price)}</div>
+            </div>
+            <button onclick="Views.buyEventTicket('${ev.id}')" class="btn-action" style="padding:8px 16px; font-size:12px;">احجز</button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    const tabs = document.getElementById('super-tabs');
+    if (tabs && !document.getElementById('tab-events')) {
+      tabs.insertAdjacentHTML('beforeend', `<button id="tab-events" class="tab dynamic" data-sector="events" onclick="Views.events()"><i class="fa-solid fa-ticket"></i> إيفنتس</button>`);
+    }
+  };
+
+  Views.buyEventTicket = (evId) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const ev = DB.events.find(e => e.id === evId);
+    if (Auth.currentUser.wallet < ev.price) return Utils.toast('رصيد المحفظة غير كافٍ', true);
+
+    Auth.currentUser.wallet -= ev.price;
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+
+    const ticketId = Utils.id();
+    DB.eventTickets.push({ id: ticketId, eventId: ev.id, userId: Auth.currentUser.id, price: ev.price, ts: Date.now() });
+    saveDB();
+    
+    fireConfetti();
+    UI.renderHeader();
+    
+    // عرض التذكرة
+    const qrData = encodeURIComponent(`Ticket: ${ticketId} | Event: ${ev.title}`);
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}`;
+
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center;">
+        <h3 style="margin:0 0 4px; font-weight:900; color:var(--emerald);">تم الحجز بنجاح!</h3>
+        <p style="margin:0 0 16px; font-size:12px; color:var(--gray);">تذكرتك جاهزة، يرجى إظهار الكود عند الدخول.</p>
+        
+        <div style="background:#fff; border:1px dashed var(--emerald); padding:16px; border-radius:12px; display:inline-block; margin-bottom:16px;">
+          <img src="${qrUrl}" style="width:150px; height:150px;">
+          <div style="margin-top:8px; font-weight:900; font-size:12px; font-family:monospace;">#${ticketId.substring(0, 6).toUpperCase()}</div>
+        </div>
+        
+        <div style="background:var(--gray-light); padding:12px; border-radius:12px; text-align:right;">
+          <div style="font-weight:900; font-size:14px;">${ev.title}</div>
+          <div style="font-size:12px; color:var(--gray); margin-top:4px;"><i class="fa-solid fa-calendar"></i> ${ev.date} - ${ev.time}</div>
+        </div>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  // --- 3. أكاديمية وصلة (Wasla Academy) ---
+  Views.academy = () => {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    let acadView = document.getElementById('view-academy');
+    if (!acadView) {
+      acadView = document.createElement('section');
+      acadView.id = 'view-academy';
+      acadView.className = 'view-section';
+      document.querySelector('main').appendChild(acadView);
+    }
+    acadView.classList.add('active');
+
+    acadView.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, #E0F2FE, #BAE6FD); border-color:#7DD3FC;">
+        <h2 style="margin:0; font-weight:900; color:#0369A1;"><i class="fa-solid fa-graduation-cap"></i> أكاديمية وصلة</h2>
+        <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#0284C7;">طور مهاراتك مع نخبة من المعلمين.</p>
+      </div>
+      
+      <div class="grid-list mt-4">
+        ${DB.courses.map(crs => `
+          <div class="card" style="display:flex; gap:12px; align-items:center;">
+            <div style="width:60px; height:60px; background:${crs.color}15; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:28px; color:${crs.color}; flex-shrink:0;">
+              <i class="fa-solid ${crs.icon}"></i>
+            </div>
+            <div style="flex:1;">
+              <h4 style="margin:0; font-weight:900; font-size:14px;">${crs.title}</h4>
+              <p style="margin:4px 0; font-size:11px; color:var(--gray); font-weight:700;">${crs.instructor} • ${crs.lessons} حصة</p>
+              <div style="font-weight:900; color:var(--emerald); font-size:14px;">${Utils.money(crs.price)}</div>
+            </div>
+            <button onclick="Views.buyCourse('${crs.id}')" class="btn-action" style="padding:8px 16px; font-size:12px;">اشترك</button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    const tabs = document.getElementById('super-tabs');
+    if (tabs && !document.getElementById('tab-academy')) {
+      tabs.insertAdjacentHTML('beforeend', `<button id="tab-academy" class="tab dynamic" data-sector="academy" onclick="Views.academy()"><i class="fa-solid fa-graduation-cap"></i> أكاديمية</button>`);
+    }
+  };
+
+  Views.buyCourse = (crsId) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const crs = DB.courses.find(c => c.id === crsId);
+    if (Auth.currentUser.wallet < crs.price) return Utils.toast('رصيد المحفظة غير كافٍ', true);
+    
+    Auth.currentUser.wallet -= crs.price;
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+    saveDB();
+    
+    fireConfetti();
+    UI.renderHeader();
+    Utils.toast(`تم الاشتراك في ${crs.title}، ستجد الكورس في لوحتك.`);
+  };
+
+  // --- 4. التكاتف المجتمعي (Missing Persons Alert) ---
+  Views.missingPerson = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:16px;">
+        <h3 style="margin:0; font-weight:900; color:var(--danger);">🚨 بلاغ تغيب</h3>
+        <p style="margin:4px 0 0; font-size:12px; color:var(--gray);">سيتم إرسال تنبيه عاجل لكل مستخدمي المنصة في نطاق 5 كم.</p>
+      </div>
+      
+      <input type="text" id="mp-name" class="input-field" placeholder="اسم المفقود">
+      <input type="text" id="mp-desc" class="input-field" placeholder="الوصف (الملابس، العمر، إلخ)">
+      <textarea id="mp-details" class="input-field" placeholder="تفاصيل إضافية (مكان التغيب، وقت...)" style="height:80px;"></textarea>
+      
+      <button onclick="Views.sendMissingAlert()" class="btn-action" style="width:100%; background:var(--danger);"><i class="fa-solid fa-bullhorn"></i> إطلاق التنبيه</button>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  Views.sendMissingAlert = () => {
+    const name = document.getElementById('mp-name').value;
+    const desc = document.getElementById('mp-desc').value;
+    const details = document.getElementById('mp-details').value;
+    
+    if(!name || !desc) return Utils.toast('يرجى ملء البيانات الأساسية', true);
+
+    // إرسال إشعار لكل المستخدمين
+    DB.users.forEach(u => {
+      DB.notifications.unshift({ id: Utils.id(), userId: u.id, text: `🚨 بلاغ تغيب: ${name} (${desc}). ${details}`, read: false, ts: Date.now() });
+    });
+    saveDB();
+    
+    Utils.closeModal('modal-map');
+    fireConfetti();
+    Utils.toast('تم إرسال التنبيه بنجاح. شكراً لتكاتفك.');
+  };
+
+  // --- 5. مواقيت الصلاة وحاسبة الزكاة (Religious Utils) ---
+  const origDash = Views.dashboard;
+  Views.dashboard = () => {
+    origDash();
+    if (!Auth.currentUser) return;
+
+    const el = document.getElementById('view-dashboard');
+    el.insertAdjacentHTML('beforeend', `
+      <h3 class="section-title mt-4"><i class="fa-solid fa-mosque" style="color:var(--emerald);"></i> خدمات إسلامية</h3>
+      <div class="card mb-4">
+        <div style="display:flex; justify-content:space-between; text-align:center; font-size:12px; font-weight:900; color:var(--gray);">
+          <div><div>الفجر</div><div style="color:var(--primary); font-size:14px; margin-top:4px;">4:45 ص</div></div>
+          <div><div>الظهر</div><div style="color:var(--primary); font-size:14px; margin-top:4px;">11:55 ص</div></div>
+          <div><div>العصر</div><div style="color:var(--primary); font-size:14px; margin-top:4px;">3:20 م</div></div>
+          <div><div>المغرب</div><div style="color:var(--primary); font-size:14px; margin-top:4px;">6:10 م</div></div>
+          <div><div>العشاء</div><div style="color:var(--primary); font-size:14px; margin-top:4px;">7:30 م</div></div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h4 style="margin:0; font-weight:900; font-size:14px;">حاسبة الزكاة</h4>
+            <p style="margin:4px 0 0; font-size:11px; color:var(--gray); font-weight:700;">احسب زكاة مالك بسهولة.</p>
+          </div>
+          <button onclick="Views.calcZakat()" class="btn-action" style="padding:8px 16px; font-size:12px; background:var(--emerald);">احسب</button>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h4 style="margin:0; font-weight:900; font-size:14px; color:var(--danger);">التكاتف المجتمعي</h4>
+            <p style="margin:4px 0 0; font-size:11px; color:var(--gray); font-weight:700;">أطلق بلاغ تغيب أو ساعد في البحث.</p>
+          </div>
+          <button onclick="Views.missingPerson()" class="btn-action" style="padding:8px 16px; font-size:12px; background:var(--danger);">بلاغ تغيب</button>
+        </div>
+      </div>
+    `);
+  };
+
+  Views.calcZakat = () => {
+    const cash = prompt('أدخل المبلغ النقدي (بالجنيه):', '10000');
+    if (!cash || isNaN(cash)) return;
+    
+    const zakat = Number(cash) * 0.025; // 2.5%
+    alert(`مقدار الزكاة الواجب إخراجها هو: ${Utils.money(zakat)}`);
+  };
+
+  // --- 6. حاسبة التمويل العقاري (Real Estate Finance) ---
+  Views.mortgageCalc = () => {
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px; font-weight:900;">حاسبة التمويل العقاري</h3>
+      
+      <label style="font-size:12px; font-weight:900; display:block; margin-bottom:4px;">سعر العقار (ج.م)</label>
+      <input type="number" id="m-price" class="input-field" value="500000">
+      
+      <label style="font-size:12px; font-weight:900; display:block; margin-bottom:4px;">المقدم (ج.م)</label>
+      <input type="number" id="m-down" class="input-field" value="100000">
+      
+      <label style="font-size:12px; font-weight:900; display:block; margin-bottom:4px;">مدة القرض (سنوات)</label>
+      <input type="number" id="m-years" class="input-field" value="10">
+      
+      <button onclick="Views.calcMortgage()" class="btn-action" style="width:100%;">حساب القسط الشهري</button>
+      <div id="m-result" style="text-align:center; margin-top:16px; font-weight:900; font-size:20px; color:var(--emerald);"></div>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  Views.calcMortgage = () => {
+    const price = Number(document.getElementById('m-price').value);
+    const down = Number(document.getElementById('m-down').value);
+    const years = Number(document.getElementById('m-years').value);
+    
+    const loanAmount = price - down;
+    const monthlyRate = 0.15 / 12; // 15% interest rate (example)
+    const payments = years * 12;
+    
+    if (loanAmount <= 0) return document.getElementById('m-result').innerText = 'المقدم يغطي السعر!';
+    
+    // Mortgage formula: M = P [ i(1 + i)^n ] / [ (1 + i)^n – 1]
+    const monthly = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, payments)) / (Math.pow(1 + monthlyRate, payments) - 1);
+    
+    document.getElementById('m-result').innerHTML = `القسط الشهري التقريبي: <br>${Utils.money(monthly.toFixed(0))}`;
+  };
+
+  // إضافة زر حاسبة العقارات في قسم "سوق وصلة"
+  const origClassifieds = Views.classifieds;
+  Views.classifieds = () => {
+    origClassifieds();
+    document.getElementById('view-classifieds').insertAdjacentHTML('afterbegin', `
+      <div class="card mb-4" style="background:var(--gray-light); border:1px solid var(--line); cursor:pointer;" onclick="Views.mortgageCalc()">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h4 style="margin:0; font-weight:900; font-size:14px; color:var(--primary);"><i class="fa-solid fa-calculator"></i> حاسبة التمويل العقاري</h4>
+            <p style="margin:4px 0 0; font-size:11px; color:var(--gray); font-weight:700;">احسب قسط الشقة قبل ما تشتريها.</p>
+          </div>
+          <i class="fa-solid fa-chevron-left" style="color:var(--gray);"></i>
+        </div>
+      </div>
+    `);
+  };
+
+  console.log('✅ WASLA PART 12 LOADED: Events, Academy, Missing Persons, Religious Utils, Mortgage Calc.');
+
+  // إعادة بناء الواجهة
+  UI.renderHeader();
+})();
+</script>
+  <script>
+/* ==========================================================================
+   WASLA PART 13 — MERCHANT INVENTORY, REWARDS SHOP, TELEMEDICINE, GEOFENCING
+   ========================================================================== */
+(function() {
+  'use strict';
+
+  // --- 1. توسيع قاعدة البيانات ---
+  if (!DB.shopItems) DB.shopItems = [];
+  if (!DB.rewardsShop) DB.rewardsShop = [
+    { id: 'r1', title: 'كوب قهوة مجاني (كافيه الأصيل)', cost: 150, icon: 'fa-mug-hot', color: '#D97706' },
+    { id: 'r2', title: 'توصيل مجاني لطلبك القادم', cost: 100, icon: 'fa-motorcycle', color: '#059669' },
+    { id: 'r3', title: 'خصم 50 ج.م على تحاليل', cost: 300, icon: 'fa-flask', color: '#0284C7' },
+    { id: 'r4', title: 'تذكرة سينما مجانية', cost: 500, icon: 'fa-film', color: '#E11D48' }
+  ];
+
+  // --- 2. إدارة مخزون المتاجر (للتاجر) ---
+  const origMerchant = Views.merchant;
+  Views.merchant = () => {
+    origMerchant();
+    if (!Auth.currentUser || Auth.currentUser.role !== 'merchant') return;
+    
+    const el = document.getElementById('view-merchant');
+    el.insertAdjacentHTML('beforeend', `
+      <div class="card mt-4">
+        <h3 class="section-title"><i class="fa-solid fa-boxes-stacked" style="color:var(--amber);"></i> إدارة المخزون والمنتجات</h3>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <input type="text" id="m-prod-name" class="input-field" placeholder="اسم المنتج" style="margin:0;">
+          <input type="number" id="m-prod-price" class="input-field" placeholder="السعر" style="margin:0; width:100px;">
+        </div>
+        <button onclick="Views.addMerchantProduct()" class="btn-action" style="width:100%; background:var(--amber); margin-bottom:16px;">إضافة منتج للمتجر</button>
+        
+        <div class="grid-list" style="max-height:200px; overflow-y:auto;">
+          ${DB.shopItems.filter(i => i.merchantId === Auth.currentUser.id).map(i => `
+            <div class="item-box" style="padding:8px;">
+              <div class="item-info">
+                <div class="item-title" style="font-size:12px;">${i.name}</div>
+                <div class="item-sub">${Utils.money(i.price)}</div>
+              </div>
+              <button onclick="Views.delMerchantProduct('${i.id}')" style="color:var(--danger); background:none; border:none;"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          `).join('') || '<p style="font-size:11px; color:var(--gray); text-align:center;">لا توجد منتجات مضافة بعد.</p>'}
+        </div>
+      </div>
+    `);
+  };
+
+  Views.addMerchantProduct = () => {
+    const name = document.getElementById('m-prod-name').value;
+    const price = Number(document.getElementById('m-prod-price').value);
+    if (!name || !price) return Utils.toast('أكمل البيانات', true);
+
+    DB.shopItems.push({ id: Utils.id(), merchantId: Auth.currentUser.id, merchantName: Auth.currentUser.name, name, price, category: 'متجر', icon: 'fa-shopping-bag' });
+    saveDB();
+    Views.merchant();
+    Utils.toast('تمت إضافة المنتج للمتجر بنجاح');
+  };
+
+  Views.delMerchantProduct = (id) => {
+    DB.shopItems = DB.shopItems.filter(i => i.id !== id);
+    saveDB();
+    Views.merchant();
+  };
+
+  // --- 3. تحديث واجهة التسوق للمستخدم (ترى منتجات التجار) ---
+  const origMarket = Views.market;
+  Views.market = () => {
+    origMarket();
+    
+    const el = document.getElementById('view-market');
+    if (DB.shopItems.length > 0) {
+      el.insertAdjacentHTML('beforeend', `
+        <h2 class="section-title mt-4"><i class="fa-solid fa-store" style="color:var(--primary);"></i> منتجات المتاجر المحلية</h2>
+        <div class="grid-2">
+          ${DB.shopItems.map(item => `
+            <div class="card text-center" style="padding:12px; margin-bottom:0;">
+              <div class="item-icon" style="margin:0 auto 8px; width:50px; height:50px; font-size:20px;"><i class="fa-solid fa-box"></i></div>
+              <h4 style="font-weight:900; margin:0; font-size:13px;">${item.name}</h4>
+              <div style="font-size:10px; color:var(--gray); margin:4px 0;">${item.merchantName}</div>
+              <div style="font-weight:900; color:var(--emerald); font-size:14px; margin-bottom:8px;">${Utils.money(item.price)}</div>
+              <button onclick="cart.add('${item.name}', ${item.price}, 'fa-box')" class="btn-action" style="width:100%; padding:6px; font-size:11px;">أضف للسلة</button>
+            </div>
+          `).join('')}
+        </div>
+      `);
+    }
+  };
+
+  // --- 4. متجر الجوائز (Rewards Shop) ---
+  Views.rewards = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const points = DB.loyalty[Auth.currentUser.id]?.points || 0;
+
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    let rewView = document.getElementById('view-rewards');
+    if (!rewView) {
+      rewView = document.createElement('section');
+      rewView.id = 'view-rewards';
+      rewView.className = 'view-section';
+      document.querySelector('main').appendChild(rewView);
+    }
+    rewView.classList.add('active');
+
+    rewView.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, #FEF3C7, #FDE68A); border-color:#FCD34D;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h2 style="margin:0; font-weight:900; color:#92400E;"><i class="fa-solid fa-gift"></i> متجر الجوائز</h2>
+            <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#B45309;">استبدل نقاطك بهدايا حقيقية.</p>
+          </div>
+          <div style="text-align:center; background:#fff; padding:8px 12px; border-radius:12px;">
+            <div style="font-size:20px; font-weight:900; color:var(--gold);">${points}</div>
+            <div style="font-size:10px; font-weight:900; color:var(--gray);">نقطة</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-list mt-4">
+        ${DB.rewardsShop.map(r => `
+          <div class="card" style="display:flex; gap:12px; align-items:center;">
+            <div style="width:50px; height:50px; background:${r.color}15; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:24px; color:${r.color}; flex-shrink:0;">
+              <i class="fa-solid ${r.icon}"></i>
+            </div>
+            <div style="flex:1;">
+              <h4 style="margin:0; font-weight:900; font-size:14px;">${r.title}</h4>
+              <div style="font-size:12px; font-weight:900; color:var(--gold); margin-top:4px;">${r.cost} نقطة</div>
+            </div>
+            <button onclick="Views.redeemReward('${r.id}')" class="btn-action" style="padding:8px 12px; font-size:11px; ${points < r.cost ? 'background:var(--gray-light); color:var(--gray);' : 'background:var(--gold);'}">استبدال</button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    const tabs = document.getElementById('super-tabs');
+    if (tabs && !document.getElementById('tab-rewards')) {
+      tabs.insertAdjacentHTML('beforeend', `<button id="tab-rewards" class="tab dynamic" data-sector="rewards" onclick="Views.rewards()"><i class="fa-solid fa-gift"></i> جوائز</button>`);
+    }
+  };
+
+  Views.redeemReward = (id) => {
+    const reward = DB.rewardsShop.find(r => r.id === id);
+    const points = DB.loyalty[Auth.currentUser.id]?.points || 0;
+    
+    if (points < reward.cost) return Utils.toast('نقاطك غير كافية', true);
+
+    DB.loyalty[Auth.currentUser.id].points -= reward.cost;
+    saveDB();
+    fireConfetti();
+    UI.renderHeader();
+    Views.rewards();
+
+    const couponCode = 'WASLA-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+    alert(`تم استبدال الجائزة بنجاح!\nكود الاستبدال الخاص بك: ${couponCode}\nأظهر هذا الكود للمتجر للحصول على الجائزة.`);
+  };
+
+  // --- 5. الاستشارات الطبية بالفيديو (Telemedicine Simulation) ---
+  const origMedical = Views.medical;
+  Views.medical = () => {
+    origMedical();
+    const el = document.getElementById('view-medical');
+    el.insertAdjacentHTML('afterbegin', `
+      <div class="card" style="background:linear-gradient(135deg, #E0F2FE, #BAE6FD); border-color:#7DD3FC; margin-bottom:16px; cursor:pointer;" onclick="Views.startVideoCall()">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:50px; height:50px; border-radius:50%; background:var(--sky); color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 4px 12px rgba(2,132,199,0.4);"><i class="fa-solid fa-video"></i></div>
+          <div>
+            <h3 style="margin:0; font-weight:900; color:#0369A1;">استشارة طبية بالفيديو</h3>
+            <p style="margin:4px 0 0; font-size:11px; font-weight:700; color:#0284C7;">تواصل مع طبيبك الآن مباشرة بدون مغادرة المنزل</p>
+          </div>
+        </div>
+      </div>
+    `);
+  };
+
+  Views.startVideoCall = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+
+    document.getElementById('modal-map-body').innerHTML = `
+      <div style="background:#000; border-radius:16px; overflow:hidden; position:relative; height:400px; display:flex; flex-direction:column; justify-content:space-between; padding:16px;">
+        <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+          <div style="width:80px; height:80px; border-radius:50%; background:var(--gray-light); display:flex; align-items:center; justify-content:center; font-size:40px; margin-bottom:16px;">👨‍⚕️</div>
+          <div style="color:#fff; font-size:18px; font-weight:900;">د. محمد الشريف</div>
+          <div style="color:#34D399; font-size:12px; font-weight:900; margin-top:4px;"><i class="fa-solid fa-circle" style="font-size:8px;"></i> متصل الآن</div>
+        </div>
+
+        <div style="position:absolute; top:16px; left:16px; width:80px; height:110px; background:#334155; border-radius:8px; border:2px solid #fff; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px; font-weight:900;">أنت</div>
+
+        <div style="position:relative; z-index:10; display:flex; justify-content:center; gap:16px; margin-top:auto;">
+          <button onclick="Utils.toast('تم كتم الصوت')" style="width:50px; height:50px; border-radius:50%; background:rgba(255,255,255,0.2); color:#fff; border:none; font-size:20px; cursor:pointer;"><i class="fa-solid fa-microphone-slash"></i></button>
+          <button onclick="Utils.closeModal('modal-map'); Utils.toast('تم إنهاء المكالمة');" style="width:50px; height:50px; border-radius:50%; background:var(--danger); color:#fff; border:none; font-size:20px; cursor:pointer;"><i class="fa-solid fa-phone-slash"></i></button>
+          <button onclick="Utils.toast('تم تشغيل الكاميرا')" style="width:50px; height:50px; border-radius:50%; background:rgba(255,255,255,0.2); color:#fff; border:none; font-size:20px; cursor:pointer;"><i class="fa-solid fa-video"></i></button>
+        </div>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  // --- 6. التنبيهات الجغرافية (Geofencing Simulation) ---
+  const triggerGeofenceAlert = () => {
+    if (!Auth.currentUser) return;
+    const places = [
+      'صيدلية النور (خصم 10%)',
+      'مطعم الشرقاوي (خصم 15%)',
+      'عيادة د. محمد الشريف (متاح الآن)',
+      'مركز صيانة كريم (فحص مجاني)'
+    ];
+    const randomPlace = places[Math.floor(Math.random() * places.length)];
+    
+    Notifier.push(Auth.currentUser.id, `📍 أنت بالقرب من ${randomPlace}! اضغط للاستفادة من العرض.`, false);
+  };
+
+  setInterval(triggerGeofenceAlert, 90000);
+
+  console.log('✅ WASLA PART 13 LOADED: Merchant Inventory, Rewards Shop, Telemedicine, Geofencing.');
+
+  UI.renderHeader();
+})();
+</script>
 </body>
 </html>
