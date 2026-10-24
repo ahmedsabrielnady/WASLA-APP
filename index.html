@@ -3,14 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>منصة وصلة | WASLA</title>
+<title>منصة وصلة | القطاع الطبي</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
 <style>
-  /* ==========================================================================
-     WASLA DESIGN SYSTEM (CSS Variables)
-     ========================================================================== */
   :root {
     --primary: #0B1220; --primary-light: #1E293B;
     --emerald: #059669; --emerald-light: #ECFDF5;
@@ -26,13 +23,11 @@
     --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
     --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
   }
-
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Cairo', sans-serif; }
   body { background: var(--bg); color: var(--primary); margin: 0; padding-bottom: 80px; overflow-x: hidden; }
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-thumb { background: var(--gray); border-radius: 10px; }
 
-  /* Header */
   .app-header { position: sticky; top: 0; z-index: 100; background: rgba(11,18,32,0.98); backdrop-filter: blur(10px); color: #fff; padding: 10px 16px; box-shadow: var(--shadow-md); }
   .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; }
   .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
@@ -46,13 +41,11 @@
   .btn-ui:active { transform: scale(0.95); }
   .btn-ui.primary { background: var(--emerald); border: none; }
   
-  /* Tabs */
   .super-tabs { display: flex; gap: 8px; padding: 12px; overflow-x: auto; scrollbar-width: none; background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 60px; z-index: 99; }
   .super-tabs::-webkit-scrollbar { display: none; }
   .tab { padding: 10px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 900; color: var(--gray); background: var(--gray-light); border: 1px solid var(--line); white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; font-family: inherit; }
   .tab.active { background: var(--primary); color: #fff; border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-md); }
 
-  /* Layout */
   .page-container { max-width: 800px; margin: 0 auto; padding: 16px; }
   .view-section { display: none; animation: fadeUp 0.4s ease; }
   .view-section.active { display: block; }
@@ -86,7 +79,6 @@
   .search-wrap i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 14px; }
   .search-wrap .input-field { padding-right: 40px; margin: 0; }
 
-  /* Modals & Sheets */
   .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 200; opacity: 0; pointer-events: none; transition: 0.3s; }
   .sheet-overlay.open { opacity: 1; pointer-events: auto; }
   .bottom-sheet { position: fixed; bottom: -100%; left: 0; right: 0; background: #fff; border-radius: var(--radius-lg) var(--radius-lg) 0 0; z-index: 201; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); }
@@ -150,7 +142,6 @@
   <section class="view-section" id="view-dashboard"></section>
 </main>
 
-<!-- Modals -->
 <div class="modal-wrap" id="modal-auth"><div class="modal-box" id="modal-auth-body"></div></div>
 <div class="modal-wrap" id="modal-book"><div class="modal-box" id="modal-book-body"></div></div>
 <div class="modal-wrap" id="modal-payment"><div class="modal-box" id="modal-payment-body"></div></div>
@@ -160,7 +151,7 @@
 
 <script>
 /* ==========================================================================
-   WASLA — PART 1: CORE + MEDICAL SECTOR
+   WASLA — PART 1: CORE + MEDICAL SECTOR (Professional Edition)
    ========================================================================== */
 
 const Utils = {
@@ -201,7 +192,7 @@ function playSound(isAlert = false) {
 }
 
 /* Database */
-const DB_KEY = 'wasla_db_v1';
+const DB_KEY = 'wasla_med_v1';
 let DB = JSON.parse(localStorage.getItem(DB_KEY));
 
 if (!DB) {
@@ -649,7 +640,6 @@ const MedicalModule = {
     if (!Auth.currentUser) return AuthUI.open();
     const doc = DB.doctors.find(d => d.id === docId);
     
-    // Generate slots based on avgTime
     const slots = [];
     for (let i = 0; i < 8; i++) {
       const totalMin = 17 * 60 + i * doc.avgTime;
@@ -829,7 +819,7 @@ const MedicalModule = {
   }
 };
 
-/* Other Views */
+/* Other Views (Placeholders for now) */
 const Views = {
   medical: () => MedicalModule.render(),
 
@@ -849,16 +839,6 @@ const Views = {
           <i class="fa-solid fa-basket-shopping" style="font-size:32px; color:var(--emerald); margin-bottom:8px;"></i>
           <h4 style="font-weight:900; font-size:13px; margin:0;">بقالة وسوبرماركت</h4>
           <div style="font-size:11px; color:var(--gray);">15-25 دقيقة</div>
-        </div>
-        <div class="card" onclick="cart.add('ملابس', 300, 'fa-shirt'); cart.toggle();" style="cursor:pointer; text-align:center; padding:20px;">
-          <i class="fa-solid fa-shirt" style="font-size:32px; color:var(--indigo); margin-bottom:8px;"></i>
-          <h4 style="font-weight:900; font-size:13px; margin:0;">ملابس</h4>
-          <div style="font-size:11px; color:var(--gray);">توصيل سريع</div>
-        </div>
-        <div class="card" onclick="cart.add('خضار وفاكهة', 100, 'fa-carrot'); cart.toggle();" style="cursor:pointer; text-align:center; padding:20px;">
-          <i class="fa-solid fa-carrot" style="font-size:32px; color:var(--amber); margin-bottom:8px;"></i>
-          <h4 style="font-weight:900; font-size:13px; margin:0;">خضار وفاكهة</h4>
-          <div style="font-size:11px; color:var(--gray);">طازج يومياً</div>
         </div>
       </div>
     `;
