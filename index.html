@@ -5498,5 +5498,243 @@ document.addEventListener('DOMContentLoaded', () => {
 
 })();
 </script>
+  <script>
+/* ================================================================
+   WASLA PHASE 12 — TOTAL UI REFACTOR & STABILITY (GOD MODE)
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const NS = 'wasla_v2_';
+  const S = {
+    get(k, d) { try { const r = localStorage.getItem(NS + k); return r ? JSON.parse(r) : d; } catch (_) { return d; } },
+    set(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); return true; } catch (_) { return false; } }
+  };
+
+  /* ============== 1. حقن CSS لضبط التصميم ومنع التداخل ============== */
+  const styleFixes = document.createElement('style');
+  styleFixes.innerHTML = `
+    /* ضبط الهيدر ليكون مرن ولا يتكسر */
+    .wasla-header-inner { flex-wrap: nowrap !important; overflow-x: auto !important; align-items: center !important; }
+    #header-actions { display: flex !important; align-items: center !important; gap: 8px !important; flex-wrap: nowrap !important; }
+    
+    /* إخفاء أي جرس عائم قديم لتجنب التداخل */
+    #floating-bell, #float-notif-panel { display: none !important; }
+
+    /* ضبط التبويبات (Super Tabs) لتكون شبكة متناسقة (Grid) بدلاً من التداخل */
+    .super-tabs { 
+      display: grid !important; 
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; 
+      gap: 8px !important; 
+      padding: 10px !important;
+    }
+    .super-tab { 
+      flex-direction: row !important; 
+      justify-content: center !important; 
+      align-items: center !important;
+      text-align: center !important;
+      padding: 10px !important;
+    }
+    .super-tab i { font-size: 14px !important; }
+    .super-tab span { font-size: 12px !important; white-space: nowrap !important; }
+
+    /* إخفاء أي عناصر زائدة */
+    #founder-dash-header-btn { display: none !important; } /* سنعتمد على تبويب لوحة المؤسس */
+  `;
+  document.head.appendChild(styleFixes);
+
+
+  /* ============== 2. إعادة بناء الهيدر (Header Rebuild) ============== */
+  function rebuildHeaderCleanly() {
+    const headerActions = document.getElementById('header-actions');
+    if (!headerActions) return;
+
+    const session = S.get('session', null);
+    let user = null;
+    if (session && session.userId) {
+      user = S.get('users', []).find(u => u.id === session.userId);
+    }
+
+    if (!user) {
+      headerActions.innerHTML = `
+        <button class="login-btn" onclick="window.openAuthModal('login')" style="padding:8px 16px;font-size:13px;">
+          <i class="fa-solid fa-right-to-bracket"></i> دخول
+        </button>
+      `;
+      return;
+    }
+
+    const isFounder = user.role === 'founder';
+
+    // بناء الهيدر النظيف
+    headerActions.innerHTML = `
+      <!-- الرقم التعريفي -->
+      <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);padding:6px 10px;border-radius:10px;font-size:11px;font-weight:900;color:#34D399;display:flex;align-items:center;gap:6px;">
+        <i class="fa-solid fa-id-card"></i> ${user.waslaId}
+      </div>
+
+      <!-- جرس الإشعارات (مدمج هنا) -->
+      <div id="notif-bell-container" style="position:relative;">
+        <button onclick="window.toggleNotifCenter()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+          <i class="fa-solid fa-bell"></i>
+          <span id="notif-badge" style="position:absolute;top:-4px;right:-4px;background:#E11D48;color:#fff;min-width:16px;height:16px;border-radius:99px;font-size:10px;font-weight:900;display:none;align-items:center;justify-content:center;border:2px solid #0B1220;">0</span>
+        </button>
+        <!-- Dropdown الإشعارات -->
+        <div id="notif-dropdown" style="display:none;position:absolute;top:45px;left:0;width:300px;max-height:400px;overflow-y:auto;background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,0.2);border:1px solid #E2E8F0;z-index:200;text-align:right;">
+          <div style="padding:12px;border-bottom:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;background:#F8FAFC;border-radius:16px 16px 0 0;">
+            <strong style="font-size:13px;font-weight:900;color:#0B1220;">الإشعارات</strong>
+            <button onclick="window.clearNotifications()" style="background:none;border:none;color:#E11D48;font-size:11px;font-weight:800;cursor:pointer;">مسح</button>
+          </div>
+          <div id="notif-list" style="padding:8px;">
+            <div style="text-align:center;padding:20px;color:#94A3B8;font-size:12px;font-weight:700;">لا توجد إشعارات</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- زر لوحة التحكم للمؤسس -->
+      ${isFounder ? `
+        <button onclick="window.switchSector('founder')" style="background:linear-gradient(135deg,#D97706,#EA580C);color:#fff;border:none;padding:8px 12px;border-radius:10px;font-family:inherit;font-weight:900;font-size:11.5px;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(234,88,12,0.3);">
+          <i class="fa-solid fa-crown"></i> لوحة التحكم
+        </button>
+      ` : ''}
+
+      <!-- زر السلة -->
+      <button onclick="window.openCart()" style="position:relative;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:900;font-size:11.5px;display:flex;align-items:center;gap:6px;transition:background .2s;">
+        <i class="fa-solid fa-basket-shopping"></i> حجوزاتي
+        <span id="header-cart-count" style="position:absolute;top:-4px;right:-4px;background:#EA580C;color:#fff;min-width:16px;height:16px;border-radius:99px;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid #0B1220;">${S.get('cart', []).length}</span>
+      </button>
+
+      <!-- الملف الشخصي والخروج -->
+      <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);padding:4px;border-radius:12px;">
+        <div onclick="window.switchSector('${isFounder ? 'founder' : 'dashboard'}')" style="cursor:pointer;display:flex;align-items:center;gap:6px;padding-left:6px;">
+          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#059669,#10B981);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:900;">
+            ${user.name.charAt(0)}
+          </div>
+          <span style="font-size:11px;font-weight:900;color:#fff;display:none;@media(min-width:400px){display:block;}">${user.name.split(' ')[0]}</span>
+        </div>
+        <button onclick="window.Auth.logout()" style="background:#E11D48;color:#fff;border:none;width:28px;height:28px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <i class="fa-solid fa-power-off" style="font-size:11px;"></i>
+        </button>
+      </div>
+    `;
+
+    // إعادة ربط الجرس بالبيانات
+    if (window.WaslaNotifs) window.WaslaNotifs.render();
+  }
+
+  /* ============== 3. إعادة بناء التبويبات (Super Tabs Rebuild) ============== */
+  function rebuildSuperTabs() {
+    const tabsContainer = document.querySelector('.super-tabs');
+    if (!tabsContainer) return;
+
+    const session = S.get('session', null);
+    let user = null;
+    if (session && session.userId) {
+      user = S.get('users', []).find(u => u.id === session.userId);
+    }
+    const isFounder = user && user.role === 'founder';
+
+    // التبويبات الأساسية
+    let tabsHTML = `
+      <button class="super-tab active" data-sector="medical" onclick="window.switchSector('medical')"><i class="fa-solid fa-stethoscope"></i> القطاع الطبي</button>
+      <button class="super-tab" data-sector="market" onclick="window.switchSector('market')"><i class="fa-solid fa-cart-shopping"></i> التسوق</button>
+      <button class="super-tab" data-sector="cars" onclick="window.switchSector('cars')"><i class="fa-solid fa-car-side"></i> السيارات</button>
+      <button class="super-tab" data-sector="home" onclick="window.switchSector('home')"><i class="fa-solid fa-screwdriver-wrench"></i> الصيانة</button>
+      <button class="super-tab" data-sector="onboarding" onclick="window.openOnboardingModal()"><i class="fa-solid fa-handshake"></i> انضم إلينا</button>
+    `;
+
+    // تبويبات خاصة بالمؤسس والطبيب
+    if (isFounder) {
+      tabsHTML += `
+        <button class="super-tab" data-sector="founder" onclick="window.switchSector('founder')" style="border:1px solid #EA580C;color:#EA580C;"><i class="fa-solid fa-crown"></i> لوحة المؤسس</button>
+        <button class="super-tab" data-sector="doctor-portal" onclick="window.switchSector('doctor-portal')" style="border:1px solid #3730A3;color:#3730A3;"><i class="fa-solid fa-user-md"></i> بوابة الطبيب</button>
+      `;
+    } else if (user && user.role === 'patient') {
+      tabsHTML += `
+        <button class="super-tab" data-sector="dashboard" onclick="window.switchSector('dashboard')"><i class="fa-solid fa-notes-medical"></i> ملفي الطبي</button>
+      `;
+    }
+
+    tabsContainer.innerHTML = tabsHTML;
+    
+    // ضبط التبويب النشط
+    const currentSector = document.querySelector('.sector-view.active')?.id.replace('sector-', '') || 'medical';
+    document.querySelectorAll('.super-tab').forEach(t => {
+      if (t.dataset.sector === currentSector) t.classList.add('active');
+      else t.classList.remove('active');
+    });
+  }
+
+  /* ============== 4. توحيد دالة التنقل (Routing Fix) ============== */
+  window.switchSector = function(sector) {
+    // إخفاء كل الأقسام
+    document.querySelectorAll('.sector-view').forEach(v => {
+      v.classList.add('hidden');
+      v.classList.remove('active');
+    });
+
+    // البحث عن القسم المطلوب أو إنشاؤه
+    let targetView = document.getElementById('sector-' + sector);
+    if (!targetView) {
+      targetView = document.createElement('section');
+      targetView.id = 'sector-' + sector;
+      targetView.className = 'sector-view';
+      document.querySelector('.page-shell').appendChild(targetView);
+    }
+    targetView.classList.remove('hidden');
+    targetView.classList.add('active');
+
+    // تحديث شكل التبويبات
+    document.querySelectorAll('.super-tab').forEach(t => {
+      if (t.dataset.sector === sector) t.classList.add('active');
+      else t.classList.remove('active');
+    });
+
+    // تحديث محتوى القسم حسب النوع
+    if (sector === 'market' && typeof window.renderFoodSector === 'function') window.renderFoodSector();
+    if (sector === 'home' && typeof window.renderMaintenanceSector === 'function') window.renderMaintenanceSector();
+    if (sector === 'cars' && typeof window.renderCarsSector === 'function') window.renderCarsSector();
+    if (sector === 'dashboard' && typeof window.renderPatientDashboard === 'function') window.renderPatientDashboard();
+    if (sector === 'founder' && typeof window.renderFounderDashboard === 'function') window.renderFounderDashboard();
+    if (sector === 'doctor-portal' && typeof window.renderDoctorPortal === 'function') window.renderDoctorPortal();
+    
+    // التمرير لأعلى
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  /* ============== 5. إعادة تعريف دوال الدخول لضمان التحديث ============== */
+  const originalRenderHeader = window.renderHeaderActions;
+  window.renderHeaderActions = function() {
+    rebuildHeaderCleanly();
+    rebuildSuperTabs();
+  };
+
+  // بمجرد تسجيل الدخول، نعيد بناء الواجهة
+  const originalSubmitAuth = window.submitAuth;
+  window.submitAuth = function(mode) {
+    originalSubmitAuth(mode);
+    // ننتظر قليلاً حتى يتم حفظ الجلسة، ثم نعيد البناء
+    setTimeout(() => {
+      rebuildHeaderCleanly();
+      rebuildSuperTabs();
+      window.switchSector('founder'); // توجيه المؤسس للوحة التحكم فوراً
+    }, 200);
+  };
+
+  /* ============== 6. التشغيل (Init) ============== */
+  function initPhase12() {
+    rebuildHeaderCleanly();
+    rebuildSuperTabs();
+    console.log('✅ WASLA Phase 12 loaded — UI perfectly structured.');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initPhase12, 100));
+  } else {
+    setTimeout(initPhase12, 100);
+  }
+
+})();
+</script>
 </body>
 </html>
