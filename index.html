@@ -6664,5 +6664,233 @@ window.onload = () => {
   router.navigate('medical'); // العودة للصفحة الرئيسية
 })();
 </script>
+  <script>
+/* ==========================================================================
+   WASLA PART 20 — MEDICAL MASTERCLASS (CLINIC OS, AI, WHATSAPP, QUEUE)
+   ========================================================================== */
+(function() {
+  'use strict';
+
+  // =========================================================================
+  // 1. إصلاحات أساسية وتنظيف
+  // =========================================================================
+  // مسح أي تكرار في الهيدر والتبويبات
+  ['app-header', 'super-tabs'].forEach(cls => {
+    const els = document.querySelectorAll('.' + cls);
+    els.forEach((el, index) => { if (index > 0) el.remove(); });
+  });
+
+  // =========================================================================
+  // 2. توسيع قاعدة البيانات الطبية
+  // =========================================================================
+  if (!DB.medications) DB.medications = [];
+  if (!DB.referrals) DB.referrals = [];
+  
+  // تحديث بيانات الأطباء بحالة "متاح/مشغول"
+  DB.doctors.forEach(doc => {
+    if (!doc.status) doc.status = Math.random() > 0.5 ? 'available' : 'busy';
+  });
+
+  // =========================================================================
+  // 3. المساعد الصوتي للطبيب (AI Medical Scribe - محاكاة)
+  // =========================================================================
+  Views.startVoiceScribe = (patientId) => {
+    const modalBody = document.getElementById('modal-map-body');
+    modalBody.innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:20px;">
+        <div style="width:70px; height:70px; background:var(--danger); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px; animation: pulse 1.5s infinite;"><i class="fa-solid fa-microphone"></i></div>
+        <h3 style="margin:0; font-weight:900;">المساعد الصوتي (AI Scribe)</h3>
+        <p style="margin:4px 0 0; font-size:12px; color:var(--gray);">تحدث وسيتم تحويل كلامك إلى روشتة إلكترونية فوراً.</p>
+      </div>
+      
+      <div style="background:var(--gray-light); border-radius:12px; padding:16px; min-height:120px; margin-bottom:20px;">
+        <div id="scribe-text" style="font-size:14px; font-weight:700; color:var(--gray);">جاري الاستماع...</div>
+      </div>
+
+      <div style="display:flex; gap:8px;">
+        <button onclick="Views.saveScribeNote('${patientId}')" class="btn-action" style="flex:1; background:var(--emerald);">حفظ الروشتة</button>
+        <button onclick="Utils.closeModal('modal-map')" class="btn-action" style="flex:1; background:var(--gray-light); color:var(--primary); border:1px solid var(--line);">إلغاء</button>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+
+    // محاكاة تحويل الصوت إلى نص
+    setTimeout(() => {
+      const scribeEl = document.getElementById('scribe-text');
+      scribeEl.style.color = 'var(--primary)';
+      scribeEl.innerHTML = `"المريض يشكو من <strong>صداع شديد</strong> منذ يومين، مع <strong>ارتفاع في درجة الحرارة</strong>.<br><br>التشخيص: <strong>نزلة برد</strong>.<br>الروشتة: <strong>بانادول كل 8 ساعات</strong> + <strong>فيتامين سي</strong>."`;
+      scribeEl.dataset.text = "المريض يشكو من صداع شديد منذ يومين، مع ارتفاع في درجة الحرارة. التشخيص: نزلة برد. الروشتة: بانادول كل 8 ساعات + فيتامين سي.";
+    }, 2500);
+  };
+
+  Views.saveScribeNote = (patientId) => {
+    const scribeEl = document.getElementById('scribe-text');
+    const noteText = scribeEl.dataset.text;
+    if (!noteText) return Utils.toast('لم يتم التعرف على كلام', true);
+
+    if (!DB.emrNotes) DB.emrNotes = [];
+    DB.emrNotes.push({ id: Utils.id(), patientId, doctorId: Auth.currentUser.id, note: noteText, ts: Date.now() });
+    
+    // إضافة تذكير أدوية (Medication Reminder)
+    DB.medications.push({ id: Utils.id(), patientId, text: "بانادول كل 8 ساعات", startDate: Date.now(), ts: Date.now() });
+
+    saveDB();
+    Notifier.push(patientId, `💊 تم إضافة روشتة جديدة لك. يرجى الالتزام بالجرعات.`, false);
+    
+    Utils.closeModal('modal-map');
+    Utils.toast('تم حفظ الروشتة بنجاح!');
+    Views.doctor();
+  };
+
+  // =========================================================================
+  // 4. إصلاح وتطوير الحجز (Booking)
+  // =========================================================================
+  Views.openBooking = (docId) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const doc = DB.doctors.find(d => d.id === docId);
+    
+    const bookedSlots = DB.appointments
+      .filter(a => a.doctorId === docId && a.status !== 'cancelled' && a.status !== 'completed')
+      .map(a => a.slot);
+
+    const availableSlots = doc.schedule.filter(slot => !bookedSlots.includes(slot));
+
+    let slotsHTML = availableSlots.length > 0 
+      ? availableSlots.map((slot, idx) => `
+          <label style="border:2px solid var(--emerald); background:var(--emerald-light); padding:14px; border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-weight:900; font-size:14px; color:var(--emerald);">
+            <input type="radio" name="slot" value="${slot}" ${idx === 0 ? 'checked' : ''} class="hidden"> ${slot}
+          </label>
+        `).join('')
+      : `<div style="grid-column: 1 / -1; text-align:center; color:var(--danger); font-weight:900; font-size:14px; padding:16px;">عذراً، لا توجد مواعيد متاحة اليوم. جرب غداً.</div>`;
+
+    document.getElementById('modal-book-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-book')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 4px; font-weight:900; font-size:20px;">${doc.name}</h3>
+      <p style="margin:0 0 20px; font-size:13px; color:var(--gray); font-weight:700;">${doc.spec} • الكشف: ${Utils.money(doc.price)}</p>
+      
+      <label style="font-size:13px; font-weight:900; display:block; margin-bottom:12px;">اختر الموعد:</label>
+      <div class="grid-2" style="margin-bottom:24px;">${slotsHTML}</div>
+      
+      <button onclick="Views.confirmBooking('${doc.id}')" class="btn-action" style="width:100%; padding:16px; font-size:16px;" ${availableSlots.length === 0 ? 'disabled style="opacity:0.5; width:100%; padding:16px;"' : ''}>تأكيد الحجز</button>
+    `;
+    Utils.openModal('modal-book');
+  };
+
+  Views.confirmBooking = (docId) => {
+    const doc = DB.doctors.find(d => d.id === docId);
+    const slotInput = document.querySelector('input[name="slot"]:checked');
+    if(!slotInput) return Utils.toast('لا توجد مواعيد متاحة', true);
+
+    const apptId = Utils.id();
+    
+    DB.appointments.push({ 
+      id: apptId, patientId: Auth.currentUser.id, patientName: Auth.currentUser.name, 
+      doctorId: doc.id, doctorName: doc.name, slot: slotInput.value, price: doc.price, 
+      status: 'waiting', followUp: false, ts: Date.now() 
+    });
+
+    if (!DB.loyalty[Auth.currentUser.id]) DB.loyalty[Auth.currentUser.id] = { points: 0 };
+    DB.loyalty[Auth.currentUser.id].points += 50;
+    saveDB();
+    fireConfetti();
+    Utils.closeModal('modal-book'); 
+    
+    // رسالة تأكيد الواتساب
+    const waMsg = `مرحباً، تم تأكيد حجزك.\n👨‍⚕️ الطبيب: ${doc.name}\n⏰ الموعد: ${slotInput.value}\n💰 السعر: ${doc.price} ج.م\nرقم الحجز: ${apptId.substring(0,6).toUpperCase()}`;
+    const waUrl = `https://wa.me/2${Auth.currentUser.phone || '01000000000'}?text=${encodeURIComponent(waMsg)}`;
+
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center;">
+        <div style="width:70px; height:70px; background:var(--emerald-light); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px;"><i class="fa-solid fa-check"></i></div>
+        <h3 style="margin:0 0 8px; font-weight:900; color:var(--emerald);">تم الحجز!</h3>
+        <a href="${waUrl}" target="_blank" class="btn-action" style="width:100%; background:#25D366; text-decoration:none; margin-bottom:12px;"><i class="fa-brands fa-whatsapp"></i> تأكيد واتساب</a>
+        <button onclick="Utils.closeModal('modal-map'); router.navigate('dashboard');" class="btn-action" style="width:100%; background:var(--primary);">لوحة التحكم</button>
+      </div>
+    `;
+    Utils.openModal('modal-map');
+  };
+
+  // =========================================================================
+  // 5. الطابور الحي (Live Queue)
+  // =========================================================================
+  const origDashboard = Views.dashboard;
+  Views.dashboard = () => {
+    origDashboard();
+    if (!Auth.currentUser) return;
+
+    const el = document.getElementById('view-dashboard');
+    const activeAppts = DB.appointments.filter(a => a.patientId === Auth.currentUser.id && a.status !== 'completed');
+
+    if (activeAppts.length > 0) {
+      let queueHTML = activeAppts.map(appt => {
+        const ahead = DB.appointments.filter(a => a.doctorId === appt.doctorId && a.status === 'waiting' && a.ts < appt.ts).length;
+        return `
+          <div class="card" style="border-right:4px solid ${appt.status === 'next' ? 'var(--amber)' : 'var(--sky)'}; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <div><h4 style="margin:0; font-weight:900; font-size:16px;">${appt.doctorName}</h4><p style="margin:4px 0 0; font-size:12px; color:var(--gray);">${appt.slot}</p></div>
+              <span style="font-size:11px; font-weight:900; padding:4px 10px; border-radius:6px; background:${appt.status === 'next' ? '#FEF3C7' : 'var(--sky-light)'}; color:${appt.status === 'next' ? '#92400E' : 'var(--sky)'};">
+                ${appt.status === 'next' ? 'دورك الآن' : 'انتظار'}
+              </span>
+            </div>
+            ${appt.status === 'waiting' ? `<div style="background:var(--gray-light); padding:12px; border-radius:8px; text-align:center; font-weight:900;">فاضل عليك ${ahead > 0 ? ahead : 'أنت التالي'} حالات</div>` : `<div style="background:var(--amber-light); padding:12px; border-radius:8px; text-align:center; font-weight:900; color:#9A3412;">🚨 توجه للطبيب الآن</div>`}
+            ${appt.followUp ? `<button onclick="Views.openBooking('${appt.doctorId}')" class="btn-action" style="width:100%; margin-top:12px; background:var(--emerald);">حجز متابعة</button>` : ''}
+          </div>
+        `;
+      }).join('');
+      el.insertAdjacentHTML('afterbegin', `<h3 class="section-title" style="color:var(--sky);"><i class="fa-solid fa-users-viewfinder"></i> تتبع الطابور</h3>${queueHTML}`);
+    }
+  };
+
+  // =========================================================================
+  // 6. بوابة الطبيب (Doctor Controls)
+  // =========================================================================
+  const origDoctor = Views.doctor;
+  Views.doctor = () => {
+    origDoctor();
+    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return;
+    
+    const el = document.getElementById('view-doctor');
+    const myAppts = DB.appointments.filter(a => a.doctorName === Auth.currentUser.name && a.status !== 'completed').sort((a,b) => a.ts - b.ts);
+
+    let queueHTML = myAppts.map(appt => `
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px; margin-bottom:8px; border-right:4px solid ${appt.status === 'next' ? 'var(--emerald)' : 'var(--line)'};">
+        <div><h4 style="margin:0; font-weight:900; font-size:14px;">${appt.patientName}</h4><p style="margin:4px 0 0; font-size:11px; color:var(--gray);">${appt.slot}</p></div>
+        <div style="display:flex; gap:6px;">
+          ${appt.status === 'waiting' ? `<button onclick="Views.callPatient('${appt.id}')" class="btn-action" style="padding:6px 12px; font-size:11px; background:var(--amber);">استدعاء</button>` : `<button onclick="Views.finishPatient('${appt.id}')" class="btn-action" style="padding:6px 12px; font-size:11px; background:var(--emerald);">إنهاء</button>`}
+          <button onclick="Views.startVoiceScribe('${appt.patientId}')" class="btn-action" style="padding:6px 12px; font-size:11px; background:var(--indigo);"><i class="fa-solid fa-microphone"></i></button>
+        </div>
+      </div>
+    `).join('');
+
+    el.insertAdjacentHTML('afterbegin', `<h3 class="section-title mt-4"><i class="fa-solid fa-list-ol" style="color:var(--amber);"></i> طابور العيادة</h3><div class="card">${queueHTML || '<p style="text-align:center; color:var(--gray);">لا يوجد مرضى.</p>'}</div>`);
+  };
+
+  Views.callPatient = (apptId) => {
+    const appt = DB.appointments.find(a => a.id === apptId);
+    if (!appt) return;
+    appt.status = 'next'; saveDB();
+    Notifier.push(appt.patientId, `🚨 دورك الآن يا ${appt.patientName}! توجه لغرفة الطبيب.`, true);
+    Utils.toast('تم إرسال تنبيه للمريض');
+    Views.doctor();
+  };
+
+  Views.finishPatient = (apptId) => {
+    const appt = DB.appointments.find(a => a.id === apptId);
+    if (!appt) return;
+    const needsFollowUp = confirm('هل يحتاج المريض لمتابعة؟');
+    appt.status = 'completed'; appt.followUp = needsFollowUp; saveDB();
+    Utils.toast('تم إنهاء الكشف');
+    Views.doctor();
+  };
+
+  console.log('✅ WASLA PART 20 LOADED: Medical Masterclass, AI Scribe, Live Queue, WhatsApp Confirmation.');
+
+  UI.renderHeader();
+  if (Auth.currentUser && Auth.currentUser.role === 'patient') router.navigate('dashboard');
+  else router.navigate('medical');
+})();
+</script>
 </body>
 </html>
