@@ -4843,5 +4843,136 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('✅ WASLA Phase 8 loaded — Payment Gateway (Cash, Card, Wallet, InstaPay) active.');
 })();
 </script>
+  <script>
+/* ================================================================
+   WASLA PHASE 9 — FOUNDER AUTH OVERRIDE (NUCLEAR FIX)
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const NS = 'wasla_v2_';
+
+  // 1. تدمير ذاكرة الدخول القديمة بالكامل
+  localStorage.removeItem(NS + 'users');
+  localStorage.removeItem(NS + 'session');
+
+  // 2. زرع حساب المؤسس الوحيد
+  const founderUser = {
+    id: 'usr-founder',
+    phone: '01068990089',
+    name: 'أحمد صبري (المؤسس)',
+    role: 'founder',
+    waslaId: 'WASLA-00001',
+    salt: 'founder-salt',
+    passwordHash: 'override',
+    createdAt: Date.now(),
+    emr: { bloodType:'O+', allergies:[], chronic:[], vitals:[], prescriptions:[], labResults:[], visits:[] }
+  };
+  
+  localStorage.setItem(NS + 'users', JSON.stringify([founderUser]));
+
+  // 3. اعتراض دالة الدخول (تجاوز أي تشفير)
+  window.submitAuth = function(mode) {
+    const phoneEl = document.getElementById('auth-phone');
+    const passwordEl = document.getElementById('auth-password');
+    const errEl = document.getElementById('auth-error');
+    
+    if (!phoneEl || !passwordEl) return;
+    
+    const phone = phoneEl.value.trim();
+    const password = passwordEl.value;
+
+    // التحقق من بيانات المؤسس
+    if (phone === '01068990089' && password === 'As123789456*') {
+      // إنشاء جلسة دخول صالحة لمدة 30 يوماً
+      localStorage.setItem(NS + 'session', JSON.stringify({
+        userId: founderUser.id,
+        token: 'founder-super-token',
+        expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000)
+      }));
+
+      // إغلاق النافذة وتحديث الواجهة
+      if (typeof window.closeModal === 'function') window.closeModal('auth-modal');
+      if (typeof window.renderHeaderActions === 'function') window.renderHeaderActions();
+      if (typeof window.toast === 'function') window.toast('👑 أهلاً بك سيادة المؤسس أحمد صبري');
+      
+      // توجيه فوري إلى لوحة المؤسس
+      setTimeout(() => {
+        if (typeof window.switchSector === 'function') window.switchSector('founder');
+        if (typeof window.renderFounderDashboard === 'function') window.renderFounderDashboard();
+      }, 100);
+      
+      return;
+    }
+
+    // في حالة إدخال خطأ
+    if (errEl) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'بيانات غير صحيحة. تأكد من رقم الموبايل (01068990089) وكلمة السر.';
+    }
+  };
+
+  // 4. تجاوز دالة Auth.currentUser لضمان بقاء الجلسة
+  if (typeof window.Auth !== 'undefined') {
+    window.Auth.currentUser = function() {
+      const s = JSON.parse(localStorage.getItem(NS + 'session') || 'null');
+      if (!s) return null;
+      if (s.expiresAt < Date.now()) {
+        localStorage.removeItem(NS + 'session');
+        return null;
+      }
+      return founderUser;
+    };
+  }
+
+  // 5. إضافة "زر طوارئ" داخل شاشة الدخول لتسهيل الأمر عليك
+  setInterval(() => {
+    const modalBody = document.getElementById('auth-modal-body');
+    if (modalBody && !document.getElementById('emergency-founder-btn')) {
+      const btn = document.createElement('button');
+      btn.id = 'emergency-founder-btn';
+      btn.style = 'width:100%;margin-top:15px;background:#0B1220;color:#fff;padding:12px;border-radius:12px;font-family:Cairo;font-weight:900;font-size:13px;cursor:pointer;border:2px solid #3730A3;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;';
+      btn.innerHTML = '<i class="fa-solid fa-crown" style="color:#FBBF24;"></i> دخول فوري كـ مؤسس (تجاوز)';
+      
+      btn.onmouseover = () => btn.style.background = '#14213A';
+      btn.onmouseout = () => btn.style.background = '#0B1220';
+
+      btn.onclick = () => {
+        document.getElementById('auth-phone').value = '01068990089';
+        document.getElementById('auth-password').value = 'As123789456*';
+        window.submitAuth('login');
+      };
+      
+      modalBody.appendChild(btn);
+    }
+  }, 1000);
+
+  // 6. إضافة زر "لوحة المؤسس" ثابت في الهيدر لسهولة الوصول
+  setInterval(() => {
+    const headerActions = document.getElementById('header-actions');
+    const user = JSON.parse(localStorage.getItem(NS + 'session') || 'null');
+    
+    if (headerActions && user && !document.getElementById('founder-dash-header-btn')) {
+      const fBtn = document.createElement('button');
+      fBtn.id = 'founder-dash-header-btn';
+      fBtn.style = 'background:linear-gradient(135deg,#7C2D12,#EA580C);color:#fff;border:none;padding:8px 12px;border-radius:10px;font-family:Cairo;font-weight:900;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(234,88,12,.3);margin-left:5px;';
+      fBtn.innerHTML = '<i class="fa-solid fa-chart-pie"></i> لوحة التحكم';
+      fBtn.onclick = () => {
+        if (typeof window.switchSector === 'function') window.switchSector('founder');
+      };
+      
+      // إضافته قبل زر تسجيل الخروج
+      const logoutBtn = headerActions.querySelector('.login-btn[style*="DC2626"]');
+      if (logoutBtn) {
+        headerActions.insertBefore(fBtn, logoutBtn);
+      } else {
+        headerActions.appendChild(fBtn);
+      }
+    }
+  }, 1000);
+
+  console.log('✅ WASLA Phase 9 loaded — Founder Auth Override Active.');
+})();
+</script>
 </body>
 </html>
