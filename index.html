@@ -4974,5 +4974,347 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('✅ WASLA Phase 9 loaded — Founder Auth Override Active.');
 })();
 </script>
+  <script>
+/* ================================================================
+   WASLA PHASE 10 — GOD MODE ADMIN, AUDIO ENGINE, UX & BUG FIXES
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const NS = 'wasla_v2_';
+  const S = {
+    get(k, d) { try { const r = localStorage.getItem(NS + k); return r ? JSON.parse(r) : d; } catch (_) { return d; } },
+    set(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); return true; } catch (_) { return false; } }
+  };
+
+  /* ============== 1. محرك الصوت (Audio Notification Engine) ============== */
+  // توليد نغمة "رنة" حقيقية بدون الحاجة لملفات خارجية
+  window.playWaslaChime = function(type = 'info') {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      if (type === 'alert') {
+        // نغمة تنبيه قوية (دورك الآن)
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
+        osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.5, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.4);
+      } else {
+        // نغمة هادئة (إشعار عادي)
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(660, ctx.currentTime); // E5
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.3);
+      }
+    } catch (e) { console.log('Audio blocked by browser'); }
+  };
+
+  // ربط الصوت بنظام الإشعارات الحالي
+  const originalNotifAdd = window.WaslaFloatNotifs?.add || function(){};
+  if (window.WaslaFloatNotifs) {
+    window.WaslaFloatNotifs.add = function(text, type = 'info') {
+      originalNotifAdd.call(this, text, type);
+      window.playWaslaChime(type); // تشغيل الصوت مع كل إشعار
+    };
+  }
+
+  /* ============== 2. حل مشكلة التداخل (تغطية الجرس للزراير) ============== */
+  function fixUXOverlaps() {
+    const floatBell = document.getElementById('floating-bell');
+    if (floatBell) {
+      floatBell.style.left = 'auto';
+      floatBell.style.right = '20px';
+      floatBell.style.top = '85px'; // رفعه لأعلى ليكون تحت الهيدر مباشرة
+      floatBell.style.bottom = 'auto';
+    }
+    const floatPanel = document.getElementById('float-notif-panel');
+    if (floatPanel) {
+      floatPanel.style.left = 'auto';
+      floatPanel.style.right = '20px';
+      floatPanel.style.top = '145px';
+      floatPanel.style.bottom = 'auto';
+    }
+  }
+
+  /* ============== 3. إصلاح "سجل دخول أولاً" وحجز العيادات ============== */
+  // إعادة كتابة دالة الحجز لتعمل مع بوابة الدفع وتتأكد من الجلسة
+  window.confirmBooking = function(docId) {
+    // 1. التحقق من الجلسة بذكاء
+    let user = null;
+    if (window.Auth && typeof window.Auth.currentUser === 'function') {
+      user = window.Auth.currentUser();
+    }
+    // إذا فشلت الدالة، نقرأ من الذاكرة مباشرة (لضمان عدم حدوث خطأ)
+    if (!user) {
+      const session = S.get('session', null);
+      if (session && session.userId) {
+        const users = S.get('users', []);
+        user = users.find(u => u.id === session.userId);
+      }
+    }
+
+    if (!user) {
+      if (typeof window.toast === 'function') window.toast('يجب تسجيل الدخول أولاً', 'error');
+      if (typeof window.openAuthModal === 'function') window.openAuthModal('login');
+      return;
+    }
+
+    const doc = S.get('doctors', []).find(d => d.id === docId);
+    const slotInput = document.querySelector('input[name="bk-slot"]:checked');
+    const date = document.getElementById('bk-date')?.value;
+    
+    if (!doc || !slotInput || !date) { 
+      if (typeof window.toast === 'function') window.toast('اختر موعداً وتاريخاً', 'error'); 
+      return; 
+    }
+    const slot = slotInput.value;
+
+    // 2. التحقق من التعارض
+    const appts = S.get('appointments', []);
+    if (appts.some(a => a.doctorId === docId && a.date === date && a.slot === slot && a.status !== 'cancelled')) {
+      if (typeof window.toast === 'function') window.toast('هذا الموعد محجوز', 'error');
+      return;
+    }
+
+    // 3. فتح بوابة الدفع (من Phase 8)
+    if (typeof window.openPaymentGateway === 'function') {
+      window.openPaymentGateway(doc.priceWasla, function(paymentMethod) {
+        // تنفيذ الحجز بعد الدفع
+        const apptId = 'apt-' + Date.now().toString(36);
+        const appt = {
+          id: apptId, waslaId: 'APPT-' + Math.floor(100000 + Math.random() * 900000),
+          patientId: user.id, patientName: user.name, patientPhone: user.phone,
+          doctorId: docId, doctorName: doc.name, specialty: doc.specialty,
+          date, slot, price: doc.priceWasla, status: 'pending', medicalStatus: 'received',
+          paymentMethod: paymentMethod, createdAt: Date.now()
+        };
+        appts.push(appt);
+        S.set('appointments', appts);
+
+        // إضافة معاملة
+        const txs = S.get('transactions', []);
+        txs.push({ id: 'tx-' + Date.now(), appointmentId: apptId, doctorId: docId, doctorName: doc.name, amount: doc.priceWasla, commission: Math.round(doc.priceWasla * 0.15), patientName: user.name, ts: Date.now() });
+        S.set('transactions', txs);
+
+        if (typeof window.closeModal === 'function') window.closeModal('booking-modal');
+        if (typeof window.toast === 'function') window.toast(`✅ تم الحجز بنجاح`);
+        if (typeof window.openMedicalTracker === 'function') window.openMedicalTracker(apptId);
+      });
+    } else {
+      if (typeof window.toast === 'function') window.toast('خطأ في بوابة الدفع', 'error');
+    }
+  };
+
+  /* ============== 4. لوحة المؤسس (God Mode - صلاحيات مطلقة) ============== */
+  window.renderFounderDashboard = function() {
+    const body = document.getElementById('founder-dashboard-body');
+    if (!body) return;
+
+    const docs = S.get('doctors', []);
+    const users = S.get('users', []).filter(u => u.role !== 'founder');
+    const joinReqs = S.get('join_requests', []);
+    const appts = S.get('appointments', []);
+
+    body.innerHTML = `
+      <div class="panel" style="background:linear-gradient(135deg,#7C2D12,#EA580C);color:#fff;margin-bottom:16px;">
+        <h3 style="font-weight:900;font-size:20px;margin:0;"><i class="fa-solid fa-crown"></i> مركز التحكم الأعلى (God Mode)</h3>
+        <p style="font-size:12px;opacity:.9;font-weight:700;margin:4px 0 0;">أهلاً سيادة المؤسس أحمد صبري. إليك التحكم الكامل في كل ذرة داخل المنصة.</p>
+      </div>
+
+      <div class="inner-tabs">
+        <button class="inner-tab active" onclick="window.switchAdminTab('users')"><i class="fa-solid fa-users"></i> المواطنين</button>
+        <button class="inner-tab" onclick="window.switchAdminTab('doctors')"><i class="fa-solid fa-user-doctor"></i> الأطباء</button>
+        <button class="inner-tab" onclick="window.switchAdminTab('requests')"><i class="fa-solid fa-file-signature"></i> طلبات الانضمام (${joinReqs.filter(r=>r.status==='pending').length})</button>
+        <button class="inner-tab" onclick="window.switchAdminTab('finance')"><i class="fa-solid fa-chart-pie"></i> الخزينة (المالية)</button>
+      </div>
+
+      <div id="admin-tab-content"></div>
+    `;
+
+    window.switchAdminTab = function(tab) {
+      document.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
+      event.target.closest('.inner-tab').classList.add('active');
+      const content = document.getElementById('admin-tab-content');
+
+      if (tab === 'users') {
+        content.innerHTML = `
+          <div class="panel">
+            <h3 class="panel-title">إدارة المواطنين</h3>
+            <table style="width:100%;text-align:right;font-size:12px;font-weight:700;margin-top:10px;">
+              <thead><tr style="background:#F8FAFC;color:#64748B;"><th style="padding:10px;">الاسم</th><th style="padding:10px;">الهاتف</th><th style="padding:10px;">الرقم التعريفي</th><th style="padding:10px;">الحالة</th><th style="padding:10px;">إجراء</th></tr></thead>
+              <tbody>
+                ${users.map(u => `
+                  <tr style="border-bottom:1px solid #E2E8F0;">
+                    <td style="padding:10px;font-weight:900;">${u.name}</td>
+                    <td style="padding:10px;font-family:monospace;">${u.phone}</td>
+                    <td style="padding:10px;color:#3730A3;">${u.waslaId}</td>
+                    <td style="padding:10px;"><span style="background:${u.isBlocked ? '#FEE2E2' : '#ECFDF5'};color:${u.isBlocked ? '#991B1B' : '#059669'};padding:3px 8px;border-radius:6px;font-size:10px;">${u.isBlocked ? 'محظور' : 'نشط'}</span></td>
+                    <td style="padding:10px;"><button onclick="window.toggleUserBlock('${u.id}')" style="background:#F1F5F9;border:1px solid #E2E8F0;padding:4px 8px;border-radius:6px;cursor:pointer;font-weight:900;">${u.isBlocked ? 'تنشيط' : 'حظر'}</button></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      if (tab === 'doctors') {
+        content.innerHTML = `
+          <div class="panel">
+            <h3 class="panel-title">إدارة الأطباء</h3>
+            <table style="width:100%;text-align:right;font-size:12px;font-weight:700;margin-top:10px;">
+              <thead><tr style="background:#F8FAFC;color:#64748B;"><th style="padding:10px;">الطبيب</th><th style="padding:10px;">التخصص</th><th style="padding:10px;">سعر الكشف</th><th style="padding:10px;">إجراء</th></tr></thead>
+              <tbody>
+                ${docs.map(d => `
+                  <tr style="border-bottom:1px solid #E2E8F0;">
+                    <td style="padding:10px;font-weight:900;">${d.name}</td>
+                    <td style="padding:10px;">${d.specialty}</td>
+                    <td style="padding:10px;color:#059669;">${d.priceWasla} ج.م</td>
+                    <td style="padding:10px;">
+                      <button onclick="window.deleteDoctor('${d.id}')" style="background:#FEE2E2;color:#991B1B;border:1px solid #FECACA;padding:4px 8px;border-radius:6px;cursor:pointer;font-weight:900;"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      if (tab === 'requests') {
+        content.innerHTML = `
+          <div class="panel">
+            <h3 class="panel-title">طلبات الانضمام</h3>
+            ${joinReqs.map(r => `
+              <div style="border:1px solid #E2E8F0;padding:12px;border-radius:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <strong>${r.name}</strong> <span style="background:#EEF2FF;color:#3730A3;padding:2px 6px;border-radius:4px;font-size:10px;">${r.type}</span>
+                  <div style="font-size:11px;color:#64748B;">${r.phone} • ${r.area}</div>
+                </div>
+                ${r.status === 'pending' ? `
+                  <div>
+                    <button onclick="window.approveRequest('${r.id}')" style="background:#059669;color:#fff;padding:6px 12px;border-radius:8px;font-weight:900;border:none;cursor:pointer;">موافقة</button>
+                    <button onclick="window.rejectRequest('${r.id}')" style="background:#FEE2E2;color:#991B1B;padding:6px 12px;border-radius:8px;font-weight:900;border:none;cursor:pointer;">رفض</button>
+                  </div>
+                ` : `<span style="font-weight:900;color:${r.status==='approved'?'#059669':'#E11D48'}">${r.status==='approved'?'تمت الموافقة':'مرفوض'}</span>`}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      if (tab === 'finance') {
+        const txs = S.get('transactions', []);
+        const totalRev = txs.reduce((s, t) => s + t.amount, 0);
+        const commission = txs.reduce((s, t) => s + t.commission, 0);
+        content.innerHTML = `
+          <div class="kpi-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="kpi-card"><p class="kpi-label">إجمالي الإيرادات</p><p class="kpi-value">${totalRev} ج.م</p></div>
+            <div class="kpi-card blue"><p class="kpi-label">أرباح المنصة (عمولات)</p><p class="kpi-value">${commission} ج.م</p></div>
+          </div>
+        `;
+      }
+    };
+
+    window.switchAdminTab('users');
+  };
+
+  // دوال الحظر والحذف
+  window.toggleUserBlock = function(userId) {
+    let users = S.get('users', []);
+    let u = users.find(x => x.id === userId);
+    if (u) { u.isBlocked = !u.isBlocked; S.set('users', users); window.renderFounderDashboard(); window.switchAdminTab('users'); }
+  };
+
+  window.deleteDoctor = function(docId) {
+    if (!confirm('هل أنت متأكد من حذف هذا الطبيب؟')) return;
+    let docs = S.get('doctors', []).filter(d => d.id !== docId);
+    S.set('doctors', docs);
+    window.renderFounderDashboard(); window.switchAdminTab('doctors');
+    if (typeof window.renderDoctors === 'function') window.renderDoctors();
+  };
+
+  window.approveRequest = function(reqId) {
+    let reqs = S.get('join_requests', []);
+    let r = reqs.find(x => x.id === reqId);
+    if (r) { r.status = 'approved'; S.set('join_requests', reqs); window.renderFounderDashboard(); window.switchAdminTab('requests'); }
+  };
+
+  window.rejectRequest = function(reqId) {
+    let reqs = S.get('join_requests', []);
+    let r = reqs.find(x => x.id === reqId);
+    if (r) { r.status = 'rejected'; S.set('join_requests', reqs); window.renderFounderDashboard(); window.switchAdminTab('requests'); }
+  };
+
+  /* ============== 5. إصلاح شريط الإعلانات ============== */
+  window.addAd = function() {
+    const input = document.getElementById('new-ad-text');
+    if (!input || !input.value.trim()) return;
+    const ads = S.get('ads', []);
+    ads.push({ id: 'ad-' + Date.now(), text: input.value.trim(), active: true });
+    S.set('ads', ads);
+    input.value = '';
+    
+    // تحديث فوري للشريط
+    const ticker = document.getElementById('wasla-ticker');
+    if (ticker) ticker.remove();
+    if (typeof window.renderTickerBanner === 'function') {
+      window.renderTickerBanner();
+    } else {
+      // إذا لم تكن الدالة موجودة في النطاق، نعيد رسمها يدوياً
+      const activeAds = ads.filter(a => a.active);
+      if (activeAds.length) {
+        const tickerHTML = `
+          <div id="wasla-ticker" style="background:linear-gradient(90deg,#0B1220,#14213A,#3730A3);color:#fff;padding:8px 0;font-size:12px;font-weight:800;overflow:hidden;white-space:nowrap;position:relative;">
+            <div style="display:inline-block;padding-right:100%;animation:wasla-ticker-scroll 20s linear infinite;">
+              ${activeAds.map(a => `<span style="margin-left:40px;"><i class="fa-solid fa-bullhorn" style="color:#FBBF24;margin-left:5px;"></i>${a.text}</span>`).join('')}
+            </div>
+          </div>
+        `;
+        document.querySelector('.wasla-header').insertAdjacentHTML('beforebegin', tickerHTML);
+      }
+    }
+    window.renderFounderDashboard();
+    window.switchAdminTab('users'); // العودة للتاب الحالي (سيتم إعادة الرسم)
+    if (typeof window.toast === 'function') window.toast('تم إضافة الإعلان وتحديث الشريط');
+  };
+
+  /* ============== 6. التشغيل ============== */
+  function initPhase10() {
+    fixUXOverlaps();
+    setInterval(fixUXOverlaps, 2000); // مراقبة مستمرة للـ UI
+    
+    // إجبار تحديث الإعلانات إذا كانت موجودة ولكن لا تظهر
+    const ads = S.get('ads', []).filter(a => a.active);
+    if (ads.length && !document.getElementById('wasla-ticker')) {
+      window.addAd(); // إعادة حقن الشريط لو اختفى
+    }
+    
+    console.log('✅ WASLA Phase 10 loaded — God Mode, Audio, UX Fixes Active.');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initPhase10, 200));
+  } else {
+    setTimeout(initPhase10, 200);
+  }
+
+})();
+</script>
 </body>
 </html>
