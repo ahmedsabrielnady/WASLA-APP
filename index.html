@@ -3442,5 +3442,436 @@ window.onload = () => {
 
 })();
 </script>
+  <script>
+/* ==========================================================================
+   WASLA MEDICAL MODULE OVERHAUL — V8.0 (CLEAN & PROFESSIONAL)
+   ========================================================================== */
+(function() {
+  'use strict';
+
+  // =========================================================================
+  // 1. تحديث قاعدة البيانات بالأسعار الحقيقية والمواعيد
+  // =========================================================================
+  // تحديث أسعار الأطباء ومدد الكشف
+  if (DB.doctors && DB.doctors.length > 0) {
+    DB.doctors.forEach(doc => {
+      // أسعار واقعية بناءً على البحث
+      if (doc.spec === 'باطنة وكبد') { doc.price = 250; doc.avgTime = 20; }
+      else if (doc.spec === 'أطفال وحديثي الولادة') { doc.price = 200; doc.avgTime = 15; }
+      else if (doc.spec === 'قلب وأوعية دموية') { doc.price = 350; doc.avgTime = 25; }
+      else if (doc.spec === 'جراحة العظام والمفاصل') { doc.price = 300; doc.avgTime = 20; }
+      else if (doc.spec === 'جلدية وتجميل') { doc.price = 200; doc.avgTime = 20; }
+      else { doc.price = 200; doc.avgTime = 15; }
+    });
+  }
+
+  // تحديث شركات التأمين ونسب التغطية
+  if (!DB.insuranceCompanies) {
+    DB.insuranceCompanies = [
+      { id: 'ins1', name: 'جلوب ميد (GlobeMed)', coverage: 80, discount: 20, logo: 'fa-shield-halved', active: true, doctors: ['d1', 'd2'], pharmacies: ['ph1'] },
+      { id: 'ins2', name: 'ميتلايف (MetLife)', coverage: 85, discount: 15, logo: 'fa-shield', active: true, doctors: ['d1', 'd3'], pharmacies: ['ph1', 'ph2'] },
+      { id: 'ins3', name: 'ميد رايت (MedRight)', coverage: 75, discount: 25, logo: 'fa-heart-pulse', active: true, doctors: ['d2', 'd3'], pharmacies: ['ph2'] }
+    ];
+  }
+
+  // تحديث الصيدليات
+  if (!DB.pharmacies) {
+    DB.pharmacies = [
+      { id: 'ph1', name: 'صيدلية النور', area: 'شارع بورسعيد', phone: '01000000001', insurances: ['ins1', 'ins2'], rating: 4.8, active: true, delivery: true },
+      { id: 'ph2', name: 'صيدلية الشفاء', area: 'ميدان المحطة', phone: '01000000002', insurances: ['ins1', 'ins3'], rating: 4.6, active: true, delivery: true }
+    ];
+  }
+
+  // خدمات التمريض والمعامل (أسعار واقعية)
+  if (!DB.nursingServices) {
+    DB.nursingServices = [
+      { id: 'ns1', name: 'حقن وريد ومحاليل', price: 250, icon: 'fa-syringe', category: 'nursing', desc: 'زيارة ممرض معتمد' },
+      { id: 'ns2', name: 'غيار جروح وحروق', price: 300, icon: 'fa-bandage', category: 'nursing', desc: 'غيار معقم ومواد طبية' },
+      { id: 'ns3', name: 'رعاية مسنين (ساعة)', price: 150, icon: 'fa-hand-holding-medical', category: 'nursing', desc: 'رعاية ومتابعة' },
+      { id: 'ns4', name: 'سحب عينات تحاليل', price: 120, icon: 'fa-vial', category: 'lab', desc: 'سحب منزلي + توصيل للمعمل' },
+      { id: 'ns5', name: 'تحاليل شاملة (منزلية)', price: 500, icon: 'fa-flask', category: 'lab', desc: 'باقة تحاليل كاملة' }
+    ];
+  }
+
+  // =========================================================================
+  // 2. بناء واجهة القطاع الطبي الجديدة (Professional UI)
+  // =========================================================================
+  Views.medical = () => {
+    const el = document.getElementById('view-medical');
+    
+    el.innerHTML = `
+      <!-- الهيدر -->
+      <div class="card" style="background:linear-gradient(135deg, var(--primary), #1E293B); color:#fff; border:none; margin-bottom:16px;">
+        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-stethoscope"></i> القطاع الطبي الشامل</h2>
+        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">كل ما يخص صحتك في مكان واحد</p>
+      </div>
+
+      <!-- البحث السريع -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="med-search" class="input-box" placeholder="ابحث باسم الطبيب أو التخصص..." oninput="MedicalModule.filterDoctors()" style="margin:0;">
+        </div>
+        <div class="chips-row" style="margin-top:12px;" id="spec-chips">
+          <button class="chip active" data-chip="all" onclick="MedicalModule.applySpecChip(this)">الكل</button>
+          <button class="chip" data-chip="باطنة" onclick="MedicalModule.applySpecChip(this)">باطنة</button>
+          <button class="chip" data-chip="أطفال" onclick="MedicalModule.applySpecChip(this)">أطفال</button>
+          <button class="chip" data-chip="عظام" onclick="MedicalModule.applySpecChip(this)">عظام</button>
+          <button class="chip" data-chip="قلب" onclick="MedicalModule.applySpecChip(this)">قلب</button>
+          <button class="chip" data-chip="جلدية" onclick="MedicalModule.applySpecChip(this)">جلدية</button>
+        </div>
+      </div>
+
+      <!-- دليل الأطباء -->
+      <h3 class="section-title"><i class="fa-solid fa-user-doctor" style="color:var(--emerald);"></i> دليل الأطباء</h3>
+      <div class="grid-list" id="doctors-list"></div>
+
+      <!-- الخدمات المنزلية -->
+      <h3 class="section-title mt-4"><i class="fa-solid fa-house-medical" style="color:var(--sky);"></i> الخدمات الطبية المنزلية</h3>
+      <div class="grid-2" id="nursing-services-list">
+        ${DB.nursingServices.map(s => `
+          <div class="card text-center" onclick="MedicalModule.orderService('${s.id}')" style="cursor:pointer; padding:16px;">
+            <i class="fa-solid ${s.icon}" style="font-size:28px; color:var(--sky); margin-bottom:8px;"></i>
+            <h4 style="font-weight:900; font-size:12px; margin:0;">${s.name}</h4>
+            <div style="font-size:11px; color:var(--emerald); font-weight:900;">${Utils.money(s.price)}</div>
+            <div style="font-size:10px; color:var(--gray); margin-top:2px;">${s.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- شركات التأمين -->
+      <h3 class="section-title mt-4"><i class="fa-solid fa-shield-halved" style="color:var(--gold);"></i> شركات التأمين المتعاقدة</h3>
+      <div class="grid-list">
+        ${DB.insuranceCompanies.map(ins => `
+          <div class="item-box" onclick="MedicalModule.filterByInsurance('${ins.id}')" style="cursor:pointer;">
+            <div class="item-icon" style="background:var(--gold-light); color:var(--gold);"><i class="fa-solid ${ins.logo}"></i></div>
+            <div class="item-info">
+              <div class="item-title">${ins.name}</div>
+              <div class="item-sub">تغطية ${ins.coverage}% • خصم ${ins.discount}%</div>
+            </div>
+            <i class="fa-solid fa-chevron-left" style="color:var(--gray);"></i>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- الصيدليات -->
+      <h3 class="section-title mt-4"><i class="fa-solid fa-pills" style="color:var(--emerald);"></i> الصيدليات المتعاقدة</h3>
+      <div class="grid-list">
+        ${DB.pharmacies.map(ph => `
+          <div class="item-box" onclick="MedicalModule.openPharmacy('${ph.id}')" style="cursor:pointer;">
+            <div class="item-icon" style="background:var(--emerald-light); color:var(--emerald);"><i class="fa-solid fa-prescription-bottle-medical"></i></div>
+            <div class="item-info">
+              <div class="item-title">${ph.name}</div>
+              <div class="item-sub"><i class="fa-solid fa-location-dot"></i> ${ph.area} • ⭐ ${ph.rating}</div>
+            </div>
+            <i class="fa-solid fa-chevron-left" style="color:var(--gray);"></i>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    // عرض الأطباء مبدئياً
+    MedicalModule.renderDoctorsList();
+  };
+
+  // =========================================================================
+  // 3. وحدة إدارة الأطباء والفلترة (Doctor Filtering Logic)
+  // =========================================================================
+  const MedicalModule = {
+    
+    currentFilters: { search: '', spec: 'all', insurance: null },
+
+    renderDoctorsList: (docs = null) => {
+      const list = document.getElementById('doctors-list');
+      const doctorsToRender = docs || MedicalModule.getFilteredDoctors();
+      
+      if (doctorsToRender.length === 0) {
+        list.innerHTML = '<div class="card text-center" style="color:var(--gray);">لا يوجد أطباء مطابقون للبحث</div>';
+        return;
+      }
+
+      list.innerHTML = doctorsToRender.map(d => {
+        const docReviews = DB.reviews ? DB.reviews.filter(r => r.targetId === d.id && r.targetType === 'doctor') : [];
+        const avgRating = docReviews.length ? (docReviews.reduce((s, r) => s + r.rating, 0) / docReviews.length).toFixed(1) : 'جديد';
+        
+        return `
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h4 style="margin:0; font-weight:900; font-size:16px;">${d.name}</h4>
+                <span style="background:var(--emerald-light); color:var(--emerald); font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">${d.spec}</span>
+              </div>
+              <p style="margin:8px 0 4px; font-size:11px; color:var(--gray); font-weight:700;">
+                <i class="fa-solid fa-location-dot"></i> ${d.area}
+              </p>
+              <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
+                <span style="background:var(--gray-light); padding:2px 8px; border-radius:6px; font-size:10px; font-weight:900;">⭐ ${avgRating}</span>
+                <span style="background:var(--gray-light); padding:2px 8px; border-radius:6px; font-size:10px; font-weight:900;">⏱ ${d.avgTime} دقيقة</span>
+                ${d.status === 'available' ? `<span style="background:#ECFDF5; color:#059669; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">🟢 متاح</span>` : `<span style="background:#FEF2F2; color:#E11D48; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">🔴 مشغول</span>`}
+              </div>
+            </div>
+            <div style="text-align:left;">
+              <div style="font-weight:900; color:var(--emerald); font-size:20px;">${Utils.money(d.price)}</div>
+              <button onclick="MedicalModule.openBooking('${d.id}')" class="btn-action" style="margin-top:10px; padding:10px 20px;">حجز</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    },
+
+    getFilteredDoctors: () => {
+      return DB.doctors.filter(d => {
+        // فلترة البحث
+        const matchesSearch = !MedicalModule.currentFilters.search || 
+          d.name.includes(MedicalModule.currentFilters.search) || 
+          d.spec.includes(MedicalModule.currentFilters.search);
+        
+        // فلترة التخصص
+        const matchesSpec = MedicalModule.currentFilters.spec === 'all' || 
+          d.spec.includes(MedicalModule.currentFilters.spec);
+        
+        // فلترة التأمين
+        let matchesInsurance = true;
+        if (MedicalModule.currentFilters.insurance) {
+          const insurance = DB.insuranceCompanies.find(i => i.id === MedicalModule.currentFilters.insurance);
+          matchesInsurance = insurance && insurance.doctors.includes(d.id);
+        }
+        
+        return matchesSearch && matchesSpec && matchesInsurance;
+      });
+    },
+
+    filterDoctors: () => {
+      MedicalModule.currentFilters.search = document.getElementById('med-search').value.trim();
+      MedicalModule.renderDoctorsList();
+    },
+
+    applySpecChip: (el) => {
+      document.querySelectorAll('#spec-chips .chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      MedicalModule.currentFilters.spec = el.dataset.chip;
+      MedicalModule.renderDoctorsList();
+    },
+
+    filterByInsurance: (insuranceId) => {
+      MedicalModule.currentFilters.insurance = insuranceId;
+      MedicalModule.currentFilters.spec = 'all';
+      document.querySelectorAll('#spec-chips .chip').forEach(c => c.classList.remove('active'));
+      document.querySelector('#spec-chips .chip[data-chip="all"]').classList.add('active');
+      
+      const insurance = DB.insuranceCompanies.find(i => i.id === insuranceId);
+      Utils.toast(`عرض أطباء ${insurance.name} فقط`);
+      MedicalModule.renderDoctorsList();
+    },
+
+    // =========================================================================
+    // 4. نظام الحجز (Booking with Time Slots)
+    // =========================================================================
+    openBooking: (docId) => {
+      if (!Auth.currentUser) return AuthUI.open();
+      const doc = DB.doctors.find(d => d.id === docId);
+      
+      // بناء جدول المواعيد بناءً على مدة الكشف
+      const startHour = 17; // 5 مساءً
+      const endHour = 22; // 10 مساءً
+      const slots = [];
+      let currentMinutes = startHour * 60;
+      
+      while (currentMinutes < endHour * 60) {
+        const hours = Math.floor(currentMinutes / 60);
+        const mins = currentMinutes % 60;
+        const period = hours >= 12 ? 'م' : 'ص';
+        const displayHour = hours > 12 ? hours - 12 : hours;
+        slots.push(`${displayHour}:${mins.toString().padStart(2, '0')} ${period}`);
+        currentMinutes += doc.avgTime;
+      }
+
+      document.getElementById('modal-book-body').innerHTML = `
+        <button class="modal-close" onclick="Utils.closeModal('modal-book')"><i class="fa-solid fa-xmark"></i></button>
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+          <div style="width:50px; height:50px; border-radius:50%; background:var(--emerald-light); color:var(--emerald); display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="fa-solid fa-user-doctor"></i></div>
+          <div>
+            <h3 style="margin:0; font-weight:900; font-size:18px;">${doc.name}</h3>
+            <p style="margin:2px 0 0; font-size:12px; color:var(--gray);">${doc.spec} • الكشف: ${Utils.money(doc.price)}</p>
+          </div>
+        </div>
+
+        <label style="font-size:13px; font-weight:900; display:block; margin-bottom:8px;">طريقة الدفع:</label>
+        <div class="grid-2" style="margin-bottom:16px;">
+          <label style="border:2px solid var(--emerald); background:var(--emerald-light); padding:10px; border-radius:10px; text-align:center; cursor:pointer; font-size:12px; font-weight:900;">
+            <input type="radio" name="payment" value="cash" checked class="hidden" onchange="MedicalModule.updatePrice('${doc.id}')"> 💵 كاش
+          </label>
+          <label style="border:1px solid var(--line); padding:10px; border-radius:10px; text-align:center; cursor:pointer; font-size:12px; font-weight:900;">
+            <input type="radio" name="payment" value="insurance" class="hidden" onchange="MedicalModule.updatePrice('${doc.id}')"> 🛡️ تأمين
+          </label>
+        </div>
+
+        <div id="insurance-options" style="display:none; margin-bottom:16px;">
+          <select id="insurance-select" class="input-field" onchange="MedicalModule.updatePrice('${doc.id}')">
+            ${DB.insuranceCompanies.filter(i => i.doctors.includes(doc.id)).map(ins => `<option value="${ins.id}">${ins.name} (تغطية ${ins.coverage}%)</option>`).join('')}
+          </select>
+        </div>
+
+        <div id="booking-price-display" style="background:var(--gray-light); padding:12px; border-radius:10px; margin-bottom:16px; text-align:center;">
+          <div style="font-size:11px; color:var(--gray);">المبلغ المستحق</div>
+          <div style="font-size:22px; font-weight:900; color:var(--emerald);">${Utils.money(doc.price)}</div>
+        </div>
+
+        <label style="font-size:13px; font-weight:900; display:block; margin-bottom:8px;">اختر الموعد (مدة الكشف: ${doc.avgTime} دقيقة):</label>
+        <div class="grid-2" style="margin-bottom:20px; max-height:150px; overflow-y:auto;">
+          ${slots.map((slot, idx) => `
+            <label style="border:1px solid var(--line); padding:10px; border-radius:8px; text-align:center; cursor:pointer; font-weight:900; font-size:12px; color:var(--gray);">
+              <input type="radio" name="slot" value="${slot}" ${idx === 0 ? 'checked' : ''} class="hidden"> ${slot}
+            </label>
+          `).join('')}
+        </div>
+
+        <button onclick="MedicalModule.confirmBooking('${doc.id}')" class="btn-action" style="width:100%; padding:14px; font-size:15px;">تأكيد الحجز</button>
+      `;
+      Utils.openModal('modal-book');
+    },
+
+    updatePrice: (docId) => {
+      const doc = DB.doctors.find(d => d.id === docId);
+      const paymentType = document.querySelector('input[name="payment"]:checked').value;
+      const insuranceOptions = document.getElementById('insurance-options');
+      const priceDisplay = document.getElementById('booking-price-display');
+      
+      if (paymentType === 'insurance') {
+        insuranceOptions.style.display = 'block';
+        const insuranceId = document.getElementById('insurance-select').value;
+        const insurance = DB.insuranceCompanies.find(i => i.id === insuranceId);
+        const patientShare = doc.price * (1 - (insurance.coverage / 100));
+        priceDisplay.innerHTML = `
+          <div style="font-size:11px; color:var(--gray);">المبلغ المستحق (بعد تغطية ${insurance.coverage}%)</div>
+          <div style="font-size:22px; font-weight:900; color:var(--emerald);">${Utils.money(Math.round(patientShare))}</div>
+        `;
+      } else {
+        insuranceOptions.style.display = 'none';
+        priceDisplay.innerHTML = `
+          <div style="font-size:11px; color:var(--gray);">المبلغ المستحق</div>
+          <div style="font-size:22px; font-weight:900; color:var(--emerald);">${Utils.money(doc.price)}</div>
+        `;
+      }
+    },
+
+    confirmBooking: (docId) => {
+      const doc = DB.doctors.find(d => d.id === docId);
+      const slot = document.querySelector('input[name="slot"]:checked').value;
+      const paymentType = document.querySelector('input[name="payment"]:checked').value;
+      
+      let finalPrice = doc.price;
+      let insuranceId = null;
+      
+      if (paymentType === 'insurance') {
+        insuranceId = document.getElementById('insurance-select').value;
+        const insurance = DB.insuranceCompanies.find(i => i.id === insuranceId);
+        finalPrice = Math.round(doc.price * (1 - (insurance.coverage / 100)));
+      }
+
+      const apptId = Utils.id();
+      DB.appointments.push({ 
+        id: apptId, patientId: Auth.currentUser.id, patientName: Auth.currentUser.name, 
+        doctorId: doc.id, doctorName: doc.name, slot: slot, price: finalPrice, 
+        paymentType: paymentType, insuranceId: insuranceId, status: 'waiting', ts: Date.now() 
+      });
+      saveDB();
+      
+      Utils.closeModal('modal-book');
+      UI.renderHeader();
+      Utils.toast('✅ تم الحجز بنجاح!');
+      
+      const waMsg = `مرحباً، تم تأكيد حجزك.\n👨‍⚕️ الطبيب: ${doc.name}\n⏰ الموعد: ${slot}\n💰 السعر: ${finalPrice} ج.م\nطريقة الدفع: ${paymentType === 'insurance' ? 'تأمين' : 'كاش'}`;
+      const waUrl = `https://wa.me/2${Auth.currentUser.phone || '01000000000'}?text=${encodeURIComponent(waMsg)}`;
+      
+      document.getElementById('modal-map-body').innerHTML = `
+        <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+        <div style="text-align:center;">
+          <div style="width:70px; height:70px; background:var(--emerald-light); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px;"><i class="fa-solid fa-check"></i></div>
+          <h3 style="margin:0 0 8px; font-weight:900; color:var(--emerald);">تم الحجز!</h3>
+          <p style="font-size:12px; color:var(--gray); margin-bottom:16px;">سيتم إرسال إشعار لك عند اقتراب دورك.</p>
+          <a href="${waUrl}" target="_blank" class="btn-action" style="width:100%; background:#25D366; text-decoration:none; margin-bottom:12px;"><i class="fa-brands fa-whatsapp"></i> إرسال تأكيد واتساب</a>
+          <button onclick="Utils.closeModal('modal-map'); router.navigate('dashboard');" class="btn-action" style="width:100%; background:var(--primary);">الذهاب للوحة التحكم</button>
+        </div>
+      `;
+      Utils.openModal('modal-map');
+    },
+
+    // =========================================================================
+    // 5. طلب خدمة منزلية
+    // =========================================================================
+    orderService: (serviceId) => {
+      if (!Auth.currentUser) return AuthUI.open();
+      const service = DB.nursingServices.find(s => s.id === serviceId);
+      
+      document.getElementById('modal-map-body').innerHTML = `
+        <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+        <h3 style="margin:0 0 8px; font-weight:900;">${service.name}</h3>
+        <p style="margin:0 0 16px; font-size:13px; color:var(--gray);">${service.desc} • ${Utils.money(service.price)}</p>
+        
+        <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px;">العنوان:</label>
+        <input type="text" class="input-field" id="service-address" placeholder="اكتب عنوانك بالتفصيل">
+        
+        <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px;">طريقة الدفع:</label>
+        <select class="input-field">
+          <option>كاش</option>
+          <option>إنستاباي (InstaPay)</option>
+          <option>فودافون كاش</option>
+        </select>
+
+        <button onclick="MedicalModule.confirmServiceOrder('${service.id}')" class="btn-action" style="width:100%; padding:14px;">تأكيد الطلب</button>
+      `;
+      Utils.openModal('modal-map');
+    },
+
+    confirmServiceOrder: (serviceId) => {
+      const service = DB.nursingServices.find(s => s.id === serviceId);
+      const address = document.getElementById('service-address').value.trim();
+      if (!address) return Utils.toast('أدخل العنوان', true);
+
+      DB.orders.push({
+        id: Utils.id(), userId: Auth.currentUser.id, title: service.name, price: service.price,
+        status: 'preparing', type: service.category, address: address, ts: Date.now()
+      });
+      saveDB();
+      Utils.closeModal('modal-map');
+      Utils.toast('✅ تم إرسال طلبك! سيتم التواصل معك قريباً');
+      router.navigate('dashboard');
+    },
+
+    // =========================================================================
+    // 6. فتح الصيدلية
+    // =========================================================================
+    openPharmacy: (pharmacyId) => {
+      const ph = DB.pharmacies.find(p => p.id === pharmacyId);
+      document.getElementById('modal-map-body').innerHTML = `
+        <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+        <h3 style="margin:0 0 4px; font-weight:900;">${ph.name}</h3>
+        <p style="margin:0 0 16px; font-size:12px; color:var(--gray);"><i class="fa-solid fa-location-dot"></i> ${ph.area}</p>
+        
+        <div class="grid-list">
+          <div class="item-box" onclick="Utils.toast('يرجى رفع صورة الروشتة')">
+            <div class="item-icon" style="background:var(--sky-light); color:var(--sky);"><i class="fa-solid fa-prescription"></i></div>
+            <div class="item-info"><div class="item-title">اطلب بالأدوية</div><div class="item-sub">ارفع صورة الروشتة</div></div>
+          </div>
+          <div class="item-box" onclick="Utils.toast('سيتم إضافة المنتجات قريباً')">
+            <div class="item-icon" style="background:var(--emerald-light); color:var(--emerald);"><i class="fa-solid fa-pills"></i></div>
+            <div class="item-info"><div class="item-title">أدوية بدون روشتة</div><div class="item-sub">مسكنات، فيتامينات</div></div>
+          </div>
+        </div>
+      `;
+      Utils.openModal('modal-map');
+    }
+  };
+
+  // =========================================================================
+  // 7. تصدير الوحدة للاستخدام العالمي
+  // =========================================================================
+  window.MedicalModule = MedicalModule;
+
+  console.log('✅ WASLA MEDICAL MODULE V8.0 LOADED: Professional UI, Time Slots, Insurance, Filtering.');
+
+})();
+</script>
 </body>
 </html>
