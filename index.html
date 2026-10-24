@@ -5736,5 +5736,374 @@ document.addEventListener('DOMContentLoaded', () => {
 
 })();
 </script>
+  <script>
+/* ================================================================
+   WASLA PHASE 13 — THE ULTIMATE FIX (UI, DASHBOARD, QUEUE, AUDIO)
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const NS = 'wasla_v2_';
+  const S = {
+    get(k, d) { try { const r = localStorage.getItem(NS + k); return r ? JSON.parse(r) : d; } catch (_) { return d; } },
+    set(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); return true; } catch (_) { return false; } }
+  };
+
+  /* ============== 1. إصلاح CSS الشامل (لمنع تشوه الواجهة) ============== */
+  const css = document.createElement('style');
+  css.innerHTML = `
+    /* إصلاح الهيدر ليكون متجاوباً مع الموبايل */
+    .wasla-header-inner {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      padding: 10px !important;
+      gap: 12px !important;
+    }
+    .wasla-header-inner > div:first-child {
+      justify-content: center !important;
+    }
+    .brand-text h1 { white-space: nowrap !important; font-size: 22px !important; }
+    
+    /* شريط الأزرار (أفقي وقابل للتمرير) */
+    #header-actions {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 8px !important;
+      overflow-x: auto !important;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    #header-actions::-webkit-scrollbar { display: none; }
+    
+    /* إخفاء الجرس العائم القديم */
+    #floating-bell, #float-notif-panel { display: none !important; }
+
+    /* إصلاح التبويبات (Super Tabs) */
+    .super-tabs { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+    .super-tab { font-size: 13px !important; padding: 12px 8px !important; }
+    .super-tab i { margin-bottom: 4px; font-size: 18px; }
+    .super-tab span { font-size: 11px !important; }
+    
+    /* تنسيقات لوحة المؤسس */
+    .god-mode-tab { border: none; background: transparent; padding: 10px; font-family: inherit; font-weight: 900; color: #64748B; border-bottom: 3px solid transparent; cursor: pointer; }
+    .god-mode-tab.active { color: #EA580C; border-bottom-color: #EA580C; }
+    .admin-table { width: 100%; text-align: right; border-collapse: collapse; font-size: 13px; }
+    .admin-table th { background: #F8FAFC; padding: 12px; color: #64748B; font-weight: 800; }
+    .admin-table td { padding: 12px; border-bottom: 1px solid #E2E8F0; font-weight: 700; }
+    
+    /* شريط الطابور العائم للمريض */
+    #patient-queue-widget {
+      position: fixed; bottom: 90px; right: 15px; left: 15px; z-index: 1000;
+      background: #0B1220; color: #fff; border-radius: 16px; padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-right: 4px solid #10B981;
+      display: none; align-items: center; justify-content: space-between;
+    }
+  `;
+  document.head.appendChild(css);
+
+  /* ============== 2. محرك الصوت (مع تجاوز حظر المتصفح) ============== */
+  let audioCtx = null;
+  window.initAudio = function() {
+    if (!audioCtx) {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      } catch(e) {}
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  };
+  // تفعيل الصوت عند أول ضغطة في أي مكان
+  document.addEventListener('click', window.initAudio, { once: true });
+
+  window.playDing = function(isAlert = false) {
+    if (!audioCtx) return;
+    try {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      
+      if (isAlert) {
+        osc.type = 'square'; osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
+      } else {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.2);
+      }
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+    } catch(e) {}
+  };
+
+  /* ============== 3. بناء الهيدر النظيف ============== */
+  function buildHeader() {
+    const actions = document.getElementById('header-actions');
+    if (!actions) return;
+
+    const session = S.get('session', null);
+    const user = session ? S.get('users', []).find(u => u.id === session.userId) : null;
+    const isFounder = user && user.role === 'founder';
+
+    if (!user) {
+      actions.innerHTML = `<button class="login-btn" onclick="window.openAuthModal('login')">دخول</button>`;
+      return;
+    }
+
+    actions.innerHTML = `
+      <button onclick="window.switchSector('${isFounder ? 'founder' : 'dashboard'}')" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:8px 12px;border-radius:10px;font-family:inherit;font-weight:900;font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap;">
+        <i class="fa-solid fa-user" style="color:#34D399;"></i> ${user.name.split(' ')[0]}
+      </button>
+      
+      <div style="background:#059669;color:#fff;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:900;display:flex;align-items:center;gap:6px;white-space:nowrap;">
+        <i class="fa-solid fa-id-card"></i> ${user.waslaId}
+      </div>
+
+      <button onclick="window.openCart()" style="position:relative;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:8px 12px;border-radius:10px;font-family:inherit;font-weight:900;font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap;">
+        <i class="fa-solid fa-cart-shopping"></i> السلة
+        <span id="header-cart-count" style="position:absolute;top:-5px;right:-5px;background:#EA580C;color:#fff;width:18px;height:18px;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;border:2px solid #0B1220;">${S.get('cart',[]).length}</span>
+      </button>
+
+      <button onclick="window.toggleNotifCenter()" style="position:relative;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:8px 12px;border-radius:10px;font-family:inherit;font-weight:900;font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap;">
+        <i class="fa-solid fa-bell"></i> تنبيهات
+        <span id="notif-badge" style="position:absolute;top:-5px;right:-5px;background:#E11D48;color:#fff;width:18px;height:18px;border-radius:50%;font-size:10px;display:none;align-items:center;justify-content:center;border:2px solid #0B1220;">0</span>
+      </button>
+
+      ${isFounder ? `
+        <button onclick="window.switchSector('founder')" style="background:linear-gradient(135deg,#EA580C,#F59E0B);color:#fff;border:none;padding:8px 12px;border-radius:10px;font-family:inherit;font-weight:900;font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap;box-shadow:0 4px 10px rgba(234,88,12,0.4);">
+          <i class="fa-solid fa-crown"></i> لوحة التحكم
+        </button>
+      ` : ''}
+
+      <button onclick="window.Auth.logout()" style="background:#E11D48;color:#fff;border:none;padding:8px 12px;border-radius:10px;font-family:inherit;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;white-space:nowrap;">
+        <i class="fa-solid fa-power-off"></i>
+      </button>
+    `;
+  }
+
+  /* ============== 4. بناء لوحة المؤسس (God Mode) ============== */
+  window.renderFounderDashboard = function() {
+    const body = document.getElementById('sector-founder');
+    if (!body) return;
+
+    body.innerHTML = `
+      <div class="panel" style="background:linear-gradient(135deg,#0B1220,#1E293B);color:#fff;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h2 style="font-weight:900;font-size:20px;margin:0;"><i class="fa-solid fa-crown" style="color:#F59E0B;"></i> مرحباً سيادة المؤسس أحمد صبري</h2>
+            <p style="font-size:12px;color:#94A3B8;margin:4px 0 0;font-weight:700;">تحكم كامل في المنصة، الأرباح، والمستخدمين.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;border-bottom:1px solid #E2E8F0;margin-bottom:16px;overflow-x:auto;">
+        <button class="god-mode-tab active" onclick="window.switchAdminTab('finance')">الخزينة والأرباح</button>
+        <button class="god-mode-tab" onclick="window.switchAdminTab('doctors')">إدارة الأطباء</button>
+        <button class="god-mode-tab" onclick="window.switchAdminTab('users')">المواطنين</button>
+        <button class="god-mode-tab" onclick="window.switchAdminTab('ads')">الإعلانات</button>
+      </div>
+
+      <div id="admin-tab-content"></div>
+    `;
+    window.switchAdminTab('finance');
+  };
+
+  window.switchAdminTab = function(tab) {
+    document.querySelectorAll('.god-mode-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    const content = document.getElementById('admin-tab-content');
+    const docs = S.get('doctors', []);
+    const users = S.get('users', []).filter(u => u.role !== 'founder');
+    const txs = S.get('transactions', []);
+    const ads = S.get('ads', []);
+
+    if (tab === 'finance') {
+      const totalRev = txs.reduce((s, t) => s + t.amount, 0);
+      const commission = txs.reduce((s, t) => s + t.commission, 0);
+      content.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div class="panel" style="background:#ECFDF5;border-color:#A7F3D0;">
+            <p style="font-size:12px;font-weight:800;color:#047857;margin:0;">إجمالي المبيعات</p>
+            <h3 style="font-size:24px;font-weight:900;color:#059669;margin:4px 0 0;">${totalRev} ج.م</h3>
+          </div>
+          <div class="panel" style="background:#FFF7ED;border-color:#FDBA74;">
+            <p style="font-size:12px;font-weight:800;color:#9A3412;margin:0;">صافي أرباح المنصة (15%)</p>
+            <h3 style="font-size:24px;font-weight:900;color:#EA580C;margin:4px 0 0;">${commission} ج.م</h3>
+          </div>
+        </div>
+        <div class="panel">
+          <h3 style="font-size:15px;font-weight:900;margin:0 0 10px;">آخر المعاملات</h3>
+          <table class="admin-table">
+            <thead><tr><th>المريض</th><th>الطبيب</th><th>المبلغ</th><th>العمولة</th></tr></thead>
+            <tbody>
+              ${txs.slice(-5).reverse().map(t => `
+                <tr><td>${t.patientName}</td><td>${t.doctorName}</td><td>${t.amount} ج.م</td><td style="color:#059669;">+${t.commission} ج.م</td></tr>
+              `).join('') || '<tr><td colspan="4" style="text-align:center;">لا توجد معاملات</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    if (tab === 'doctors') {
+      content.innerHTML = `
+        <div class="panel">
+          <h3 style="font-size:15px;font-weight:900;margin:0 0 10px;">إدارة الأطباء (${docs.length})</h3>
+          <table class="admin-table">
+            <thead><tr><th>الطبيب</th><th>التخصص</th><th>التحكم</th></tr></thead>
+            <tbody>
+              ${docs.map(d => `
+                <tr>
+                  <td>${d.name}</td><td>${d.specialty}</td>
+                  <td><button onclick="window.deleteDoctor('${d.id}')" style="background:#FEE2E2;color:#E11D48;border:none;padding:4px 8px;border-radius:6px;cursor:pointer;font-weight:900;">حذف</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    if (tab === 'users') {
+      content.innerHTML = `
+        <div class="panel">
+          <h3 style="font-size:15px;font-weight:900;margin:0 0 10px;">المواطنين المسجلين (${users.length})</h3>
+          <table class="admin-table">
+            <thead><tr><th>الاسم</th><th>الرقم التعريفي</th><th>التحكم</th></tr></thead>
+            <tbody>
+              ${users.map(u => `
+                <tr>
+                  <td>${u.name}<br><small style="color:#64748B;">${u.phone}</small></td>
+                  <td style="color:#3730A3;">${u.waslaId}</td>
+                  <td><button onclick="window.toggleUserBlock('${u.id}')" style="background:${u.isBlocked ? '#ECFDF5' : '#FEE2E2'};color:${u.isBlocked ? '#059669' : '#E11D48'};border:none;padding:4px 8px;border-radius:6px;cursor:pointer;font-weight:900;">${u.isBlocked ? 'تنشيط' : 'حظر'}</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    if (tab === 'ads') {
+      content.innerHTML = `
+        <div class="panel">
+          <h3 style="font-size:15px;font-weight:900;margin:0 0 10px;">إدارة شريط الإعلانات</h3>
+          <div style="margin-bottom:12px;">
+            ${ads.map(a => `
+              <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #E2E8F0;padding:8px 0;">
+                <span style="font-size:13px;font-weight:700;">${a.text}</span>
+                <button onclick="window.deleteAd('${a.id}')" style="background:#FEE2E2;color:#E11D48;border:none;padding:4px 8px;border-radius:6px;cursor:pointer;font-weight:900;">حذف</button>
+              </div>
+            `).join('')}
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="new-ad-input" class="input-box" placeholder="نص الإعلان..." style="flex:1;">
+            <button onclick="window.addNewAd()" class="primary-btn">إضافة</button>
+          </div>
+        </div>
+      `;
+    }
+  };
+
+  // دوال المساعدة للوحة المؤسس
+  window.deleteDoctor = function(id) {
+    if(!confirm('تأكيد الحذف؟')) return;
+    S.set('doctors', S.get('doctors', []).filter(d => d.id !== id));
+    window.renderFounderDashboard();
+  };
+  window.toggleUserBlock = function(id) {
+    let u = S.get('users', []).find(x => x.id === id);
+    if(u) { u.isBlocked = !u.isBlocked; S.set('users', S.get('users', [])); window.renderFounderDashboard(); }
+  };
+  window.deleteAd = function(id) {
+    S.set('ads', S.get('ads', []).filter(a => a.id !== id));
+    window.renderFounderDashboard();
+  };
+  window.addNewAd = function() {
+    const val = document.getElementById('new-ad-input').value;
+    if(val) {
+      let ads = S.get('ads', []); ads.push({id: Date.now(), text: val, active: true});
+      S.set('ads', ads); window.renderFounderDashboard();
+      // إعادة رسم الشريط
+      const t = document.getElementById('wasla-ticker'); if(t) t.remove();
+      if(typeof window.renderTickerBanner === 'function') window.renderTickerBanner();
+    }
+  };
+
+  /* ============== 5. إصلاح التوجيه (Routing) ============== */
+  window.switchSector = function(sector) {
+    document.querySelectorAll('.sector-view').forEach(v => { v.classList.add('hidden'); v.classList.remove('active'); });
+    const target = document.getElementById('sector-' + sector);
+    if (target) { target.classList.remove('hidden'); target.classList.add('active'); }
+
+    // إعادة رسم المحتوى
+    if (sector === 'founder') window.renderFounderDashboard();
+    if (sector === 'market' && window.renderFoodSector) window.renderFoodSector();
+    if (sector === 'home' && window.renderMaintenanceSector) window.renderMaintenanceSector();
+    if (sector === 'cars' && window.renderCarsSector) window.renderCarsSector();
+    
+    window.scrollTo({top:0, behavior:'smooth'});
+  };
+
+  /* ============== 6. تتبع الطابور (للمريض) ============== */
+  function checkPatientQueue() {
+    const session = S.get('session', null);
+    if (!session) return;
+    const user = S.get('users', []).find(u => u.id === session.userId);
+    if (!user || user.role === 'founder') return; // المؤسس لا يرى هذا الشريط
+
+    const appts = S.get('appointments', []).filter(a => a.patientId === user.id && a.medicalStatus !== 'completed' && a.status !== 'cancelled');
+    const activeAppt = appts.sort((a,b) => b.createdAt - a.createdAt)[0];
+
+    let widget = document.getElementById('patient-queue-widget');
+    
+    if (activeAppt && activeAppt.medicalStatus !== 'received') {
+      if (!widget) {
+        widget = document.createElement('div');
+        widget.id = 'patient-queue-widget';
+        document.body.appendChild(widget);
+      }
+      
+      let statusText = '';
+      let color = '#10B981';
+      if (activeAppt.medicalStatus === 'reminder') statusText = 'تذكير: موعدك اليوم';
+      if (activeAppt.medicalStatus === 'ahead') { statusText = 'أمامك 3 حالات'; color = '#F59E0B'; window.playDing(true); }
+      if (activeAppt.medicalStatus === 'now') { statusText = 'دورك الآن!'; color = '#E11D48'; window.playDing(true); }
+      
+      widget.style.borderRightColor = color;
+      widget.style.display = 'flex';
+      widget.innerHTML = `
+        <div style="flex:1;">
+          <div style="font-size:10px;color:#94A3B8;font-weight:900;">${activeAppt.doctorName}</div>
+          <div style="font-size:15px;font-weight:900;color:${color};">${statusText}</div>
+        </div>
+        <div style="background:${color}20;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:900;">
+          ${activeAppt.slot}
+        </div>
+        <button onclick="document.getElementById('patient-queue-widget').style.display='none'" style="background:none;border:none;color:#fff;margin-right:10px;"><i class="fa-solid fa-xmark"></i></button>
+      `;
+    } else if (widget) {
+      widget.style.display = 'none';
+    }
+  }
+
+  /* ============== 7. التشغيل ============== */
+  setTimeout(() => {
+    buildHeader();
+    checkPatientQueue();
+    setInterval(checkPatientQueue, 5000); // مراقبة الطابور كل 5 ثوانٍ
+    
+    // إعادة بناء الهيدر عند الدخول
+    const origSubmit = window.submitAuth;
+    window.submitAuth = function(mode) {
+      origSubmit(mode);
+      setTimeout(buildHeader, 500);
+    };
+  }, 200);
+
+})();
+</script>
 </body>
 </html>
