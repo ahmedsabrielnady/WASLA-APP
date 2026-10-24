@@ -3,222 +3,226 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>منصة وصلة | WASLA - سوبر آب</title>
+<title>منصة وصلة | WASLA - Super App</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
 <style>
+  /* ==========================================================================
+     WASLA DESIGN SYSTEM (CSS)
+     ========================================================================== */
   :root {
-    --ink: #0B1220; --ink-soft: #111C30;
-    --emerald: #059669; --emerald-soft: #ECFDF5;
-    --amber: #EA580C; --amber-soft: #FFF7ED;
-    --sky: #0284C7; --indigo: #3730A3;
-    --danger: #E11D48; --line: #E2E8F0;
+    --primary: #0B1220;
+    --primary-light: #1E293B;
+    --emerald: #059669;
+    --emerald-light: #ECFDF5;
+    --amber: #EA580C;
+    --amber-light: #FFF7ED;
+    --sky: #0284C7;
+    --sky-light: #F0F9FF;
+    --danger: #E11D48;
+    --danger-light: #FFF1F2;
+    --gold: #D97706;
+    --gray: #64748B;
+    --gray-light: #F8FAFC;
+    --line: #E2E8F0;
+    --bg: #F4F6FB;
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+    --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
   }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { font-family: 'Cairo', sans-serif; background: #F4F6FB; color: var(--ink); margin: 0; padding-bottom: 80px; }
-  
-  /* Clean Header */
-  .app-header { background: rgba(11,18,32,0.98); color: #fff; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 12px 16px; }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Cairo', sans-serif; }
+  body { background: var(--bg); color: var(--primary); margin: 0; padding-bottom: 70px; overflow-x: hidden; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--gray); border-radius: 10px; }
+
+  /* ==========================================================================
+     HEADER & NAVIGATION
+     ========================================================================== */
+  .ticker-wrap { background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 8px 0; overflow: hidden; white-space: nowrap; display: flex; }
+  .ticker-content { display: inline-block; padding-right: 100%; animation: ticker 25s linear infinite; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }
+
+  .app-header { position: sticky; top: 0; z-index: 100; background: rgba(11,18,32,0.98); backdrop-filter: blur(10px); color: #fff; padding: 10px 16px; box-shadow: var(--shadow-md); }
   .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  
   .brand { display: flex; align-items: center; gap: 10px; }
-  .brand-icon { width: 40px; height: 40px; background: var(--emerald); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-  .brand-text h1 { margin: 0; font-size: 20px; font-weight: 900; }
-  .brand-text span { font-size: 10px; color: #34D399; background: rgba(52,211,153,0.1); padding: 2px 6px; border-radius: 6px; }
+  .brand-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--emerald), #10B981); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 12px rgba(5,150,105,0.4); }
+  .brand-title { font-size: 20px; font-weight: 900; margin: 0; line-height: 1; }
+  .brand-title span { font-size: 10px; color: #34D399; background: rgba(52,211,153,0.15); padding: 2px 6px; border-radius: 6px; vertical-align: middle; margin-right: 4px; }
   
-  .header-actions-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
-  .header-actions-bar::-webkit-scrollbar { display: none; }
-  
-  .btn-header { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; display: flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer; transition: background 0.2s; }
-  .btn-header:hover { background: rgba(255,255,255,0.2); }
-  .btn-primary { background: var(--emerald); border: none; color: #fff; }
-  .btn-primary:hover { background: #047857; }
-  .btn-founder { background: linear-gradient(135deg, #EA580C, #F59E0B); border: none; color: #fff; box-shadow: 0 4px 12px rgba(234,88,12,0.3); }
+  .header-actions { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .header-actions::-webkit-scrollbar { display: none; }
+  .btn-ui { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer; transition: 0.2s; }
+  .btn-ui:active { transform: scale(0.95); }
+  .btn-ui.primary { background: var(--emerald); border: none; }
   
   /* Super Tabs */
-  .super-tabs { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; scrollbar-width: none; background: #fff; border-bottom: 1px solid var(--line); }
+  .super-tabs { display: flex; gap: 8px; padding: 12px; overflow-x: auto; scrollbar-width: none; background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 60px; z-index: 99; }
   .super-tabs::-webkit-scrollbar { display: none; }
-  .tab-btn { padding: 10px 16px; border-radius: 12px; font-weight: 900; font-size: 13px; color: #64748B; background: #F8FAFC; border: 1px solid var(--line); white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-  .tab-btn.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .tab { padding: 10px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 900; color: var(--gray); background: var(--gray-light); border: 1px solid var(--line); white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+  .tab.active { background: var(--primary); color: #fff; border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+  /* ==========================================================================
+     LAYOUT & COMPONENTS
+     ========================================================================== */
+  .page-container { max-width: 800px; margin: 0 auto; padding: 16px; }
+  .view-section { display: none; animation: fadeUp 0.4s ease; }
+  .view-section.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
   
-  /* Content Area */
-  .page-content { padding: 16px; max-width: 800px; margin: 0 auto; }
-  .sector-view { display: none; animation: fadeIn 0.3s ease; }
-  .sector-view.active { display: block; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .card { background: #fff; border-radius: var(--radius-md); border: 1px solid var(--line); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+  .section-title { font-size: 18px; font-weight: 900; margin: 0 0 16px; display: flex; align-items: center; gap: 8px; }
   
-  .card { background: #fff; border-radius: 16px; border: 1px solid var(--line); padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-  .card-title { font-weight: 900; font-size: 16px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
   
-  /* Doctors & Items */
-  .grid-list { display: grid; gap: 12px; }
-  .item-card { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: #FAFCFE; }
-  .item-icon { width: 50px; height: 50px; border-radius: 12px; background: var(--emerald-soft); color: var(--emerald); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .item-box { background: #FAFCFE; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
+  .item-box:active { background: var(--gray-light); }
+  .item-icon { width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--emerald-light); color: var(--emerald); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
   .item-info { flex: 1; }
-  .item-title { font-weight: 900; font-size: 14px; margin: 0 0 4px; }
-  .item-sub { font-size: 11px; color: #64748B; font-weight: 700; margin: 0; }
-  .item-price { font-weight: 900; color: var(--emerald); font-size: 16px; }
+  .item-title { font-weight: 900; font-size: 14px; margin: 0 0 4px; color: var(--primary); }
+  .item-sub { font-size: 11px; color: var(--gray); font-weight: 700; margin: 0; }
+  .item-price { font-weight: 900; color: var(--emerald); font-size: 15px; }
   
-  /* Forms & Inputs */
-  .input-box { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-weight: 700; font-size: 13px; background: #F8FAFC; margin-bottom: 12px; }
-  .input-box:focus { outline: none; border-color: var(--emerald); background: #fff; }
+  .btn-action { background: var(--emerald); color: #fff; border: none; padding: 12px 20px; border-radius: var(--radius-sm); font-weight: 900; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+  .btn-action:active { transform: scale(0.98); }
+  .btn-action.outline { background: transparent; color: var(--emerald); border: 2px solid var(--emerald); }
+  .btn-danger { background: var(--danger-light); color: var(--danger); border: 1px solid #FECACA; }
   
-  /* Bottom Sheet Cart */
-  .cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(2px); }
-  .cart-overlay.open { opacity: 1; pointer-events: auto; }
-  .cart-sheet { position: fixed; bottom: -100%; left: 0; right: 0; background: #fff; border-radius: 24px 24px 0 0; z-index: 201; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); }
-  .cart-sheet.open { bottom: 0; }
-  .cart-sheet-header { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
-  .cart-sheet-body { padding: 20px; overflow-y: auto; flex: 1; }
-  .cart-sheet-footer { padding: 20px; border-top: 1px solid var(--line); background: #F8FAFC; }
-  
-  /* Notifications */
-  .notif-bell { position: relative; cursor: pointer; }
-  .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--danger); color: #fff; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; border: 2px solid var(--ink); }
-  .notif-panel { position: absolute; top: 45px; left: 0; width: 300px; background: #fff; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid var(--line); z-index: 150; display: none; max-height: 400px; overflow-y: auto; }
-  .notif-panel.open { display: block; }
-  .notif-item { padding: 12px; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 700; }
-  .notif-item.unread { background: #F0F9FF; }
+  .input-field { width: 100%; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); font-weight: 700; font-size: 14px; background: var(--gray-light); margin-bottom: 12px; transition: 0.2s; }
+  .input-field:focus { outline: none; border-color: var(--emerald); background: #fff; box-shadow: 0 0 0 4px var(--emerald-light); }
 
-  /* Modals */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(11,18,32,0.7); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 16px; }
-  .modal-overlay.open { display: flex; }
-  .modal-content { background: #fff; border-radius: 20px; width: 100%; max-width: 500px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto; }
-  .modal-close { position: absolute; top: 16px; left: 16px; background: #F1F5F9; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; color: #64748B; }
-  
-  /* Trackers */
-  .tracker-step { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
-  .tracker-icon { width: 36px; height: 36px; border-radius: 50%; background: #E2E8F0; color: #fff; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 3px solid #fff; font-size: 14px; }
-  .tracker-step.active .tracker-icon { background: var(--emerald); }
-  .tracker-step.current .tracker-icon { background: var(--amber); animation: pulse 1.5s infinite; }
-  .tracker-label { font-size: 10px; font-weight: 900; color: #64748B; text-align: center; }
-  .tracker-step.active .tracker-label { color: var(--emerald); }
-  .tracker-line { position: absolute; top: 18px; right: 10%; left: 10%; height: 3px; background: #E2E8F0; z-index: 0; }
-  .tracker-line-fill { height: 100%; background: var(--emerald); transition: width 0.5s; width: 0%; }
-  
-  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(234,88,12,0.4); } 70% { box-shadow: 0 0 0 10px rgba(234,88,12,0); } 100% { box-shadow: 0 0 0 0 rgba(234,88,12,0); } }
+  /* ==========================================================================
+     MEDICAL TRACKER & EMR
+     ========================================================================== */
+  .stepper { display: flex; justify-content: space-between; position: relative; padding: 10px 0; margin-top: 15px; }
+  .stepper::before { content: ''; position: absolute; top: 24px; left: 10%; right: 10%; height: 3px; background: var(--line); z-index: 0; }
+  .step { display: flex; flex-direction: column; align-items: center; z-index: 1; flex: 1; }
+  .step-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--line); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-bottom: 6px; border: 3px solid #fff; transition: 0.3s; }
+  .step.active .step-icon { background: var(--emerald); }
+  .step.current .step-icon { background: var(--amber); animation: pulse 1.5s infinite; }
+  .step-label { font-size: 10px; font-weight: 900; color: var(--gray); text-align: center; }
+  .step.active .step-label { color: var(--emerald); }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(234,88,12,0.4); } 70% { box-shadow: 0 0 0 8px rgba(234,88,12,0); } 100% { box-shadow: 0 0 0 0 rgba(234,88,12,0); } }
 
-  /* Utilities */
-  .text-center { text-align: center; }
-  .mt-4 { margin-top: 16px; }
-  .mb-4 { margin-bottom: 16px; }
+  .vital-card { background: var(--gray-light); padding: 12px; border-radius: var(--radius-sm); text-align: center; }
+  .vital-label { font-size: 10px; font-weight: 900; color: var(--gray); margin-bottom: 4px; }
+  .vital-value { font-size: 18px; font-weight: 900; color: var(--primary); }
+
+  /* ==========================================================================
+     BOTTOM SHEET (CART) & MODALS
+     ========================================================================== */
+  .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 200; opacity: 0; pointer-events: none; transition: 0.3s; }
+  .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+  .bottom-sheet { position: fixed; bottom: -100%; left: 0; right: 0; background: #fff; border-radius: var(--radius-lg) var(--radius-lg) 0 0; z-index: 201; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); }
+  .bottom-sheet.open { bottom: 0; }
+  .sheet-header { padding: 20px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .sheet-body { padding: 20px; overflow-y: auto; flex: 1; }
+  .sheet-footer { padding: 20px; border-top: 1px solid var(--line); background: var(--gray-light); }
+  
+  .modal-wrap { position: fixed; inset: 0; background: rgba(11,18,32,0.85); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .modal-wrap.open { display: flex; }
+  .modal-box { background: #fff; border-radius: var(--radius-lg); width: 100%; max-width: 450px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto; animation: popIn 0.3s; }
+  @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal-close { position: absolute; top: 16px; left: 16px; background: var(--gray-light); border: none; width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--gray); font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  
+  /* Toasts */
+  #toast-box { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+  .toast-msg { background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 99px; font-size: 13px; font-weight: 900; box-shadow: var(--shadow-lg); border-right: 4px solid var(--emerald); animation: slideDown 0.3s; display: flex; align-items: center; gap: 8px; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
+<!-- Ticker Ads -->
+<div id="wasla-ticker" class="ticker-wrap"></div>
+
+<!-- App Header -->
 <header class="app-header">
   <div class="header-top">
     <div class="brand">
       <div class="brand-icon"><i class="fa-solid fa-heart-pulse"></i></div>
-      <div class="brand-text">
-        <h1>وَصْلَة <span>WASLA</span></h1>
-      </div>
+      <div><h1 class="brand-title">وَصْلَة <span>WASLA</span></h1></div>
     </div>
-    <div class="header-actions-bar" id="header-actions">
-      <!-- Injected via JS -->
-    </div>
+    <div class="header-actions" id="header-actions"></div>
   </div>
 </header>
 
-<!-- TABS -->
+<!-- Navigation Tabs -->
 <div class="super-tabs" id="super-tabs">
-  <button class="tab-btn active" data-sector="medical" onclick="switchSector('medical')"><i class="fa-solid fa-stethoscope"></i> طبي</button>
-  <button class="tab-btn" data-sector="market" onclick="switchSector('market')"><i class="fa-solid fa-cart-shopping"></i> تسوق</button>
-  <button class="tab-btn" data-sector="cars" onclick="switchSector('cars')"><i class="fa-solid fa-car"></i> سيارات</button>
-  <button class="tab-btn" data-sector="home" onclick="switchSector('home')"><i class="fa-solid fa-screwdriver-wrench"></i> صيانة</button>
-  <!-- Dynamic Tabs injected here -->
+  <button class="tab active" data-sector="medical" onclick="router.navigate('medical')"><i class="fa-solid fa-stethoscope"></i> طبي</button>
+  <button class="tab" data-sector="market" onclick="router.navigate('market')"><i class="fa-solid fa-cart-shopping"></i> تسوق</button>
+  <button class="tab" data-sector="cars" onclick="router.navigate('cars')"><i class="fa-solid fa-car"></i> سيارات</button>
+  <button class="tab" data-sector="home" onclick="router.navigate('home')"><i class="fa-solid fa-screwdriver-wrench"></i> صيانة</button>
 </div>
 
-<!-- MAIN CONTENT -->
-<main class="page-content">
-  <!-- SECTORS WILL BE INJECTED HERE -->
-  <section class="sector-view active" id="sector-medical"></section>
-  <section class="sector-view" id="sector-market"></section>
-  <section class="sector-view" id="sector-cars"></section>
-  <section class="sector-view" id="sector-home"></section>
-  <section class="sector-view" id="sector-founder"></section>
-  <section class="sector-view" id="sector-staff"></section>
-  <section class="sector-view" id="sector-doctor"></section>
-  <section class="sector-view" id="sector-dashboard"></section>
+<!-- Main Content -->
+<main class="page-container">
+  <section class="view-section active" id="view-medical"></section>
+  <section class="view-section" id="view-market"></section>
+  <section class="view-section" id="view-cars"></section>
+  <section class="view-section" id="view-home"></section>
+  <section class="view-section" id="view-founder"></section>
+  <section class="view-section" id="view-staff"></section>
+  <section class="view-section" id="view-doctor"></section>
+  <section class="view-section" id="view-dashboard"></section>
 </main>
 
-<!-- CART (Bottom Sheet) -->
-<div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
-<div class="cart-sheet" id="cart-sheet">
-  <div class="cart-sheet-header">
-    <h3 style="margin:0; font-weight:900;"><i class="fa-solid fa-basket-shopping" style="color:var(--emerald); margin-left:8px;"></i> سلة الطلبات</h3>
-    <button onclick="toggleCart()" style="background:#F1F5F9; border:none; width:32px; height:32px; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+<!-- Cart Bottom Sheet -->
+<div class="sheet-overlay" id="cart-overlay" onclick="cart.toggle()"></div>
+<div class="bottom-sheet" id="cart-sheet">
+  <div class="sheet-header">
+    <h3 style="margin:0; font-weight:900;"><i class="fa-solid fa-basket-shopping" style="color:var(--emerald);"></i> سلة الطلبات</h3>
+    <button onclick="cart.toggle()" style="background:var(--gray-light); border:none; width:36px; height:36px; border-radius:var(--radius-sm); cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
   </div>
-  <div class="cart-sheet-body" id="cart-body"></div>
-  <div class="cart-sheet-footer">
+  <div class="sheet-body" id="cart-body"></div>
+  <div class="sheet-footer">
     <div style="display:flex; justify-content:space-between; margin-bottom:16px; font-weight:900; font-size:18px;">
       <span>الإجمالي:</span>
       <span id="cart-total" style="color:var(--emerald);">0 ج.م</span>
     </div>
-    <button onclick="checkout()" style="width:100%; padding:14px; background:var(--emerald); color:#fff; border:none; border-radius:12px; font-weight:900; font-size:16px; cursor:pointer;">تأكيد الدفع (كاش باك 5%)</button>
+    <button onclick="cart.checkout()" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد الدفع (كاش باك 5%)</button>
   </div>
 </div>
 
-<!-- MODALS -->
-<div class="modal-overlay" id="auth-modal">
-  <div class="modal-content" id="auth-modal-body"></div>
-</div>
-<div class="modal-overlay" id="booking-modal">
-  <div class="modal-content" id="booking-modal-body"></div>
-</div>
-<div class="modal-overlay" id="payment-modal">
-  <div class="modal-content" id="payment-modal-body"></div>
-</div>
+<!-- Modals -->
+<div class="modal-wrap" id="modal-auth"><div class="modal-box" id="modal-auth-body"></div></div>
+<div class="modal-wrap" id="modal-book"><div class="modal-box" id="modal-book-body"></div></div>
+<div class="modal-wrap" id="modal-payment"><div class="modal-box" id="modal-payment-body"></div></div>
+<div class="modal-wrap" id="modal-map"><div class="modal-box" id="modal-map-body"></div></div>
 
-<!-- TOASTS -->
-<div id="toast-container" style="position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:9999; display:flex; flex-direction:column; gap:10px;"></div>
+<div id="toast-box"></div>
 
 <script>
-/* ================================================================
-   WASLA MASTER ENGINE — CLEAN, UNIFIED, STABLE
-   ================================================================ */
-
-// --- 1. DATABASE & STATE ---
-const DB_KEY = 'wasla_master_db';
-let DB = JSON.parse(localStorage.getItem(DB_KEY)) || {
-  users: [],
-  doctors: [],
-  appointments: [],
-  orders: [],
-  notifications: [],
-  cart: []
+/* ==========================================================================
+   WASLA CORE ENGINE
+   ========================================================================== */
+const Utils = {
+  id: () => Math.random().toString(36).substring(2, 10),
+  money: (num) => Number(num).toLocaleString('ar-EG') + ' ج.م',
+  toast: (msg, isError = false) => {
+    const el = document.createElement('div');
+    el.className = 'toast-msg';
+    el.style.borderRightColor = isError ? 'var(--danger)' : 'var(--emerald)';
+    el.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> ${msg}`;
+    document.getElementById('toast-box').appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  },
+  openModal: (id) => document.getElementById(id).classList.add('open'),
+  closeModal: (id) => document.getElementById(id).classList.remove('open')
 };
 
-if (!DB.users.length) {
-  // Seed Founder
-  DB.users.push({ id: 'u-founder', phone: '01068990089', name: 'أحمد صبري', role: 'founder', wallet: 0, pass: 'As123789456*' });
-  // Seed Doctors
-  DB.doctors = [
-    { id: 'd1', name: 'د. محمد الشريف', spec: 'باطنة', price: 170, avgTime: 15, area: 'شارع بورسعيد' },
-    { id: 'd2', name: 'د. سارة العبد', spec: 'أطفال', price: 150, avgTime: 12, area: 'ميدان المحطة' }
-  ];
-  saveDB();
-}
-
-function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
-function uid() { return Math.random().toString(36).substr(2, 9); }
-function toast(msg, type='success') {
-  const el = document.createElement('div');
-  el.style.cssText = `background:${type==='error'?'var(--danger)':'var(--ink)'}; color:#fff; padding:12px 24px; border-radius:12px; font-weight:900; font-size:13px; box-shadow:0 10px 30px rgba(0,0,0,0.2); display:flex; align-items:center; gap:8px; animation:slideDown 0.3s ease;`;
-  el.innerHTML = `<i class="fa-solid ${type==='error'?'fa-circle-exclamation':'fa-circle-check'}"></i> ${msg}`;
-  document.getElementById('toast-container').appendChild(el);
-  setTimeout(() => el.remove(), 3000);
-}
-
-// --- 2. AUDIO ENGINE ---
+/* Audio Engine */
 let audioCtx;
 document.body.addEventListener('click', () => {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  } else if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
 }, { once: true });
 
 function playSound(isAlert = false) {
@@ -226,860 +230,2059 @@ function playSound(isAlert = false) {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.connect(gain); gain.connect(audioCtx.destination);
-  if (isAlert) {
-    osc.type = 'square'; osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-    osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
-  } else {
-    osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-  }
+  osc.type = isAlert ? 'square' : 'sine';
+  osc.frequency.setValueAtTime(isAlert ? 880 : 600, audioCtx.currentTime);
+  if (isAlert) osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
   gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
   osc.start(); osc.stop(audioCtx.currentTime + 0.4);
 }
 
-// --- 3. AUTH & HEADER ---
-let currentUser = JSON.parse(sessionStorage.getItem('wasla_session')) || null;
+/* ==========================================================================
+   DATABASE & STATE MANAGEMENT
+   ========================================================================== */
+const DB_KEY = 'wasla_db_v3';
+let DB = JSON.parse(localStorage.getItem(DB_KEY));
 
-function login(phone, pass) {
-  const user = DB.users.find(u => u.phone === phone && u.pass === pass);
-  if (user) {
-    currentUser = user;
-    sessionStorage.setItem('wasla_session', JSON.stringify(user));
-    closeModal('auth-modal');
-    renderHeader();
-    switchSector(user.role === 'founder' ? 'founder' : 'medical');
-    toast('مرحباً بك ' + user.name);
-    return true;
-  }
-  return false;
+if (!DB) {
+  DB = {
+    users: [
+      { id: 'u-f', phone: '01068990089', pass: 'As123789456*', name: 'أحمد صبري', role: 'founder', wallet: 0 },
+      { id: 'u-p1', phone: '01000000001', pass: '123456', name: 'محمد المريض', role: 'patient', wallet: 150, emr: { blood: 'O+', allergies: ['بنسلين'], chronic: ['سكري'] } },
+      { id: 'u-d1', phone: '01000000002', pass: '123456', name: 'د. محمد الشريف', role: 'doctor', wallet: 0 },
+      { id: 'u-s1', phone: '01000000003', pass: '123456', name: 'موظف الاستقبال', role: 'staff', wallet: 0 }
+    ],
+    doctors: [
+      { id: 'd1', name: 'د. محمد الشريف', spec: 'باطنة وكبد', price: 170, avgTime: 15, area: 'شارع بورسعيد', lat: 30.3546, lng: 31.2153, services: ['سكر وضغط', 'مناظير', 'علاج كبد'] },
+      { id: 'd2', name: 'د. سارة أحمد', spec: 'أطفال وحديثي الولادة', price: 150, avgTime: 12, area: 'ميدان المحطة', lat: 30.3575, lng: 31.2160, services: ['تطعيمات', 'حساسية صدر', 'متابعة نمو'] },
+      { id: 'd3', name: 'د. كريم عبد العزيز', spec: 'قلب وأوعية دموية', price: 250, avgTime: 20, area: 'شارع المستشفى', lat: 30.3550, lng: 31.2145, services: ['تخطيط قلب', 'ضغط الدم', 'ذبحة صدرية'] }
+    ],
+    appointments: [],
+    orders: [],
+    notifications: [],
+    cart: [],
+    ads: [{ id: 'a1', text: '🎉 خصم 20% على أول كشف', active: true }, { id: 'a2', text: '🚀 ونش إنقاذ متاح الآن', active: true }]
+  };
+  localStorage.setItem(DB_KEY, JSON.stringify(DB));
 }
 
-function logout() {
-  currentUser = null;
-  sessionStorage.removeItem('wasla_session');
-  renderHeader();
-  switchSector('medical');
-  toast('تم تسجيل الخروج');
-}
+function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
 
-function renderHeader() {
-  const actions = document.getElementById('header-actions');
+let Auth = {
+  currentUser: JSON.parse(sessionStorage.getItem('wasla_session')) || null,
   
-  if (!currentUser) {
-    actions.innerHTML = `<button class="btn-header btn-primary" onclick="openAuth()"><i class="fa-solid fa-right-to-bracket"></i> دخول</button>`;
-    return;
+  login: (phone, pass) => {
+    const user = DB.users.find(u => u.phone === phone && u.pass === pass);
+    if (user) {
+      Auth.currentUser = user;
+      sessionStorage.setItem('wasla_session', JSON.stringify(user));
+      UI.renderHeader();
+      Utils.closeModal('modal-auth');
+      Utils.toast('مرحباً بك ' + user.name);
+      
+      // Route based on role
+      if (user.role === 'founder') router.navigate('founder');
+      else if (user.role === 'staff') router.navigate('staff');
+      else if (user.role === 'doctor') router.navigate('doctor');
+      else router.navigate('dashboard');
+      
+      return true;
+    }
+    return false;
+  },
+  
+  logout: () => {
+    Auth.currentUser = null;
+    sessionStorage.removeItem('wasla_session');
+    UI.renderHeader();
+    router.navigate('medical');
+    Utils.toast('تم تسجيل الخروج');
   }
+};
 
-  const isFounder = currentUser.role === 'founder';
-  const notifCount = DB.notifications.filter(n => n.userId === currentUser.id && !n.read).length;
-
-  actions.innerHTML = `
-    <div style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.1); padding:6px 12px; border-radius:10px; cursor:pointer;" onclick="switchSector('${isFounder?'founder':'dashboard'}')">
-      <div style="width:24px; height:24px; border-radius:50%; background:var(--emerald); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px;">${currentUser.name[0]}</div>
-      <div style="font-size:11px; font-weight:900; color:#fff;">${currentUser.name.split(' ')[0]}</div>
-      <div style="font-size:10px; color:#34D399; font-weight:800; margin-right:4px;">${currentUser.wallet || 0} ج.م</div>
-    </div>
-    
-    ${isFounder ? `<button class="btn-header btn-founder" onclick="switchSector('founder')"><i class="fa-solid fa-crown"></i> لوحة التحكم</button>` : ''}
-    
-    <div class="notif-bell" onclick="toggleNotifs(event)">
-      <button class="btn-header"><i class="fa-solid fa-bell"></i> ${notifCount > 0 ? `<span class="notif-badge">${notifCount}</span>` : ''}</button>
-      <div class="notif-panel" id="notif-panel">
-        <div style="padding:12px; font-weight:900; border-bottom:1px solid var(--line); background:#F8FAFC; border-radius:16px 16px 0 0; display:flex; justify-content:space-between;">
-          <span>الإشعارات</span>
-          <span style="color:var(--danger); font-size:10px; cursor:pointer;" onclick="clearNotifs()">مسح الكل</span>
-        </div>
-        ${DB.notifications.filter(n => n.userId === currentUser.id).map(n => `
-          <div class="notif-item ${!n.read ? 'unread' : ''}">
-            <div style="font-size:10px; color:#64748B; margin-bottom:4px;">${new Date(n.ts).toLocaleTimeString('ar-EG')}</div>
-            ${n.text}
-          </div>
-        `).join('') || '<div style="padding:20px; text-align:center; color:#94A3B8;">لا إشعارات</div>'}
-      </div>
-    </div>
-
-    <button class="btn-header" onclick="toggleCart()" style="position:relative; background:var(--emerald); border:none;">
-      <i class="fa-solid fa-cart-shopping"></i>
-      <span style="position:absolute; top:-5px; right:-5px; background:var(--amber); color:#fff; width:16px; height:16px; border-radius:50%; font-size:9px; display:flex; align-items:center; justify-content:center;">${DB.cart.length}</span>
-    </button>
-
-    <button class="btn-header" onclick="logout()" title="خروج" style="color:#94A3B8;"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
-  `;
-}
-
-function pushNotif(userId, text, isAlert=false) {
-  DB.notifications.unshift({ id: uid(), userId, text, read: false, ts: Date.now() });
-  saveDB();
-  if (currentUser && currentUser.id === userId) {
-    renderHeader();
-    playSound(isAlert);
-    toast(text);
-  }
-}
-
-function toggleNotifs(e) {
-  e.stopPropagation();
-  const p = document.getElementById('notif-panel');
-  p.classList.toggle('open');
-  if (p.classList.contains('open')) {
-    DB.notifications.filter(n => n.userId === currentUser.id).forEach(n => n.read = true);
+let Notifier = {
+  push: (userId, text, isAlert = false) => {
+    DB.notifications.unshift({ id: Utils.id(), userId, text, read: false, ts: Date.now() });
     saveDB();
+    if (Auth.currentUser && Auth.currentUser.id === userId) {
+      UI.renderHeader();
+      playSound(isAlert);
+      Utils.toast(text);
+    }
+  },
+  
+  openPanel: (e) => {
+    e.stopPropagation();
+    const my = DB.notifications.filter(n => n.userId === Auth.currentUser.id);
+    let html = `<button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button><h3 style="font-weight:900; margin:0 0 16px;">الإشعارات</h3>`;
+    
+    if (!my.length) html += `<p style="text-align:center; color:var(--gray);">لا توجد إشعارات</p>`;
+    my.forEach(n => {
+      html += `<div style="padding:12px; border-bottom:1px solid var(--line); background:${n.read?'#fff':'var(--emerald-light)'}; border-radius:var(--radius-sm); margin-bottom:8px;">
+        <div style="font-size:10px; color:var(--gray); margin-bottom:4px;">${new Date(n.ts).toLocaleTimeString('ar-EG')}</div>
+        <div style="font-size:13px; font-weight:700;">${n.text}</div>
+      </div>`;
+    });
+    
+    document.getElementById('modal-map-body').innerHTML = html;
+    Utils.openModal('modal-map');
+    
+    // Mark read
+    DB.notifications.filter(n => n.userId === Auth.currentUser.id).forEach(n => n.read = true);
+    saveDB(); UI.renderHeader();
   }
-}
-document.addEventListener('click', () => { document.getElementById('notif-panel')?.classList.remove('open'); });
-function clearNotifs() { DB.notifications = DB.notifications.filter(n => n.userId !== currentUser.id); saveDB(); renderHeader(); toggleNotifs({stopPropagation:()=>{}}); }
+};
 
-// --- 4. NAVIGATION ---
-function switchSector(id) {
-  document.querySelectorAll('.sector-view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-  
-  const view = document.getElementById('sector-' + id);
-  if (view) view.classList.add('active');
-  
-  const tab = document.querySelector(`.tab-btn[data-sector="${id}"]`);
-  if (tab) tab.classList.add('active');
+/* ==========================================================================
+   UI COMPONENTS
+   ========================================================================== */
+const UI = {
+  renderHeader: () => {
+    const actions = document.getElementById('header-actions');
+    const tabs = document.getElementById('super-tabs');
+    
+    // Clear dynamic tabs
+    document.querySelectorAll('.tab.dynamic').forEach(t => t.remove());
 
-  // Render Content dynamically
-  if (id === 'medical') renderMedical();
-  if (id === 'market') renderMarket();
-  if (id === 'cars') renderCars();
-  if (id === 'home') renderHome();
-  if (id === 'founder') renderFounder();
-  if (id === 'staff') renderStaff();
-  if (id === 'doctor') renderDoctor();
-  if (id === 'dashboard') renderPatientDash();
-  
-  window.scrollTo(0,0);
-}
+    if (!Auth.currentUser) {
+      actions.innerHTML = `<button class="btn-ui primary" onclick="AuthUI.open()"><i class="fa-solid fa-right-to-bracket"></i> دخول</button>`;
+      return;
+    }
 
-// --- 5. CART & PAYMENT ---
-function toggleCart() {
-  document.getElementById('cart-sheet').classList.toggle('open');
-  document.getElementById('cart-overlay').classList.toggle('open');
-  renderCart();
-}
+    const isFounder = Auth.currentUser.role === 'founder';
+    const isStaff = Auth.currentUser.role === 'staff';
+    const isDoctor = Auth.currentUser.role === 'doctor';
+    const myNotifs = DB.notifications.filter(n => n.userId === Auth.currentUser.id && !n.read);
 
-function addToCart(item) {
-  DB.cart.push({ ...item, cartId: uid() });
-  saveDB();
-  renderHeader();
-  renderCart();
-  toast('تمت الإضافة للسلة');
-}
-
-function renderCart() {
-  const body = document.getElementById('cart-body');
-  if (!DB.cart.length) {
-    body.innerHTML = `<div class="text-center" style="padding:40px; color:#94A3B8;"><i class="fa-solid fa-basket-shopping" style="font-size:40px; margin-bottom:12px;"></i><br>السلة فارغة</div>`;
-    document.getElementById('cart-total').innerText = '0 ج.م';
-    return;
-  }
-  body.innerHTML = DB.cart.map(item => `
-    <div class="item-card" style="margin-bottom:10px;">
-      <div class="item-icon"><i class="fa-solid ${item.icon}"></i></div>
-      <div class="item-info">
-        <div class="item-title">${item.title}</div>
-        <div class="item-sub">${item.subtitle || ''}</div>
-        <div class="item-price">${item.price} ج.م</div>
+    actions.innerHTML = `
+      <div style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.1); padding:6px 10px; border-radius:var(--radius-sm); cursor:pointer;" onclick="router.navigate('${isFounder?'founder':isStaff?'staff':isDoctor?'doctor':'dashboard'}')">
+        <div style="width:24px; height:24px; border-radius:50%; background:var(--emerald); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:11px;">${Auth.currentUser.name[0]}</div>
+        <div style="font-size:11px; font-weight:900; color:#fff;">${Auth.currentUser.name.split(' ')[0]}</div>
+        <div style="font-size:10px; color:#34D399; font-weight:800; margin-right:4px;">${Auth.currentUser.wallet || 0} ج.م</div>
       </div>
-      <button onclick="removeCart('${item.cartId}')" style="background:#FEE2E2; color:var(--danger); border:none; width:30px; height:30px; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
-    </div>
-  `).join('');
-  const total = DB.cart.reduce((s,i) => s + i.price, 0);
-  document.getElementById('cart-total').innerText = total + ' ج.م';
-}
+      
+      ${isFounder ? `<button class="btn-ui" style="background:linear-gradient(135deg,var(--gold),var(--amber)); border:none;" onclick="router.navigate('founder')"><i class="fa-solid fa-crown"></i> لوحة التحكم</button>` : ''}
+      
+      <button class="btn-ui" onclick="Notifier.openPanel(event)" style="position:relative;">
+        <i class="fa-solid fa-bell"></i>
+        ${myNotifs.length > 0 ? `<span style="position:absolute; top:-4px; right:-4px; background:var(--danger); color:#fff; width:16px; height:16px; border-radius:50%; font-size:9px; font-weight:900; display:flex; align-items:center; justify-content:center;">${myNotifs.length}</span>` : ''}
+      </button>
 
-function removeCart(id) {
-  DB.cart = DB.cart.filter(i => i.cartId !== id);
-  saveDB();
-  renderCart();
-  renderHeader();
-}
+      <button class="btn-ui primary" onclick="cart.toggle()" style="position:relative;">
+        <i class="fa-solid fa-cart-shopping"></i>
+        ${DB.cart.length > 0 ? `<span style="position:absolute; top:-4px; right:-4px; background:#fff; color:var(--emerald); width:16px; height:16px; border-radius:50%; font-size:9px; font-weight:900; display:flex; align-items:center; justify-content:center;">${DB.cart.length}</span>` : ''}
+      </button>
 
-function checkout() {
-  if (!currentUser) { toast('سجل دخول أولاً', 'error'); return openAuth(); }
-  if (!DB.cart.length) return;
+      <button class="btn-ui" onclick="Auth.logout()" style="color:#94A3B8;"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+    `;
+
+    // Dynamic Tabs
+    if (isStaff) tabs.insertAdjacentHTML('beforeend', `<button class="tab dynamic" data-sector="staff" onclick="router.navigate('staff')"><i class="fa-solid fa-headset"></i> إدارة الطابور</button>`);
+    if (isDoctor) tabs.insertAdjacentHTML('beforeend', `<button class="tab dynamic" data-sector="doctor" onclick="router.navigate('doctor')"><i class="fa-solid fa-user-md"></i> بوابة الطبيب</button>`);
+  },
   
-  const total = DB.cart.reduce((s,i) => s + i.price, 0);
+  renderTicker: () => {
+    const active = DB.ads.filter(a => a.active);
+    const el = document.getElementById('wasla-ticker');
+    if (!active.length) return el.style.display = 'none';
+    el.style.display = 'flex';
+    el.innerHTML = `<div class="ticker-content">${active.map(a => `<span style="margin-left:40px;"><i class="fa-solid fa-bullhorn" style="color:var(--gold);"></i> ${a.text}</span>`).join('')}</div>`;
+  }
+};
+
+/* ==========================================================================
+   ROUTER
+   ========================================================================== */
+const router = {
+  navigate: (sector) => {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    
+    const view = document.getElementById('view-' + sector);
+    if (view) view.classList.add('active');
+    
+    const tab = document.querySelector(`.tab[data-sector="${sector}"]`);
+    if (tab) tab.classList.add('active');
+
+    const views = {
+      medical: Views.medical, market: Views.market, cars: Views.cars, home: Views.home,
+      founder: Views.founder, staff: Views.staff, doctor: Views.doctor, dashboard: Views.dashboard
+    };
+    
+    if (views[sector]) views[sector]();
+    window.scrollTo(0,0);
+  }
+};
+
+/* ==========================================================================
+   CART MODULE
+   ========================================================================== */
+const cart = {
+  toggle: () => {
+    document.getElementById('cart-sheet').classList.toggle('open');
+    document.getElementById('cart-overlay').classList.toggle('open');
+    cart.render();
+  },
   
-  document.getElementById('payment-modal-body').innerHTML = `
-    <button class="modal-close" onclick="closeModal('payment-modal')"><i class="fa-solid fa-xmark"></i></button>
-    <div class="text-center mb-4">
-      <div style="width:60px; height:60px; background:var(--emerald-soft); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; margin:0 auto 12px;"><i class="fa-solid fa-credit-card"></i></div>
-      <h3 style="margin:0; font-weight:900;">بوابة الدفع</h3>
-      <p style="color:#64748B; font-size:12px; font-weight:700;">المبلغ: ${total} ج.م</p>
-    </div>
-    <div class="grid-list mb-4">
-      <div class="item-card" style="border:2px solid var(--emerald); background:var(--emerald-soft); cursor:pointer;">
+  add: (title, price, icon) => {
+    DB.cart.push({ cartId: Utils.id(), title, price, icon });
+    saveDB(); UI.renderHeader(); Utils.toast('تمت الإضافة للسلة'); cart.toggle();
+  },
+  
+  remove: (id) => {
+    DB.cart = DB.cart.filter(i => i.cartId !== id);
+    saveDB(); cart.render(); UI.renderHeader();
+  },
+  
+  render: () => {
+    const body = document.getElementById('cart-body');
+    if (!DB.cart.length) {
+      body.innerHTML = `<div style="text-align:center; padding:40px; color:var(--gray);"><i class="fa-solid fa-basket-shopping" style="font-size:40px; margin-bottom:12px;"></i><br>السلة فارغة</div>`;
+      document.getElementById('cart-total').innerText = '0 ج.م';
+      return;
+    }
+    body.innerHTML = DB.cart.map(item => `
+      <div class="item-box" style="margin-bottom:10px;">
+        <div class="item-icon"><i class="fa-solid ${item.icon}"></i></div>
+        <div class="item-info"><div class="item-title">${item.title}</div></div>
+        <div class="item-price">${Utils.money(item.price)}</div>
+        <button onclick="cart.remove('${item.cartId}')" style="background:var(--danger-light); color:var(--danger); border:none; width:32px; height:32px; border-radius:var(--radius-sm); cursor:pointer; margin-right:10px;"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `).join('');
+    const total = DB.cart.reduce((s,i) => s + i.price, 0);
+    document.getElementById('cart-total').innerText = Utils.money(total);
+  },
+  
+  checkout: () => {
+    if (!Auth.currentUser) { Utils.toast('سجل دخول أولاً', true); return AuthUI.open(); }
+    if (!DB.cart.length) return;
+    
+    const total = DB.cart.reduce((s,i) => s + i.price, 0);
+    document.getElementById('modal-payment-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-payment')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:24px;">
+        <div style="width:64px; height:64px; background:var(--emerald-light); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 12px;"><i class="fa-solid fa-credit-card"></i></div>
+        <h3 style="margin:0 0 4px; font-weight:900;">بوابة الدفع</h3>
+        <p style="color:var(--gray); font-size:13px; font-weight:700;">المبلغ المطلوب: ${Utils.money(total)}</p>
+      </div>
+      <div class="item-box mb-4" style="border:2px solid var(--emerald); background:var(--emerald-light);">
         <div class="item-icon" style="background:#fff;"><i class="fa-solid fa-money-bill"></i></div>
         <div class="item-info"><div class="item-title">الدفع عند الاستلام (كاش)</div></div>
-        <i class="fa-solid fa-circle-check" style="color:var(--emerald);"></i>
+        <i class="fa-solid fa-circle-check" style="color:var(--emerald); font-size:20px;"></i>
       </div>
-      <div class="item-card" style="opacity:0.5; cursor:not-allowed;">
-        <div class="item-icon" style="background:#fff;"><i class="fa-solid fa-credit-card"></i></div>
-        <div class="item-info"><div class="item-title">بطاقة بنكية</div></div>
-      </div>
-    </div>
-    <button onclick="processPayment(${total})" style="width:100%; padding:14px; background:var(--emerald); color:#fff; border:none; border-radius:12px; font-weight:900; font-size:16px;">تأكيد ودفع</button>
-  `;
-  openModal('payment-modal');
-}
-
-function processPayment(total) {
-  const cashback = Math.round(total * 0.05);
-  currentUser.wallet = (currentUser.wallet || 0) + cashback;
+      <button onclick="cart.processPayment(${total})" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد ودفع</button>
+    `;
+    Utils.openModal('modal-payment');
+  },
   
-  // Update User in DB
-  const uIdx = DB.users.findIndex(u => u.id === currentUser.id);
-  DB.users[uIdx] = currentUser;
-  sessionStorage.setItem('wasla_session', JSON.stringify(currentUser));
-
-  // Create Orders
-  DB.cart.forEach(item => {
-    DB.orders.push({ id: uid(), userId: currentUser.id, title: item.title, price: item.price, status: 'preparing', ts: Date.now() });
-  });
-
-  DB.cart = [];
-  saveDB();
-  
-  closeModal('payment-modal');
-  toggleCart();
-  renderHeader();
-  toast(`تم الدفع بنجاح! حصلت على ${cashback} ج.م كاش باك`);
-}
-
-// --- 6. SECTORS RENDERING ---
-
-function renderMedical() {
-  const el = document.getElementById('sector-medical');
-  el.innerHTML = `
-    <h2 class="card-title"><i class="fa-solid fa-user-doctor" style="color:var(--emerald);"></i> احجز مع طبيبك</h2>
-    <div class="grid-list">
-      ${DB.doctors.map(d => `
-        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <h4 style="margin:0 0 4px; font-weight:900;">${d.name}</h4>
-            <span style="background:var(--emerald-soft); color:var(--emerald); padding:2px 8px; border-radius:6px; font-size:10px; font-weight:900;">${d.spec}</span>
-            <p style="margin:4px 0 0; font-size:11px; color:#64748B;"><i class="fa-solid fa-location-dot"></i> ${d.area}</p>
-          </div>
-          <div class="text-center">
-            <div style="font-weight:900; color:var(--emerald); font-size:18px;">${d.price} ج.م</div>
-            <button onclick="openBooking('${d.id}')" style="margin-top:8px; padding:8px 16px; background:var(--emerald); color:#fff; border:none; border-radius:8px; font-weight:900; font-size:12px; cursor:pointer;">حجز</button>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-}
-
-function openBooking(docId) {
-  if (!currentUser) return openAuth();
-  const doc = DB.doctors.find(d => d.id === docId);
-  
-  document.getElementById('booking-modal-body').innerHTML = `
-    <button class="modal-close" onclick="closeModal('booking-modal')"><i class="fa-solid fa-xmark"></i></button>
-    <h3 style="margin:0 0 4px; font-weight:900;">${doc.name}</h3>
-    <p style="margin:0 0 16px; font-size:12px; color:#64748B; font-weight:700;">${doc.spec} • الكشف: ${doc.price} ج.م</p>
+  processPayment: (total) => {
+    const cashback = Math.round(total * 0.05);
+    Auth.currentUser.wallet = (Auth.currentUser.wallet || 0) + cashback;
     
-    <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px;">اختر الموعد:</label>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;">
-      <label style="border:1px solid var(--line); padding:12px; border-radius:10px; text-align:center; cursor:pointer; font-weight:900; font-size:12px;"><input type="radio" name="slot" value="5:00 م" checked> 5:00 م</label>
-      <label style="border:1px solid var(--line); padding:12px; border-radius:10px; text-align:center; cursor:pointer; font-weight:900; font-size:12px;"><input type="radio" name="slot" value="5:30 م"> 5:30 م</label>
-      <label style="border:1px solid var(--line); padding:12px; border-radius:10px; text-align:center; cursor:pointer; font-weight:900; font-size:12px;"><input type="radio" name="slot" value="6:00 م"> 6:00 م</label>
-    </div>
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+
+    DB.cart.forEach(item => {
+      DB.orders.push({ id: Utils.id(), userId: Auth.currentUser.id, title: item.title, price: item.price, status: 'preparing', ts: Date.now() });
+    });
+
+    DB.cart = [];
+    saveDB();
     
-    <button onclick="confirmAppt('${doc.id}', '${doc.price}')" style="width:100%; padding:14px; background:var(--emerald); color:#fff; border:none; border-radius:12px; font-weight:900; font-size:16px;">تأكيد الحجز</button>
-  `;
-  openModal('booking-modal');
-}
+    Utils.closeModal('modal-payment'); cart.toggle(); UI.renderHeader();
+    Utils.toast(`تم الدفع بنجاح! حصلت على ${cashback} ج.م كاش باك`);
+  }
+};
 
-function confirmAppt(docId, price) {
-  const slot = document.querySelector('input[name="slot"]:checked').value;
-  const doc = DB.doctors.find(d => d.id === docId);
+/* ==========================================================================
+   AUTH UI
+   ========================================================================== */
+const AuthUI = {
+  open: () => {
+    document.getElementById('modal-auth-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-auth')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:24px;">
+        <div style="width:64px; height:64px; background:var(--emerald); color:#fff; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 12px;"><i class="fa-solid fa-heart-pulse"></i></div>
+        <h3 style="margin:0; font-weight:900;">تسجيل الدخول</h3>
+      </div>
+      <input type="text" id="auth-phone" class="input-field" placeholder="رقم الموبايل" value="01068990089">
+      <input type="password" id="auth-pass" class="input-field" placeholder="كلمة السر" value="As123789456*">
+      <button onclick="AuthUI.submit()" class="btn-action" style="width:100%; padding:16px; font-size:16px;">دخول</button>
+      
+      <div style="margin-top:24px; padding:16px; background:var(--gray-light); border-radius:var(--radius-sm); font-size:12px; font-weight:700; color:var(--gray);">
+        <div style="color:var(--primary); font-weight:900; margin-bottom:8px;">🔑 حسابات تجريبية:</div>
+        👑 مؤسس: 01068990089 (As123789456*)<br>
+        🧑 مريض: 01000000001 (123456)<br>
+        🩺 طبيب: 01000000002 (123456)<br>
+        🎧 موظف: 01000000003 (123456)
+      </div>
+    `;
+    Utils.openModal('modal-auth');
+  },
   
-  const appt = {
-    id: uid(),
-    patientId: currentUser.id,
-    patientName: currentUser.name,
-    doctorId: doc.id,
-    doctorName: doc.name,
-    slot: slot,
-    price: Number(price),
-    status: 'waiting', // waiting, next, completed
-    ts: Date.now()
-  };
-  
-  DB.appointments.push(appt);
-  saveDB();
-  
-  closeModal('booking-modal');
-  toast('تم تأكيد الحجز');
-  switchSector('dashboard');
-}
+  submit: () => {
+    const p = document.getElementById('auth-phone').value;
+    const s = document.getElementById('auth-pass').value;
+    if (!Auth.login(p, s)) {
+      Utils.toast('بيانات الدخول غير صحيحة', true);
+    }
+  }
+};
 
-function renderMarket() {
-  const el = document.getElementById('sector-market');
-  el.innerHTML = `
-    <h2 class="card-title"><i class="fa-solid fa-store" style="color:var(--amber);"></i> تسوق الآن</h2>
-    <div class="grid-list" style="grid-template-columns: 1fr 1fr;">
-      <div class="card text-center" onclick="addToCart({title:'مشويات مشكلة', price:150, icon:'fa-drumstick-bite'})">
-        <i class="fa-solid fa-drumstick-bite" style="font-size:30px; color:var(--amber); margin-bottom:8px;"></i>
-        <h4 style="margin:0; font-weight:900; font-size:14px;">مشويات</h4>
-      </div>
-      <div class="card text-center" onclick="addToCart({title:'بيتزا رانش', price:120, icon:'fa-pizza-slice'})">
-        <i class="fa-solid fa-pizza-slice" style="font-size:30px; color:var(--amber); margin-bottom:8px;"></i>
-        <h4 style="margin:0; font-weight:900; font-size:14px;">بيتزا</h4>
-      </div>
-      <div class="card text-center" onclick="addToCart({title:'وجبة فراخ', price:90, icon:'fa-fire-burner'})">
-        <i class="fa-solid fa-fire-burner" style="font-size:30px; color:var(--amber); margin-bottom:8px;"></i>
-        <h4 style="margin:0; font-weight:900; font-size:14px;">فراخ</h4>
-      </div>
-      <div class="card text-center" onclick="addToCart({title:'طلب بقالة', price:200, icon:'fa-basket-shopping'})">
-        <i class="fa-solid fa-basket-shopping" style="font-size:30px; color:var(--amber); margin-bottom:8px;"></i>
-        <h4 style="margin:0; font-weight:900; font-size:14px;">بقالة</h4>
-      </div>
-    </div>
-  `;
-}
-
-function renderCars() {
-  const el = document.getElementById('sector-cars');
-  el.innerHTML = `
-    <h2 class="card-title"><i class="fa-solid fa-car" style="color:var(--indigo);"></i> خدمات السيارات</h2>
-    <div class="grid-list" style="grid-template-columns: 1fr 1fr;">
-      <div class="card text-center" onclick="addToCart({title:'تغيير إطار', price:100, icon:'fa-circle-dot'})">
-        <i class="fa-solid fa-circle-dot" style="font-size:30px; color:var(--indigo); margin-bottom:8px;"></i>
-        <h4 style="margin:0; font-weight:900; font-size:14px;">إطارات</h4>
-      </div>
-      <div class="card text-center" onclick="addToCart({title:'شحن بطارية', price:150, icon:'fa-car-battery'})">
-        <i class="fa-solid fa-car-battery" style="font-size:30px; color:var(--indigo); margin-bottom:8px;"></i>
-        <h4 style="margin:0; font-weight:900; font-size:14px;">بطارية</h4>
-      </div>
-      <div class="card text-center" onclick="addToCart({title:'غسيل سيارة', price:80, icon:'fa-droplet'})">
-        <i class="fa-solid fa-droplet" style="font-size:30px; color:var(--indigo); margin-bottom:8px;"></i>
-        <h4 style="margin:0; font-weight:900; font-size:14px;">غسيل</h4>
-      </div>
-      <div class="card text-center" style="background:#FEE2E2; border-color:#FECACA;" onclick="addToCart({title:'ونش إنقاذ طارئ', price:300, icon:'fa-truck-pickup'})">
-        <i class="fa-solid fa-truck-pickup" style="font-size:30px; color:var(--danger); margin-bottom:8px;"></i>
-        <h4 style="margin:0; font-weight:900; font-size:14px; color:var(--danger);">ونش إنقاذ</h4>
-      </div>
-    </div>
-  `;
-}
-
-function renderHome() {
-  const el = document.getElementById('sector-home');
-  el.innerHTML = `
-    <h2 class="card-title"><i class="fa-solid fa-screwdriver-wrench" style="color:var(--sky);"></i> الصيانة المنزلية</h2>
-    <div class="grid-list" style="grid-template-columns: 1fr 1fr;">
-      <div class="card text-center" onclick="addToCart({title:'زيارة سباك', price:100, icon:'fa-wrench'})">
-        <i class="fa-solid fa-wrench" style="font-size:30px; color:var(--sky); margin-bottom:8px;"></i>
-        <h4 style="margin:0; font-weight:900; font-size:14px;">سباك</h4>
-      </div>
-      <div class="card text-center" onclick="addToCart({title:'زيارة كهربائي', price:100, icon:'fa-bolt'})">
-        <i class="fa-solid fa-bolt" style="font-size:30px; color:var(--sky); margin-bottom:8px;"></i>
-        <h4 style="margin:0; font-weight:900; font-size:14px;">كهربائي</h4>
-      </div>
-    </div>
-  `;
-}
-
-// --- 7. DASHBOARDS ---
-
-function renderFounder() {
-  if (!currentUser || currentUser.role !== 'founder') return toast('غير مصرح', 'error');
-  
-  const el = document.getElementById('sector-founder');
-  
-  // Calculate Stats
-  const totalRev = DB.orders.reduce((s, o) => s + o.price, 0);
-  const commission = Math.round(totalRev * 0.15);
-  const apptsCount = DB.appointments.length;
-  const usersCount = DB.users.filter(u => u.role !== 'founder').length;
-
-  el.innerHTML = `
-    <div class="card" style="background:var(--ink); color:#fff; border:none;">
-      <h2 style="margin:0 0 16px; font-weight:900;"><i class="fa-solid fa-crown" style="color:#F59E0B;"></i> لوحة المؤسس</h2>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-        <div style="background:rgba(255,255,255,0.1); padding:12px; border-radius:12px;">
-          <div style="font-size:10px; color:#94A3B8; font-weight:700;">إجمالي الأرباح</div>
-          <div style="font-size:20px; font-weight:900; color:#34D399;">${commission} ج.م</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.1); padding:12px; border-radius:12px;">
-          <div style="font-size:10px; color:#94A3B8; font-weight:700;">الاشتراكات</div>
-          <div style="font-size:20px; font-weight:900; color:#F59E0B;">148 مشترك</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.1); padding:12px; border-radius:12px;">
-          <div style="font-size:10px; color:#94A3B8; font-weight:700;">معدل النمو</div>
-          <div style="font-size:20px; font-weight:900; color:#60A5FA;">+24%</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.1); padding:12px; border-radius:12px;">
-          <div style="font-size:10px; color:#94A3B8; font-weight:700;">الحجوزات</div>
-          <div style="font-size:20px; font-weight:900; color:#fff;">${apptsCount}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card mt-4">
-      <h3 class="card-title">إدارة الموظفين</h3>
-      <div style="display:flex; gap:8px; margin-bottom:12px;">
-        <input type="text" id="staff-name" class="input-box" placeholder="اسم الموظف" style="margin:0;">
-        <input type="text" id="staff-phone" class="input-box" placeholder="الموبايل" style="margin:0;">
-        <button onclick="addStaff()" style="background:var(--emerald); color:#fff; border:none; border-radius:10px; padding:0 16px; font-weight:900; cursor:pointer;">إضافة</button>
-      </div>
-      ${DB.users.filter(u => u.role === 'staff').map(s => `
-        <div class="item-card mb-4" style="padding:10px;">
-          <div class="item-info"><div class="item-title">${s.name}</div><div class="item-sub">${s.phone}</div></div>
-          <button onclick="delStaff('${s.id}')" style="color:var(--danger); background:none; border:none;"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      `).join('') || '<p style="font-size:12px; color:#64748B;">لا يوجد موظفين.</p>'}
-    </div>
-    
-    <div class="card mt-4">
-      <h3 class="card-title">الأطباء المسجلين</h3>
+/* ==========================================================================
+   VIEWS (SECTORS)
+   ========================================================================== */
+const Views = {
+  /* --- MEDICAL --- */
+  medical: () => {
+    const el = document.getElementById('view-medical');
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-user-doctor" style="color:var(--emerald);"></i> دليل الأطباء</h2>
       <div class="grid-list">
         ${DB.doctors.map(d => `
-          <div class="item-card" style="padding:10px;">
-            <div class="item-info"><div class="item-title">${d.name}</div><div class="item-sub">${d.spec}</div></div>
-            <div style="font-weight:900; color:var(--emerald);">${d.price} ج.م</div>
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="flex:1;">
+              <h4 style="margin:0 0 4px; font-weight:900; font-size:16px;">${d.name}</h4>
+              <span style="background:var(--emerald-light); color:var(--emerald); padding:2px 8px; border-radius:6px; font-size:10px; font-weight:900;">${d.spec}</span>
+              <p style="margin:8px 0 4px; font-size:11px; color:var(--gray); font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${d.area} • متوسط ${d.avgTime} دقيقة</p>
+              <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;">
+                ${d.services.map(s => `<span style="background:var(--gray-light); border:1px solid var(--line); font-size:10px; padding:2px 8px; border-radius:6px; font-weight:700;">${s}</span>`).join('')}
+              </div>
+              <button onclick="Views.showMap('${d.id}')" style="background:none; border:none; color:var(--sky); font-size:12px; font-weight:900; cursor:pointer; margin-top:10px; padding:0;"><i class="fa-solid fa-map-location-dot"></i> موقع العيادة</button>
+            </div>
+            <div style="text-align:left;">
+              <div style="font-weight:900; color:var(--emerald); font-size:20px;">${Utils.money(d.price)}</div>
+              <button onclick="Views.openBooking('${d.id}')" class="btn-action" style="margin-top:10px; padding:10px 20px;">حجز</button>
+            </div>
           </div>
         `).join('')}
       </div>
-    </div>
-  `;
-}
-
-function addStaff() {
-  const name = document.getElementById('staff-name').value;
-  const phone = document.getElementById('staff-phone').value;
-  if (!name || !phone) return toast('أدخل البيانات', 'error');
-  DB.users.push({ id: uid(), name, phone, role: 'staff', pass: '123456' });
-  saveDB();
-  renderFounder();
-  toast('تمت الإضافة');
-}
-
-function delStaff(id) {
-  DB.users = DB.users.filter(u => u.id !== id);
-  saveDB();
-  renderFounder();
-}
-
-function renderStaff() {
-  if (!currentUser || currentUser.role !== 'staff') return;
-  const el = document.getElementById('sector-staff');
-  
-  const appts = DB.appointments.filter(a => a.status !== 'completed').sort((a,b) => a.ts - b.ts);
-
-  el.innerHTML = `
-    <h2 class="card-title"><i class="fa-solid fa-headset" style="color:var(--indigo);"></i> بوابة الموظف (إدارة الطابور)</h2>
-    <div class="grid-list">
-      ${appts.map(a => `
-        <div class="card">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <h4 style="margin:0; font-weight:900;">${a.patientName}</h4>
-              <p style="margin:4px 0; font-size:12px; color:#64748B;">${a.doctorName} • ${a.slot}</p>
-            </div>
-            <div>
-              ${a.status === 'next' 
-                ? `<button onclick="finishAppt('${a.id}')" style="background:var(--emerald); color:#fff; border:none; padding:10px 16px; border-radius:10px; font-weight:900; cursor:pointer;">إنهاء الكشف (التالي)</button>`
-                : `<button onclick="callNext('${a.id}')" style="background:var(--amber); color:#fff; border:none; padding:10px 16px; border-radius:10px; font-weight:900; cursor:pointer;">استدعاء المريض</button>`
-              }
-            </div>
-          </div>
-        </div>
-      `).join('') || '<div class="card text-center">لا يوجد مرضى في الانتظار</div>'}
-    </div>
-  `;
-}
-
-function callNext(apptId) {
-  const appt = DB.appointments.find(a => a.id === apptId);
-  appt.status = 'next';
-  saveDB();
-  pushNotif(appt.patientId, `🔔 حان دورك الآن يا ${appt.patientName}! توجه لعيادة ${appt.doctorName}`, true);
-  renderStaff();
-}
-
-function finishAppt(apptId) {
-  const appt = DB.appointments.find(a => a.id === apptId);
-  appt.status = 'completed';
-  saveDB();
-  renderStaff();
-  toast('تم إنهاء الكشف');
-}
-
-function renderDoctor() {
-  const el = document.getElementById('sector-doctor');
-  el.innerHTML = `
-    <h2 class="card-title"><i class="fa-solid fa-user-md" style="color:var(--indigo);"></i> إحصائيات الطبيب</h2>
-    <div class="card">
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; text-align:center;">
-        <div><div style="font-size:24px; font-weight:900; color:var(--emerald);">12</div><div style="font-size:10px; color:#64748B;">جديد</div></div>
-        <div><div style="font-size:24px; font-weight:900; color:var(--amber);">5</div><div style="font-size:12px; color:#64748B;">متابعة</div></div>
-        <div><div style="font-size:24px; font-weight:900; color:var(--sky);">17</div><div style="font-size:12px; color:#64748B;">عبر وصلة</div></div>
-      </div>
-    </div>
-  `;
-}
-
-function renderPatientDash() {
-  if (!currentUser) return openAuth();
-  const el = document.getElementById('sector-dashboard');
-  
-  const myAppts = DB.appointments.filter(a => a.patientId === currentUser.id).sort((a,b) => b.ts - a.ts);
-  const myOrders = DB.orders.filter(o => o.userId === currentUser.id).sort((a,b) => b.ts - a.ts);
-
-  el.innerHTML = `
-    <div class="card" style="background:var(--emerald-soft); border-color:#A7F3D0;">
-      <h2 style="margin:0 0 4px; font-weight:900; color:#047857;">أهلاً ${currentUser.name}</h2>
-      <p style="margin:0; font-size:12px; font-weight:700; color:#065F46;">رقمك التعريفي: ${currentUser.id.toUpperCase()}</p>
-      <div style="margin-top:12px; background:#fff; padding:8px 12px; border-radius:8px; display:inline-block; font-weight:900; color:var(--emerald);">
-        <i class="fa-solid fa-wallet"></i> رصيد المحفظة: ${currentUser.wallet || 0} ج.م
-      </div>
-    </div>
-
-    <h3 class="card-title mt-4">مواعيدي الطبية</h3>
-    <div class="grid-list">
-      ${myAppts.map(a => `
-        <div class="card">
-          <div style="display:flex; justify-content:space-between;">
-            <div>
-              <h4 style="margin:0; font-weight:900;">${a.doctorName}</h4>
-              <p style="margin:4px 0; font-size:12px; color:#64748B;">${a.slot}</p>
-            </div>
-            <span style="font-size:10px; font-weight:900; padding:4px 8px; border-radius:6px; background:${a.status==='completed'?'#F1F5F9':(a.status==='next'?'#FEF3C7':'#ECFDF5')}; color:${a.status==='completed'?'#64748B':(a.status==='next'?'#92400E':'#059669')};">
-              ${a.status === 'completed' ? 'مكتمل' : (a.status === 'next' ? 'دورك الآن' : 'قيد الانتظار')}
-            </span>
-          </div>
-        </div>
-      `).join('') || '<p style="font-size:12px; color:#64748B;">لا توجد مواعيد.</p>'}
-    </div>
-
-    <h3 class="card-title mt-4">سجل الطلبات</h3>
-    <div class="grid-list">
-      ${myOrders.map(o => `
-        <div class="item-card">
-          <div class="item-icon"><i class="fa-solid fa-box"></i></div>
-          <div class="item-info">
-            <div class="item-title">${o.title}</div>
-            <div class="item-sub">${new Date(o.ts).toLocaleDateString('ar-EG')}</div>
-          </div>
-          <div style="font-weight:900; color:var(--emerald);">${o.price} ج.م</div>
-        </div>
-      `).join('') || '<p style="font-size:12px; color:#64748B;">لا توجد طلبات سابقة.</p>'}
-    </div>
-  `;
-}
-
-// --- 8. AUTH MODAL ---
-function openAuth() {
-  document.getElementById('auth-modal-body').innerHTML = `
-    <button class="modal-close" onclick="closeModal('auth-modal')"><i class="fa-solid fa-xmark"></i></button>
-    <div class="text-center mb-4">
-      <div style="width:60px; height:60px; background:var(--emerald); color:#fff; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:30px; margin:0 auto 12px;"><i class="fa-solid fa-heart-pulse"></i></div>
-      <h3 style="margin:0; font-weight:900;">تسجيل الدخول</h3>
-    </div>
-    <input type="text" id="login-phone" class="input-box" placeholder="رقم الموبايل" value="01068990089">
-    <input type="password" id="login-pass" class="input-box" placeholder="كلمة السر" value="As123789456*">
-    <button onclick="doLogin()" style="width:100%; padding:14px; background:var(--emerald); color:#fff; border:none; border-radius:12px; font-weight:900; font-size:16px;">دخول</button>
-    
-    <div style="margin-top:16px; padding:12px; background:#F8FAFC; border-radius:8px; font-size:11px; color:#64748B; text-align:center;">
-      حساب المؤسس: 01068990089 / As123789456*
-    </div>
-  `;
-  openModal('auth-modal');
-}
-
-function doLogin() {
-  const p = document.getElementById('login-phone').value;
-  const s = document.getElementById('login-pass').value;
-  if (!login(p, s)) {
-    toast('بيانات غير صحيحة', 'error');
-  }
-}
-
-// --- 9. HELPERS ---
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-// Dynamic Tabs (Staff / Doctor)
-function injectDynamicTabs() {
-  const tabs = document.getElementById('super-tabs');
-  // Remove old dynamic
-  document.querySelectorAll('.dynamic-tab').forEach(t => t.remove());
-  
-  if (currentUser && currentUser.role === 'staff') {
-    tabs.insertAdjacentHTML('beforeend', `<button class="tab-btn dynamic-tab" data-sector="staff" onclick="switchSector('staff')"><i class="fa-solid fa-headset"></i> بوابة الموظف</button>`);
-  }
-  if (currentUser && currentUser.role === 'doctor') {
-    tabs.insertAdjacentHTML('beforeend', `<button class="tab-btn dynamic-tab" data-sector="doctor" onclick="switchSector('doctor')"><i class="fa-solid fa-user-md"></i> بوابة الطبيب</button>`);
-  }
-}
-
-// --- 10. INIT ---
-function init() {
-  renderHeader();
-  injectDynamicTabs();
-  switchSector('medical');
-  
-  // Observer for dynamic UI updates
-  const observer = new MutationObserver(() => { injectDynamicTabs(); });
-  observer.observe(document.getElementById('header-actions'), { childList: true });
-}
-
-// Start App
-init();
-</script>
-  <script>
-/* ================================================================
-   WASLA EXTENSION PACK — RESTORING RICH FEATURES (EMR, TRACKER, MAPS)
-   لا يكسر النواة النظيفة، بل يثريها
-   ================================================================ */
-(function () {
-  'use strict';
-
-  // --- 1. قاعدة بيانات إضافية (خرائط، خدمات، إعلانات) ---
-  const DOCTOR_EXT = {
-    'd1': { lat: 30.3546, lng: 31.2153, services: ['متابعة السكر والضغط', 'مناظير الجهاز الهضمي', 'علاج الكبد'] },
-    'd2': { lat: 30.3575, lng: 31.2160, services: ['متابعة النمو والتطعيمات', 'حساسية الصدر', 'حديثي الولادة'] }
-  };
-
-  if (!DB.ads) {
-    DB.ads = [
-      { id: 'a1', text: '🎉 خصم 20% على أول حجز كشف', active: true },
-      { id: 'a2', text: '🚀 تم إطلاق خدمة الونش الذكي', active: true }
-    ];
-    saveDB();
-  }
-
-  // إثراء بيانات الأطباء
-  DB.doctors.forEach(d => {
-    if (DOCTOR_EXT[d.id]) {
-      d.lat = DOCTOR_EXT[d.id].lat;
-      d.lng = DOCTOR_EXT[d.id].lng;
-      d.services = DOCTOR_EXT[d.id].services;
-    }
-  });
-  saveDB();
-
-  // --- 2. شريط الإعلانات المتحرك (Ticker) ---
-  function renderTicker() {
-    if (document.getElementById('wasla-ticker')) return;
-    const active = DB.ads.filter(a => a.active);
-    if (!active.length) return;
-    
-    const html = `
-      <div id="wasla-ticker" style="background:#0B1220; color:#fff; padding:8px 0; font-size:12px; font-weight:900; overflow:hidden; white-space:nowrap;">
-        <div style="display:inline-block; padding-right:100%; animation:scrollTicker 20s linear infinite;">
-          ${active.map(a => `<span style="margin-left:40px;"><i class="fa-solid fa-bullhorn" style="color:#FBBF24;"></i> ${a.text}</span>`).join('')}
-        </div>
-      </div>
-      <style>@keyframes scrollTicker { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }</style>
     `;
-    document.querySelector('.app-header').insertAdjacentHTML('beforebegin', html);
-  }
+  },
 
-  // --- 3. إثراء بطاقات الأطباء بالخدمات ---
-  const originalRenderMedical = window.renderMedical;
-  window.renderMedical = function() {
-    originalRenderMedical();
-    const el = document.getElementById('sector-medical');
-    // إضافة الخدمات والخرائط
-    document.querySelectorAll('.card').forEach(card => {
-      const docName = card.querySelector('h4')?.innerText;
-      const doc = DB.doctors.find(d => d.name === docName);
-      if (doc && !card.querySelector('.doc-services')) {
-        const servicesHTML = `
-          <div class="doc-services" style="display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;">
-            ${(doc.services || []).map(s => `<span style="background:#F1F5F9; color:#475569; font-size:10px; padding:2px 8px; border-radius:6px; font-weight:700; border:1px solid #E2E8F0;">${s}</span>`).join('')}
-          </div>
-        `;
-        const info = card.querySelector('div:first-child');
-        if (info) info.insertAdjacentHTML('beforeend', servicesHTML);
-
-        // زر الموقع
-        if (doc.lat) {
-          const btn = document.createElement('button');
-          btn.style.cssText = 'background:none; border:none; color:#0284C7; font-size:11px; font-weight:900; cursor:pointer; margin-top:4px; padding:0;';
-          btn.innerHTML = '<i class="fa-solid fa-map-location-dot"></i> موقع العيادة';
-          btn.onclick = () => showMap(doc);
-          info.appendChild(btn);
-        }
-      }
-    });
-  };
-
-  // --- 4. إضافة خريطة (OpenStreetMap) ---
-  window.showMap = function(doc) {
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay open';
-    modal.id = 'map-modal';
-    modal.innerHTML = `
-      <div class="modal-content">
-        <button class="modal-close" onclick="document.getElementById('map-modal').remove()"><i class="fa-solid fa-xmark"></i></button>
-        <h3 style="margin:0 0 4px; font-weight:900;">${doc.name}</h3>
-        <p style="margin:0 0 12px; font-size:12px; color:#64748B;">${doc.area}</p>
-        <div style="border-radius:12px; overflow:hidden; border:1px solid #E2E8F0; margin-bottom:12px;">
-          <iframe width="100%" height="250" frameborder="0" src="https://www.openstreetmap.org/export/embed.html?bbox=${doc.lng-0.005},${doc.lat-0.005},${doc.lng+0.005},${doc.lat+0.005}&layer=mapnik&marker=${doc.lat},${doc.lng}"></iframe>
-        </div>
-        <a href="https://maps.google.com/?q=${doc.lat},${doc.lng}" target="_blank" style="display:block; text-align:center; background:#0284C7; color:#fff; padding:12px; border-radius:10px; font-weight:900; text-decoration:none;">فتح في خرائط جوجل</a>
-      </div>
-    `;
-    document.body.appendChild(modal);
-  };
-
-  // --- 5. نظام تتبع الموعد الطبي (5 مراحل) ---
-  window.renderPatientDash = function() {
-    if (!currentUser) return openAuth();
-    const el = document.getElementById('sector-dashboard');
-    const myAppts = DB.appointments.filter(a => a.patientId === currentUser.id).sort((a,b) => b.ts - a.ts);
-    const myOrders = DB.orders.filter(o => o.userId === currentUser.id).sort((a,b) => b.ts - a.ts);
-    const emr = currentUser.emr || { blood: 'O+', allergies: ['بنسلين'], chronic: ['سكري'] };
-
-    // بناء الـ Tracker
-    const renderTracker = (appt) => {
-      const stages = ['received', 'reminder', 'ahead', 'next', 'completed'];
-      const labels = { received: 'تم الاستلام', reminder: 'تذكير', ahead: 'أمامك حالات', next: 'دورك الآن', completed: 'مكتمل' };
-      const idx = stages.indexOf(appt.status === 'waiting' ? 'ahead' : appt.status);
+  openBooking: (docId) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const doc = DB.doctors.find(d => d.id === docId);
+    document.getElementById('modal-book-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-book')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 4px; font-weight:900; font-size:20px;">${doc.name}</h3>
+      <p style="margin:0 0 20px; font-size:13px; color:var(--gray); font-weight:700;">${doc.spec} • الكشف: ${Utils.money(doc.price)}</p>
       
+      <label style="font-size:13px; font-weight:900; display:block; margin-bottom:12px;">اختر الموعد المتاح:</label>
+      <div class="grid-2" style="margin-bottom:24px;">
+        <label style="border:2px solid var(--emerald); background:var(--emerald-light); padding:14px; border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-weight:900; font-size:14px; color:var(--emerald);"><input type="radio" name="slot" value="5:00 م" checked class="hidden"> 5:00 م</label>
+        <label style="border:1px solid var(--line); padding:14px; border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-weight:900; font-size:14px; color:var(--gray);"><input type="radio" name="slot" value="5:30 م" class="hidden"> 5:30 م</label>
+        <label style="border:1px solid var(--line); padding:14px; border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-weight:900; font-size:14px; color:var(--gray);"><input type="radio" name="slot" value="6:00 م" class="hidden"> 6:00 م</label>
+      </div>
+      
+      <button onclick="Views.confirmBooking('${doc.id}')" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد الحجز</button>
+    `;
+    Utils.openModal('modal-book');
+  },
+
+  confirmBooking: (docId) => {
+    const doc = DB.doctors.find(d => d.id === docId);
+    const slot = document.querySelector('input[name="slot"]:checked').value;
+    
+    const appt = {
+      id: Utils.id(),
+      patientId: Auth.currentUser.id,
+      patientName: Auth.currentUser.name,
+      doctorId: doc.id,
+      doctorName: doc.name,
+      slot: slot,
+      price: doc.price,
+      status: 'waiting', // waiting, next, completed
+      ts: Date.now()
+    };
+    
+    DB.appointments.push(appt);
+    saveDB();
+    
+    Utils.closeModal('modal-book');
+    Utils.toast('تم تأكيد الحجز بنجاح');
+    router.navigate('dashboard');
+  },
+
+  showMap: (docId) => {
+    const doc = DB.doctors.find(d => d.id === docId);
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 4px; font-weight:900;">${doc.name}</h3>
+      <p style="margin:0 0 16px; font-size:13px; color:var(--gray); font-weight:700;">${doc.area}</p>
+      <div style="border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--line); margin-bottom:16px;">
+        <iframe width="100%" height="250" frameborder="0" src="https://www.openstreetmap.org/export/embed.html?bbox=${doc.lng-0.005},${doc.lat-0.005},${doc.lng+0.005},${doc.lat+0.005}&layer=mapnik&marker=${doc.lat},${doc.lng}"></iframe>
+      </div>
+      <a href="https://maps.google.com/?q=${doc.lat},${doc.lng}" target="_blank" class="btn-action" style="text-decoration:none; width:100%;">فتح في خرائط جوجل</a>
+    `;
+    Utils.openModal('modal-map');
+  },
+
+  /* --- PATIENT DASHBOARD --- */
+  dashboard: () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const el = document.getElementById('view-dashboard');
+    const myAppts = DB.appointments.filter(a => a.patientId === Auth.currentUser.id).sort((a,b) => b.ts - a.ts);
+    const myOrders = DB.orders.filter(o => o.userId === Auth.currentUser.id).sort((a,b) => b.ts - a.ts);
+    const emr = Auth.currentUser.emr || { blood: 'غير محدد', allergies: [], chronic: [] };
+
+    const renderStepper = (status) => {
+      const steps = ['waiting', 'next', 'completed'];
+      const labels = { waiting: 'انتظار', next: 'دورك الآن', completed: 'مكتمل' };
+      const idx = steps.indexOf(status);
       return `
-        <div style="position:relative; padding:10px 0; margin-top:12px;">
-          <div style="position:absolute; top:24px; right:12px; left:12px; height:3px; background:#E2E8F0;"></div>
-          <div style="position:absolute; top:24px; right:12px; height:3px; background:var(--emerald); width:${Math.max(0, (idx / 4) * 100)}%;"></div>
-          <div style="display:flex; justify-content:space-between; position:relative; z-index:1;">
-            ${stages.map((s, i) => {
-              const active = i <= idx;
-              return `
-                <div style="text-align:center; flex:1;">
-                  <div style="width:30px; height:30px; border-radius:50%; background:${active ? 'var(--emerald)' : '#E2E8F0'}; color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:12px; border:2px solid #fff;">
-                    <i class="fa-solid ${active ? 'fa-check' : 'fa-circle'}"></i>
-                  </div>
-                  <div style="font-size:9px; font-weight:900; color:${active ? 'var(--emerald)' : '#94A3B8'};">${labels[s]}</div>
-                </div>
-              `;
-            }).join('')}
-          </div>
+        <div class="stepper">
+          ${steps.map((s, i) => `
+            <div class="step ${i <= idx ? 'active' : ''} ${i === idx && s !== 'completed' ? 'current' : ''}">
+              <div class="step-icon"><i class="fa-solid ${i < idx ? 'fa-check' : i === idx ? 'fa-hourglass-half' : 'fa-circle'}"></i></div>
+              <div class="step-label">${labels[s]}</div>
+            </div>
+          `).join('')}
         </div>
       `;
     };
 
     el.innerHTML = `
-      <div class="card" style="background:var(--emerald-soft); border-color:#A7F3D0;">
-        <h2 style="margin:0 0 4px; font-weight:900; color:#047857;">أهلاً ${currentUser.name}</h2>
-        <p style="margin:0; font-size:12px; font-weight:700; color:#065F46;">رقمك التعريفي: ${currentUser.id.toUpperCase()}</p>
-        <div style="margin-top:12px; background:#fff; padding:8px 12px; border-radius:8px; display:inline-block; font-weight:900; color:var(--emerald);">
-          <i class="fa-solid fa-wallet"></i> رصيد المحفظة: ${currentUser.wallet || 0} ج.م
+      <div class="card" style="background:linear-gradient(135deg, var(--emerald-light), #D1FAE5); border-color:#A7F3D0;">
+        <h2 style="margin:0 0 4px; font-weight:900; color:#047857;">أهلاً ${Auth.currentUser.name}</h2>
+        <p style="margin:0; font-size:12px; font-weight:700; color:#065F46;">الرقم التعريفي: ${Auth.currentUser.id.toUpperCase()}</p>
+        <div style="margin-top:12px; background:#fff; padding:8px 16px; border-radius:99px; display:inline-flex; align-items:center; gap:8px; font-weight:900; color:var(--emerald); box-shadow:var(--shadow-sm);">
+          <i class="fa-solid fa-wallet"></i> رصيد المحفظة: ${Utils.money(Auth.currentUser.wallet || 0)}
         </div>
       </div>
 
-      <h3 class="card-title mt-4"><i class="fa-solid fa-calendar-check" style="color:var(--emerald);"></i> تتبع المواعيد</h3>
+      <h3 class="section-title mt-4">مواعيدي وتتبع الطابور</h3>
       <div class="grid-list">
         ${myAppts.map(a => `
-          <div class="card" style="border-right:4px solid ${a.status === 'next' ? 'var(--amber)' : 'var(--emerald)'};">
+          <div class="card" style="border-right:4px solid ${a.status==='next'?'var(--amber)':'var(--emerald)'};">
             <div style="display:flex; justify-content:space-between;">
               <div>
                 <h4 style="margin:0; font-weight:900;">${a.doctorName}</h4>
-                <p style="margin:4px 0; font-size:12px; color:#64748B;">${a.slot}</p>
+                <p style="margin:4px 0; font-size:12px; color:var(--gray); font-weight:700;"><i class="fa-regular fa-clock"></i> ${a.slot}</p>
               </div>
-              <span style="font-size:10px; font-weight:900; padding:4px 8px; border-radius:6px; background:${a.status==='next'?'#FEF3C7':'#ECFDF5'}; color:${a.status==='next'?'#92400E':'#059669'};">
-                ${a.status === 'next' ? 'دورك الآن' : 'قيد الانتظار'}
+              <span style="font-size:11px; font-weight:900; padding:4px 10px; border-radius:6px; height:fit-content; background:${a.status==='next'?'#FEF3C7':'var(--emerald-light)'}; color:${a.status==='next'?'#92400E':'var(--emerald)'};">
+                ${a.status === 'next' ? 'دورك الآن' : a.status === 'completed' ? 'مكتمل' : 'انتظار'}
               </span>
             </div>
-            ${renderTracker(a)}
+            ${renderStepper(a.status)}
           </div>
-        `).join('') || '<p style="font-size:12px; color:#64748B;">لا توجد مواعيد.</p>'}
+        `).join('') || '<div class="card text-center" style="color:var(--gray);">لا توجد مواعيد حالية</div>'}
       </div>
 
-      <h3 class="card-title mt-4"><i class="fa-solid fa-notes-medical" style="color:var(--danger);"></i> ملفي الطبي (EMR)</h3>
-      <div class="card">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-          <div style="background:#FEF2F2; padding:12px; border-radius:10px;">
-            <div style="font-size:10px; color:var(--danger); font-weight:900;">فصيلة الدم</div>
-            <div style="font-size:18px; font-weight:900; color:var(--danger);">${emr.blood}</div>
-          </div>
-          <div style="background:#FFF7ED; padding:12px; border-radius:10px;">
-            <div style="font-size:10px; color:var(--amber); font-weight:900;">حساسية</div>
-            <div style="font-size:14px; font-weight:900; color:var(--amber);">${emr.allergies.join('، ')}</div>
-          </div>
+      <h3 class="section-title mt-4">ملفي الطبي (EMR)</h3>
+      <div class="card grid-2">
+        <div class="vital-card" style="background:var(--danger-light);">
+          <div class="vital-label" style="color:var(--danger);">فصيلة الدم</div>
+          <div class="vital-value" style="color:var(--danger);">${emr.blood}</div>
         </div>
-        <div style="margin-top:12px; background:#F8FAFC; padding:12px; border-radius:10px;">
-          <div style="font-size:10px; color:#64748B; font-weight:900;">أمراض مزمنة</div>
-          <div style="font-size:13px; font-weight:900;">${emr.chronic.join('، ')}</div>
+        <div class="vital-card" style="background:var(--amber-light);">
+          <div class="vital-label" style="color:var(--amber);">حساسية</div>
+          <div class="vital-value" style="color:var(--amber); font-size:14px;">${emr.allergies.join('، ') || 'لا يوجد'}</div>
         </div>
       </div>
 
-      <h3 class="card-title mt-4">سجل الطلبات</h3>
+      <h3 class="section-title mt-4">سجل الطلبات</h3>
       <div class="grid-list">
         ${myOrders.map(o => `
-          <div class="item-card">
+          <div class="item-box">
             <div class="item-icon"><i class="fa-solid fa-box"></i></div>
-            <div class="item-info"><div class="item-title">${o.title}</div><div class="item-sub">${new Date(o.ts).toLocaleDateString('ar-EG')}</div></div>
-            <div style="font-weight:900; color:var(--emerald);">${o.price} ج.م</div>
+            <div class="item-info">
+              <div class="item-title">${o.title}</div>
+              <div class="item-sub">${new Date(o.ts).toLocaleDateString('ar-EG')}</div>
+            </div>
+            <div class="item-price">${Utils.money(o.price)}</div>
           </div>
-        `).join('') || '<p style="font-size:12px; color:#64748B;">لا توجد طلبات سابقة.</p>'}
+        `).join('') || '<div class="card text-center" style="color:var(--gray);">لا توجد طلبات سابقة</div>'}
       </div>
     `;
-  };
+  }
+};
 
-  // --- 6. إدارة الإعلانات في لوحة المؤسس ---
-  const originalRenderFounder = window.renderFounder;
-  window.renderFounder = function() {
-    originalRenderFounder();
-    const el = document.getElementById('sector-founder');
-    
-    // إضافة قسم الإعلانات
-    const adsSection = document.createElement('div');
-    adsSection.className = 'card mt-4';
-    adsSection.innerHTML = `
-      <h3 class="card-title"><i class="fa-solid fa-bullhorn" style="color:var(--amber);"></i> إدارة الإعلانات</h3>
-      <div style="display:flex; gap:8px; margin-bottom:12px;">
-        <input type="text" id="ad-input" class="input-box" placeholder="نص الإعلان" style="margin:0;">
-        <button onclick="addAd()" style="background:var(--amber); color:#fff; border:none; border-radius:10px; padding:0 16px; font-weight:900; cursor:pointer;">إضافة</button>
-      </div>
-      ${DB.ads.map(a => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--line);">
-          <span style="font-size:12px; font-weight:700;">${a.text}</span>
-          <button onclick="delAd('${a.id}')" style="color:var(--danger); background:none; border:none; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      `).join('')}
-    `;
-    el.appendChild(adsSection);
-  };
-
-  window.addAd = function() {
-    const val = document.getElementById('ad-input').value;
-    if (!val) return;
-    DB.ads.push({ id: uid(), text: val, active: true });
-    saveDB();
-    renderTicker();
-    window.renderFounder();
-    toast('تمت إضافة الإعلان');
-  };
-
-  window.delAd = function(id) {
-    DB.ads = DB.ads.filter(a => a.id !== id);
-    saveDB();
-    window.renderFounder();
-    const t = document.getElementById('wasla-ticker');
-    if (t) t.remove();
-    renderTicker();
-  };
-
-  // --- 7. التهيئة ---
-  setTimeout(() => {
-    renderTicker();
-    // إعادة رسم الأقسام لتطبيق التغييرات
-    if (currentUser) {
-      if (document.getElementById('sector-medical').classList.contains('active')) renderMedical();
-      if (document.getElementById('sector-dashboard').classList.contains('active')) renderPatientDash();
-    }
-  }, 500);
-
-  console.log('✅ WASLA EXTENSION PACK LOADED — EMR, Tracker, Maps, Ads, Services Restored.');
-})();
+/* ==========================================================================
+   INITIALIZATION
+   ========================================================================== */
+window.onload = () => {
+  UI.renderHeader();
+  UI.renderTicker();
+  router.navigate('medical');
+};
 </script>
+<script>
+/* ==========================================================================
+   WASLA CORE ENGINE (PART 1 + PART 2 INTEGRATION)
+   ========================================================================== */
+const Utils = {
+  id: () => Math.random().toString(36).substring(2, 10),
+  money: (num) => Number(num).toLocaleString('ar-EG') + ' ج.م',
+  toast: (msg, isError = false) => {
+    const el = document.createElement('div');
+    el.className = 'toast-msg';
+    el.style.borderRightColor = isError ? 'var(--danger)' : 'var(--emerald)';
+    el.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> ${msg}`;
+    document.getElementById('toast-box').appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  },
+  openModal: (id) => document.getElementById(id).classList.add('open'),
+  closeModal: (id) => document.getElementById(id).classList.remove('open')
+};
+
+/* Audio Engine */
+let audioCtx;
+document.body.addEventListener('click', () => {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}, { once: true });
+
+function playSound(isAlert = false) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.type = isAlert ? 'square' : 'sine';
+  osc.frequency.setValueAtTime(isAlert ? 880 : 600, audioCtx.currentTime);
+  if (isAlert) osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+}
+
+/* ==========================================================================
+   DATABASE & STATE MANAGEMENT
+   ========================================================================== */
+const DB_KEY = 'wasla_db_v3';
+let DB = JSON.parse(localStorage.getItem(DB_KEY));
+
+if (!DB) {
+  DB = {
+    users: [
+      { id: 'u-f', phone: '01068990089', pass: 'As123789456*', name: 'أحمد صبري', role: 'founder', wallet: 0 },
+      { id: 'u-p1', phone: '01000000001', pass: '123456', name: 'محمد المريض', role: 'patient', wallet: 150, emr: { blood: 'O+', allergies: ['بنسلين'], chronic: ['سكري'] } },
+      { id: 'u-d1', phone: '01000000002', pass: '123456', name: 'د. محمد الشريف', role: 'doctor', wallet: 0 },
+      { id: 'u-s1', phone: '01000000003', pass: '123456', name: 'موظف الاستقبال', role: 'staff', wallet: 0 }
+    ],
+    doctors: [
+      { id: 'd1', name: 'د. محمد الشريف', spec: 'باطنة وكبد', price: 170, avgTime: 15, area: 'شارع بورسعيد', lat: 30.3546, lng: 31.2153, services: ['سكر وضغط', 'مناظير', 'علاج كبد'] },
+      { id: 'd2', name: 'د. سارة أحمد', spec: 'أطفال وحديثي الولادة', price: 150, avgTime: 12, area: 'ميدان المحطة', lat: 30.3575, lng: 31.2160, services: ['تطعيمات', 'حساسية صدر', 'متابعة نمو'] },
+      { id: 'd3', name: 'د. كريم عبد العزيز', spec: 'قلب وأوعية دموية', price: 250, avgTime: 20, area: 'شارع المستشفى', lat: 30.3550, lng: 31.2145, services: ['تخطيط قلب', 'ضغط الدم', 'ذبحة صدرية'] }
+    ],
+    appointments: [],
+    orders: [],
+    notifications: [],
+    cart: [],
+    ads: [{ id: 'a1', text: '🎉 خصم 20% على أول كشف', active: true }, { id: 'a2', text: '🚀 ونش إنقاذ متاح الآن', active: true }]
+  };
+  localStorage.setItem(DB_KEY, JSON.stringify(DB));
+}
+
+function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+
+let Auth = {
+  currentUser: JSON.parse(sessionStorage.getItem('wasla_session')) || null,
+  
+  login: (phone, pass) => {
+    const user = DB.users.find(u => u.phone === phone && u.pass === pass);
+    if (user) {
+      Auth.currentUser = user;
+      sessionStorage.setItem('wasla_session', JSON.stringify(user));
+      UI.renderHeader();
+      Utils.closeModal('modal-auth');
+      Utils.toast('مرحباً بك ' + user.name);
+      
+      // Route based on role
+      if (user.role === 'founder') router.navigate('founder');
+      else if (user.role === 'staff') router.navigate('staff');
+      else if (user.role === 'doctor') router.navigate('doctor');
+      else router.navigate('dashboard');
+      
+      return true;
+    }
+    return false;
+  },
+  
+  logout: () => {
+    Auth.currentUser = null;
+    sessionStorage.removeItem('wasla_session');
+    UI.renderHeader();
+    router.navigate('medical');
+    Utils.toast('تم تسجيل الخروج');
+  }
+};
+
+let Notifier = {
+  push: (userId, text, isAlert = false) => {
+    DB.notifications.unshift({ id: Utils.id(), userId, text, read: false, ts: Date.now() });
+    saveDB();
+    if (Auth.currentUser && Auth.currentUser.id === userId) {
+      UI.renderHeader();
+      playSound(isAlert);
+      Utils.toast(text);
+    }
+  },
+  
+  openPanel: (e) => {
+    e.stopPropagation();
+    const my = DB.notifications.filter(n => n.userId === Auth.currentUser.id);
+    let html = `<button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button><h3 style="font-weight:900; margin:0 0 16px;">الإشعارات</h3>`;
+    
+    if (!my.length) html += `<p style="text-align:center; color:var(--gray);">لا توجد إشعارات</p>`;
+    my.forEach(n => {
+      html += `<div style="padding:12px; border-bottom:1px solid var(--line); background:${n.read?'#fff':'var(--emerald-light)'}; border-radius:var(--radius-sm); margin-bottom:8px;">
+        <div style="font-size:10px; color:var(--gray); margin-bottom:4px;">${new Date(n.ts).toLocaleTimeString('ar-EG')}</div>
+        <div style="font-size:13px; font-weight:700;">${n.text}</div>
+      </div>`;
+    });
+    
+    document.getElementById('modal-map-body').innerHTML = html;
+    Utils.openModal('modal-map');
+    
+    // Mark read
+    DB.notifications.filter(n => n.userId === Auth.currentUser.id).forEach(n => n.read = true);
+    saveDB(); UI.renderHeader();
+  }
+};
+
+/* ==========================================================================
+   UI COMPONENTS
+   ========================================================================== */
+const UI = {
+  renderHeader: () => {
+    const actions = document.getElementById('header-actions');
+    const tabs = document.getElementById('super-tabs');
+    
+    // Clear dynamic tabs
+    document.querySelectorAll('.tab.dynamic').forEach(t => t.remove());
+
+    if (!Auth.currentUser) {
+      actions.innerHTML = `<button class="btn-ui primary" onclick="AuthUI.open()"><i class="fa-solid fa-right-to-bracket"></i> دخول</button>`;
+      return;
+    }
+
+    const isFounder = Auth.currentUser.role === 'founder';
+    const isStaff = Auth.currentUser.role === 'staff';
+    const isDoctor = Auth.currentUser.role === 'doctor';
+    const myNotifs = DB.notifications.filter(n => n.userId === Auth.currentUser.id && !n.read);
+
+    actions.innerHTML = `
+      <div style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.1); padding:6px 10px; border-radius:var(--radius-sm); cursor:pointer;" onclick="router.navigate('${isFounder?'founder':isStaff?'staff':isDoctor?'doctor':'dashboard'}')">
+        <div style="width:24px; height:24px; border-radius:50%; background:var(--emerald); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:11px;">${Auth.currentUser.name[0]}</div>
+        <div style="font-size:11px; font-weight:900; color:#fff;">${Auth.currentUser.name.split(' ')[0]}</div>
+        <div style="font-size:10px; color:#34D399; font-weight:800; margin-right:4px;">${Auth.currentUser.wallet || 0} ج.م</div>
+      </div>
+      
+      ${isFounder ? `<button class="btn-ui" style="background:linear-gradient(135deg,var(--gold),var(--amber)); border:none;" onclick="router.navigate('founder')"><i class="fa-solid fa-crown"></i> لوحة التحكم</button>` : ''}
+      
+      <button class="btn-ui" onclick="Notifier.openPanel(event)" style="position:relative;">
+        <i class="fa-solid fa-bell"></i>
+        ${myNotifs.length > 0 ? `<span style="position:absolute; top:-4px; right:-4px; background:var(--danger); color:#fff; width:16px; height:16px; border-radius:50%; font-size:9px; font-weight:900; display:flex; align-items:center; justify-content:center;">${myNotifs.length}</span>` : ''}
+      </button>
+
+      <button class="btn-ui primary" onclick="cart.toggle()" style="position:relative;">
+        <i class="fa-solid fa-cart-shopping"></i>
+        ${DB.cart.length > 0 ? `<span style="position:absolute; top:-4px; right:-4px; background:#fff; color:var(--emerald); width:16px; height:16px; border-radius:50%; font-size:9px; font-weight:900; display:flex; align-items:center; justify-content:center;">${DB.cart.length}</span>` : ''}
+      </button>
+
+      <button class="btn-ui" onclick="Auth.logout()" style="color:#94A3B8;"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+    `;
+
+    // Dynamic Tabs
+    if (isStaff) tabs.insertAdjacentHTML('beforeend', `<button class="tab dynamic" data-sector="staff" onclick="router.navigate('staff')"><i class="fa-solid fa-headset"></i> إدارة الطابور</button>`);
+    if (isDoctor) tabs.insertAdjacentHTML('beforeend', `<button class="tab dynamic" data-sector="doctor" onclick="router.navigate('doctor')"><i class="fa-solid fa-user-md"></i> بوابة الطبيب</button>`);
+  },
+  
+  renderTicker: () => {
+    const active = DB.ads.filter(a => a.active);
+    const el = document.getElementById('wasla-ticker');
+    if (!active.length) return el.style.display = 'none';
+    el.style.display = 'flex';
+    el.innerHTML = `<div class="ticker-content">${active.map(a => `<span style="margin-left:40px;"><i class="fa-solid fa-bullhorn" style="color:var(--gold);"></i> ${a.text}</span>`).join('')}</div>`;
+  }
+};
+
+/* ==========================================================================
+   ROUTER
+   ========================================================================== */
+const router = {
+  navigate: (sector) => {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    
+    const view = document.getElementById('view-' + sector);
+    if (view) view.classList.add('active');
+    
+    const tab = document.querySelector(`.tab[data-sector="${sector}"]`);
+    if (tab) tab.classList.add('active');
+
+    const views = {
+      medical: Views.medical, market: Views.market, cars: Views.cars, home: Views.home,
+      founder: Views.founder, staff: Views.staff, doctor: Views.doctor, dashboard: Views.dashboard
+    };
+    
+    if (views[sector]) views[sector]();
+    window.scrollTo(0,0);
+  }
+};
+
+/* ==========================================================================
+   CART MODULE
+   ========================================================================== */
+const cart = {
+  toggle: () => {
+    document.getElementById('cart-sheet').classList.toggle('open');
+    document.getElementById('cart-overlay').classList.toggle('open');
+    cart.render();
+  },
+  
+  add: (title, price, icon) => {
+    DB.cart.push({ cartId: Utils.id(), title, price, icon });
+    saveDB(); UI.renderHeader(); Utils.toast('تمت الإضافة للسلة'); cart.toggle();
+  },
+  
+  remove: (id) => {
+    DB.cart = DB.cart.filter(i => i.cartId !== id);
+    saveDB(); cart.render(); UI.renderHeader();
+  },
+  
+  render: () => {
+    const body = document.getElementById('cart-body');
+    if (!DB.cart.length) {
+      body.innerHTML = `<div style="text-align:center; padding:40px; color:var(--gray);"><i class="fa-solid fa-basket-shopping" style="font-size:40px; margin-bottom:12px;"></i><br>السلة فارغة</div>`;
+      document.getElementById('cart-total').innerText = '0 ج.م';
+      return;
+    }
+    body.innerHTML = DB.cart.map(item => `
+      <div class="item-box" style="margin-bottom:10px;">
+        <div class="item-icon"><i class="fa-solid ${item.icon}"></i></div>
+        <div class="item-info"><div class="item-title">${item.title}</div></div>
+        <div class="item-price">${Utils.money(item.price)}</div>
+        <button onclick="cart.remove('${item.cartId}')" style="background:var(--danger-light); color:var(--danger); border:none; width:32px; height:32px; border-radius:var(--radius-sm); cursor:pointer; margin-right:10px;"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `).join('');
+    const total = DB.cart.reduce((s,i) => s + i.price, 0);
+    document.getElementById('cart-total').innerText = Utils.money(total);
+  },
+  
+  checkout: () => {
+    if (!Auth.currentUser) { Utils.toast('سجل دخول أولاً', true); return AuthUI.open(); }
+    if (!DB.cart.length) return;
+    
+    const total = DB.cart.reduce((s,i) => s + i.price, 0);
+    document.getElementById('modal-payment-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-payment')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:24px;">
+        <div style="width:64px; height:64px; background:var(--emerald-light); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 12px;"><i class="fa-solid fa-credit-card"></i></div>
+        <h3 style="margin:0 0 4px; font-weight:900;">بوابة الدفع</h3>
+        <p style="color:var(--gray); font-size:13px; font-weight:700;">المبلغ المطلوب: ${Utils.money(total)}</p>
+      </div>
+      <div class="item-box mb-4" style="border:2px solid var(--emerald); background:var(--emerald-light);">
+        <div class="item-icon" style="background:#fff;"><i class="fa-solid fa-money-bill"></i></div>
+        <div class="item-info"><div class="item-title">الدفع عند الاستلام (كاش)</div></div>
+        <i class="fa-solid fa-circle-check" style="color:var(--emerald); font-size:20px;"></i>
+      </div>
+      <button onclick="cart.processPayment(${total})" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد ودفع</button>
+    `;
+    Utils.openModal('modal-payment');
+  },
+  
+  processPayment: (total) => {
+    const cashback = Math.round(total * 0.05);
+    Auth.currentUser.wallet = (Auth.currentUser.wallet || 0) + cashback;
+    
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+
+    DB.cart.forEach(item => {
+      DB.orders.push({ id: Utils.id(), userId: Auth.currentUser.id, title: item.title, price: item.price, status: 'preparing', ts: Date.now() });
+    });
+
+    DB.cart = [];
+    saveDB();
+    
+    Utils.closeModal('modal-payment'); cart.toggle(); UI.renderHeader();
+    Utils.toast(`تم الدفع بنجاح! حصلت على ${cashback} ج.م كاش باك`);
+    if(Auth.currentUser.role === 'patient') router.navigate('dashboard');
+  }
+};
+
+/* ==========================================================================
+   AUTH UI
+   ========================================================================== */
+const AuthUI = {
+  open: () => {
+    document.getElementById('modal-auth-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-auth')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:24px;">
+        <div style="width:64px; height:64px; background:var(--emerald); color:#fff; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 12px;"><i class="fa-solid fa-heart-pulse"></i></div>
+        <h3 style="margin:0; font-weight:900;">تسجيل الدخول</h3>
+      </div>
+      <input type="text" id="auth-phone" class="input-field" placeholder="رقم الموبايل" value="01068990089">
+      <input type="password" id="auth-pass" class="input-field" placeholder="كلمة السر" value="As123789456*">
+      <button onclick="AuthUI.submit()" class="btn-action" style="width:100%; padding:16px; font-size:16px;">دخول</button>
+      
+      <div style="margin-top:24px; padding:16px; background:var(--gray-light); border-radius:var(--radius-sm); font-size:12px; font-weight:700; color:var(--gray);">
+        <div style="color:var(--primary); font-weight:900; margin-bottom:8px;">🔑 حسابات تجريبية:</div>
+        👑 مؤسس: 01068990089 (As123789456*)<br>
+        🧑 مريض: 01000000001 (123456)<br>
+        🩺 طبيب: 01000000002 (123456)<br>
+        🎧 موظف: 01000000003 (123456)
+      </div>
+    `;
+    Utils.openModal('modal-auth');
+  },
+  
+  submit: () => {
+    const p = document.getElementById('auth-phone').value;
+    const s = document.getElementById('auth-pass').value;
+    if (!Auth.login(p, s)) {
+      Utils.toast('بيانات الدخول غير صحيحة', true);
+    }
+  }
+};
+
+/* ==========================================================================
+   VIEWS (SECTORS) - EXPANDED
+   ========================================================================== */
+const Views = {
+  /* --- 1. MEDICAL --- */
+  medical: () => {
+    const el = document.getElementById('view-medical');
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-user-doctor" style="color:var(--emerald);"></i> دليل الأطباء</h2>
+      <div class="grid-list">
+        ${DB.doctors.map(d => `
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="flex:1;">
+              <h4 style="margin:0 0 4px; font-weight:900; font-size:16px;">${d.name}</h4>
+              <span style="background:var(--emerald-light); color:var(--emerald); padding:2px 8px; border-radius:6px; font-size:10px; font-weight:900;">${d.spec}</span>
+              <p style="margin:8px 0 4px; font-size:11px; color:var(--gray); font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${d.area} • متوسط ${d.avgTime} دقيقة</p>
+              <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;">
+                ${d.services.map(s => `<span style="background:var(--gray-light); border:1px solid var(--line); font-size:10px; padding:2px 8px; border-radius:6px; font-weight:700;">${s}</span>`).join('')}
+              </div>
+              <button onclick="Views.showMap('${d.id}')" style="background:none; border:none; color:var(--sky); font-size:12px; font-weight:900; cursor:pointer; margin-top:10px; padding:0;"><i class="fa-solid fa-map-location-dot"></i> موقع العيادة</button>
+            </div>
+            <div style="text-align:left;">
+              <div style="font-weight:900; color:var(--emerald); font-size:20px;">${Utils.money(d.price)}</div>
+              <button onclick="Views.openBooking('${d.id}')" class="btn-action" style="margin-top:10px; padding:10px 20px;">حجز</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  },
+
+  openBooking: (docId) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const doc = DB.doctors.find(d => d.id === docId);
+    document.getElementById('modal-book-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-book')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 4px; font-weight:900; font-size:20px;">${doc.name}</h3>
+      <p style="margin:0 0 20px; font-size:13px; color:var(--gray); font-weight:700;">${doc.spec} • الكشف: ${Utils.money(doc.price)}</p>
+      
+      <label style="font-size:13px; font-weight:900; display:block; margin-bottom:12px;">اختر الموعد المتاح:</label>
+      <div class="grid-2" style="margin-bottom:24px;">
+        <label style="border:2px solid var(--emerald); background:var(--emerald-light); padding:14px; border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-weight:900; font-size:14px; color:var(--emerald);"><input type="radio" name="slot" value="5:00 م" checked class="hidden"> 5:00 م</label>
+        <label style="border:1px solid var(--line); padding:14px; border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-weight:900; font-size:14px; color:var(--gray);"><input type="radio" name="slot" value="5:30 م" class="hidden"> 5:30 م</label>
+        <label style="border:1px solid var(--line); padding:14px; border-radius:var(--radius-sm); text-align:center; cursor:pointer; font-weight:900; font-size:14px; color:var(--gray);"><input type="radio" name="slot" value="6:00 م" class="hidden"> 6:00 م</label>
+      </div>
+      
+      <button onclick="Views.confirmBooking('${doc.id}')" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد الحجز</button>
+    `;
+    Utils.openModal('modal-book');
+  },
+
+  confirmBooking: (docId) => {
+    const doc = DB.doctors.find(d => d.id === docId);
+    const slot = document.querySelector('input[name="slot"]:checked').value;
+    
+    const appt = {
+      id: Utils.id(),
+      patientId: Auth.currentUser.id,
+      patientName: Auth.currentUser.name,
+      doctorId: doc.id,
+      doctorName: doc.name,
+      slot: slot,
+      price: doc.price,
+      status: 'waiting', // waiting, next, completed
+      ts: Date.now()
+    };
+    
+    DB.appointments.push(appt);
+    saveDB();
+    
+    Utils.closeModal('modal-book');
+    Utils.toast('تم تأكيد الحجز بنجاح');
+    router.navigate('dashboard');
+  },
+
+  showMap: (docId) => {
+    const doc = DB.doctors.find(d => d.id === docId);
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 4px; font-weight:900;">${doc.name}</h3>
+      <p style="margin:0 0 16px; font-size:13px; color:var(--gray); font-weight:700;">${doc.area}</p>
+      <div style="border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--line); margin-bottom:16px;">
+        <iframe width="100%" height="250" frameborder="0" src="https://www.openstreetmap.org/export/embed.html?bbox=${doc.lng-0.005},${doc.lat-0.005},${doc.lng+0.005},${doc.lat+0.005}&layer=mapnik&marker=${doc.lat},${doc.lng}"></iframe>
+      </div>
+      <a href="https://maps.google.com/?q=${doc.lat},${doc.lng}" target="_blank" class="btn-action" style="text-decoration:none; width:100%;">فتح في خرائط جوجل</a>
+    `;
+    Utils.openModal('modal-map');
+  },
+
+  /* --- 2. MARKET --- */
+  market: () => {
+    const el = document.getElementById('view-market');
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-store" style="color:var(--amber);"></i> تسوق الآن</h2>
+      <p style="font-size:13px; color:var(--gray); font-weight:700; margin-bottom:16px;">اختر القسم اللي يناسبك من محلات البلد</p>
+      
+      <div class="grid-2">
+        <div class="card text-center" onclick="Views.openShop('rest', 'مطاعم')" style="cursor:pointer;">
+          <div class="item-icon" style="margin:0 auto 12px; width:60px; height:60px; font-size:26px; background:var(--amber-light); color:var(--amber);"><i class="fa-solid fa-utensils"></i></div>
+          <h4 style="font-weight:900; margin:0;">مطاعم ومشويات</h4>
+        </div>
+        <div class="card text-center" onclick="Views.openShop('grocery', 'سوبرماركت')" style="cursor:pointer;">
+          <div class="item-icon" style="margin:0 auto 12px; width:60px; height:60px; font-size:26px; background:var(--emerald-light); color:var(--emerald);"><i class="fa-solid fa-basket-shopping"></i></div>
+          <h4 style="font-weight:900; margin:0;">بقالة وسوبرماركت</h4>
+        </div>
+        <div class="card text-center" onclick="Views.openShop('pharmacy', 'صيدلية')" style="cursor:pointer;">
+          <div class="item-icon" style="margin:0 auto 12px; width:60px; height:60px; font-size:26px; background:var(--sky-light); color:var(--sky);"><i class="fa-solid fa-pills"></i></div>
+          <h4 style="font-weight:900; margin:0;">صيدلية</h4>
+        </div>
+        <div class="card text-center" onclick="Views.openShop('clothes', 'ملابس')" style="cursor:pointer;">
+          <div class="item-icon" style="margin:0 auto 12px; width:60px; height:60px; font-size:26px; background:#EEF2FF; color:var(--indigo);"><i class="fa-solid fa-shirt"></i></div>
+          <h4 style="font-weight:900; margin:0;">ملابس وأزياء</h4>
+        </div>
+      </div>
+    `;
+  },
+
+  openShop: (type, title) => {
+    let items = [];
+    if (type === 'rest') items = [{ n: 'كباب وكفتة', p: 180 }, { n: 'شيش طاووق', p: 140 }, { n: 'بيتزا رانش', p: 120 }, { n: 'حمام محشي', p: 220 }];
+    if (type === 'grocery') items = [{ n: 'زيت عافية 1 لتر', p: 95 }, { n: 'أرز مصري 2 كيلو', p: 60 }, { n: 'بيض (طبق)', p: 85 }, { n: 'سكر 1 كيلو', p: 35 }];
+    if (type === 'pharmacy') items = [{ n: 'بانادول', p: 30 }, { n: 'فيتامين سي', p: 50 }, { n: 'كمامات طبية', p: 20 }];
+    if (type === 'clothes') items = [{ n: 'تيشيرت قطن', p: 150 }, { n: 'بنطلون جينز', p: 300 }];
+
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px; font-weight:900;">${title}</h3>
+      <div class="grid-list">
+        ${items.map(i => `
+          <div class="item-box">
+            <div class="item-info"><div class="item-title">${i.n}</div></div>
+            <div class="item-price">${Utils.money(i.p)}</div>
+            <button onclick="cart.add('${i.n}', ${i.p}, 'fa-shopping-bag')" class="btn-action" style="padding:8px; border-radius:50%; width:36px; height:36px;"><i class="fa-solid fa-plus"></i></button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    Utils.openModal('modal-map');
+  },
+
+  /* --- 3. CARS --- */
+  cars: () => {
+    const el = document.getElementById('view-cars');
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-car" style="color:var(--primary);"></i> خدمات السيارات</h2>
+      <p style="font-size:13px; color:var(--gray); font-weight:700; margin-bottom:16px;">فنيون يصلون لموقعك فوراً</p>
+      
+      <div class="grid-2">
+        <div class="card text-center" onclick="cart.add('تغيير إطار', 100, 'fa-circle-dot')" style="cursor:pointer;">
+          <i class="fa-solid fa-circle-dot" style="font-size:30px; color:var(--primary); margin-bottom:12px;"></i><h4 style="font-weight:900; margin:0;">تغيير إطار</h4>
+        </div>
+        <div class="card text-center" onclick="cart.add('شحن بطارية', 150, 'fa-car-battery')" style="cursor:pointer;">
+          <i class="fa-solid fa-car-battery" style="font-size:30px; color:var(--primary); margin-bottom:12px;"></i><h4 style="font-weight:900; margin:0;">شحن بطارية</h4>
+        </div>
+        <div class="card text-center" onclick="cart.add('غسيل سيارة', 80, 'fa-droplet')" style="cursor:pointer;">
+          <i class="fa-solid fa-droplet" style="font-size:30px; color:var(--sky); margin-bottom:12px;"></i><h4 style="font-weight:900; margin:0;">غسيل متنقل</h4>
+        </div>
+        <div class="card text-center" onclick="cart.add('ونش إنقاذ', 300, 'fa-truck-pickup')" style="cursor:pointer; background:var(--danger-light); border-color:#FECACA;">
+          <i class="fa-solid fa-truck-pickup" style="font-size:30px; color:var(--danger); margin-bottom:12px;"></i><h4 style="font-weight:900; margin:0; color:var(--danger);">ونش إنقاذ</h4>
+        </div>
+      </div>
+    `;
+  },
+
+  /* --- 4. HOME (MAINTENANCE) --- */
+  home: () => {
+    const el = document.getElementById('view-home');
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-screwdriver-wrench" style="color:var(--sky);"></i> الصيانة المنزلية</h2>
+      <p style="font-size:13px; color:var(--gray); font-weight:700; margin-bottom:16px;">صنايعية معتمدين بفيش وتشبيه</p>
+      
+      <div class="grid-2">
+        <div class="card text-center" onclick="cart.add('زيارة سباك', 100, 'fa-wrench')" style="cursor:pointer;">
+          <i class="fa-solid fa-wrench" style="font-size:30px; color:var(--sky); margin-bottom:12px;"></i><h4 style="font-weight:900; margin:0;">سباكة</h4>
+        </div>
+        <div class="card text-center" onclick="cart.add('زيارة كهربائي', 100, 'fa-bolt')" style="cursor:pointer;">
+          <i class="fa-solid fa-bolt" style="font-size:30px; color:var(--amber); margin-bottom:12px;"></i><h4 style="font-weight:900; margin:0;">كهرباء</h4>
+        </div>
+        <div class="card text-center" onclick="cart.add('فني تكييف', 150, 'fa-wind')" style="cursor:pointer;">
+          <i class="fa-solid fa-wind" style="font-size:30px; color:var(--emerald); margin-bottom:12px;"></i><h4 style="font-weight:900; margin:0;">تكييف</h4>
+        </div>
+        <div class="card text-center" onclick="cart.add('نجار', 120, 'fa-hammer')" style="cursor:pointer;">
+          <i class="fa-solid fa-hammer" style="font-size:30px; color:#8B5CF6; margin-bottom:12px;"></i><h4 style="font-weight:900; margin:0;">نجارة</h4>
+        </div>
+      </div>
+    `;
+  },
+
+  /* --- 5. FOUNDER DASHBOARD --- */
+  founder: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'founder') return router.navigate('medical');
+    const el = document.getElementById('view-founder');
+    const totalRev = DB.orders.reduce((s, o) => s + o.price, 0);
+    const commission = Math.round(totalRev * 0.15);
+    const staff = DB.users.filter(u => u.role === 'staff');
+
+    el.innerHTML = `
+      <div class="card" style="background:var(--primary); color:#fff; border:none; box-shadow:var(--shadow-lg);">
+        <h2 style="margin:0 0 16px; font-weight:900;"><i class="fa-solid fa-crown" style="color:var(--gold);"></i> لوحة المؤسس</h2>
+        <div class="grid-2" style="gap:12px;">
+          <div style="background:rgba(255,255,255,0.1); padding:16px; border-radius:12px;">
+            <div style="font-size:11px; color:#94A3B8;">إجمالي الأرباح</div>
+            <div style="font-size:20px; font-weight:900; color:#34D399;">${Utils.money(commission)}</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.1); padding:16px; border-radius:12px;">
+            <div style="font-size:11px; color:#94A3B8;">الاشتراكات (برو)</div>
+            <div style="font-size:20px; font-weight:900; color:var(--gold);">148</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.1); padding:16px; border-radius:12px;">
+            <div style="font-size:11px; color:#94A3B8;">معدل النمو</div>
+            <div style="font-size:20px; font-weight:900; color:#60A5FA;">+24%</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.1); padding:16px; border-radius:12px;">
+            <div style="font-size:11px; color:#94A3B8;">إجمالي الحجوزات</div>
+            <div style="font-size:20px; font-weight:900; color:#fff;">${DB.appointments.length}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">إدارة الموظفين</h3>
+        <div style="display:flex; gap:8px; margin-bottom:16px;">
+          <input type="text" id="stf-name" class="input-field" placeholder="اسم الموظف" style="margin:0;">
+          <input type="text" id="stf-phone" class="input-field" placeholder="الموبايل" style="margin:0;">
+          <button onclick="Views.addStaff()" class="btn-action" style="padding:0 16px;">إضافة</button>
+        </div>
+        ${staff.map(s => `
+          <div class="item-box mb-4" style="padding:12px;">
+            <div class="item-info"><div class="item-title">${s.name}</div><div class="item-sub">${s.phone}</div></div>
+            <button onclick="Views.delUser('${s.id}')" style="color:var(--danger); background:none; border:none; font-size:16px;"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `).join('') || '<p style="font-size:13px; color:var(--gray);">لا يوجد موظفين</p>'}
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">إدارة الإعلانات (الشريط العلوي)</h3>
+        <div style="display:flex; gap:8px; margin-bottom:16px;">
+          <input type="text" id="ad-text" class="input-field" placeholder="نص الإعلان" style="margin:0;">
+          <button onclick="Views.addAd()" class="btn-action" style="padding:0 16px; background:var(--amber);">إضافة</button>
+        </div>
+        ${DB.ads.map(a => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--line);">
+            <span style="font-size:13px; font-weight:700;">${a.text}</span>
+            <button onclick="Views.delAd('${a.id}')" style="color:var(--danger); background:none; border:none; font-size:16px;"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  },
+
+  addStaff: () => {
+    const name = document.getElementById('stf-name').value;
+    const phone = document.getElementById('stf-phone').value;
+    if (!name || !phone) return Utils.toast('أدخل البيانات', true);
+    DB.users.push({ id: Utils.id(), name, phone, role: 'staff', pass: '123456', wallet: 0 });
+    saveDB(); Views.founder(); Utils.toast('تمت الإضافة');
+  },
+
+  delUser: (id) => {
+    if(!confirm('تأكيد الحذف؟')) return;
+    DB.users = DB.users.filter(u => u.id !== id); saveDB(); Views.founder();
+  },
+
+  addAd: () => {
+    const val = document.getElementById('ad-text').value;
+    if(!val) return;
+    DB.ads.push({id: Utils.id(), text: val, active: true});
+    saveDB(); Views.founder(); UI.renderTicker(); Utils.toast('تمت إضافة الإعلان');
+  },
+
+  delAd: (id) => {
+    DB.ads = DB.ads.filter(a => a.id !== id); saveDB(); Views.founder(); UI.renderTicker();
+  },
+
+  /* --- 6. STAFF DASHBOARD --- */
+  staff: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'staff') return router.navigate('medical');
+    const el = document.getElementById('view-staff');
+    const appts = DB.appointments.filter(a => a.status !== 'completed').sort((a,b) => a.ts - b.ts);
+
+    el.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, var(--primary), var(--primary-light)); color:#fff; border:none;">
+        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-headset"></i> إدارة طابور المرضى</h2>
+        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">اضغط "نداء" عند حضور المريض، و"إنهاء" بعد الكشف.</p>
+      </div>
+
+      <div class="grid-list">
+        ${appts.map(a => `
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <h4 style="margin:0; font-weight:900;">${a.patientName}</h4>
+                <p style="margin:4px 0; font-size:12px; color:var(--gray);">${a.doctorName} • ${a.slot}</p>
+              </div>
+              <div style="display:flex; gap:8px;">
+                ${a.status === 'next' 
+                  ? `<button onclick="Views.finishAppt('${a.id}')" class="btn-action" style="background:var(--emerald);"><i class="fa-solid fa-check"></i> إنهاء</button>`
+                  : `<button onclick="Views.callPatient('${a.id}')" class="btn-action" style="background:var(--amber);"><i class="fa-solid fa-bullhorn"></i> نداء</button>`
+                }
+              </div>
+            </div>
+          </div>
+        `).join('') || '<div class="card text-center" style="color:var(--gray);">لا يوجد مرضى في الانتظار اليوم</div>'}
+      </div>
+    `;
+  },
+
+  callPatient: (apptId) => {
+    const appt = DB.appointments.find(a => a.id === apptId);
+    appt.status = 'next'; saveDB();
+    Notifier.push(appt.patientId, `🔔 حان دورك الآن يا ${appt.patientName}! توجه لعيادة ${appt.doctorName}`, true);
+    Views.staff();
+    Utils.toast('تم إرسال النداء للمريض');
+  },
+
+  finishAppt: (apptId) => {
+    const appt = DB.appointments.find(a => a.id === apptId);
+    appt.status = 'completed'; saveDB(); Views.staff(); Utils.toast('تم إنهاء الكشف');
+  },
+
+  /* --- 7. DOCTOR DASHBOARD --- */
+  doctor: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return router.navigate('medical');
+    const el = document.getElementById('view-doctor');
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-user-md" style="color:var(--primary);"></i> إحصائيات العيادة</h2>
+      <div class="card grid-3 text-center" style="padding:24px 16px;">
+        <div><div style="font-size:28px; font-weight:900; color:var(--emerald);">12</div><div style="font-size:11px; color:var(--gray); font-weight:700;">حالات جديدة</div></div>
+        <div><div style="font-size:28px; font-weight:900; color:var(--amber);">5</div><div style="font-size:11px; color:var(--gray); font-weight:700;">متابعة</div></div>
+        <div><div style="font-size:28px; font-weight:900; color:var(--sky);">17</div><div style="font-size:11px; color:var(--gray); font-weight:700;">عبر وصلة</div></div>
+      </div>
+    `;
+  },
+
+  /* --- 8. PATIENT DASHBOARD --- */
+  dashboard: () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const el = document.getElementById('view-dashboard');
+    const myAppts = DB.appointments.filter(a => a.patientId === Auth.currentUser.id).sort((a,b) => b.ts - a.ts);
+    const myOrders = DB.orders.filter(o => o.userId === Auth.currentUser.id).sort((a,b) => b.ts - a.ts);
+    const emr = Auth.currentUser.emr || { blood: 'غير محدد', allergies: [], chronic: [] };
+
+    const renderStepper = (status) => {
+      const steps = ['waiting', 'next', 'completed'];
+      const labels = { waiting: 'انتظار', next: 'دورك الآن', completed: 'مكتمل' };
+      const idx = steps.indexOf(status);
+      return `
+        <div class="stepper">
+          ${steps.map((s, i) => `
+            <div class="step ${i <= idx ? 'active' : ''} ${i === idx && s !== 'completed' ? 'current' : ''}">
+              <div class="step-icon"><i class="fa-solid ${i < idx ? 'fa-check' : i === idx ? 'fa-hourglass-half' : 'fa-circle'}"></i></div>
+              <div class="step-label">${labels[s]}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    };
+
+    el.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, var(--emerald-light), #D1FAE5); border-color:#A7F3D0;">
+        <h2 style="margin:0 0 4px; font-weight:900; color:#047857;">أهلاً ${Auth.currentUser.name}</h2>
+        <p style="margin:0; font-size:12px; font-weight:700; color:#065F46;">الرقم التعريفي: ${Auth.currentUser.id.toUpperCase()}</p>
+        <div style="margin-top:12px; background:#fff; padding:8px 16px; border-radius:99px; display:inline-flex; align-items:center; gap:8px; font-weight:900; color:var(--emerald); box-shadow:var(--shadow-sm);">
+          <i class="fa-solid fa-wallet"></i> رصيد المحفظة: ${Utils.money(Auth.currentUser.wallet || 0)}
+        </div>
+      </div>
+
+      <h3 class="section-title mt-4">مواعيدي وتتبع الطابور</h3>
+      <div class="grid-list">
+        ${myAppts.map(a => `
+          <div class="card" style="border-right:4px solid ${a.status==='next'?'var(--amber)':'var(--emerald)'};">
+            <div style="display:flex; justify-content:space-between;">
+              <div>
+                <h4 style="margin:0; font-weight:900;">${a.doctorName}</h4>
+                <p style="margin:4px 0; font-size:12px; color:var(--gray); font-weight:700;"><i class="fa-regular fa-clock"></i> ${a.slot}</p>
+              </div>
+              <span style="font-size:11px; font-weight:900; padding:4px 10px; border-radius:6px; height:fit-content; background:${a.status==='next'?'#FEF3C7':'var(--emerald-light)'}; color:${a.status==='next'?'#92400E':'var(--emerald)'};">
+                ${a.status === 'next' ? 'دورك الآن' : a.status === 'completed' ? 'مكتمل' : 'انتظار'}
+              </span>
+            </div>
+            ${renderStepper(a.status)}
+          </div>
+        `).join('') || '<div class="card text-center" style="color:var(--gray);">لا توجد مواعيد حالية</div>'}
+      </div>
+
+      <h3 class="section-title mt-4">ملفي الطبي (EMR)</h3>
+      <div class="card grid-2">
+        <div class="vital-card" style="background:var(--danger-light);">
+          <div class="vital-label" style="color:var(--danger);">فصيلة الدم</div>
+          <div class="vital-value" style="color:var(--danger);">${emr.blood}</div>
+        </div>
+        <div class="vital-card" style="background:var(--amber-light);">
+          <div class="vital-label" style="color:var(--amber);">حساسية</div>
+          <div class="vital-value" style="color:var(--amber); font-size:14px;">${emr.allergies.join('، ') || 'لا يوجد'}</div>
+        </div>
+      </div>
+
+      <h3 class="section-title mt-4">تتبع طلباتي</h3>
+      <div class="grid-list">
+        ${myOrders.map(o => `
+          <div class="item-box" style="flex-direction:column; align-items:stretch; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="item-info">
+                <div class="item-title">${o.title}</div>
+                <div class="item-sub">${new Date(o.ts).toLocaleDateString('ar-EG')}</div>
+              </div>
+              <div class="item-price">${Utils.money(o.price)}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; background:var(--emerald-light); padding:8px; border-radius:6px; font-size:11px; font-weight:900; color:var(--emerald);">
+              <i class="fa-solid fa-truck-fast"></i> جاري التجهيز للطلب...
+            </div>
+          </div>
+        `).join('') || '<div class="card text-center" style="color:var(--gray);">لا توجد طلبات سابقة</div>'}
+      </div>
+    `;
+  }
+};
+
+/* ==========================================================================
+   INITIALIZATION
+   ========================================================================== */
+window.onload = () => {
+  UI.renderHeader();
+  UI.renderTicker();
+  router.navigate('medical');
+};
+</script>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>منصة وصلة | WASLA - Super App</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  /* ==========================================================================
+     WASLA DESIGN SYSTEM (CSS)
+     ========================================================================== */
+  :root {
+    --primary: #0B1220; --primary-light: #1E293B;
+    --emerald: #059669; --emerald-light: #ECFDF5;
+    --amber: #EA580C; --amber-light: #FFF7ED;
+    --sky: #0284C7; --sky-light: #F0F9FF;
+    --danger: #E11D48; --danger-light: #FFF1F2;
+    --gold: #D97706; --gray: #64748B; --gray-light: #F8FAFC;
+    --line: #E2E8F0; --bg: #F4F6FB;
+    --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+    --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Cairo', sans-serif; }
+  body { background: var(--bg); color: var(--primary); margin: 0; padding-bottom: 70px; overflow-x: hidden; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--gray); border-radius: 10px; }
+
+  /* Ticker */
+  .ticker-wrap { background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 8px 0; overflow: hidden; white-space: nowrap; display: flex; }
+  .ticker-content { display: inline-block; padding-right: 100%; animation: ticker 25s linear infinite; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }
+
+  /* Header */
+  .app-header { position: sticky; top: 0; z-index: 100; background: rgba(11,18,32,0.98); backdrop-filter: blur(10px); color: #fff; padding: 10px 16px; box-shadow: var(--shadow-md); }
+  .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--emerald), #10B981); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 12px rgba(5,150,105,0.4); }
+  .brand-title { font-size: 20px; font-weight: 900; margin: 0; line-height: 1; }
+  .brand-title span { font-size: 10px; color: #34D399; background: rgba(52,211,153,0.15); padding: 2px 6px; border-radius: 6px; vertical-align: middle; margin-right: 4px; }
+  
+  .header-actions { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .header-actions::-webkit-scrollbar { display: none; }
+  .btn-ui { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer; transition: 0.2s; }
+  .btn-ui:active { transform: scale(0.95); }
+  .btn-ui.primary { background: var(--emerald); border: none; }
+  
+  /* Tabs */
+  .super-tabs { display: flex; gap: 8px; padding: 12px; overflow-x: auto; scrollbar-width: none; background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 60px; z-index: 99; }
+  .super-tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 10px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 900; color: var(--gray); background: var(--gray-light); border: 1px solid var(--line); white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+  .tab.active { background: var(--primary); color: #fff; border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+  /* Layout */
+  .page-container { max-width: 800px; margin: 0 auto; padding: 16px; }
+  .view-section { display: none; animation: fadeUp 0.4s ease; }
+  .view-section.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .card { background: #fff; border-radius: var(--radius-md); border: 1px solid var(--line); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+  .section-title { font-size: 18px; font-weight: 900; margin: 0 0 16px; display: flex; align-items: center; gap: 8px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  
+  .item-box { background: #FAFCFE; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
+  .item-icon { width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--emerald-light); color: var(--emerald); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .item-info { flex: 1; }
+  .item-title { font-weight: 900; font-size: 14px; margin: 0 0 4px; color: var(--primary); }
+  .item-sub { font-size: 11px; color: var(--gray); font-weight: 700; margin: 0; }
+  .item-price { font-weight: 900; color: var(--emerald); font-size: 15px; }
+  
+  .btn-action { background: var(--emerald); color: #fff; border: none; padding: 12px 20px; border-radius: var(--radius-sm); font-weight: 900; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+  .btn-action:active { transform: scale(0.98); }
+  .btn-danger { background: var(--danger-light); color: var(--danger); border: 1px solid #FECACA; }
+  
+  .input-field { width: 100%; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); font-weight: 700; font-size: 14px; background: var(--gray-light); margin-bottom: 12px; transition: 0.2s; }
+  .input-field:focus { outline: none; border-color: var(--emerald); background: #fff; box-shadow: 0 0 0 4px var(--emerald-light); }
+
+  /* Trackers */
+  .stepper { display: flex; justify-content: space-between; position: relative; padding: 10px 0; margin-top: 15px; }
+  .stepper::before { content: ''; position: absolute; top: 24px; left: 10%; right: 10%; height: 3px; background: var(--line); z-index: 0; }
+  .step { display: flex; flex-direction: column; align-items: center; z-index: 1; flex: 1; }
+  .step-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--line); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-bottom: 6px; border: 3px solid #fff; transition: 0.3s; }
+  .step.active .step-icon { background: var(--emerald); }
+  .step.current .step-icon { background: var(--amber); animation: pulse 1.5s infinite; }
+  .step-label { font-size: 10px; font-weight: 900; color: var(--gray); text-align: center; }
+  .step.active .step-label { color: var(--emerald); }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(234,88,12,0.4); } 70% { box-shadow: 0 0 0 8px rgba(234,88,12,0); } 100% { box-shadow: 0 0 0 0 rgba(234,88,12,0); } }
+
+  .vital-card { background: var(--gray-light); padding: 12px; border-radius: var(--radius-sm); text-align: center; }
+  .vital-label { font-size: 10px; font-weight: 900; color: var(--gray); margin-bottom: 4px; }
+  .vital-value { font-size: 18px; font-weight: 900; color: var(--primary); }
+  
+  .chart-container { height: 120px; display: flex; align-items: flex-end; gap: 8px; padding-top: 20px; }
+  .bar { flex: 1; background: var(--emerald); border-radius: 4px 4px 0 0; position: relative; min-height: 5px; transition: height 0.5s; }
+  .bar-label { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 900; color: var(--gray); }
+
+  /* Bottom Sheet & Modals */
+  .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 200; opacity: 0; pointer-events: none; transition: 0.3s; }
+  .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+  .bottom-sheet { position: fixed; bottom: -100%; left: 0; right: 0; background: #fff; border-radius: var(--radius-lg) var(--radius-lg) 0 0; z-index: 201; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); }
+  .bottom-sheet.open { bottom: 0; }
+  .sheet-header { padding: 20px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .sheet-body { padding: 20px; overflow-y: auto; flex: 1; }
+  .sheet-footer { padding: 20px; border-top: 1px solid var(--line); background: var(--gray-light); }
+  
+  .modal-wrap { position: fixed; inset: 0; background: rgba(11,18,32,0.85); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .modal-wrap.open { display: flex; }
+  .modal-box { background: #fff; border-radius: var(--radius-lg); width: 100%; max-width: 450px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto; animation: popIn 0.3s; }
+  @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal-close { position: absolute; top: 16px; left: 16px; background: var(--gray-light); border: none; width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--gray); font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  
+  #toast-box { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+  .toast-msg { background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 99px; font-size: 13px; font-weight: 900; box-shadow: var(--shadow-lg); border-right: 4px solid var(--emerald); animation: slideDown 0.3s; display: flex; align-items: center; gap: 8px; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div id="wasla-ticker" class="ticker-wrap"></div>
+
+<header class="app-header">
+  <div class="header-top">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+      <div><h1 class="brand-title">وَصْلَة <span>WASLA</span></h1></div>
+    </div>
+    <div class="header-actions" id="header-actions"></div>
+  </div>
+</header>
+
+<div class="super-tabs" id="super-tabs">
+  <button class="tab active" data-sector="medical" onclick="router.navigate('medical')"><i class="fa-solid fa-stethoscope"></i> طبي</button>
+  <button class="tab" data-sector="market" onclick="router.navigate('market')"><i class="fa-solid fa-cart-shopping"></i> تسوق</button>
+  <button class="tab" data-sector="cars" onclick="router.navigate('cars')"><i class="fa-solid fa-car"></i> سيارات</button>
+  <button class="tab" data-sector="home" onclick="router.navigate('home')"><i class="fa-solid fa-screwdriver-wrench"></i> صيانة</button>
+</div>
+
+<main class="page-container">
+  <section class="view-section active" id="view-medical"></section>
+  <section class="view-section" id="view-market"></section>
+  <section class="view-section" id="view-cars"></section>
+  <section class="view-section" id="view-home"></section>
+  <section class="view-section" id="view-founder"></section>
+  <section class="view-section" id="view-staff"></section>
+  <section class="view-section" id="view-doctor"></section>
+  <section class="view-section" id="view-dashboard"></section>
+</main>
+
+<div class="sheet-overlay" id="cart-overlay" onclick="cart.toggle()"></div>
+<div class="bottom-sheet" id="cart-sheet">
+  <div class="sheet-header">
+    <h3 style="margin:0; font-weight:900;"><i class="fa-solid fa-basket-shopping" style="color:var(--emerald);"></i> سلة الطلبات</h3>
+    <button onclick="cart.toggle()" style="background:var(--gray-light); border:none; width:36px; height:36px; border-radius:var(--radius-sm); cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="sheet-body" id="cart-body"></div>
+  <div class="sheet-footer">
+    <div style="display:flex; justify-content:space-between; margin-bottom:16px; font-weight:900; font-size:18px;">
+      <span>الإجمالي:</span>
+      <span id="cart-total" style="color:var(--emerald);">0 ج.م</span>
+    </div>
+    <button onclick="cart.checkout()" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد الدفع (كاش باك 5%)</button>
+  </div>
+</div>
+
+<div class="modal-wrap" id="modal-auth"><div class="modal-box" id="modal-auth-body"></div></div>
+<div class="modal-wrap" id="modal-book"><div class="modal-box" id="modal-book-body"></div></div>
+<div class="modal-wrap" id="modal-payment"><div class="modal-box" id="modal-payment-body"></div></div>
+<div class="modal-wrap" id="modal-map"><div class="modal-box" id="modal-map-body"></div></div>
+
+<div id="toast-box"></div>
+
+<script>
+/* ==========================================================================
+   WASLA CORE ENGINE (FULL MASTER BUILD)
+   ========================================================================== */
+const Utils = {
+  id: () => Math.random().toString(36).substring(2, 10),
+  money: (num) => Number(num).toLocaleString('ar-EG') + ' ج.م',
+  toast: (msg, isError = false) => {
+    const el = document.createElement('div');
+    el.className = 'toast-msg';
+    el.style.borderRightColor = isError ? 'var(--danger)' : 'var(--emerald)';
+    el.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> ${msg}`;
+    document.getElementById('toast-box').appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  },
+  openModal: (id) => document.getElementById(id).classList.add('open'),
+  closeModal: (id) => document.getElementById(id).classList.remove('open')
+};
+
+/* Audio Engine */
+let audioCtx;
+document.body.addEventListener('click', () => {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}, { once: true });
+
+function playSound(isAlert = false) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.type = isAlert ? 'square' : 'sine';
+  osc.frequency.setValueAtTime(isAlert ? 880 : 600, audioCtx.currentTime);
+  if (isAlert) osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+}
+
+/* ==========================================================================
+   DATABASE & STATE
+   ========================================================================== */
+const DB_KEY = 'wasla_db_master_v4';
+let DB = JSON.parse(localStorage.getItem(DB_KEY));
+
+if (!DB) {
+  DB = {
+    users: [
+      { id: 'u-f', phone: '01068990089', pass: 'As123789456*', name: 'أحمد صبري', role: 'founder', wallet: 0 },
+      { id: 'u-p1', phone: '01000000001', pass: '123456', name: 'محمد المريض', role: 'patient', wallet: 150, emr: { blood: 'O+', allergies: ['بنسلين'], chronic: ['سكري'], vitals: [120, 135, 118, 110] } },
+      { id: 'u-d1', phone: '01000000002', pass: '123456', name: 'د. محمد الشريف', role: 'doctor', wallet: 0 },
+      { id: 'u-s1', phone: '01000000003', pass: '123456', name: 'موظف الاستقبال', role: 'staff', wallet: 0 }
+    ],
+    doctors: [
+      { id: 'd1', name: 'د. محمد الشريف', spec: 'باطنة وكبد', price: 170, avgTime: 15, area: 'شارع بورسعيد', lat: 30.3546, lng: 31.2153, services: ['سكر وضغط', 'مناظير'], schedule: ['5:00 م', '5:30 م', '6:00 م'] },
+      { id: 'd2', name: 'د. سارة أحمد', spec: 'أطفال وحديثي الولادة', price: 150, avgTime: 12, area: 'ميدان المحطة', lat: 30.3575, lng: 31.2160, services: ['تطعيمات', 'حساسية'], schedule: ['4:00 م', '4:30 م', '5:00 م'] }
+    ],
+    pharmacies: [
+      { id: 'ph1', name: 'صيدلية النور', area: 'شارع بورسعيد', insurances: ['GlobeMed', 'MetLife'] },
+      { id: 'ph2', name: 'صيدلية الشفاء', area: 'ميدان المحطة', insurances: ['MedRight', 'AXA'] }
+    ],
+    appointments: [],
+    orders: [],
+    notifications: [],
+    cart: [],
+    ads: [{ id: 'a1', text: '🎉 خصم 20% على أول كشف', active: true }, { id: 'a2', text: '🚀 ونش إنقاذ متاح الآن', active: true }]
+  };
+  localStorage.setItem(DB_KEY, JSON.stringify(DB));
+}
+
+function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+
+let Auth = {
+  currentUser: JSON.parse(sessionStorage.getItem('wasla_session')) || null,
+  
+  login: (phone, pass) => {
+    const user = DB.users.find(u => u.phone === phone && u.pass === pass);
+    if (user) {
+      Auth.currentUser = user;
+      sessionStorage.setItem('wasla_session', JSON.stringify(user));
+      UI.renderHeader();
+      Utils.closeModal('modal-auth');
+      Utils.toast('مرحباً بك ' + user.name);
+      if (user.role === 'founder') router.navigate('founder');
+      else if (user.role === 'staff') router.navigate('staff');
+      else if (user.role === 'doctor') router.navigate('doctor');
+      else router.navigate('dashboard');
+      return true;
+    }
+    return false;
+  },
+  
+  logout: () => {
+    Auth.currentUser = null;
+    sessionStorage.removeItem('wasla_session');
+    UI.renderHeader();
+    router.navigate('medical');
+    Utils.toast('تم تسجيل الخروج');
+  }
+};
+
+let Notifier = {
+  push: (userId, text, isAlert = false) => {
+    DB.notifications.unshift({ id: Utils.id(), userId, text, read: false, ts: Date.now() });
+    saveDB();
+    if (Auth.currentUser && Auth.currentUser.id === userId) {
+      UI.renderHeader(); playSound(isAlert); Utils.toast(text);
+    }
+  },
+  
+  openPanel: (e) => {
+    e.stopPropagation();
+    const my = DB.notifications.filter(n => n.userId === Auth.currentUser.id);
+    let html = `<button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button><h3 style="font-weight:900; margin:0 0 16px;">الإشعارات</h3>`;
+    if (!my.length) html += `<p style="text-align:center; color:var(--gray);">لا توجد إشعارات</p>`;
+    my.forEach(n => {
+      html += `<div style="padding:12px; border-bottom:1px solid var(--line); background:${n.read?'#fff':'var(--emerald-light)'}; border-radius:var(--radius-sm); margin-bottom:8px;">
+        <div style="font-size:10px; color:var(--gray); margin-bottom:4px;">${new Date(n.ts).toLocaleTimeString('ar-EG')}</div>
+        <div style="font-size:13px; font-weight:700;">${n.text}</div>
+      </div>`;
+    });
+    document.getElementById('modal-map-body').innerHTML = html;
+    Utils.openModal('modal-map');
+    DB.notifications.filter(n => n.userId === Auth.currentUser.id).forEach(n => n.read = true);
+    saveDB(); UI.renderHeader();
+  }
+};
+
+/* UI Components */
+const UI = {
+  renderHeader: () => {
+    const actions = document.getElementById('header-actions');
+    const tabs = document.getElementById('super-tabs');
+    document.querySelectorAll('.tab.dynamic').forEach(t => t.remove());
+
+    if (!Auth.currentUser) {
+      actions.innerHTML = `<button class="btn-ui primary" onclick="AuthUI.open()"><i class="fa-solid fa-right-to-bracket"></i> دخول</button>`;
+      return;
+    }
+
+    const isFounder = Auth.currentUser.role === 'founder';
+    const isStaff = Auth.currentUser.role === 'staff';
+    const isDoctor = Auth.currentUser.role === 'doctor';
+    const myNotifs = DB.notifications.filter(n => n.userId === Auth.currentUser.id && !n.read);
+
+    actions.innerHTML = `
+      <div style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.1); padding:6px 10px; border-radius:var(--radius-sm); cursor:pointer;" onclick="router.navigate('${isFounder?'founder':isStaff?'staff':isDoctor?'doctor':'dashboard'}')">
+        <div style="width:24px; height:24px; border-radius:50%; background:var(--emerald); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:11px;">${Auth.currentUser.name[0]}</div>
+        <div style="font-size:11px; font-weight:900; color:#fff;">${Auth.currentUser.name.split(' ')[0]}</div>
+        <div style="font-size:10px; color:#34D399; font-weight:800; margin-right:4px;">${Auth.currentUser.wallet || 0} ج.م</div>
+      </div>
+      
+      ${isFounder ? `<button class="btn-ui" style="background:linear-gradient(135deg,var(--gold),var(--amber)); border:none;" onclick="router.navigate('founder')"><i class="fa-solid fa-crown"></i> لوحة التحكم</button>` : ''}
+      
+      <button class="btn-ui" onclick="Notifier.openPanel(event)" style="position:relative;">
+        <i class="fa-solid fa-bell"></i>
+        ${myNotifs.length > 0 ? `<span style="position:absolute; top:-4px; right:-4px; background:var(--danger); color:#fff; width:16px; height:16px; border-radius:50%; font-size:9px; font-weight:900; display:flex; align-items:center; justify-content:center;">${myNotifs.length}</span>` : ''}
+      </button>
+
+      <button class="btn-ui primary" onclick="cart.toggle()" style="position:relative;">
+        <i class="fa-solid fa-cart-shopping"></i>
+        ${DB.cart.length > 0 ? `<span style="position:absolute; top:-4px; right:-4px; background:#fff; color:var(--emerald); width:16px; height:16px; border-radius:50%; font-size:9px; font-weight:900; display:flex; align-items:center; justify-content:center;">${DB.cart.length}</span>` : ''}
+      </button>
+
+      <button class="btn-ui" onclick="Auth.logout()" style="color:#94A3B8;"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+    `;
+
+    if (isStaff) tabs.insertAdjacentHTML('beforeend', `<button class="tab dynamic" data-sector="staff" onclick="router.navigate('staff')"><i class="fa-solid fa-headset"></i> إدارة الطابور</button>`);
+    if (isDoctor) tabs.insertAdjacentHTML('beforeend', `<button class="tab dynamic" data-sector="doctor" onclick="router.navigate('doctor')"><i class="fa-solid fa-user-md"></i> بوابة الطبيب</button>`);
+  },
+  
+  renderTicker: () => {
+    const active = DB.ads.filter(a => a.active);
+    const el = document.getElementById('wasla-ticker');
+    if (!active.length) return el.style.display = 'none';
+    el.style.display = 'flex';
+    el.innerHTML = `<div class="ticker-content">${active.map(a => `<span style="margin-left:40px;"><i class="fa-solid fa-bullhorn" style="color:var(--gold);"></i> ${a.text}</span>`).join('')}</div>`;
+  }
+};
+
+/* Router */
+const router = {
+  navigate: (sector) => {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    
+    const view = document.getElementById('view-' + sector);
+    if (view) view.classList.add('active');
+    
+    const tab = document.querySelector(`.tab[data-sector="${sector}"]`);
+    if (tab) tab.classList.add('active');
+
+    const views = { medical: Views.medical, market: Views.market, cars: Views.cars, home: Views.home, founder: Views.founder, staff: Views.staff, doctor: Views.doctor, dashboard: Views.dashboard };
+    if (views[sector]) views[sector]();
+    window.scrollTo(0,0);
+  }
+};
+
+/* Cart */
+const cart = {
+  toggle: () => {
+    document.getElementById('cart-sheet').classList.toggle('open');
+    document.getElementById('cart-overlay').classList.toggle('open');
+    cart.render();
+  },
+  add: (title, price, icon) => {
+    DB.cart.push({ cartId: Utils.id(), title, price, icon });
+    saveDB(); UI.renderHeader(); Utils.toast('تمت الإضافة للسلة'); cart.toggle();
+  },
+  remove: (id) => {
+    DB.cart = DB.cart.filter(i => i.cartId !== id);
+    saveDB(); cart.render(); UI.renderHeader();
+  },
+  render: () => {
+    const body = document.getElementById('cart-body');
+    if (!DB.cart.length) {
+      body.innerHTML = `<div style="text-align:center; padding:40px; color:var(--gray);"><i class="fa-solid fa-basket-shopping" style="font-size:40px; margin-bottom:12px;"></i><br>السلة فارغة</div>`;
+      document.getElementById('cart-total').innerText = '0 ج.م'; return;
+    }
+    body.innerHTML = DB.cart.map(item => `
+      <div class="item-box" style="margin-bottom:10px;">
+        <div class="item-icon"><i class="fa-solid ${item.icon}"></i></div>
+        <div class="item-info"><div class="item-title">${item.title}</div></div>
+        <div class="item-price">${Utils.money(item.price)}</div>
+        <button onclick="cart.remove('${item.cartId}')" style="background:var(--danger-light); color:var(--danger); border:none; width:32px; height:32px; border-radius:var(--radius-sm); cursor:pointer; margin-right:10px;"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `).join('');
+    const total = DB.cart.reduce((s,i) => s + i.price, 0);
+    document.getElementById('cart-total').innerText = Utils.money(total);
+  },
+  checkout: () => {
+    if (!Auth.currentUser) { Utils.toast('سجل دخول أولاً', true); return AuthUI.open(); }
+    if (!DB.cart.length) return;
+    const total = DB.cart.reduce((s,i) => s + i.price, 0);
+    document.getElementById('modal-payment-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-payment')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:24px;">
+        <div style="width:64px; height:64px; background:var(--emerald-light); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 12px;"><i class="fa-solid fa-credit-card"></i></div>
+        <h3 style="margin:0 0 4px; font-weight:900;">بوابة الدفع</h3>
+        <p style="color:var(--gray); font-size:13px; font-weight:700;">المبلغ المطلوب: ${Utils.money(total)}</p>
+      </div>
+      <div class="item-box mb-4" style="border:2px solid var(--emerald); background:var(--emerald-light);">
+        <div class="item-icon" style="background:#fff;"><i class="fa-solid fa-money-bill"></i></div>
+        <div class="item-info"><div class="item-title">الدفع عند الاستلام (كاش)</div></div>
+        <i class="fa-solid fa-circle-check" style="color:var(--emerald); font-size:20px;"></i>
+      </div>
+      <button onclick="cart.processPayment(${total})" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد ودفع</button>
+    `;
+    Utils.openModal('modal-payment');
+  },
+  processPayment: (total) => {
+    const cashback = Math.round(total * 0.05);
+    Auth.currentUser.wallet = (Auth.currentUser.wallet || 0) + cashback;
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+
+    DB.cart.forEach(item => {
+      DB.orders.push({ id: Utils.id(), userId: Auth.currentUser.id, title: item.title, price: item.price, status: 'preparing', ts: Date.now() });
+    });
+    DB.cart = [];
+    saveDB();
+    Utils.closeModal('modal-payment'); cart.toggle(); UI.renderHeader();
+    Utils.toast(`تم الدفع بنجاح! حصلت على ${cashback} ج.م كاش باك`);
+    if(Auth.currentUser.role === 'patient') router.navigate('dashboard');
+  }
+};
+
+/* Auth UI */
+const AuthUI = {
+  open: () => {
+    document.getElementById('modal-auth-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-auth')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:24px;">
+        <div style="width:64px; height:64px; background:var(--emerald); color:#fff; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 12px;"><i class="fa-solid fa-heart-pulse"></i></div>
+        <h3 style="margin:0; font-weight:900;">تسجيل الدخول</h3>
+      </div>
+      <input type="text" id="auth-phone" class="input-field" placeholder="رقم الموبايل" value="01068990089">
+      <input type="password" id="auth-pass" class="input-field" placeholder="كلمة السر" value="As123789456*">
+      <button onclick="AuthUI.submit()" class="btn-action" style="width:100%; padding:16px; font-size:16px;">دخول</button>
+      <div style="margin-top:24px; padding:16px; background:var(--gray-light); border-radius:var(--radius-sm); font-size:12px; font-weight:700; color:var(--gray);">
+        <div style="color:var(--primary); font-weight:900; margin-bottom:8px;">🔑 حسابات تجريبية:</div>
+        👑 مؤسس: 01068990089 (As123789456*)<br>
+        🧑 مريض: 01000000001 (123456)<br>
+        🩺 طبيب: 01000000002 (123456)<br>
+        🎧 موظف: 01000000003 (123456)
+      </div>
+    `;
+    Utils.openModal('modal-auth');
+  },
+  submit: () => {
+    const p = document.getElementById('auth-phone').value;
+    const s = document.getElementById('auth-pass').value;
+    if (!Auth.login(p, s)) Utils.toast('بيانات الدخول غير صحيحة', true);
+  }
+};
+
+/* ==========================================================================
+   VIEWS (SECTORS) - FULL LOGIC
+   ========================================================================== */
+const Views = {
+  /* --- MEDICAL --- */
+  medical: () => {
+    const el = document.getElementById('view-medical');
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-user-doctor" style="color:var(--emerald);"></i> دليل الأطباء</h2>
+      <div class="grid-list">
+        ${DB.doctors.map(d => `
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="flex:1;">
+              <h4 style="margin:0 0 4px; font-weight:900; font-size:16px;">${d.name}</h4>
+              <span style="background:var(--emerald-light); color:var(--emerald); padding:2px 8px; border-radius:6px; font-size:10px; font-weight:900;">${d.spec}</span>
+              <p style="margin:8px 0 4px; font-size:11px; color:var(--gray); font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${d.area} • ${d.avgTime} دقيقة</p>
+              <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;">
+                ${d.services.map(s => `<span style="background:var(--gray-light); border:1px solid var(--line); font-size:10px; padding:2px 8px; border-radius:6px; font-weight:700;">${s}</span>`).join('')}
+              </div>
+            </div>
+            <div style="text-align:left;">
+              <div style="font-weight:900; color:var(--emerald); font-size:20px;">${Utils.money(d.price)}</div>
+              <button onclick="Views.openBooking('${d.id}')" class="btn-action" style="margin-top:10px; padding:10px 20px;">حجز</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <h2 class="section-title mt-4"><i class="fa-solid fa-prescription-bottle-medical" style="color:var(--sky);"></i> صيدليات التأمين</h2>
+      <div class="grid-list">
+        ${DB.pharmacies.map(p => `
+          <div class="item-box">
+            <div class="item-icon" style="background:var(--sky-light); color:var(--sky);"><i class="fa-solid fa-pills"></i></div>
+            <div class="item-info">
+              <div class="item-title">${p.name}</div>
+              <div class="item-sub"><i class="fa-solid fa-location-dot"></i> ${p.area}</div>
+            </div>
+            <div style="font-size:10px; font-weight:900; color:var(--sky); border:1px solid var(--sky); padding:4px 8px; border-radius:6px;">${p.insurances[0]}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  },
+
+  openBooking: (docId) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const doc = DB.doctors.find(d => d.id === docId);
+    const bookedSlots = DB.appointments.filter(a => a.doctorId === docId && a.status !== 'cancelled').map(a => a.slot);
+
+    document.getElementById('modal-book-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-book')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 4px; font-weight:900; font-size:20px;">${doc.name}</h3>
+      <p style="margin:0 0 20px; font-size:13px; color:var(--gray); font-weight:700;">${doc.spec} • الكشف: ${Utils.money(doc.price)}</p>
+      
+      <label style="font-size:13px; font-weight:900; display:block; margin-bottom:12px;">اختر الموعد (المحجوز يظهر مقفول):</label>
+      <div class="grid-2" style="margin-bottom:24px;">
+        ${doc.schedule.map(slot => {
+          const isBooked = bookedSlots.includes(slot);
+          return `
+            <label style="border:${isBooked?'1px solid var(--line)':'2px solid var(--emerald)'}; background:${isBooked?'var(--gray-light)':'var(--emerald-light)'}; padding:14px; border-radius:var(--radius-sm); text-align:center; cursor:${isBooked?'not-allowed':'pointer'}; font-weight:900; font-size:14px; color:${isBooked?'var(--gray)':'var(--emerald)'}; opacity:${isBooked?'0.5':'1'};">
+              ${isBooked ? `<i class="fa-solid fa-lock"></i> ` : ''} 
+              <input type="radio" name="slot" value="${slot}" ${isBooked?'disabled':''} class="hidden"> ${slot}
+            </label>
+          `;
+        }).join('')}
+      </div>
+      
+      <button onclick="Views.confirmBooking('${doc.id}')" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد الحجز</button>
+    `;
+    Utils.openModal('modal-book');
+  },
+
+  confirmBooking: (docId) => {
+    const doc = DB.doctors.find(d => d.id === docId);
+    const slotInput = document.querySelector('input[name="slot"]:checked');
+    if(!slotInput) return Utils.toast('اختر موعداً متاحاً', true);
+
+    DB.appointments.push({
+      id: Utils.id(), patientId: Auth.currentUser.id, patientName: Auth.currentUser.name,
+      doctorId: doc.id, doctorName: doc.name, slot: slotInput.value, price: doc.price, status: 'waiting', ts: Date.now()
+    });
+    saveDB();
+    Utils.closeModal('modal-book'); Utils.toast('تم تأكيد الحجز');
+    router.navigate('dashboard');
+  },
+
+  /* --- MARKET --- */
+  market: () => {
+    const el = document.getElementById('view-market');
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-store" style="color:var(--amber);"></i> تسوق الآن</h2>
+      <div class="grid-2">
+        <div class="card text-center" onclick="Views.openShop('rest', 'مطاعم')" style="cursor:pointer;">
+          <div class="item-icon" style="margin:0 auto 12px; width:60px; height:60px; font-size:26px; background:var(--amber-light); color:var(--amber);"><i class="fa-solid fa-utensils"></i></div><h4 style="font-weight:900; margin:0;">مطاعم ومشويات</h4>
+        </div>
+        <div class="card text-center" onclick="Views.openShop('grocery', 'سوبرماركت')" style="cursor:pointer;">
+          <div class="item-icon" style="margin:0 auto 12px; width:60px; height:60px; font-size:26px; background:var(--emerald-light); color:var(--emerald);"><i class="fa-solid fa-basket-shopping"></i></div><h4 style="font-weight:900; margin:0;">بقالة</h4>
+        </div>
+      </div>
+    `;
+  },
+
+  openShop: (type, title) => {
+    let items = type === 'rest' ? [{ n: 'كباب وكفتة', p: 180 }, { n: 'بيتزا رانش', p: 120 }] : [{ n: 'زيت عافية', p: 95 }, { n: 'أرز مصري', p: 60 }];
+    document.getElementById('modal-map-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px; font-weight:900;">${title}</h3>
+      <div class="grid-list">
+        ${items.map(i => `
+          <div class="item-box">
+            <div class="item-info"><div class="item-title">${i.n}</div></div>
+            <div class="item-price">${Utils.money(i.p)}</div>
+            <button onclick="cart.add('${i.n}', ${i.p}, 'fa-shopping-bag')" class="btn-action" style="padding:8px; border-radius:50%; width:36px; height:36px;"><i class="fa-solid fa-plus"></i></button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    Utils.openModal('modal-map');
+  },
+
+  /* --- CARS --- */
+  cars: () => {
+    const el = document.getElementById('view-cars');
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-car" style="color:var(--primary);"></i> خدمات السيارات</h2>
+      <div class="grid-2">
+        <div class="card text-center" onclick="cart.add('تغيير إطار', 100, 'fa-circle-dot')" style="cursor:pointer;">
+          <i class="fa-solid fa-circle-dot" style="font-size:30px; color:var(--primary); margin-bottom:12px;"></i><h4 style="font-weight:900; margin:0;">إطارات</h4>
+        </div>
+        <div class="card text-center" onclick="cart.add('ونش إنقاذ', 300, 'fa-truck-pickup')" style="cursor:pointer; background:var(--danger-light); border-color:#FECACA;">
+          <i class="fa-solid fa-truck-pickup" style="font-size:30px; color:var(--danger); margin-bottom:12px;"></i><h4 style="font-weight:900; margin:0; color:var(--danger);">ونش إنقاذ</h4>
+        </div>
+      </div>
+    `;
+  },
+
+  /* --- HOME --- */
+  home: () => {
+    const el = document.getElementById('view-home');
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-screwdriver-wrench" style="color:var(--sky);"></i> الصيانة المنزلية</h2>
+      <div class="grid-2">
+        <div class="card text-center" onclick="cart.add('زيارة سباك', 100, 'fa-wrench')" style="cursor:pointer;">
+          <i class="fa-solid fa-wrench" style="font-size:30px; color:var(--sky); margin-bottom:12px;"></i><h4 style="font-weight:900; margin:0;">سباكة</h4>
+        </div>
+        <div class="card text-center" onclick="cart.add('زيارة كهربائي', 100, 'fa-bolt')" style="cursor:pointer;">
+          <i class="fa-solid fa-bolt" style="font-size:30px; color:var(--amber); margin-bottom:12px;"></i><h4 style="font-weight:900; margin:0;">كهرباء</h4>
+        </div>
+      </div>
+    `;
+  },
+
+  /* --- FOUNDER (P&L) --- */
+  founder: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'founder') return router.navigate('medical');
+    const el = document.getElementById('view-founder');
+    const totalRev = DB.orders.reduce((s, o) => s + o.price, 0);
+    const commission = Math.round(totalRev * 0.15);
+
+    // حساب أرباح الأطباء
+    const docRev = {};
+    DB.appointments.forEach(a => {
+      docRev[a.doctorId] = docRev[a.doctorId] || { name: a.doctorName, total: 0 };
+      docRev[a.doctorId].total += a.price;
+    });
+
+    el.innerHTML = `
+      <div class="card" style="background:var(--primary); color:#fff; border:none;">
+        <h2 style="margin:0 0 16px; font-weight:900;"><i class="fa-solid fa-crown" style="color:var(--gold);"></i> لوحة المؤسس</h2>
+        <div class="grid-2" style="gap:12px;">
+          <div style="background:rgba(255,255,255,0.1); padding:16px; border-radius:12px;">
+            <div style="font-size:11px; color:#94A3B8;">أرباح المنصة (15%)</div>
+            <div style="font-size:20px; font-weight:900; color:#34D399;">${Utils.money(commission)}</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.1); padding:16px; border-radius:12px;">
+            <div style="font-size:11px; color:#94A3B8;">إجمالي الحجوزات</div>
+            <div style="font-size:20px; font-weight:900; color:#fff;">${DB.appointments.length}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">تقرير الأرباح (P&L)</h3>
+        <table style="width:100%; text-align:right; font-size:12px; font-weight:700;">
+          <thead><tr style="background:var(--gray-light); color:var(--gray);"><th style="padding:10px;">الطبيب</th><th style="padding:10px;">إجمالي التحصيل</th><th style="padding:10px;">عمولة المنصة</th></tr></thead>
+          <tbody>
+            ${Object.values(docRev).map(d => `
+              <tr style="border-bottom:1px solid var(--line);">
+                <td style="padding:10px;">${d.name}</td>
+                <td style="padding:10px;">${Utils.money(d.total)}</td>
+                <td style="padding:10px; color:var(--emerald);">+${Utils.money(d.total * 0.15)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  },
+
+  /* --- STAFF --- */
+  staff: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'staff') return router.navigate('medical');
+    const el = document.getElementById('view-staff');
+    const appts = DB.appointments.filter(a => a.status !== 'completed').sort((a,b) => a.ts - b.ts);
+
+    el.innerHTML = `
+      <div class="card" style="background:var(--primary); color:#fff;">
+        <h2 style="margin:0; font-weight:900;">إدارة طابور المرضى</h2>
+      </div>
+      <div class="grid-list">
+        ${appts.map(a => `
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div><h4 style="margin:0; font-weight:900;">${a.patientName}</h4><p style="margin:4px 0; font-size:12px; color:var(--gray);">${a.doctorName} • ${a.slot}</p></div>
+              ${a.status === 'next' 
+                ? `<button onclick="Views.finishAppt('${a.id}')" class="btn-action">إنهاء</button>`
+                : `<button onclick="Views.callPatient('${a.id}')" class="btn-action" style="background:var(--amber);">نداء</button>`
+              }
+            </div>
+          </div>
+        `).join('') || '<div class="card text-center">لا يوجد مرضى</div>'}
+      </div>
+    `;
+  },
+
+  callPatient: (apptId) => {
+    const appt = DB.appointments.find(a => a.id === apptId);
+    appt.status = 'next'; saveDB();
+    Notifier.push(appt.patientId, `🔔 حان دورك الآن! توجه لعيادة ${appt.doctorName}`, true);
+    Views.staff(); Utils.toast('تم إرسال النداء');
+  },
+
+  finishAppt: (apptId) => {
+    const appt = DB.appointments.find(a => a.id === apptId);
+    appt.status = 'completed'; saveDB(); Views.staff(); Utils.toast('تم إنهاء الكشف');
+  },
+
+  /* --- DOCTOR --- */
+  doctor: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return router.navigate('medical');
+    document.getElementById('view-doctor').innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-user-md" style="color:var(--primary);"></i> إحصائيات العيادة</h2>
+      <div class="card grid-3 text-center" style="padding:24px 16px;">
+        <div><div style="font-size:28px; font-weight:900; color:var(--emerald);">12</div><div style="font-size:11px; color:var(--gray); font-weight:700;">جديد</div></div>
+        <div><div style="font-size:28px; font-weight:900; color:var(--amber);">5</div><div style="font-size:11px; color:var(--gray); font-weight:700;">متابعة</div></div>
+        <div><div style="font-size:28px; font-weight:900; color:var(--sky);">17</div><div style="font-size:11px; color:var(--gray); font-weight:700;">وصلة</div></div>
+      </div>
+    `;
+  },
+
+  /* --- PATIENT DASHBOARD & TRACKING --- */
+  dashboard: () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const el = document.getElementById('view-dashboard');
+    const myAppts = DB.appointments.filter(a => a.patientId === Auth.currentUser.id).sort((a,b) => b.ts - a.ts);
+    const myOrders = DB.orders.filter(o => o.userId === Auth.currentUser.id).sort((a,b) => b.ts - a.ts);
+    const emr = Auth.currentUser.emr || { blood: 'O+', allergies: [], chronic: [], vitals: [] };
+
+    const renderTracker = (status) => {
+      const stages = ['received', 'preparing', 'on_way', 'delivered'];
+      const labels = { received: 'تم الاستلام', preparing: 'جاري التجهيز', on_way: 'في الطريق', delivered: 'تم التسليم' };
+      const idx = stages.indexOf(status);
+      return `
+        <div class="stepper">
+          ${stages.map((s, i) => `
+            <div class="step ${i <= idx ? 'active' : ''} ${i === idx && s !== 'delivered' ? 'current' : ''}">
+              <div class="step-icon"><i class="fa-solid fa-check"></i></div>
+              <div class="step-label">${labels[s]}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    };
+
+    // رسم بياني للسكر
+    const maxVital = Math.max(...emr.vitals, 150);
+    const renderChart = () => `
+      <div class="chart-container">
+        ${emr.vitals.map(v => `
+          <div class="bar" style="height: ${(v/maxVital)*100}%;">
+            <span class="bar-label">${v}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    el.innerHTML = `
+      <div class="card" style="background:var(--emerald-light); border-color:#A7F3D0;">
+        <h2 style="margin:0 0 4px; font-weight:900; color:#047857;">أهلاً ${Auth.currentUser.name}</h2>
+        <p style="margin:0; font-size:12px; font-weight:700; color:#065F46;">الرقم التعريفي: ${Auth.currentUser.id.toUpperCase()}</p>
+        <div style="margin-top:12px; background:#fff; padding:8px 16px; border-radius:99px; display:inline-block; font-weight:900; color:var(--emerald);">
+          <i class="fa-solid fa-wallet"></i> ${Utils.money(Auth.currentUser.wallet || 0)}
+        </div>
+      </div>
+
+      <h3 class="section-title mt-4">تتبع طلباتي الحية</h3>
+      <div class="grid-list">
+        ${myOrders.map(o => `
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <div class="item-title">${o.title}</div>
+              <div class="item-price">${Utils.money(o.price)}</div>
+            </div>
+            ${renderTracker(o.status)}
+          </div>
+        `).join('') || '<div class="card text-center">لا توجد طلبات.</div>'}
+      </div>
+
+      <h3 class="section-title mt-4">ملفي الطبي (EMR)</h3>
+      <div class="card">
+        <div class="grid-2 mb-4">
+          <div class="vital-card" style="background:var(--danger-light);"><div class="vital-label">فصيلة الدم</div><div class="vital-value">${emr.blood}</div></div>
+          <div class="vital-card" style="background:var(--amber-light);"><div class="vital-label">حساسية</div><div class="vital-value" style="font-size:14px;">${emr.allergies.join('، ')}</div></div>
+        </div>
+        <div style="font-size:12px; font-weight:900; color:var(--gray); margin-bottom:8px;">مؤشر السكر (آخر 4 قراءات):</div>
+        ${renderChart()}
+      </div>
+    `;
+  }
+};
+
+/* Order Simulator (Auto advance orders every 15s) */
+setInterval(() => {
+  let changed = false;
+  DB.orders.forEach(o => {
+    if (o.status === 'preparing') { o.status = 'on_way'; changed = true; }
+    else if (o.status === 'on_way') { o.status = 'delivered'; changed = true; }
+  });
+  if (changed) {
+    saveDB();
+    if (Auth.currentUser && Auth.currentUser.role === 'patient') router.navigate('dashboard');
+  }
+}, 15000);
+
+/* INIT */
+window.onload = () => {
+  UI.renderHeader();
+  UI.renderTicker();
+  router.navigate('medical');
+};
+</script>
+</body>
+</html>
 </body>
 </html>
