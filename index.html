@@ -6378,5 +6378,291 @@ window.onload = () => {
   UI.renderTicker();
 })();
 </script>
+  <script>
+/* ==========================================================================
+   WASLA PART 18 — MASTER RESET & DEEP FEATURES (FIX EVERYTHING)
+   ========================================================================== */
+(function() {
+  'use strict';
+
+  // =========================================================================
+  // 1. إصلاحات الواجهة العاجلة (UI Fixes)
+  // =========================================================================
+  // إخفاء زرار الطوارئ العائم اللي كان بيغطي على الكلام ونقله فوق شوية
+  const sosBtn = document.getElementById('sos-btn');
+  if (sosBtn) {
+    sosBtn.style.bottom = '80px';
+    sosBtn.style.left = '20px';
+    sosBtn.style.right = 'auto';
+    sosBtn.style.width = '50px';
+    sosBtn.style.height = '50px';
+    sosBtn.style.zIndex = '90';
+  }
+
+  // مسح أي عناصر مكررة في الهيدر
+  ['app-header', 'super-tabs'].forEach(cls => {
+    const els = document.querySelectorAll('.' + cls);
+    els.forEach((el, index) => { if (index > 0) el.remove(); });
+  });
+
+  // إصلاح مشكلة لون النص في الإشعارات (كان أبيض على أبيض)
+  const notifStyle = document.createElement('style');
+  notifStyle.innerHTML = `
+    .notif-item { color: var(--primary) !important; }
+    .notif-item.unread { color: var(--primary) !important; }
+    .modal-box { color: var(--primary); }
+    body.dark-mode .modal-box { color: #fff; }
+    body.dark-mode .notif-item { color: #fff !important; }
+  `;
+  document.head.appendChild(notifStyle);
+
+
+  // =========================================================================
+  // 2. تحديث قاعدة البيانات للخدمات الجديدة
+  // =========================================================================
+  if (!DB.doctors) DB.doctors = [];
+  
+  // دالة مساعدة لإضافة خدمات جديدة لو مش موجودة
+  const addService = (sector, name, price, icon) => {
+    if (!DB.services) DB.services = {};
+    if (!DB.services[sector]) DB.services[sector] = [];
+    if (!DB.services[sector].find(s => s.name === name)) {
+      DB.services[sector].push({ id: Math.random().toString(36).substr(2,9), name, price, icon });
+    }
+  };
+
+  // خدمات السيارات
+  addService('cars', 'تغيير إطار', 120, 'fa-circle-dot');
+  addService('cars', 'شحن بطارية', 150, 'fa-car-battery');
+  addService('cars', 'غسيل متنقل', 80, 'fa-droplet');
+  addService('cars', 'ونش إنقاذ', 300, 'fa-truck-pickup');
+  addService('cars', 'تجديد رخصة', 250, 'fa-id-card');
+  addService('cars', 'فحص شامل', 200, 'fa-clipboard-check');
+
+  // خدمات الصيانة
+  addService('home', 'سباكة', 100, 'fa-wrench');
+  addService('home', 'كهرباء', 100, 'fa-bolt');
+  addService('home', 'نجارة', 150, 'fa-hammer');
+  addService('home', 'تكييف', 200, 'fa-wind');
+  addService('home', 'تنظيف منازل', 300, 'fa-broom');
+  addService('home', 'مكافحة حشرات', 250, 'fa-bug');
+
+  saveDB();
+
+  // =========================================================================
+  // 3. بناء واجهات نظيفة (Clean Render Engine)
+  // =========================================================================
+
+  // أ. القطاع الطبي
+  Views.medical = () => {
+    const el = document.getElementById('view-medical');
+    el.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, var(--primary), #1E293B); color:#fff; border:none; margin-bottom:16px; cursor:pointer;" onclick="Views.openAIChat()">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:50px; height:50px; border-radius:50%; background:var(--emerald); display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="fa-solid fa-robot"></i></div>
+          <div>
+            <h3 style="margin:0; font-weight:900;">المساعد الطبي الذكي</h3>
+            <p style="margin:4px 0 0; font-size:11px; opacity:0.8;">اكتب أعراضك وسنوجهك للطبيب المناسب فوراً</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="background:linear-gradient(135deg, #E0F2FE, #BAE6FD); border-color:#7DD3FC; margin-bottom:16px; cursor:pointer;" onclick="Views.startVideoCall()">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:50px; height:50px; border-radius:50%; background:var(--sky); color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="fa-solid fa-video"></i></div>
+          <div>
+            <h3 style="margin:0; font-weight:900; color:#0369A1;">استشارة طبية بالفيديو</h3>
+            <p style="margin:4px 0 0; font-size:11px; font-weight:700; color:#0284C7;">تواصل مع طبيبك الآن مباشرة بدون مغادرة المنزل</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title mt-4"><i class="fa-solid fa-user-doctor" style="color:var(--emerald);"></i> دليل الأطباء</h2>
+      <div class="grid-list">
+        ${DB.doctors.map(d => `
+          <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <h4 style="margin:0; font-weight:900; font-size:16px;">${d.name}</h4>
+                ${d.status === 'available' ? `<span style="background:#ECFDF5; color:#059669; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">🟢 متاح</span>` : `<span style="background:#FEF2F2; color:#E11D48; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">🔴 مشغول</span>`}
+              </div>
+              <span style="background:var(--emerald-light); color:var(--emerald); padding:2px 8px; border-radius:6px; font-size:10px; font-weight:900;">${d.spec}</span>
+              <p style="margin:8px 0 4px; font-size:11px; color:var(--gray); font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${d.area} • ${d.avgTime} دقيقة</p>
+            </div>
+            <div style="text-align:left;">
+              <div style="font-weight:900; color:var(--emerald); font-size:20px;">${Utils.money(d.price)}</div>
+              <button onclick="Views.openBooking('${d.id}')" class="btn-action" style="margin-top:10px; padding:10px 20px;">حجز</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  };
+
+  // ب. قطاع التسوق
+  Views.market = () => {
+    const el = document.getElementById('view-market');
+    el.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, #EA580C, #F59E0B); color:#fff; border:none;">
+        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-store"></i> تسوق الآن</h2>
+        <p style="margin:4px 0 0; font-size:12px; opacity:0.9;">اختر المتجر وابدأ التسوق</p>
+      </div>
+      
+      <div class="grid-list mt-4">
+        <div class="card" onclick="Views.openShopMenu('rest1', 'مشويات الشرقاوي')" style="cursor:pointer; display:flex; align-items:center; gap:12px;">
+          <div style="width:60px; height:60px; border-radius:12px; background:var(--amber-light); color:var(--amber); display:flex; align-items:center; justify-content:center; font-size:28px;"><i class="fa-solid fa-utensils"></i></div>
+          <div style="flex:1;"><h4 style="margin:0; font-weight:900; font-size:16px;">مشويات الشرقاوي</h4><p style="margin:4px 0 0; font-size:12px; color:var(--gray); font-weight:700;">مشويات • 30-45 دقيقة</p></div>
+          <i class="fa-solid fa-chevron-left" style="color:var(--gray);"></i>
+        </div>
+
+        <div class="card" onclick="Views.openShopMenu('groc1', 'سوبرماركت النور')" style="cursor:pointer; display:flex; align-items:center; gap:12px;">
+          <div style="width:60px; height:60px; border-radius:12px; background:var(--emerald-light); color:var(--emerald); display:flex; align-items:center; justify-content:center; font-size:28px;"><i class="fa-solid fa-basket-shopping"></i></div>
+          <div style="flex:1;"><h4 style="margin:0; font-weight:900; font-size:16px;">سوبرماركت النور</h4><p style="margin:4px 0 0; font-size:12px; color:var(--gray); font-weight:700;">بقالة • 15-25 دقيقة</p></div>
+          <i class="fa-solid fa-chevron-left" style="color:var(--gray);"></i>
+        </div>
+
+        <div class="card" onclick="Views.openShopMenu('pharm1', 'صيدلية الشفاء')" style="cursor:pointer; display:flex; align-items:center; gap:12px;">
+          <div style="width:60px; height:60px; border-radius:12px; background:var(--sky-light); color:var(--sky); display:flex; align-items:center; justify-content:center; font-size:28px;"><i class="fa-solid fa-pills"></i></div>
+          <div style="flex:1;"><h4 style="margin:0; font-weight:900; font-size:16px;">صيدلية الشفاء</h4><p style="margin:4px 0 0; font-size:12px; color:var(--gray); font-weight:700;">أدوية • توصيل سريع</p></div>
+          <i class="fa-solid fa-chevron-left" style="color:var(--gray);"></i>
+        </div>
+      </div>
+    `;
+  };
+
+  // ج. قطاع السيارات (تم إصلاحه وبقى فيه خدمات)
+  Views.cars = () => {
+    const el = document.getElementById('view-cars');
+    const services = DB.services.cars || [];
+    el.innerHTML = `
+      <div class="card" style="background:var(--primary); color:#fff; border:none;">
+        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-car"></i> خدمات السيارات</h2>
+        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">فنيون معتمدون يصلون لموقعك فوراً</p>
+      </div>
+      
+      <div class="grid-2 mt-4">
+        ${services.map(s => `
+          <div class="card text-center" onclick="cart.add('${s.name}', ${s.price}, '${s.icon}')" style="cursor:pointer; padding:16px;">
+            <i class="fa-solid ${s.icon}" style="font-size:30px; color:var(--primary); margin-bottom:12px;"></i>
+            <h4 style="font-weight:900; margin:0 0 4px; font-size:13px;">${s.name}</h4>
+            <div style="font-size:11px; font-weight:900; color:var(--emerald);">${Utils.money(s.price)}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  };
+
+  // د. قطاع الصيانة (تم إصلاحه وبقى فيه خدمات)
+  Views.home = () => {
+    const el = document.getElementById('view-home');
+    const services = DB.services.home || [];
+    el.innerHTML = `
+      <div class="card" style="background:var(--sky); color:#fff; border:none;">
+        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-screwdriver-wrench"></i> الصيانة المنزلية</h2>
+        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">صنايعية معتمدين بفيش وتشبيه</p>
+      </div>
+      
+      <div class="grid-2 mt-4">
+        ${services.map(s => `
+          <div class="card text-center" onclick="cart.add('${s.name}', ${s.price}, '${s.icon}')" style="cursor:pointer; padding:16px;">
+            <i class="fa-solid ${s.icon}" style="font-size:30px; color:var(--sky); margin-bottom:12px;"></i>
+            <h4 style="font-weight:900; margin:0 0 4px; font-size:13px;">${s.name}</h4>
+            <div style="font-size:11px; font-weight:900; color:var(--emerald);">${Utils.money(s.price)}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  };
+
+  // هـ. قسم "المزيد" (عشان نلم كل الميزات التانية)
+  Views.more = () => {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    let moreView = document.getElementById('view-more');
+    if (!moreView) {
+      moreView = document.createElement('section');
+      moreView.id = 'view-more';
+      moreView.className = 'view-section';
+      document.querySelector('main').appendChild(moreView);
+    }
+    moreView.classList.add('active');
+
+    moreView.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, #F3E8FF, #E9D5FF); border-color:#D8B4FE;">
+        <h2 style="margin:0; font-weight:900; color:#6B21A8;"><i class="fa-solid fa-grid-2"></i> خدمات وميزات إضافية</h2>
+        <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#7E22CE;">كل ما تحتاجه في مكان واحد.</p>
+      </div>
+
+      <div class="grid-2 mt-4">
+        <div class="card text-center" onclick="Views.ride()" style="cursor:pointer;">
+          <i class="fa-solid fa-motorcycle" style="font-size:30px; color:var(--amber); margin-bottom:8px;"></i><h4 style="font-weight:900; font-size:13px; margin:0;">وصلة رايد</h4>
+        </div>
+        <div class="card text-center" onclick="Views.savings()" style="cursor:pointer;">
+          <i class="fa-solid fa-piggy-bank" style="font-size:30px; color:var(--emerald); margin-bottom:8px;"></i><h4 style="font-weight:900; font-size:13px; margin:0;">جمعية وصلة</h4>
+        </div>
+        <div class="card text-center" onclick="Views.community()" style="cursor:pointer;">
+          <i class="fa-solid fa-users" style="font-size:30px; color:var(--indigo); margin-bottom:8px;"></i><h4 style="font-weight:900; font-size:13px; margin:0;">مجتمع وصلة</h4>
+        </div>
+        <div class="card text-center" onclick="Views.academy()" style="cursor:pointer;">
+          <i class="fa-solid fa-graduation-cap" style="font-size:30px; color:var(--sky); margin-bottom:8px;"></i><h4 style="font-weight:900; font-size:13px; margin:0;">أكاديمية</h4>
+        </div>
+        <div class="card text-center" onclick="Views.jobs()" style="cursor:pointer;">
+          <i class="fa-solid fa-briefcase" style="font-size:30px; color:var(--gray); margin-bottom:8px;"></i><h4 style="font-weight:900; font-size:13px; margin:0;">وظائف</h4>
+        </div>
+        <div class="card text-center" onclick="Views.charity()" style="cursor:pointer;">
+          <i class="fa-solid fa-hand-holding-heart" style="font-size:30px; color:var(--danger); margin-bottom:8px;"></i><h4 style="font-weight:900; font-size:13px; margin:0;">تبرعات</h4>
+        </div>
+        <div class="card text-center" onclick="Views.lostFound()" style="cursor:pointer;">
+          <i class="fa-solid fa-magnifying-glass-location" style="font-size:30px; color:var(--gold); margin-bottom:8px;"></i><h4 style="font-weight:900; font-size:13px; margin:0;">مفقودات</h4>
+        </div>
+        <div class="card text-center" onclick="Views.wishlist()" style="cursor:pointer;">
+          <i class="fa-solid fa-heart" style="font-size:30px; color:var(--danger); margin-bottom:8px;"></i><h4 style="font-weight:900; font-size:13px; margin:0;">المفضلة</h4>
+        </div>
+      </div>
+    `;
+
+    // إضافة التبويب
+    const tabs = document.getElementById('super-tabs');
+    if (tabs && !document.getElementById('tab-more')) {
+      tabs.insertAdjacentHTML('beforeend', `<button id="tab-more" class="tab dynamic" data-sector="more" onclick="Views.more()"><i class="fa-solid fa-grid-2"></i> المزيد</button>`);
+    }
+  };
+
+  // =========================================================================
+  // 4. تحديث الراوتر الأساسي (Router Fix)
+  // =========================================================================
+  const originalNavigate = router.navigate;
+  router.navigate = (sector) => {
+    // مسح حالة الـ Active من الكل
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+    // تفعيل القسم المطلوب
+    let view = document.getElementById('view-' + sector);
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-' + sector;
+      view.className = 'view-section';
+      document.querySelector('main').appendChild(view);
+    }
+    view.classList.add('active');
+
+    // تفعيل التبويب
+    const tab = document.querySelector(`.tab[data-sector="${sector}"]`);
+    if (tab) tab.classList.add('active');
+
+    // استدعاء دالة العرض
+    const views = { medical: Views.medical, market: Views.market, cars: Views.cars, home: Views.home, more: Views.more, founder: Views.founder, staff: Views.staff, doctor: Views.doctor, dashboard: Views.dashboard };
+    if (views[sector]) {
+      try { views[sector](); } catch(e) { console.error("Render error in " + sector, e); }
+    }
+  };
+
+  // تشغيل التحديث
+  console.log('✅ WASLA PART 18 LOADED: Master Reset, Deep Features, UI Fixed.');
+  UI.renderHeader();
+  UI.renderTicker();
+  router.navigate('medical'); // العودة للصفحة الرئيسية
+})();
+</script>
 </body>
 </html>
