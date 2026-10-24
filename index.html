@@ -9,107 +9,123 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --primary: #0B1220; --primary-light: #1E293B;
-    --emerald: #059669; --emerald-light: #ECFDF5;
-    --amber: #EA580C; --amber-light: #FFF7ED;
-    --sky: #0284C7; --sky-light: #F0F9FF;
-    --danger: #E11D48; --danger-light: #FFF1F2;
-    --gold: #D97706; --gold-light: #FEF3C7;
-    --indigo: #3730A3; --indigo-light: #EEF2FF;
-    --gray: #64748B; --gray-light: #F8FAFC;
-    --line: #E2E8F0; --bg: #F4F6FB;
-    --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px;
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
-    --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
-    --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+    --primary:#0B1220; --primary-light:#1E293B;
+    --emerald:#059669; --emerald-light:#ECFDF5;
+    --amber:#EA580C; --amber-light:#FFF7ED;
+    --sky:#0284C7; --sky-light:#F0F9FF;
+    --danger:#E11D48; --danger-light:#FFF1F2;
+    --gold:#D97706; --gold-light:#FEF3C7;
+    --indigo:#3730A3; --indigo-light:#EEF2FF;
+    --gray:#64748B; --gray-light:#F8FAFC;
+    --line:#E2E8F0; --bg:#F4F6FB;
+    --radius-sm:10px; --radius-md:16px; --radius-lg:24px;
+    --shadow-sm:0 2px 8px rgba(0,0,0,0.04);
+    --shadow-md:0 8px 24px rgba(0,0,0,0.08);
+    --shadow-lg:0 12px 48px rgba(0,0,0,0.12);
   }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Cairo', sans-serif; }
-  body { background: var(--bg); color: var(--primary); margin: 0; padding-bottom: 80px; overflow-x: hidden; }
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-thumb { background: var(--gray); border-radius: 10px; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:'Cairo',sans-serif}
+  body{background:var(--bg);color:var(--primary);margin:0;padding-bottom:80px;overflow-x:hidden}
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-thumb{background:var(--gray);border-radius:10px}
 
-  .app-header { position: sticky; top: 0; z-index: 100; background: rgba(11,18,32,0.98); backdrop-filter: blur(10px); color: #fff; padding: 10px 16px; box-shadow: var(--shadow-md); }
-  .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; }
-  .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-  .brand-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--emerald), #10B981); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 12px rgba(5,150,105,0.4); }
-  .brand-title { font-size: 19px; font-weight: 900; margin: 0; line-height: 1; }
-  .brand-title span { font-size: 9px; color: #34D399; background: rgba(52,211,153,0.15); padding: 2px 6px; border-radius: 6px; margin-right: 4px; }
-  
-  .header-actions { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
-  .header-actions::-webkit-scrollbar { display: none; }
-  .btn-ui { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer; font-family: inherit; transition: 0.2s; }
-  .btn-ui:active { transform: scale(0.95); }
-  .btn-ui.primary { background: var(--emerald); border: none; }
-  
-  .super-tabs { display: flex; gap: 8px; padding: 12px; overflow-x: auto; scrollbar-width: none; background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 60px; z-index: 99; }
-  .super-tabs::-webkit-scrollbar { display: none; }
-  .tab { padding: 10px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 900; color: var(--gray); background: var(--gray-light); border: 1px solid var(--line); white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; font-family: inherit; }
-  .tab.active { background: var(--primary); color: #fff; border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .app-header{position:sticky;top:0;z-index:100;background:rgba(11,18,32,0.98);backdrop-filter:blur(10px);color:#fff;padding:10px 16px;box-shadow:var(--shadow-md)}
+  .header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px}
+  .brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
+  .brand-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--emerald),#10B981);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(5,150,105,0.4)}
+  .brand-title{font-size:19px;font-weight:900;margin:0;line-height:1}
+  .brand-title span{font-size:9px;color:#34D399;background:rgba(52,211,153,0.15);padding:2px 6px;border-radius:6px;margin-right:4px}
 
-  .page-container { max-width: 800px; margin: 0 auto; padding: 16px; }
-  .view-section { display: none; animation: fadeUp 0.4s ease; }
-  .view-section.active { display: block; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-  
-  .card { background: #fff; border-radius: var(--radius-md); border: 1px solid var(--line); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
-  .section-title { font-size: 18px; font-weight: 900; margin: 0 0 16px; display: flex; align-items: center; gap: 8px; }
-  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .grid-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
-  
-  .item-box { background: #FAFCFE; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
-  .item-icon { width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--emerald-light); color: var(--emerald); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-  .item-info { flex: 1; }
-  .item-title { font-weight: 900; font-size: 14px; margin: 0 0 4px; color: var(--primary); }
-  .item-sub { font-size: 11px; color: var(--gray); font-weight: 700; margin: 0; }
-  .item-price { font-weight: 900; color: var(--emerald); font-size: 15px; }
-  
-  .btn-action { background: var(--emerald); color: #fff; border: none; padding: 12px 20px; border-radius: var(--radius-sm); font-weight: 900; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; transition: 0.2s; }
-  .btn-action:active { transform: scale(0.98); }
-  .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-ghost { background: transparent; color: var(--emerald); border: 2px solid var(--emerald); }
-  
-  .input-field { width: 100%; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); font-weight: 700; font-size: 14px; background: var(--gray-light); margin-bottom: 12px; font-family: inherit; color: var(--primary); }
-  .input-field:focus { outline: none; border-color: var(--emerald); background: #fff; box-shadow: 0 0 0 4px var(--emerald-light); }
+  .header-actions{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+  .header-actions::-webkit-scrollbar{display:none}
+  .btn-ui{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:8px 12px;border-radius:var(--radius-sm);font-size:11px;font-weight:800;display:flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer;font-family:inherit;transition:0.2s}
+  .btn-ui:active{transform:scale(0.95)}
+  .btn-ui.primary{background:var(--emerald);border:none}
 
-  .chip { padding: 8px 14px; border-radius: 99px; font-size: 12px; font-weight: 800; background: #fff; color: var(--gray); border: 1.5px solid var(--line); cursor: pointer; font-family: inherit; transition: 0.2s; }
-  .chip.active { background: var(--emerald); color: #fff; border-color: var(--emerald); }
+  .super-tabs{display:flex;gap:8px;padding:12px;overflow-x:auto;scrollbar-width:none;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:60px;z-index:99}
+  .super-tabs::-webkit-scrollbar{display:none}
+  .tab{padding:10px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:900;color:var(--gray);background:var(--gray-light);border:1px solid var(--line);white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:8px;transition:0.3s;font-family:inherit}
+  .tab.active{background:var(--primary);color:#fff;border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-md)}
 
-  .search-wrap { position: relative; }
-  .search-wrap i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 14px; }
-  .search-wrap .input-field { padding-right: 40px; margin: 0; }
+  .page-container{max-width:800px;margin:0 auto;padding:16px}
+  .view-section{display:none;animation:fadeUp 0.4s ease}
+  .view-section.active{display:block}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
 
-  .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 200; opacity: 0; pointer-events: none; transition: 0.3s; }
-  .sheet-overlay.open { opacity: 1; pointer-events: auto; }
-  .bottom-sheet { position: fixed; bottom: -100%; left: 0; right: 0; background: #fff; border-radius: var(--radius-lg) var(--radius-lg) 0 0; z-index: 201; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); }
-  .bottom-sheet.open { bottom: 0; }
-  .sheet-header { padding: 20px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
-  .sheet-body { padding: 20px; overflow-y: auto; flex: 1; }
-  .sheet-footer { padding: 20px; border-top: 1px solid var(--line); background: var(--gray-light); }
-  
-  .modal-wrap { position: fixed; inset: 0; background: rgba(11,18,32,0.85); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 16px; }
-  .modal-wrap.open { display: flex; }
-  .modal-box { background: #fff; border-radius: var(--radius-lg); width: 100%; max-width: 480px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto; }
-  .modal-close { position: absolute; top: 16px; left: 16px; background: var(--gray-light); border: none; width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--gray); font-size: 16px; display: flex; align-items: center; justify-content: center; }
-  
-  #toast-box { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-  .toast-msg { background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 99px; font-size: 13px; font-weight: 900; box-shadow: var(--shadow-lg); border-right: 4px solid var(--emerald); animation: slideDown 0.3s; display: flex; align-items: center; gap: 8px; }
-  @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+  .card{background:#fff;border-radius:var(--radius-md);border:1px solid var(--line);padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+  .section-title{font-size:18px;font-weight:900;margin:0 0 16px;display:flex;align-items:center;gap:8px}
+  .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .grid-list{display:grid;grid-template-columns:1fr;gap:12px}
 
-  .stepper { display: flex; justify-content: space-between; position: relative; padding: 10px 0; margin-top: 15px; }
-  .stepper::before { content: ''; position: absolute; top: 24px; left: 10%; right: 10%; height: 3px; background: var(--line); z-index: 0; }
-  .step { display: flex; flex-direction: column; align-items: center; z-index: 1; flex: 1; }
-  .step-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--line); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-bottom: 6px; border: 3px solid #fff; }
-  .step.active .step-icon { background: var(--emerald); }
-  .step.current .step-icon { background: var(--amber); animation: pulse 1.5s infinite; }
-  .step-label { font-size: 10px; font-weight: 900; color: var(--gray); text-align: center; }
-  .step.active .step-label { color: var(--emerald); }
-  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(234,88,12,0.4); } 70% { box-shadow: 0 0 0 8px rgba(234,88,12,0); } 100% { box-shadow: 0 0 0 0 rgba(234,88,12,0); } }
+  .item-box{background:#FAFCFE;border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px;display:flex;align-items:center;gap:12px;transition:0.2s;cursor:pointer}
+  .item-box:hover{background:#fff;box-shadow:var(--shadow-sm)}
+  .item-icon{width:48px;height:48px;border-radius:var(--radius-sm);background:var(--emerald-light);color:var(--emerald);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+  .item-info{flex:1}
+  .item-title{font-weight:900;font-size:14px;margin:0 0 4px;color:var(--primary)}
+  .item-sub{font-size:11px;color:var(--gray);font-weight:700;margin:0}
+  .item-price{font-weight:900;color:var(--emerald);font-size:15px}
 
-  .slot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0 16px; max-height: 200px; overflow-y: auto; padding: 4px; }
-  .slot-option { display: block; padding: 10px; border-radius: 8px; border: 1.5px solid var(--line); text-align: center; cursor: pointer; font-size: 12px; font-weight: 900; background: #fff; }
-  .slot-option.selected { background: var(--emerald); color: #fff; border-color: var(--emerald); }
-  .slot-option input { display: none; }
+  .btn-action{background:var(--emerald);color:#fff;border:none;padding:12px 20px;border-radius:var(--radius-sm);font-weight:900;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:0.2s}
+  .btn-action:active{transform:scale(0.98)}
+  .btn-action:disabled{opacity:0.5;cursor:not-allowed}
+  .btn-ghost{background:transparent;color:var(--emerald);border:2px solid var(--emerald)}
+
+  .input-field{width:100%;padding:14px;border:1px solid var(--line);border-radius:var(--radius-sm);font-weight:700;font-size:14px;background:var(--gray-light);margin-bottom:12px;font-family:inherit;color:var(--primary)}
+  .input-field:focus{outline:none;border-color:var(--emerald);background:#fff;box-shadow:0 0 0 4px var(--emerald-light)}
+
+  .chip{padding:8px 14px;border-radius:99px;font-size:12px;font-weight:800;background:#fff;color:var(--gray);border:1.5px solid var(--line);cursor:pointer;font-family:inherit;transition:0.2s}
+  .chip.active{background:var(--emerald);color:#fff;border-color:var(--emerald)}
+
+  .search-wrap{position:relative}
+  .search-wrap i{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--gray);font-size:14px}
+  .search-wrap .input-field{padding-right:40px;margin:0}
+
+  .modal-wrap{position:fixed;inset:0;background:rgba(11,18,32,0.85);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;padding:16px}
+  .modal-wrap.open{display:flex}
+  .modal-box{background:#fff;border-radius:var(--radius-lg);width:100%;max-width:520px;padding:24px;position:relative;max-height:90vh;overflow-y:auto}
+  .modal-close{position:absolute;top:16px;left:16px;background:var(--gray-light);border:none;width:32px;height:32px;border-radius:var(--radius-sm);cursor:pointer;color:var(--gray);font-size:16px;display:flex;align-items:center;justify-content:center}
+
+  #toast-box{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+  .toast-msg{background:var(--primary);color:#fff;padding:12px 24px;border-radius:99px;font-size:13px;font-weight:900;box-shadow:var(--shadow-lg);border-right:4px solid var(--emerald);animation:slideDown 0.3s;display:flex;align-items:center;gap:8px}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+
+  /* Calendar */
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cal-cell{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;font-size:12px;font-weight:900;cursor:pointer;background:var(--gray-light);position:relative;border:2px solid transparent;transition:0.2s}
+  .cal-cell:hover{background:var(--emerald-light)}
+  .cal-cell.today{background:var(--emerald);color:#fff}
+  .cal-cell.has-appts{border-color:var(--emerald);background:var(--emerald-light);color:var(--emerald)}
+  .cal-cell.today.has-appts{background:var(--emerald);color:#fff;border-color:var(--amber)}
+  .cal-cell.other-month{opacity:0.3;cursor:default}
+  .cal-badge{position:absolute;bottom:2px;font-size:9px;background:var(--danger);color:#fff;padding:0 4px;border-radius:6px}
+
+  /* Slots */
+  .slot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 16px;max-height:220px;overflow-y:auto;padding:4px}
+  .slot-option{display:block;padding:10px;border-radius:8px;border:1.5px solid var(--line);text-align:center;cursor:pointer;font-size:12px;font-weight:900;background:#fff}
+  .slot-option.selected{background:var(--emerald);color:#fff;border-color:var(--emerald)}
+  .slot-option.disabled{opacity:0.35;cursor:not-allowed;text-decoration:line-through}
+  .slot-option input{display:none}
+
+  .stepper{display:flex;justify-content:space-between;position:relative;padding:10px 0;margin-top:15px}
+  .stepper::before{content:'';position:absolute;top:24px;left:10%;right:10%;height:3px;background:var(--line);z-index:0}
+  .step{display:flex;flex-direction:column;align-items:center;z-index:1;flex:1}
+  .step-icon{width:32px;height:32px;border-radius:50%;background:var(--line);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;margin-bottom:6px;border:3px solid #fff}
+  .step.active .step-icon{background:var(--emerald)}
+  .step.current .step-icon{background:var(--amber);animation:pulse 1.5s infinite}
+  .step-label{font-size:10px;font-weight:900;color:var(--gray);text-align:center}
+  .step.active .step-label{color:var(--emerald)}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(234,88,12,0.4)}70%{box-shadow:0 0 0 8px rgba(234,88,12,0)}100%{box-shadow:0 0 0 0 rgba(234,88,12,0)}}
+
+  .pay-option{border:2px solid var(--line);padding:12px;border-radius:10px;display:flex;align-items:center;gap:12px;cursor:pointer;background:#fff;margin-bottom:8px;transition:0.2s}
+  .pay-option.selected{border-color:var(--emerald);background:var(--emerald-light)}
+  .pay-option input{margin:0}
+
+  .schedule-day{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;margin-bottom:8px}
+  .schedule-day.active{border-color:var(--emerald);background:var(--emerald-light)}
+  .schedule-day .day-name{font-weight:900;font-size:13px;width:60px;flex-shrink:0}
+  .schedule-day .time-input{width:70px;padding:6px;border:1px solid var(--line);border-radius:6px;font-size:11px;font-weight:900;text-align:center;font-family:inherit}
+  .schedule-day .time-input:disabled{background:var(--gray-light);opacity:0.5}
 </style>
 </head>
 <body>
@@ -126,57 +142,70 @@
 
 <div class="super-tabs" id="super-tabs">
   <button class="tab active" data-sector="medical" onclick="router.navigate('medical')"><i class="fa-solid fa-stethoscope"></i> طبي</button>
-  <button class="tab" data-sector="market" onclick="router.navigate('market')"><i class="fa-solid fa-cart-shopping"></i> تسوق</button>
-  <button class="tab" data-sector="cars" onclick="router.navigate('cars')"><i class="fa-solid fa-car"></i> سيارات</button>
-  <button class="tab" data-sector="home" onclick="router.navigate('home')"><i class="fa-solid fa-screwdriver-wrench"></i> صيانة</button>
+  <button class="tab" data-sector="calendar" onclick="router.navigate('calendar')"><i class="fa-solid fa-calendar-days"></i> كاليندر</button>
+  <button class="tab" data-sector="queue" onclick="router.navigate('queue')"><i class="fa-solid fa-users-viewfinder"></i> دوري</button>
+  <button class="tab" data-sector="dashboard" onclick="router.navigate('dashboard')"><i class="fa-solid fa-user"></i> حسابي</button>
 </div>
 
 <main class="page-container">
   <section class="view-section active" id="view-medical"></section>
-  <section class="view-section" id="view-market"></section>
-  <section class="view-section" id="view-cars"></section>
-  <section class="view-section" id="view-home"></section>
-  <section class="view-section" id="view-founder"></section>
+  <section class="view-section" id="view-calendar"></section>
+  <section class="view-section" id="view-queue"></section>
+  <section class="view-section" id="view-dashboard"></section>
+  <section class="view-section" id="view-doctor-profile"></section>
   <section class="view-section" id="view-staff"></section>
   <section class="view-section" id="view-doctor"></section>
-  <section class="view-section" id="view-dashboard"></section>
+  <section class="view-section" id="view-founder"></section>
 </main>
 
 <div class="modal-wrap" id="modal-auth"><div class="modal-box" id="modal-auth-body"></div></div>
 <div class="modal-wrap" id="modal-book"><div class="modal-box" id="modal-book-body"></div></div>
 <div class="modal-wrap" id="modal-payment"><div class="modal-box" id="modal-payment-body"></div></div>
-<div class="modal-wrap" id="modal-map"><div class="modal-box" id="modal-map-body"></div></div>
+<div class="modal-wrap" id="modal-generic"><div class="modal-box" id="modal-generic-body"></div></div>
 
 <div id="toast-box"></div>
 
 <script>
 /* ==========================================================================
-   WASLA — PART 1: CORE + MEDICAL SECTOR (Professional Edition)
+   WASLA MEDICAL — Single-file index.html for GitHub Pages
+   Storage: localStorage. Deploy: gh-pages.
    ========================================================================== */
 
 const Utils = {
   id: () => Math.random().toString(36).substring(2, 10),
-  money: (num) => Number(num).toLocaleString('ar-EG') + ' ج.م',
-  toast: (msg, isError = false) => {
+  money: n => Number(n).toLocaleString('ar-EG') + ' ج.م',
+  toast: (msg, isError=false) => {
     const el = document.createElement('div');
     el.className = 'toast-msg';
     el.style.borderRightColor = isError ? 'var(--danger)' : 'var(--emerald)';
-    el.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> ${msg}`;
+    el.innerHTML = `<i class="fa-solid ${isError?'fa-circle-exclamation':'fa-circle-check'}"></i> ${msg}`;
     document.getElementById('toast-box').appendChild(el);
     setTimeout(() => el.remove(), 3000);
   },
-  openModal: (id) => document.getElementById(id).classList.add('open'),
-  closeModal: (id) => document.getElementById(id).classList.remove('open')
+  openModal: id => document.getElementById(id).classList.add('open'),
+  closeModal: id => document.getElementById(id).classList.remove('open'),
+  todayISO: () => new Date().toISOString().split('T')[0],
+  fmtDate: iso => {
+    const d = new Date(iso);
+    const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+    return days[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1) + '/' + d.getFullYear();
+  },
+  dayKey: iso => {
+    const d = new Date(iso);
+    return ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'][d.getDay()];
+  },
+  dayArabic: key => ({
+    saturday:'السبت', sunday:'الأحد', monday:'الاثنين', tuesday:'الثلاثاء',
+    wednesday:'الأربعاء', thursday:'الخميس', friday:'الجمعة'
+  }[key])
 };
 
-/* Audio */
 let audioCtx;
 document.body.addEventListener('click', () => {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
-}, { once: true });
-
-function playSound(isAlert = false) {
+}, {once:true});
+function playSound(isAlert=false) {
   if (!audioCtx) return;
   try {
     const osc = audioCtx.createOscillator();
@@ -188,50 +217,143 @@ function playSound(isAlert = false) {
     gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
     osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-  } catch(e) {}
+  } catch(e){}
 }
 
-/* Database */
-const DB_KEY = 'wasla_med_v1';
+/* ---------- INSURANCE: Top 10 ---------- */
+const INSURANCES = [
+  {id:'ins1', name:'جلوب ميد (GlobeMed)', coverage:80, logo:'fa-shield-halved'},
+  {id:'ins2', name:'ميتلايف (MetLife)', coverage:85, logo:'fa-shield'},
+  {id:'ins3', name:'ميد رايت (MedRight)', coverage:75, logo:'fa-heart-pulse'},
+  {id:'ins4', name:'أليانز (Allianz)', coverage:90, logo:'fa-shield-heart'},
+  {id:'ins5', name:'أكسا (AXA)', coverage:82, logo:'fa-umbrella'},
+  {id:'ins6', name:'بوبا (Bupa)', coverage:88, logo:'fa-hospital'},
+  {id:'ins7', name:'إيتنا (Aetna)', coverage:80, logo:'fa-heart-circle-check'},
+  {id:'ins8', name:'سيجنا (Cigna)', coverage:78, logo:'fa-hand-holding-medical'},
+  {id:'ins9', name:'مصر للتأمين (Misr)', coverage:70, logo:'fa-landmark'},
+  {id:'ins10', name:'مصر للتأمين (Egypt)', coverage:72, logo:'fa-globe'}
+];
+
+/* ---------- PAYMENT METHODS ---------- */
+const PAYMENT_METHODS = [
+  {id:'cash', name:'كاش عند الكشف', icon:'fa-money-bill-wave', desc:'ادفع في العيادة'},
+  {id:'card', name:'بطاقة ائتمانية', icon:'fa-credit-card', desc:'فيزا / ماستر / ميزة'},
+  {id:'wallet', name:'محفظة إلكترونية', icon:'fa-wallet', desc:'فودافون كاش / اتصالات'},
+  {id:'instapay', name:'إنستاباي', icon:'fa-bolt', desc:'تحويل بنكي فوري'},
+  {id:'insurance', name:'تأمين طبي', icon:'fa-shield-halved', desc:'خصم مباشر من التأمين'},
+  {id:'fawry', name:'فوري', icon:'fa-store', desc:'كود دفع فوري'},
+  {id:'installment', name:'تقسيط', icon:'fa-calendar-days', desc:'على 3-6 شهور'}
+];
+
+/* ---------- DEFAULT SCHEDULE ---------- */
+const defaultSchedule = () => ({
+  saturday: {active:true, start:'17:00', end:'21:00', duration:20, breakStart:'19:00', breakEnd:'19:30'},
+  sunday:   {active:true, start:'17:00', end:'21:00', duration:20, breakStart:null, breakEnd:null},
+  monday:   {active:false},
+  tuesday:  {active:true, start:'17:00', end:'21:00', duration:20, breakStart:null, breakEnd:null},
+  wednesday:{active:true, start:'17:00', end:'21:00', duration:20, breakStart:null, breakEnd:null},
+  thursday: {active:false},
+  friday:   {active:false}
+});
+
+/* ---------- DB ---------- */
+const DB_KEY = 'wasla_med_v3';
 let DB = JSON.parse(localStorage.getItem(DB_KEY));
 
 if (!DB) {
   DB = {
     users: [
-      { id: 'u-f', phone: '01068990089', pass: 'As123789456*', name: 'أحمد صبري', role: 'founder', wallet: 500, waslaId: 'WASLA-00001' },
-      { id: 'u-p1', phone: '01000000001', pass: '123456', name: 'محمد المريض', role: 'patient', wallet: 150, waslaId: 'WASLA-10001', emr: { blood: 'O+', allergies: ['بنسلين'], chronic: ['سكري'], vitals: [] } },
-      { id: 'u-d1', phone: '01000000002', pass: '123456', name: 'د. محمد الشريف', role: 'doctor', wallet: 0, waslaId: 'WASLA-20001', doctorId: 'd1' },
-      { id: 'u-s1', phone: '01000000003', pass: '123456', name: 'موظف الاستقبال', role: 'staff', wallet: 0, waslaId: 'WASLA-30001' }
+      {id:'u-f', phone:'01068990089', pass:'As123789456*', name:'أحمد صبري', role:'founder', wallet:500, waslaId:'WASLA-00001'},
+      {id:'u-p1', phone:'01000000001', pass:'123456', name:'محمد المريض', role:'patient', wallet:150, waslaId:'WASLA-10001', emr:{blood:'O+', allergies:['بنسلين'], chronic:['سكري'], vitals:[]}},
+      {id:'u-d1', phone:'01000000002', pass:'123456', name:'د. محمد الشريف', role:'doctor', wallet:0, waslaId:'WASLA-20001', doctorId:'d1'},
+      {id:'u-s1', phone:'01000000003', pass:'123456', name:'موظف الاستقبال', role:'staff', wallet:0, waslaId:'WASLA-30001'}
     ],
     doctors: [
-      { id: 'd1', name: 'د. محمد الشريف', spec: 'باطنة وكبد', price: 250, avgTime: 20, area: 'شارع بورسعيد', rating: 4.9, reviews: 212, services: ['سكر وضغط', 'مناظير', 'علاج كبد'], status: 'available', insurances: ['ins1', 'ins2'] },
-      { id: 'd2', name: 'د. سارة أحمد', spec: 'أطفال وحديثي الولادة', price: 200, avgTime: 15, area: 'ميدان المحطة', rating: 4.8, reviews: 168, services: ['تطعيمات', 'حساسية صدر', 'متابعة نمو'], status: 'busy', insurances: ['ins1', 'ins3'] },
-      { id: 'd3', name: 'د. كريم عبد العزيز', spec: 'قلب وأوعية دموية', price: 350, avgTime: 25, area: 'شارع المستشفى', rating: 4.9, reviews: 142, services: ['تخطيط قلب', 'ضغط الدم', 'ذبحة صدرية'], status: 'available', insurances: ['ins2'] },
-      { id: 'd4', name: 'د. منى سالم', spec: 'نساء وتوليد', price: 300, avgTime: 20, area: 'ميدان المحطة', rating: 4.7, reviews: 189, services: ['متابعة حمل', 'مناظير نسائية'], status: 'available', insurances: ['ins1', 'ins3'] }
+      {
+        id:'d1', name:'د. محمد الشريف', spec:'باطنة وكبد', price:250, avgTime:20, area:'شارع بورسعيد',
+        rating:4.9, reviews:212, status:'available', insurances:['ins1','ins2','ins4','ins9'],
+        services:[
+          {id:'sv1', name:'كشف عام', price:0, duration:20, icon:'fa-stethoscope'},
+          {id:'sv2', name:'أشعة تلفزيونية', price:300, duration:15, icon:'fa-x-ray'},
+          {id:'sv3', name:'منظار معدة', price:800, duration:45, icon:'fa-microscope'},
+          {id:'sv4', name:'تحليل سكر تراكمي', price:120, duration:5, icon:'fa-vial'}
+        ],
+        schedule: defaultSchedule()
+      },
+      {
+        id:'d2', name:'د. سارة أحمد', spec:'أطفال وحديثي الولادة', price:200, avgTime:15, area:'ميدان المحطة',
+        rating:4.8, reviews:168, status:'busy', insurances:['ins1','ins3','ins5','ins6'],
+        services:[
+          {id:'sv5', name:'كشف أطفال', price:0, duration:15, icon:'fa-baby'},
+          {id:'sv6', name:'تطعيم رباعي', price:180, duration:5, icon:'fa-syringe'},
+          {id:'sv7', name:'متابعة نمو', price:150, duration:10, icon:'fa-chart-line'}
+        ],
+        schedule:{
+          saturday:{active:true, start:'10:00', end:'14:00', duration:15, breakStart:null, breakEnd:null},
+          sunday:{active:true, start:'10:00', end:'14:00', duration:15, breakStart:null, breakEnd:null},
+          monday:{active:true, start:'17:00', end:'20:00', duration:15, breakStart:null, breakEnd:null},
+          tuesday:{active:false},
+          wednesday:{active:true, start:'10:00', end:'14:00', duration:15, breakStart:null, breakEnd:null},
+          thursday:{active:false},
+          friday:{active:false}
+        }
+      },
+      {
+        id:'d3', name:'د. كريم عبد العزيز', spec:'قلب وأوعية دموية', price:350, avgTime:25, area:'شارع المستشفى',
+        rating:4.9, reviews:142, status:'available', insurances:['ins2','ins4','ins7','ins8','ins10'],
+        services:[
+          {id:'sv8', name:'كشف قلب', price:0, duration:25, icon:'fa-heart'},
+          {id:'sv9', name:'تخطيط قلب ECG', price:250, duration:15, icon:'fa-wave-square'},
+          {id:'sv10', name:'إيكو على القلب', price:600, duration:30, icon:'fa-heart-pulse'}
+        ],
+        schedule: defaultSchedule()
+      },
+      {
+        id:'d4', name:'د. منى سالم', spec:'نساء وتوليد', price:300, avgTime:20, area:'ميدان المحطة',
+        rating:4.7, reviews:189, status:'available', insurances:['ins1','ins3','ins5','ins6'],
+        services:[
+          {id:'sv11', name:'كشف نساء', price:0, duration:20, icon:'fa-person-pregnant'},
+          {id:'sv12', name:'سونار حمل', price:350, duration:15, icon:'fa-baby-carriage'},
+          {id:'sv13', name:'منظار نسائي', price:700, duration:30, icon:'fa-microscope'}
+        ],
+        schedule: defaultSchedule()
+      },
+      {
+        id:'d5', name:'د. أحمد فؤاد', spec:'عظام ومفاصل', price:280, avgTime:20, area:'شارع الجيش',
+        rating:4.8, reviews:98, status:'available', insurances:['ins2','ins4','ins9'],
+        services:[
+          {id:'sv14', name:'كشف عظام', price:0, duration:20, icon:'fa-bone'},
+          {id:'sv15', name:'جبس كسر', price:450, duration:30, icon:'fa-bandage'},
+          {id:'sv16', name:'حقن مفاصل', price:600, duration:15, icon:'fa-syringe'}
+        ],
+        schedule: defaultSchedule()
+      }
     ],
-    insuranceCompanies: [
-      { id: 'ins1', name: 'جلوب ميد (GlobeMed)', coverage: 80, logo: 'fa-shield-halved' },
-      { id: 'ins2', name: 'ميتلايف (MetLife)', coverage: 85, logo: 'fa-shield' },
-      { id: 'ins3', name: 'ميد رايت (MedRight)', coverage: 75, logo: 'fa-heart-pulse' }
-    ],
+    insuranceCompanies: INSURANCES,
+    paymentMethods: PAYMENT_METHODS,
     pharmacies: [
-      { id: 'ph1', name: 'صيدلية النور', area: 'شارع بورسعيد', phone: '0133221111', insurances: ['ins1', 'ins2'], rating: 4.8, delivery: true },
-      { id: 'ph2', name: 'صيدلية الشفاء', area: 'ميدان المحطة', phone: '0133221122', insurances: ['ins1', 'ins3'], rating: 4.6, delivery: true }
+      {id:'ph1', name:'صيدلية النور', area:'شارع بورسعيد', phone:'0133221111', insurances:['ins1','ins2','ins4'], rating:4.8, delivery:true},
+      {id:'ph2', name:'صيدلية الشفاء', area:'ميدان المحطة', phone:'0133221122', insurances:['ins1','ins3','ins5'], rating:4.6, delivery:true}
     ],
     nursingServices: [
-      { id: 'ns1', name: 'حقن وريد ومحاليل', price: 250, icon: 'fa-syringe', desc: 'زيارة ممرض معتمد' },
-      { id: 'ns2', name: 'غيار جروح وحروق', price: 300, icon: 'fa-bandage', desc: 'غيار معقم ومواد طبية' },
-      { id: 'ns3', name: 'رعاية مسنين (ساعة)', price: 150, icon: 'fa-hand-holding-medical', desc: 'رعاية ومتابعة' },
-      { id: 'ns4', name: 'سحب عينات تحاليل', price: 120, icon: 'fa-vial', desc: 'سحب منزلي' },
-      { id: 'ns5', name: 'تحاليل شاملة', price: 500, icon: 'fa-flask', desc: 'باقة كاملة' }
+      {id:'ns1', name:'حقن وريد ومحاليل', price:250, icon:'fa-syringe', desc:'زيارة ممرض معتمد'},
+      {id:'ns2', name:'غيار جروح وحروق', price:300, icon:'fa-bandage', desc:'غيار معقم ومواد طبية'},
+      {id:'ns3', name:'رعاية مسنين (ساعة)', price:150, icon:'fa-hand-holding-medical', desc:'رعاية ومتابعة'},
+      {id:'ns4', name:'سحب عينات تحاليل', price:120, icon:'fa-vial', desc:'سحب منزلي'},
+      {id:'ns5', name:'تحاليل شاملة', price:500, icon:'fa-flask', desc:'باقة كاملة'}
     ],
-    appointments: [], orders: [], notifications: [], cart: [], emrNotes: [], loyalty: {}
+    appointments: [],
+    orders: [],
+    notifications: [],
+    prescriptions: [],
+    cart: [],
+    calendarCursor: new Date().toISOString().slice(0,7) // YYYY-MM
   };
   localStorage.setItem(DB_KEY, JSON.stringify(DB));
 }
-function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
 
-/* Auth */
+/* ---------- AUTH ---------- */
 let Auth = {
   currentUser: JSON.parse(sessionStorage.getItem('wasla_session')) || null,
   login: (phone, pass) => {
@@ -254,11 +376,12 @@ let Auth = {
     if (DB.users.find(u => u.phone === phone)) return Utils.toast('الرقم مسجل بالفعل', true);
     const newId = 'u-' + Utils.id();
     const waslaId = 'WASLA-' + Math.floor(10000 + Math.random() * 90000);
-    const newUser = { id: newId, phone, pass, name, role: 'patient', wallet: 0, waslaId, emr: { blood: 'غير محدد', allergies: [], chronic: [], vitals: [] } };
+    const newUser = {id:newId, phone, pass, name, role:'patient', wallet:0, waslaId, emr:{blood:'غير محدد', allergies:[], chronic:[], vitals:[]}};
     DB.users.push(newUser); saveDB();
     Auth.currentUser = newUser;
     sessionStorage.setItem('wasla_session', JSON.stringify(newUser));
-    UI.renderHeader(); Utils.closeModal('modal-auth'); Utils.toast('تم إنشاء الحساب. رقمك: ' + waslaId);
+    UI.renderHeader(); Utils.closeModal('modal-auth');
+    Utils.toast('تم إنشاء الحساب. رقمك: ' + waslaId);
     router.navigate('medical');
   },
   logout: () => {
@@ -268,18 +391,36 @@ let Auth = {
   }
 };
 
-/* Notifier */
+/* ---------- NOTIFIER ---------- */
 let Notifier = {
-  push: (userId, text, isAlert = false) => {
-    DB.notifications.unshift({ id: Utils.id(), userId, text, read: false, ts: Date.now() });
+  push: (userId, text, isAlert=false) => {
+    DB.notifications.unshift({id:Utils.id(), userId, text, read:false, ts:Date.now()});
     saveDB();
     if (Auth.currentUser && Auth.currentUser.id === userId) {
       UI.renderHeader(); playSound(isAlert); Utils.toast(text);
     }
+  },
+  openPanel: (e) => {
+    if (e) e.stopPropagation();
+    if (!Auth.currentUser) return AuthUI.open();
+    const my = DB.notifications.filter(n => n.userId === Auth.currentUser.id);
+    let html = `<button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="font-weight:900; margin:0 0 16px;">الإشعارات</h3>`;
+    if (!my.length) html += `<p style="text-align:center; color:var(--gray);">لا توجد إشعارات</p>`;
+    my.slice(0, 20).forEach(n => {
+      html += `<div style="padding:12px; border-bottom:1px solid var(--line); background:${n.read?'#fff':'var(--emerald-light)'}; border-radius:10px; margin-bottom:8px;">
+        <div style="font-size:10px; color:var(--gray); margin-bottom:4px;">${new Date(n.ts).toLocaleTimeString('ar-EG')}</div>
+        <div style="font-size:13px; font-weight:700;">${n.text}</div>
+      </div>`;
+    });
+    document.getElementById('modal-generic-body').innerHTML = html;
+    Utils.openModal('modal-generic');
+    my.forEach(n => n.read = true);
+    saveDB(); UI.renderHeader();
   }
 };
 
-/* UI */
+/* ---------- UI ---------- */
 const UI = {
   renderHeader: () => {
     const actions = document.getElementById('header-actions');
@@ -297,14 +438,9 @@ const UI = {
         <div style="font-size:11px; font-weight:900; color:#fff;">${Auth.currentUser.name.split(' ')[0]}</div>
         <div style="font-size:10px; color:#34D399; font-weight:800;">${Auth.currentUser.wallet || 0} ج.م</div>
       </div>
-      ${isFounder ? `<button class="btn-ui" style="background:linear-gradient(135deg,var(--gold),var(--amber)); border:none;" onclick="router.navigate('founder')"><i class="fa-solid fa-crown"></i> لوحة التحكم</button>` : ''}
       <button class="btn-ui" onclick="Notifier.openPanel(event)" style="position:relative;">
         <i class="fa-solid fa-bell"></i>
         ${myNotifs.length > 0 ? `<span style="position:absolute; top:-4px; right:-4px; background:var(--danger); color:#fff; width:16px; height:16px; border-radius:50%; font-size:9px; font-weight:900; display:flex; align-items:center; justify-content:center;">${myNotifs.length}</span>` : ''}
-      </button>
-      <button class="btn-ui primary" onclick="cart.toggle()" style="position:relative;">
-        <i class="fa-solid fa-cart-shopping"></i>
-        ${DB.cart.length > 0 ? `<span style="position:absolute; top:-4px; right:-4px; background:#fff; color:var(--emerald); width:16px; height:16px; border-radius:50%; font-size:9px; font-weight:900; display:flex; align-items:center; justify-content:center;">${DB.cart.length}</span>` : ''}
       </button>
       <button class="btn-ui" onclick="Auth.logout()" style="color:#94A3B8;"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
     `;
@@ -314,138 +450,10 @@ const UI = {
     if (isStaff) tabs.insertAdjacentHTML('beforeend', `<button class="tab dynamic" data-sector="staff" onclick="router.navigate('staff')"><i class="fa-solid fa-headset"></i> الطابور</button>`);
     if (isDoctor) tabs.insertAdjacentHTML('beforeend', `<button class="tab dynamic" data-sector="doctor" onclick="router.navigate('doctor')"><i class="fa-solid fa-user-md"></i> بوابة الطبيب</button>`);
     if (isFounder) tabs.insertAdjacentHTML('beforeend', `<button class="tab dynamic" data-sector="founder" onclick="router.navigate('founder')"><i class="fa-solid fa-crown"></i> لوحة المؤسس</button>`);
-    tabs.insertAdjacentHTML('beforeend', `<button class="tab dynamic" data-sector="dashboard" onclick="router.navigate('dashboard')"><i class="fa-solid fa-user"></i> حسابي</button>`);
   }
 };
 
-Notifier.openPanel = (e) => {
-  if (e) e.stopPropagation();
-  if (!Auth.currentUser) return AuthUI.open();
-  const my = DB.notifications.filter(n => n.userId === Auth.currentUser.id);
-  let html = `<button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button><h3 style="font-weight:900; margin:0 0 16px;">الإشعارات</h3>`;
-  if (!my.length) html += `<p style="text-align:center; color:var(--gray);">لا توجد إشعارات</p>`;
-  my.slice(0, 20).forEach(n => {
-    html += `<div style="padding:12px; border-bottom:1px solid var(--line); background:${n.read?'#fff':'var(--emerald-light)'}; border-radius:10px; margin-bottom:8px;">
-      <div style="font-size:10px; color:var(--gray); margin-bottom:4px;">${new Date(n.ts).toLocaleTimeString('ar-EG')}</div>
-      <div style="font-size:13px; font-weight:700;">${n.text}</div>
-    </div>`;
-  });
-  document.getElementById('modal-map-body').innerHTML = html;
-  Utils.openModal('modal-map');
-  my.forEach(n => n.read = true);
-  saveDB(); UI.renderHeader();
-};
-
-/* Router */
-const router = {
-  navigate: (sector) => {
-    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    let view = document.getElementById('view-' + sector);
-    if (!view) {
-      view = document.createElement('section');
-      view.id = 'view-' + sector;
-      view.className = 'view-section';
-      document.querySelector('main').appendChild(view);
-    }
-    view.classList.add('active');
-    const tab = document.querySelector(`.tab[data-sector="${sector}"]`);
-    if (tab) tab.classList.add('active');
-
-    const views = {
-      medical: Views.medical, market: Views.market, cars: Views.cars, home: Views.home,
-      founder: Views.founder, staff: Views.staff, doctor: Views.doctor, dashboard: Views.dashboard
-    };
-    if (views[sector]) views[sector]();
-    window.scrollTo(0,0);
-  }
-};
-
-/* Cart */
-const cart = {
-  toggle: () => {
-    document.getElementById('cart-sheet').classList.toggle('open');
-    document.getElementById('cart-overlay').classList.toggle('open');
-    cart.render();
-  },
-  add: (title, price, icon) => {
-    DB.cart.push({ cartId: Utils.id(), title, price, icon });
-    saveDB(); UI.renderHeader(); cart.render(); Utils.toast('تمت الإضافة للسلة');
-  },
-  remove: (id) => {
-    DB.cart = DB.cart.filter(i => i.cartId !== id);
-    saveDB(); cart.render(); UI.renderHeader();
-  },
-  render: () => {
-    const body = document.getElementById('cart-body');
-    if (!DB.cart.length) {
-      body.innerHTML = `<div style="text-align:center; padding:40px; color:var(--gray);"><i class="fa-solid fa-basket-shopping" style="font-size:40px; margin-bottom:12px;"></i><br>السلة فارغة</div>`;
-      document.getElementById('cart-total').innerText = '0 ج.م';
-      return;
-    }
-    body.innerHTML = DB.cart.map(item => `
-      <div class="item-box" style="margin-bottom:10px;">
-        <div class="item-icon"><i class="fa-solid ${item.icon}"></i></div>
-        <div class="item-info"><div class="item-title">${item.title}</div></div>
-        <div class="item-price">${Utils.money(item.price)}</div>
-        <button onclick="cart.remove('${item.cartId}')" style="background:var(--danger-light); color:var(--danger); border:none; width:32px; height:32px; border-radius:10px; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
-      </div>
-    `).join('');
-    const total = DB.cart.reduce((s,i) => s + i.price, 0);
-    document.getElementById('cart-total').innerText = Utils.money(total);
-  },
-  checkout: () => {
-    if (!Auth.currentUser) { Utils.toast('سجل دخول أولاً', true); return AuthUI.open(); }
-    if (!DB.cart.length) return;
-    const total = DB.cart.reduce((s,i) => s + i.price, 0);
-    document.getElementById('modal-payment-body').innerHTML = `
-      <button class="modal-close" onclick="Utils.closeModal('modal-payment')"><i class="fa-solid fa-xmark"></i></button>
-      <div style="text-align:center; margin-bottom:20px;">
-        <div style="width:64px; height:64px; background:var(--emerald-light); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 12px;"><i class="fa-solid fa-credit-card"></i></div>
-        <h3 style="margin:0 0 4px; font-weight:900;">بوابة الدفع</h3>
-        <p style="color:var(--gray); font-size:13px; font-weight:700;">المبلغ المطلوب: ${Utils.money(total)}</p>
-      </div>
-      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-        <label style="border:2px solid var(--emerald); background:var(--emerald-light); padding:14px; border-radius:10px; display:flex; align-items:center; gap:12px; cursor:pointer;">
-          <input type="radio" name="pay" value="cash" checked>
-          <div style="flex:1; font-weight:900; font-size:13px;">💵 الدفع عند الاستلام</div>
-        </label>
-        <label style="border:1.5px solid var(--line); padding:14px; border-radius:10px; display:flex; align-items:center; gap:12px; cursor:pointer;">
-          <input type="radio" name="pay" value="instapay">
-          <div style="flex:1; font-weight:900; font-size:13px;">🏦 إنستاباي (InstaPay)</div>
-        </label>
-        <label style="border:1.5px solid var(--line); padding:14px; border-radius:10px; display:flex; align-items:center; gap:12px; cursor:pointer;">
-          <input type="radio" name="pay" value="wallet">
-          <div style="flex:1; font-weight:900; font-size:13px;">📱 محفظة إلكترونية</div>
-        </label>
-      </div>
-      <button onclick="cart.processPayment(${total})" class="btn-action" style="width:100%; padding:16px; font-size:16px;">تأكيد ودفع</button>
-    `;
-    Utils.openModal('modal-payment');
-  },
-  processPayment: (total) => {
-    const cashback = Math.round(total * 0.05);
-    Auth.currentUser.wallet = (Auth.currentUser.wallet || 0) + cashback;
-    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
-    DB.users[uIdx] = Auth.currentUser;
-    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
-
-    DB.cart.forEach(item => {
-      DB.orders.push({
-        id: Utils.id(), userId: Auth.currentUser.id,
-        title: item.title, price: item.price,
-        status: 'preparing', ts: Date.now()
-      });
-    });
-    DB.cart = [];
-    saveDB();
-    Utils.closeModal('modal-payment'); cart.toggle(); UI.renderHeader();
-    Utils.toast(`تم الدفع! كاش باك ${cashback} ج.م`);
-    router.navigate('dashboard');
-  }
-};
-
-/* Auth UI */
+/* ---------- AUTH UI ---------- */
 const AuthUI = {
   open: () => {
     document.getElementById('modal-auth-body').innerHTML = `
@@ -495,16 +503,85 @@ const AuthUI = {
   }
 };
 
-/* Medical Module */
+/* ---------- ROUTER ---------- */
+const router = {
+  navigate: (sector, data) => {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    let view = document.getElementById('view-' + sector);
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-' + sector;
+      view.className = 'view-section';
+      document.querySelector('main').appendChild(view);
+    }
+    view.classList.add('active');
+    const tab = document.querySelector(`.tab[data-sector="${sector}"]`);
+    if (tab) tab.classList.add('active');
+
+    const views = {
+      medical: () => MedicalModule.render(),
+      calendar: () => CalendarModule.render(),
+      queue: () => QueueModule.render(),
+      dashboard: () => Views.dashboard(),
+      'doctor-profile': () => MedicalModule.renderProfile(data),
+      staff: () => Views.staff(),
+      doctor: () => Views.doctor(),
+      founder: () => Views.founder()
+    };
+    if (views[sector]) views[sector]();
+    window.scrollTo(0,0);
+  }
+};
+
+/* ---------- SLOT GENERATOR ---------- */
+function generateSlots(doctorId, dateISO) {
+  const doc = DB.doctors.find(d => d.id === doctorId);
+  if (!doc) return [];
+  const day = Utils.dayKey(dateISO);
+  const sched = doc.schedule[day];
+  if (!sched || !sched.active) return [];
+
+  const [sh, sm] = sched.start.split(':').map(Number);
+  const [eh, em] = sched.end.split(':').map(Number);
+  const startMin = sh * 60 + sm;
+  const endMin = eh * 60 + em;
+  const dur = sched.duration || 20;
+  const breakStart = sched.breakStart ? sched.breakStart.split(':').map(Number) : null;
+  const breakEnd = sched.breakEnd ? sched.breakEnd.split(':').map(Number) : null;
+  const breakStartMin = breakStart ? breakStart[0] * 60 + breakStart[1] : null;
+  const breakEndMin = breakEnd ? breakEnd[0] * 60 + breakEnd[1] : null;
+
+  const booked = DB.appointments
+    .filter(a => a.doctorId === doctorId && a.date === dateISO && a.status !== 'canceled')
+    .map(a => a.slot);
+
+  const slots = [];
+  for (let t = startMin; t + dur <= endMin; t += dur) {
+    if (breakStartMin !== null && t >= breakStartMin && t < breakEndMin) continue;
+    const h = Math.floor(t / 60);
+    const m = t % 60;
+    const label = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+    slots.push({ time: label, booked: booked.includes(label) });
+  }
+  return slots;
+}
+
+/* ---------- MEDICAL MODULE ---------- */
 const MedicalModule = {
-  currentFilters: { search: '', spec: 'all', insurance: null },
+  currentFilters: {search:'', spec:'all', insurance:null},
 
   render: () => {
     const el = document.getElementById('view-medical');
     el.innerHTML = `
       <div class="card" style="background:linear-gradient(135deg, var(--primary), #1E293B); color:#fff; border:none;">
         <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-stethoscope"></i> القطاع الطبي الشامل</h2>
-        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">كل ما يخص صحتك في مكان واحد</p>
+        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">حجز • كاليندر • تتبع دور • تأمين • دفع</p>
+        <div class="grid-3" style="margin-top:12px; gap:8px;">
+          <button onclick="router.navigate('calendar')" class="btn-ui" style="justify-content:center; background:rgba(255,255,255,0.15);"><i class="fa-solid fa-calendar-days"></i> الكاليندر</button>
+          <button onclick="router.navigate('queue')" class="btn-ui" style="justify-content:center; background:rgba(255,255,255,0.15);"><i class="fa-solid fa-users-viewfinder"></i> دوري</button>
+          <button onclick="router.navigate('dashboard')" class="btn-ui" style="justify-content:center; background:rgba(255,255,255,0.15);"><i class="fa-solid fa-user"></i> حسابي</button>
+        </div>
       </div>
 
       <div class="card">
@@ -516,16 +593,16 @@ const MedicalModule = {
           <button class="chip active" data-chip="all" onclick="MedicalModule.applyChip(this)">الكل</button>
           <button class="chip" data-chip="باطنة" onclick="MedicalModule.applyChip(this)">باطنة</button>
           <button class="chip" data-chip="أطفال" onclick="MedicalModule.applyChip(this)">أطفال</button>
-          <button class="chip" data-chip="عظام" onclick="MedicalModule.applyChip(this)">عظام</button>
           <button class="chip" data-chip="قلب" onclick="MedicalModule.applyChip(this)">قلب</button>
-          <button class="chip" data-chip="نساء" onclick="MedicalModule.applyChip(this)">نساء وتوليد</button>
+          <button class="chip" data-chip="نساء" onclick="MedicalModule.applyChip(this)">نساء</button>
+          <button class="chip" data-chip="عظام" onclick="MedicalModule.applyChip(this)">عظام</button>
         </div>
       </div>
 
       <h3 class="section-title"><i class="fa-solid fa-user-doctor" style="color:var(--emerald);"></i> دليل الأطباء</h3>
       <div id="doctors-list"></div>
 
-      <h3 class="section-title mt-4"><i class="fa-solid fa-house-medical" style="color:var(--sky);"></i> الخدمات الطبية المنزلية</h3>
+      <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-house-medical" style="color:var(--sky);"></i> الخدمات المنزلية</h3>
       <div class="grid-2">
         ${DB.nursingServices.map(s => `
           <div class="card" onclick="MedicalModule.orderService('${s.id}')" style="cursor:pointer; text-align:center; padding:14px; margin:0;">
@@ -537,10 +614,10 @@ const MedicalModule = {
         `).join('')}
       </div>
 
-      <h3 class="section-title mt-4"><i class="fa-solid fa-shield-halved" style="color:var(--gold);"></i> شركات التأمين</h3>
+      <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-shield-halved" style="color:var(--gold);"></i> شركات التأمين (${DB.insuranceCompanies.length})</h3>
       <div class="grid-list">
         ${DB.insuranceCompanies.map(ins => `
-          <div class="item-box" onclick="MedicalModule.filterByInsurance('${ins.id}')" style="cursor:pointer;">
+          <div class="item-box" onclick="MedicalModule.filterByInsurance('${ins.id}')">
             <div class="item-icon" style="background:var(--gold-light); color:var(--gold);"><i class="fa-solid ${ins.logo}"></i></div>
             <div class="item-info">
               <div class="item-title">${ins.name}</div>
@@ -551,10 +628,10 @@ const MedicalModule = {
         `).join('')}
       </div>
 
-      <h3 class="section-title mt-4"><i class="fa-solid fa-pills" style="color:var(--emerald);"></i> الصيدليات المتعاقدة</h3>
+      <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-pills" style="color:var(--emerald);"></i> الصيدليات المتعاقدة</h3>
       <div class="grid-list">
         ${DB.pharmacies.map(ph => `
-          <div class="item-box" onclick="MedicalModule.openPharmacy('${ph.id}')" style="cursor:pointer;">
+          <div class="item-box" onclick="MedicalModule.openPharmacy('${ph.id}')">
             <div class="item-icon"><i class="fa-solid fa-prescription-bottle-medical"></i></div>
             <div class="item-info">
               <div class="item-title">${ph.name}</div>
@@ -568,37 +645,52 @@ const MedicalModule = {
     MedicalModule.renderDoctors();
   },
 
-  renderDoctors: (docs = null) => {
+  renderDoctors: (docs=null) => {
     const list = document.getElementById('doctors-list');
+    if (!list) return;
     const docsToRender = docs || MedicalModule.getFiltered();
     if (!docsToRender.length) {
       list.innerHTML = '<div class="card text-center" style="color:var(--gray);">لا يوجد أطباء مطابقون</div>';
       return;
     }
-    list.innerHTML = docsToRender.map(d => `
-      <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="flex:1; min-width:0;">
-          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <h4 style="margin:0; font-weight:900; font-size:15px;">${d.name}</h4>
-            ${d.status === 'available' 
-              ? `<span style="background:#ECFDF5; color:#059669; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">🟢 متاح</span>` 
-              : `<span style="background:#FEF2F2; color:#E11D48; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">🔴 مشغول</span>`}
+    list.innerHTML = docsToRender.map(d => {
+      const todayISO = Utils.todayISO();
+      const slotsToday = generateSlots(d.id, todayISO);
+      const availToday = slotsToday.filter(s => !s.booked).length;
+      const totalSlots = slotsToday.length;
+      return `
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:200px;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <h4 style="margin:0; font-weight:900; font-size:15px;">${d.name}</h4>
+              ${d.status === 'available'
+                ? `<span style="background:#ECFDF5; color:#059669; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">🟢 متاح</span>`
+                : `<span style="background:#FEF2F2; color:#E11D48; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">🔴 مشغول</span>`}
+            </div>
+            <div style="font-size:11px; color:var(--emerald); font-weight:900; margin-top:4px;">${d.spec}</div>
+            <p style="margin:6px 0 0; font-size:11px; color:var(--gray); font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${d.area}</p>
+            <div style="display:flex; gap:6px; margin-top:6px; font-size:10px; font-weight:900; flex-wrap:wrap;">
+              <span style="background:var(--gray-light); padding:2px 6px; border-radius:4px;">⭐ ${d.rating}</span>
+              <span style="background:var(--gray-light); padding:2px 6px; border-radius:4px;">⏱ ${d.avgTime} دقيقة</span>
+              <span style="background:${availToday>0?'var(--emerald-light)':'var(--danger-light)'}; color:${availToday>0?'var(--emerald)':'var(--danger)'}; padding:2px 6px; border-radius:4px;">اليوم: ${availToday}/${totalSlots}</span>
+            </div>
           </div>
-          <div style="font-size:11px; color:var(--emerald); font-weight:900; margin-top:4px;">${d.spec}</div>
-          <p style="margin:6px 0 0; font-size:11px; color:var(--gray); font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${d.area}</p>
-          <div style="display:flex; gap:6px; margin-top:6px; font-size:10px; font-weight:900;">
-            <span style="background:var(--gray-light); padding:2px 6px; border-radius:4px;">⭐ ${d.rating}</span>
-            <span style="background:var(--gray-light); padding:2px 6px; border-radius:4px;">⏱ ${d.avgTime} دقيقة</span>
-            <span style="background:var(--gray-light); padding:2px 6px; border-radius:4px;">${d.reviews} تقييم</span>
+          <div style="text-align:left;">
+            <div style="font-weight:900; color:var(--emerald); font-size:20px;">${d.price}</div>
+            <div style="font-size:10px; color:var(--gray); margin-bottom:6px;">ج.م</div>
           </div>
         </div>
-        <div style="text-align:left; margin-right:10px;">
-          <div style="font-weight:900; color:var(--emerald); font-size:20px;">${d.price}</div>
-          <div style="font-size:10px; color:var(--gray); margin-bottom:6px;">ج.م</div>
-          <button onclick="MedicalModule.openBooking('${d.id}')" class="btn-action" style="padding:8px 18px; font-size:12px;">حجز</button>
+        <div style="display:flex; gap:6px; margin-top:12px;">
+          <button onclick="router.navigate('doctor-profile', '${d.id}')" class="btn-action" style="flex:1; padding:10px; font-size:12px; background:var(--primary);">
+            <i class="fa-solid fa-eye"></i> الملف
+          </button>
+          <button onclick="MedicalModule.openBooking('${d.id}')" class="btn-action" style="flex:1; padding:10px; font-size:12px;">
+            <i class="fa-solid fa-calendar-plus"></i> احجز
+          </button>
         </div>
       </div>
-    `).join('');
+    `}).join('');
   },
 
   getFiltered: () => {
@@ -612,12 +704,10 @@ const MedicalModule = {
       return matchQ && matchS && matchI;
     });
   },
-
   filterDoctors: () => {
     MedicalModule.currentFilters.search = document.getElementById('med-search').value.trim();
     MedicalModule.renderDoctors();
   },
-
   applyChip: (el) => {
     document.querySelectorAll('#spec-chips .chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
@@ -625,74 +715,199 @@ const MedicalModule = {
     MedicalModule.currentFilters.insurance = null;
     MedicalModule.renderDoctors();
   },
-
   filterByInsurance: (insId) => {
     MedicalModule.currentFilters.insurance = insId;
     MedicalModule.currentFilters.spec = 'all';
     document.querySelectorAll('#spec-chips .chip').forEach(c => c.classList.remove('active'));
-    document.querySelector('#spec-chips .chip[data-chip="all"]').classList.add('active');
+    const allChip = document.querySelector('#spec-chips .chip[data-chip="all"]');
+    if (allChip) allChip.classList.add('active');
     const ins = DB.insuranceCompanies.find(i => i.id === insId);
     Utils.toast(`عرض أطباء ${ins.name}`);
     MedicalModule.renderDoctors();
   },
 
+  renderProfile: (doctorId) => {
+    const doc = DB.doctors.find(d => d.id === doctorId);
+    if (!doc) return router.navigate('medical');
+    const el = document.getElementById('view-doctor-profile');
+    const days = ['saturday','sunday','monday','tuesday','wednesday','thursday','friday'];
+    const todayISO = Utils.todayISO();
+    const todaySlots = generateSlots(doc.id, todayISO);
+
+    el.innerHTML = `
+      <button onclick="router.navigate('medical')" class="btn-ui" style="background:var(--gray-light); color:var(--primary); margin-bottom:16px;"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+      
+      <div class="card" style="background:linear-gradient(135deg, var(--primary), #1E293B); color:#fff; border:none;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+          <div>
+            <h2 style="margin:0; font-weight:900;">${doc.name}</h2>
+            <div style="font-size:13px; color:#34D399; font-weight:900; margin-top:4px;">${doc.spec}</div>
+            <p style="margin:8px 0 0; font-size:12px; opacity:0.8;"><i class="fa-solid fa-location-dot"></i> ${doc.area}</p>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:26px; font-weight:900; color:#34D399;">${doc.price}</div>
+            <div style="font-size:11px; opacity:0.7;">سعر الكشف</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:14px; font-size:11px; font-weight:900;">
+          <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:6px;">⭐ ${doc.rating} (${doc.reviews})</span>
+          <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:6px;">⏱ ${doc.avgTime} دقيقة/كشف</span>
+        </div>
+      </div>
+
+      <h3 class="section-title"><i class="fa-solid fa-calendar-week" style="color:var(--emerald);"></i> جدول العمل</h3>
+      <div class="card">
+        ${days.map(day => {
+          const s = doc.schedule[day];
+          const isToday = Utils.dayKey(todayISO) === day;
+          return `<div class="schedule-day ${s.active?'active':''}">
+            <div class="day-name" style="color:${isToday?'var(--emerald)':'var(--primary)'};">${Utils.dayArabic(day)}${isToday?' ●':''}</div>
+            ${s.active 
+              ? `<div style="font-size:11px; font-weight:900; color:var(--emerald);">${s.start} - ${s.end}</div>
+                 ${s.breakStart ? `<div style="font-size:10px; color:var(--gray); margin-right:auto;">راحة: ${s.breakStart}-${s.breakEnd}</div>` : ''}`
+              : `<div style="font-size:11px; color:var(--gray); font-weight:700;">مغلق</div>`}
+          </div>`;
+        }).join('')}
+      </div>
+
+      <h3 class="section-title"><i class="fa-solid fa-stethoscope" style="color:var(--sky);"></i> الخدمات</h3>
+      <div class="grid-list">
+        ${doc.services.map(sv => `
+          <div class="item-box">
+            <div class="item-icon" style="background:var(--sky-light); color:var(--sky);"><i class="fa-solid ${sv.icon}"></i></div>
+            <div class="item-info">
+              <div class="item-title">${sv.name}</div>
+              <div class="item-sub">⏱ ${sv.duration} دقيقة</div>
+            </div>
+            <div class="item-price" style="color:${sv.price===0?'var(--gray)':'var(--emerald)'};">${sv.price===0?'ضمن الكشف':Utils.money(sv.price)}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <h3 class="section-title"><i class="fa-solid fa-shield-halved" style="color:var(--gold);"></i> التأمينات المقبولة</h3>
+      <div style="display:flex; flex-wrap:wrap; gap:6px;">
+        ${doc.insurances.map(insId => {
+          const ins = DB.insuranceCompanies.find(i => i.id === insId);
+          return ins ? `<span style="background:var(--gold-light); color:var(--gold); padding:6px 12px; border-radius:8px; font-size:11px; font-weight:900;">${ins.name} (${ins.coverage}%)</span>` : '';
+        }).join('')}
+      </div>
+
+      <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-clock" style="color:var(--emerald);"></i> مواعيد اليوم المتاحة</h3>
+      ${todaySlots.length ? `
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+          ${todaySlots.map(s => `<span style="background:${s.booked?'var(--gray-light)':'var(--emerald-light)'}; color:${s.booked?'var(--gray)':'var(--emerald)'}; padding:8px 14px; border-radius:8px; font-size:12px; font-weight:900; ${s.booked?'text-decoration:line-through;':''}">${s.time}</span>`).join('')}
+        </div>
+      ` : `<div class="card text-center" style="color:var(--gray);">لا يوجد عمل اليوم</div>`}
+
+      <button onclick="MedicalModule.openBooking('${doc.id}')" class="btn-action" style="width:100%; padding:16px; font-size:16px; margin-top:16px;">
+        <i class="fa-solid fa-calendar-plus"></i> احجز الآن
+      </button>
+    `;
+  },
+
+  /* ---------- BOOKING (Date + Slots + Services + Payment) ---------- */
   openBooking: (docId) => {
     if (!Auth.currentUser) return AuthUI.open();
     const doc = DB.doctors.find(d => d.id === docId);
-    
-    const slots = [];
-    for (let i = 0; i < 8; i++) {
-      const totalMin = 17 * 60 + i * doc.avgTime;
-      const h = Math.floor(totalMin / 60);
-      const m = totalMin % 60;
-      const period = h >= 12 ? 'م' : 'ص';
-      const h12 = h > 12 ? h - 12 : h;
-      slots.push(`${h12}:${m.toString().padStart(2, '0')} ${period}`);
-    }
+    const todayISO = Utils.todayISO();
 
     document.getElementById('modal-book-body').innerHTML = `
       <button class="modal-close" onclick="Utils.closeModal('modal-book')"><i class="fa-solid fa-xmark"></i></button>
       <h3 style="margin:0 0 4px; font-weight:900; font-size:18px;">${doc.name}</h3>
-      <p style="margin:0 0 16px; font-size:12px; color:var(--gray); font-weight:700;">${doc.spec} • ${doc.area} • ⏱ ${doc.avgTime} دقيقة/كشف</p>
+      <p style="margin:0 0 16px; font-size:12px; color:var(--gray); font-weight:700;">${doc.spec} • ⏱ ${doc.avgTime} دقيقة</p>
 
-      <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px;">طريقة الدفع:</label>
-      <div class="grid-2" style="margin-bottom:16px;">
-        <label style="border:2px solid var(--emerald); background:var(--emerald-light); padding:10px; border-radius:10px; text-align:center; cursor:pointer; font-size:12px; font-weight:900;">
-          <input type="radio" name="pay" value="cash" checked onchange="MedicalModule.updatePrice('${doc.id}')" style="margin-left:6px;"> كاش
-        </label>
-        <label style="border:1.5px solid var(--line); padding:10px; border-radius:10px; text-align:center; cursor:pointer; font-size:12px; font-weight:900;">
-          <input type="radio" name="pay" value="insurance" onchange="MedicalModule.updatePrice('${doc.id}')" style="margin-left:6px;"> تأمين
-        </label>
+      <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px;"><i class="fa-solid fa-calendar"></i> اختر التاريخ:</label>
+      <input type="date" id="book-date" class="input-field" value="${todayISO}" min="${todayISO}" onchange="MedicalModule.renderSlots('${docId}')">
+
+      <div id="slots-wrap">
+        <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px;"><i class="fa-solid fa-clock"></i> اختر الموعد:</label>
+        <div class="slot-grid" id="slot-container"></div>
+        <div id="no-slots" style="display:none; text-align:center; padding:20px; color:var(--gray); font-size:12px;">لا توجد مواعيد متاحة في هذا اليوم</div>
       </div>
 
-      <div id="insurance-select-wrap" style="display:none; margin-bottom:16px;">
-        <select id="insurance-select" class="input-field" onchange="MedicalModule.updatePrice('${doc.id}')">
-          ${DB.insuranceCompanies.filter(i => doc.insurances.includes(i.id)).map(ins => 
-            `<option value="${ins.id}">${ins.name} (تغطية ${ins.coverage}%)</option>`
-          ).join('')}
+      <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px; margin-top:16px;"><i class="fa-solid fa-stethoscope"></i> خدمات إضافية (اختياري):</label>
+      <div id="services-wrap" style="margin-bottom:16px;">
+        ${doc.services.filter(s => s.price > 0).map(sv => `
+          <label class="pay-option" style="margin-bottom:6px;">
+            <input type="checkbox" class="svc-check" data-price="${sv.price}" data-name="${sv.name}" onchange="MedicalModule.recalcTotal('${doc.id}')">
+            <div style="flex:1;">
+              <div style="font-size:12px; font-weight:900;">${sv.name}</div>
+              <div style="font-size:10px; color:var(--gray);">${Utils.money(sv.price)} • ${sv.duration} د</div>
+            </div>
+          </label>
+        `).join('') || '<p style="font-size:11px; color:var(--gray);">لا توجد خدمات إضافية</p>'}
+      </div>
+
+      <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px;"><i class="fa-solid fa-credit-card"></i> طريقة الدفع:</label>
+      <div id="pay-wrap">
+        ${PAYMENT_METHODS.map((pm, i) => {
+          if (pm.id === 'insurance') {
+            return `<label class="pay-option" onclick="MedicalModule.selectPay(this, '${doc.id}')">
+              <input type="radio" name="paymethod" value="${pm.id}">
+              <div style="flex:1;">
+                <div style="font-size:12px; font-weight:900;"><i class="fa-solid ${pm.icon}"></i> ${pm.name}</div>
+                <div style="font-size:10px; color:var(--gray);">${pm.desc} (${doc.insurances.length} شركة)</div>
+              </div>
+            </label>`;
+          }
+          return `<label class="pay-option ${i===0?'selected':''}" onclick="MedicalModule.selectPay(this, '${doc.id}')">
+            <input type="radio" name="paymethod" value="${pm.id}" ${i===0?'checked':''}>
+            <div style="flex:1;">
+              <div style="font-size:12px; font-weight:900;"><i class="fa-solid ${pm.icon}"></i> ${pm.name}</div>
+              <div style="font-size:10px; color:var(--gray);">${pm.desc}</div>
+            </div>
+          </label>`;
+        }).join('')}
+      </div>
+
+      <div id="insurance-select-wrap" style="display:none; margin-top:12px;">
+        <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px;">شركة التأمين:</label>
+        <select id="insurance-select" class="input-field" onchange="MedicalModule.recalcTotal('${doc.id}')">
+          ${doc.insurances.map(id => {
+            const ins = DB.insuranceCompanies.find(i => i.id === id);
+            return ins ? `<option value="${id}">${ins.name} (تغطية ${ins.coverage}%)</option>` : '';
+          }).join('')}
         </select>
       </div>
 
-      <div id="price-display" style="background:var(--gray-light); padding:14px; border-radius:10px; margin-bottom:16px; text-align:center;">
+      <div id="price-display" style="background:var(--gray-light); padding:14px; border-radius:10px; margin:16px 0; text-align:center;">
         <div style="font-size:11px; color:var(--gray); font-weight:700;">المبلغ المستحق</div>
-        <div style="font-size:26px; font-weight:900; color:var(--emerald);">${doc.price} ج.م</div>
+        <div id="total-amount" style="font-size:26px; font-weight:900; color:var(--emerald);">${doc.price} ج.م</div>
+        <div id="insurance-discount" style="font-size:11px; color:var(--gold); font-weight:900; display:none;"></div>
       </div>
 
-      <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px;">اختر الموعد:</label>
-      <div class="slot-grid" id="slot-container">
-        ${slots.map((s, i) => `
-          <label class="slot-option ${i===0?'selected':''}">
-            <input type="radio" name="slot" value="${s}" ${i===0?'checked':''} onchange="MedicalModule.pickSlot(this)">
-            ${s}
-          </label>
-        `).join('')}
-      </div>
-
-      <button onclick="MedicalModule.confirmBooking('${doc.id}')" class="btn-action" style="width:100%; padding:14px; font-size:15px; margin-top:8px;">
+      <button onclick="MedicalModule.confirmBooking('${doc.id}')" class="btn-action" style="width:100%; padding:14px; font-size:15px;">
         <i class="fa-solid fa-calendar-check"></i> تأكيد الحجز
       </button>
     `;
+    MedicalModule.renderSlots(docId);
     Utils.openModal('modal-book');
+  },
+
+  renderSlots: (docId) => {
+    const dateISO = document.getElementById('book-date').value;
+    const slots = generateSlots(docId, dateISO);
+    const container = document.getElementById('slot-container');
+    const noSlots = document.getElementById('no-slots');
+
+    if (!slots.length) {
+      container.innerHTML = '';
+      noSlots.style.display = 'block';
+      return;
+    }
+    noSlots.style.display = 'none';
+    container.innerHTML = slots.map(s => `
+      <label class="slot-option ${s.booked?'disabled':''}">
+        <input type="radio" name="slot" value="${s.time}" ${s.booked?'disabled':''} onchange="MedicalModule.pickSlot(this)">
+        ${s.time}
+      </label>
+    `).join('');
+    // اختيار أول موعد متاح
+    const firstAvail = container.querySelector('.slot-option:not(.disabled)');
+    if (firstAvail) {
+      firstAvail.classList.add('selected');
+      firstAvail.querySelector('input').checked = true;
+    }
   },
 
   pickSlot: (el) => {
@@ -700,369 +915,374 @@ const MedicalModule = {
     el.closest('.slot-option').classList.add('selected');
   },
 
-  updatePrice: (docId) => {
-    const doc = DB.doctors.find(d => d.id === docId);
-    const pay = document.querySelector('input[name="pay"]:checked').value;
+  selectPay: (el, docId) => {
+    document.querySelectorAll('#pay-wrap .pay-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+    const method = el.querySelector('input').value;
     const insWrap = document.getElementById('insurance-select-wrap');
-    const priceDisplay = document.getElementById('price-display');
-    if (pay === 'insurance') {
-      insWrap.style.display = 'block';
+    if (insWrap) insWrap.style.display = method === 'insurance' ? 'block' : 'none';
+    MedicalModule.recalcTotal(docId);
+  },
+
+  recalcTotal: (docId) => {
+    const doc = DB.doctors.find(d => d.id === docId);
+    let total = doc.price;
+    // خدمات إضافية
+    document.querySelectorAll('.svc-check:checked').forEach(c => {
+      total += parseInt(c.dataset.price);
+    });
+    // تأمين
+    const payEl = document.querySelector('input[name="paymethod"]:checked');
+    const payMethod = payEl ? payEl.value : 'cash';
+    let discountText = '';
+    if (payMethod === 'insurance') {
       const insId = document.getElementById('insurance-select').value;
       const ins = DB.insuranceCompanies.find(i => i.id === insId);
-      const share = Math.round(doc.price * (1 - ins.coverage/100));
-      priceDisplay.innerHTML = `
-        <div style="font-size:11px; color:var(--gray); font-weight:700;">نصيبك بعد تغطية ${ins.coverage}%</div>
-        <div style="font-size:26px; font-weight:900; color:var(--emerald);">${share} ج.م</div>
-      `;
+      const discount = Math.round(total * ins.coverage / 100);
+      total = total - discount;
+      discountText = `خصم تأمين: ${Utils.money(discount)} (${ins.coverage}%)`;
+    }
+    document.getElementById('total-amount').innerText = Utils.money(total);
+    const insDisc = document.getElementById('insurance-discount');
+    if (discountText) {
+      insDisc.style.display = 'block';
+      insDisc.innerText = discountText;
     } else {
-      insWrap.style.display = 'none';
-      priceDisplay.innerHTML = `
-        <div style="font-size:11px; color:var(--gray); font-weight:700;">المبلغ المستحق</div>
-        <div style="font-size:26px; font-weight:900; color:var(--emerald);">${doc.price} ج.م</div>
-      `;
+      insDisc.style.display = 'none';
     }
   },
 
   confirmBooking: (docId) => {
     const doc = DB.doctors.find(d => d.id === docId);
-    const slot = document.querySelector('input[name="slot"]:checked').value;
-    const payType = document.querySelector('input[name="pay"]:checked').value;
-    
-    let finalPrice = doc.price;
-    let insId = null;
-    if (payType === 'insurance') {
-      insId = document.getElementById('insurance-select').value;
-      const ins = DB.insuranceCompanies.find(i => i.id === insId);
-      finalPrice = Math.round(doc.price * (1 - ins.coverage/100));
+    const dateISO = document.getElementById('book-date').value;
+    const slotEl = document.querySelector('input[name="slot"]:checked');
+    if (!slotEl) return Utils.toast('اختر موعد', true);
+    const slot = slotEl.value;
+
+    const payEl = document.querySelector('input[name="paymethod"]:checked');
+    const payMethod = payEl ? payEl.value : 'cash';
+    let insuranceId = null;
+
+    // حساب السعر النهائي
+    let total = doc.price;
+    document.querySelectorAll('.svc-check:checked').forEach(c => total += parseInt(c.dataset.price));
+    if (payMethod === 'insurance') {
+      insuranceId = document.getElementById('insurance-select').value;
+      const ins = DB.insuranceCompanies.find(i => i.id === insuranceId);
+      total = Math.round(total * (1 - ins.coverage / 100));
     }
 
     const apptId = Utils.id();
+    const queueNum = DB.appointments.filter(a => a.doctorId === docId && a.date === dateISO).length + 1;
+
     DB.appointments.push({
       id: apptId, patientId: Auth.currentUser.id, patientName: Auth.currentUser.name,
       doctorId: doc.id, doctorName: doc.name, doctorSpec: doc.spec,
-      slot: slot, price: finalPrice, paymentType: payType, insuranceId: insId,
-      status: 'waiting', followUp: false, ts: Date.now()
+      date: dateISO, slot, price: total, paymentType: payMethod, insuranceId,
+      status: 'waiting', queueNumber: queueNum, followUp: false, ts: Date.now()
     });
     saveDB();
     Utils.closeModal('modal-book');
 
-    const waMsg = `✅ تم تأكيد حجزك\n👨‍⚕️ ${doc.name}\n⏰ ${slot}\n💰 ${finalPrice} ج.م\n💳 ${payType==='cash'?'كاش':'تأمين'}\n🎫 #${apptId.substring(0,6).toUpperCase()}`;
+    const waMsg = `✅ تم تأكيد حجزك\n👨‍⚕️ ${doc.name}\n📅 ${Utils.fmtDate(dateISO)}\n⏰ ${slot}\n💰 ${Utils.money(total)}\n💳 ${PAYMENT_METHODS.find(p=>p.id===payMethod)?.name}\n🎫 #${apptId.substring(0,6).toUpperCase()}`;
     const waUrl = `https://wa.me/2${Auth.currentUser.phone}?text=${encodeURIComponent(waMsg)}`;
 
-    document.getElementById('modal-map-body').innerHTML = `
-      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
       <div style="text-align:center;">
         <div style="width:70px; height:70px; background:var(--emerald-light); color:var(--emerald); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px;"><i class="fa-solid fa-check"></i></div>
         <h3 style="margin:0 0 8px; font-weight:900; color:var(--emerald);">تم الحجز بنجاح!</h3>
-        <p style="font-size:12px; color:var(--gray); margin-bottom:16px;">سيتم إرسال إشعار لك عند اقتراب دورك.</p>
+        <p style="font-size:13px; color:var(--gray); margin-bottom:16px;">دورك رقم <strong style="color:var(--emerald);">${queueNum}</strong> في طابور ${doc.name}</p>
         <a href="${waUrl}" target="_blank" class="btn-action" style="width:100%; background:#25D366; text-decoration:none; margin-bottom:12px;"><i class="fa-brands fa-whatsapp"></i> تأكيد واتساب</a>
-        <button onclick="Utils.closeModal('modal-map'); router.navigate('dashboard');" class="btn-action" style="width:100%;">لوحة التحكم</button>
+        <button onclick="Utils.closeModal('modal-generic'); router.navigate('queue');" class="btn-action" style="width:100%; margin-bottom:8px;"><i class="fa-solid fa-users-viewfinder"></i> تتبع دوري</button>
+        <button onclick="Utils.closeModal('modal-generic'); router.navigate('dashboard');" class="btn-action" style="width:100%; background:var(--primary);">لوحة التحكم</button>
       </div>
     `;
-    Utils.openModal('modal-map');
+    Utils.openModal('modal-generic');
   },
 
   orderService: (svcId) => {
     if (!Auth.currentUser) return AuthUI.open();
     const svc = DB.nursingServices.find(s => s.id === svcId);
-    document.getElementById('modal-map-body').innerHTML = `
-      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
       <h3 style="margin:0 0 8px; font-weight:900;">${svc.name}</h3>
       <p style="margin:0 0 16px; font-size:13px; color:var(--gray); font-weight:700;">${svc.desc} • ${Utils.money(svc.price)}</p>
       <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px;">العنوان:</label>
       <input type="text" id="svc-addr" class="input-field" placeholder="العنوان بالتفصيل">
       <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px;">طريقة الدفع:</label>
-      <select class="input-field">
-        <option>كاش</option><option>إنستاباي</option><option>فودافون كاش</option>
+      <select id="svc-pay" class="input-field">
+        ${PAYMENT_METHODS.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
       </select>
       <button onclick="MedicalModule.confirmServiceOrder('${svc.id}')" class="btn-action" style="width:100%; padding:14px;">تأكيد الطلب</button>
     `;
-    Utils.openModal('modal-map');
+    Utils.openModal('modal-generic');
   },
 
   confirmServiceOrder: (svcId) => {
     const svc = DB.nursingServices.find(s => s.id === svcId);
     const addr = document.getElementById('svc-addr').value.trim();
+    const pay = document.getElementById('svc-pay').value;
     if (!addr) return Utils.toast('اكتب العنوان', true);
     DB.orders.push({
       id: Utils.id(), userId: Auth.currentUser.id, title: svc.name,
-      price: svc.price, status: 'preparing', address: addr, ts: Date.now()
+      price: svc.price, status: 'preparing', address: addr, paymentMethod: pay, ts: Date.now()
     });
     saveDB();
-    Utils.closeModal('modal-map');
+    Utils.closeModal('modal-generic');
     Utils.toast('✅ تم إرسال طلبك! سنتواصل معك قريباً');
     router.navigate('dashboard');
   },
 
   openPharmacy: (phId) => {
     const ph = DB.pharmacies.find(p => p.id === phId);
-    document.getElementById('modal-map-body').innerHTML = `
-      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
       <h3 style="margin:0 0 4px; font-weight:900;">${ph.name}</h3>
       <p style="margin:0 0 16px; font-size:12px; color:var(--gray); font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${ph.area}</p>
       <div class="grid-list">
-        <div class="item-box" onclick="Utils.toast('يرجى رفع صورة الروشتة'); Utils.closeModal('modal-map');">
+        <div class="item-box" onclick="Utils.toast('يرجى رفع صورة الروشتة'); Utils.closeModal('modal-generic');">
           <div class="item-icon" style="background:var(--sky-light); color:var(--sky);"><i class="fa-solid fa-prescription"></i></div>
-          <div class="item-info"><div class="item-title">اطلب بالروشتة</div><div class="item-sub">ارفع صورة الروشتة ونجهزها</div></div>
+          <div class="item-info"><div class="item-title">اطلب بالروشتة</div><div class="item-sub">ارفع صورة الروشتة</div></div>
         </div>
-        <div class="item-box" onclick="Utils.toast('الأدوية العادية ستتوفر قريباً');">
+        <div class="item-box" onclick="Utils.toast('الأدوية العادية قريباً');">
           <div class="item-icon"><i class="fa-solid fa-pills"></i></div>
           <div class="item-info"><div class="item-title">أدوية بدون روشتة</div><div class="item-sub">مسكنات وفيتامينات</div></div>
         </div>
-        <div class="item-box" onclick="Utils.toast('سيتم توصيل الطلب'); Utils.closeModal('modal-map');">
-          <div class="item-icon" style="background:var(--amber-light); color:var(--amber);"><i class="fa-solid fa-motorcycle"></i></div>
-          <div class="item-info"><div class="item-title">توصيل للمنزل</div><div class="item-sub">خلال 30-45 دقيقة</div></div>
-        </div>
       </div>
     `;
-    Utils.openModal('modal-map');
+    Utils.openModal('modal-generic');
   }
 };
 
-/* Other Views (Placeholders for now) */
-const Views = {
-  medical: () => MedicalModule.render(),
+/* ---------- CALENDAR MODULE ---------- */
+const CalendarModule = {
+  render: () => {
+    const el = document.getElementById('view-calendar');
+    const cursor = DB.calendarCursor; // YYYY-MM
+    const [year, month] = cursor.split('-').map(Number);
+    const firstDay = new Date(year, month - 1, 1);
+    const lastDay = new Date(year, month, 0);
+    const daysInMonth = lastDay.getDate();
+    const startWeekDay = firstDay.getDay(); // 0=Sunday
 
-  market: () => {
-    document.getElementById('view-market').innerHTML = `
-      <div class="card" style="background:linear-gradient(135deg, var(--amber), #F59E0B); color:#fff; border:none;">
-        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-store"></i> قطاع التسوق</h2>
-        <p style="margin:4px 0 0; font-size:12px; opacity:0.9;">اطلب من محلات البلد، الدليفري لباب البيت</p>
-      </div>
-      <div class="grid-2">
-        <div class="card" onclick="cart.add('مشويات الشرقاوي', 180, 'fa-utensils'); cart.toggle();" style="cursor:pointer; text-align:center; padding:20px;">
-          <i class="fa-solid fa-utensils" style="font-size:32px; color:var(--amber); margin-bottom:8px;"></i>
-          <h4 style="font-weight:900; font-size:13px; margin:0;">مطاعم ومشويات</h4>
-          <div style="font-size:11px; color:var(--gray);">30-45 دقيقة</div>
+    const monthNames = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    const dayNames = ['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+
+    // خريطة الحجوزات بالتاريخ
+    const apptsByDate = {};
+    DB.appointments.forEach(a => {
+      if (a.status === 'canceled') return;
+      if (!apptsByDate[a.date]) apptsByDate[a.date] = [];
+      apptsByDate[a.date].push(a);
+    });
+
+    const todayISO = Utils.todayISO();
+
+    let cells = '';
+    // خلايا فارغة قبل أول يوم
+    for (let i = 0; i < startWeekDay; i++) cells += `<div class="cal-cell other-month"></div>`;
+    // أيام الشهر
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateISO = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const appts = apptsByDate[dateISO] || [];
+      const isToday = dateISO === todayISO;
+      const cls = `cal-cell ${isToday?'today':''} ${appts.length?'has-appts':''}`;
+      cells += `<div class="${cls}" onclick="CalendarModule.openDay('${dateISO}')">
+        <span>${d}</span>
+        ${appts.length ? `<span class="cal-badge">${appts.length}</span>` : ''}
+      </div>`;
+    }
+
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-calendar-days" style="color:var(--emerald);"></i> الكاليندر</h2>
+      
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <button onclick="CalendarModule.prevMonth()" class="btn-ui" style="background:var(--gray-light); color:var(--primary);"><i class="fa-solid fa-chevron-right"></i></button>
+          <h3 style="margin:0; font-weight:900; font-size:16px;">${monthNames[month-1]} ${year}</h3>
+          <button onclick="CalendarModule.nextMonth()" class="btn-ui" style="background:var(--gray-light); color:var(--primary);"><i class="fa-solid fa-chevron-left"></i></button>
         </div>
-        <div class="card" onclick="cart.add('بقالة - طلب عام', 200, 'fa-basket-shopping'); cart.toggle();" style="cursor:pointer; text-align:center; padding:20px;">
-          <i class="fa-solid fa-basket-shopping" style="font-size:32px; color:var(--emerald); margin-bottom:8px;"></i>
-          <h4 style="font-weight:900; font-size:13px; margin:0;">بقالة وسوبرماركت</h4>
-          <div style="font-size:11px; color:var(--gray);">15-25 دقيقة</div>
+        <div class="cal-grid" style="margin-bottom:8px;">
+          ${dayNames.map(d => `<div style="text-align:center; font-size:10px; font-weight:900; color:var(--gray); padding:4px;">${d}</div>`).join('')}
         </div>
-      </div>
-    `;
-  },
-
-  cars: () => {
-    const services = [
-      { n: 'تغيير إطار', p: 120, i: 'fa-circle-dot', c: 'var(--primary)' },
-      { n: 'شحن بطارية', p: 150, i: 'fa-car-battery', c: 'var(--amber)' },
-      { n: 'غسيل متنقل', p: 80, i: 'fa-droplet', c: 'var(--sky)' },
-      { n: 'ونش إنقاذ', p: 300, i: 'fa-truck-pickup', c: 'var(--danger)' },
-      { n: 'تغيير زيت', p: 250, i: 'fa-oil-can', c: 'var(--emerald)' },
-      { n: 'كشف أعطال', p: 150, i: 'fa-wrench', c: 'var(--gray)' }
-    ];
-    document.getElementById('view-cars').innerHTML = `
-      <div class="card" style="background:var(--primary); color:#fff; border:none;">
-        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-car"></i> خدمات السيارات</h2>
-        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">فنيون معتمدون يصلون لموقعك</p>
-      </div>
-      <div class="grid-2">
-        ${services.map(s => `
-          <div class="card" onclick="cart.add('${s.n}', ${s.p}, '${s.i}'); cart.toggle();" style="cursor:pointer; text-align:center; padding:16px;">
-            <i class="fa-solid ${s.i}" style="font-size:28px; color:${s.c}; margin-bottom:8px;"></i>
-            <h4 style="font-weight:900; font-size:13px; margin:0;">${s.n}</h4>
-            <div style="font-size:11px; color:var(--emerald); font-weight:900;">${Utils.money(s.p)}</div>
-          </div>
-        `).join('')}
-      </div>
-    `;
-  },
-
-  home: () => {
-    const services = [
-      { n: 'سباكة', p: 100, i: 'fa-wrench', c: 'var(--sky)' },
-      { n: 'كهرباء', p: 100, i: 'fa-bolt', c: 'var(--amber)' },
-      { n: 'نجارة', p: 150, i: 'fa-hammer', c: 'var(--indigo)' },
-      { n: 'تكييف', p: 200, i: 'fa-wind', c: 'var(--emerald)' },
-      { n: 'تنظيف منازل', p: 300, i: 'fa-broom', c: 'var(--gold)' },
-      { n: 'مكافحة حشرات', p: 250, i: 'fa-bug', c: 'var(--danger)' }
-    ];
-    document.getElementById('view-home').innerHTML = `
-      <div class="card" style="background:var(--sky); color:#fff; border:none;">
-        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-screwdriver-wrench"></i> الصيانة المنزلية</h2>
-        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">صنايعية معتمدين بفيش وتشبيه</p>
-      </div>
-      <div class="grid-2">
-        ${services.map(s => `
-          <div class="card" onclick="cart.add('${s.n}', ${s.p}, '${s.i}'); cart.toggle();" style="cursor:pointer; text-align:center; padding:16px;">
-            <i class="fa-solid ${s.i}" style="font-size:28px; color:${s.c}; margin-bottom:8px;"></i>
-            <h4 style="font-weight:900; font-size:13px; margin:0;">${s.n}</h4>
-            <div style="font-size:11px; color:var(--emerald); font-weight:900;">${Utils.money(s.p)}</div>
-          </div>
-        `).join('')}
-      </div>
-    `;
-  },
-
-  founder: () => {
-    if (!Auth.currentUser || Auth.currentUser.role !== 'founder') return router.navigate('medical');
-    const totalRevenue = DB.appointments.reduce((s, a) => s + a.price, 0) + DB.orders.reduce((s, o) => s + o.price, 0);
-    const commission = Math.round(totalRevenue * 0.15);
-    const staff = DB.users.filter(u => u.role === 'staff');
-    const patients = DB.users.filter(u => u.role === 'patient');
-
-    document.getElementById('view-founder').innerHTML = `
-      <div class="card" style="background:var(--primary); color:#fff; border:none;">
-        <h2 style="margin:0 0 16px; font-weight:900;"><i class="fa-solid fa-crown" style="color:var(--gold);"></i> God Mode - لوحة المؤسس</h2>
-        <div class="grid-2" style="gap:10px;">
-          <div style="background:rgba(255,255,255,0.1); padding:14px; border-radius:10px;">
-            <div style="font-size:11px; color:#94A3B8;">الإيرادات</div>
-            <div style="font-size:18px; font-weight:900; color:#34D399;">${Utils.money(totalRevenue)}</div>
-          </div>
-          <div style="background:rgba(255,255,255,0.1); padding:14px; border-radius:10px;">
-            <div style="font-size:11px; color:#94A3B8;">عمولة المنصة</div>
-            <div style="font-size:18px; font-weight:900; color:var(--gold);">${Utils.money(commission)}</div>
-          </div>
-          <div style="background:rgba(255,255,255,0.1); padding:14px; border-radius:10px;">
-            <div style="font-size:11px; color:#94A3B8;">المرضى</div>
-            <div style="font-size:18px; font-weight:900;">${patients.length}</div>
-          </div>
-          <div style="background:rgba(255,255,255,0.1); padding:14px; border-radius:10px;">
-            <div style="font-size:11px; color:#94A3B8;">الحجوزات</div>
-            <div style="font-size:18px; font-weight:900;">${DB.appointments.length}</div>
-          </div>
-        </div>
+        <div class="cal-grid">${cells}</div>
       </div>
 
       <div class="card">
-        <h3 class="section-title"><i class="fa-solid fa-user-doctor" style="color:var(--emerald);"></i> الأطباء</h3>
-        <div class="grid-list">
-          ${DB.doctors.map(d => `
-            <div class="item-box" style="padding:10px;">
-              <div class="item-info">
-                <div class="item-title">${d.name}</div>
-                <div class="item-sub">${d.spec} • ${Utils.money(d.price)}</div>
-              </div>
-              <button onclick="FounderModule.deleteDoctor('${d.id}')" style="background:var(--danger-light); color:var(--danger); border:none; padding:6px 12px; border-radius:8px; font-weight:900; font-size:11px; cursor:pointer;">حذف</button>
-            </div>
-          `).join('')}
+        <h3 style="margin:0 0 12px; font-weight:900; font-size:14px;"><i class="fa-solid fa-info-circle" style="color:var(--sky);"></i> دليل الألوان</h3>
+        <div style="display:flex; gap:12px; flex-wrap:wrap; font-size:11px; font-weight:900;">
+          <div style="display:flex; align-items:center; gap:6px;"><div style="width:20px; height:20px; background:var(--emerald); border-radius:6px;"></div> اليوم</div>
+          <div style="display:flex; align-items:center; gap:6px;"><div style="width:20px; height:20px; background:var(--emerald-light); border:2px solid var(--emerald); border-radius:6px;"></div> فيه حجوزات</div>
+          <div style="display:flex; align-items:center; gap:6px;"><div style="width:20px; height:20px; background:var(--gray-light); border-radius:6px;"></div> لا حجوزات</div>
+          <div style="display:flex; align-items:center; gap:6px;"><div style="width:16px; height:16px; background:var(--danger); border-radius:4px;"></div> عدد</div>
         </div>
-      </div>
-
-      <div class="card">
-        <h3 class="section-title"><i class="fa-solid fa-pills" style="color:var(--sky);"></i> الصيدليات</h3>
-        <div class="grid-list">
-          ${DB.pharmacies.map(p => `
-            <div class="item-box" style="padding:10px;">
-              <div class="item-info">
-                <div class="item-title">${p.name}</div>
-                <div class="item-sub">${p.area} • ⭐ ${p.rating}</div>
-              </div>
-              <button onclick="FounderModule.deletePharmacy('${p.id}')" style="background:var(--danger-light); color:var(--danger); border:none; padding:6px 12px; border-radius:8px; font-weight:900; font-size:11px; cursor:pointer;">حذف</button>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
-      <div class="card">
-        <h3 class="section-title"><i class="fa-solid fa-users" style="color:var(--gold);"></i> الموظفين</h3>
-        <div style="display:flex; gap:8px; margin-bottom:12px;">
-          <input type="text" id="stf-name" class="input-field" placeholder="الاسم" style="margin:0;">
-          <input type="tel" id="stf-phone" class="input-field" placeholder="الموبايل" style="margin:0;">
-          <button onclick="FounderModule.addStaff()" class="btn-action" style="padding:0 16px;">إضافة</button>
-        </div>
-        ${staff.map(s => `<div class="item-box" style="padding:10px;"><div class="item-info"><div class="item-title">${s.name}</div><div class="item-sub">${s.phone}</div></div></div>`).join('') || '<p style="font-size:12px; color:var(--gray);">لا موظفين</p>'}
       </div>
     `;
   },
 
-  staff: () => {
-    if (!Auth.currentUser || Auth.currentUser.role !== 'staff') return router.navigate('medical');
-    const appts = DB.appointments.filter(a => a.status !== 'completed').sort((a,b) => a.ts - b.ts);
-    document.getElementById('view-staff').innerHTML = `
-      <div class="card" style="background:var(--primary); color:#fff; border:none;">
-        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-headset"></i> إدارة الطابور</h2>
-        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">اضغط "نداء" لإبلاغ المريض</p>
-      </div>
-      <div class="grid-list">
-        ${appts.map(a => `
-          <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:14px;">
+  prevMonth: () => {
+    const [y, m] = DB.calendarCursor.split('-').map(Number);
+    const d = new Date(y, m - 2, 1);
+    DB.calendarCursor = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    saveDB();
+    CalendarModule.render();
+  },
+  nextMonth: () => {
+    const [y, m] = DB.calendarCursor.split('-').map(Number);
+    const d = new Date(y, m, 1);
+    DB.calendarCursor = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    saveDB();
+    CalendarModule.render();
+  },
+
+  openDay: (dateISO) => {
+    const appts = DB.appointments.filter(a => a.date === dateISO && a.status !== 'canceled');
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 4px; font-weight:900;">${Utils.fmtDate(dateISO)}</h3>
+      <p style="margin:0 0 16px; font-size:12px; color:var(--gray);">${appts.length} حجز</p>
+      ${appts.length ? appts.map(a => `
+        <div class="item-box" style="margin-bottom:8px;">
+          <div class="item-icon"><i class="fa-solid fa-user-doctor"></i></div>
+          <div class="item-info">
+            <div class="item-title">${a.doctorName}</div>
+            <div class="item-sub">${a.slot} • ${a.patientName} • ${a.status === 'completed' ? '✓ مكتمل' : a.status === 'next' ? 'الآن' : 'انتظار'}</div>
+          </div>
+          <div class="item-price">${Utils.money(a.price)}</div>
+        </div>
+      `).join('') : `<div class="card text-center" style="color:var(--gray);">لا حجوزات في هذا اليوم</div>`}
+    `;
+    Utils.openModal('modal-generic');
+  }
+};
+
+/* ---------- QUEUE MODULE (تتبع الدور) ---------- */
+const QueueModule = {
+  render: () => {
+    const el = document.getElementById('view-queue');
+    if (!Auth.currentUser) {
+      el.innerHTML = `<div class="card text-center"><p>سجل دخول لتتبع دورك</p><button onclick="AuthUI.open()" class="btn-action">دخول</button></div>`;
+      return;
+    }
+
+    const myAppts = DB.appointments
+      .filter(a => a.patientId === Auth.currentUser.id && a.status !== 'completed' && a.status !== 'canceled')
+      .sort((a,b) => a.ts - b.ts);
+
+    if (!myAppts.length) {
+      el.innerHTML = `
+        <h2 class="section-title"><i class="fa-solid fa-users-viewfinder" style="color:var(--sky);"></i> تتبع الدور</h2>
+        <div class="card text-center" style="padding:40px;">
+          <i class="fa-solid fa-calendar-xmark" style="font-size:48px; color:var(--gray); margin-bottom:16px;"></i>
+          <p style="font-weight:900; color:var(--primary);">لا يوجد حجز نشط</p>
+          <p style="font-size:12px; color:var(--gray); margin-bottom:16px;">احجز الآن لتتمكن من تتبع دورك</p>
+          <button onclick="router.navigate('medical')" class="btn-action">احجز الآن</button>
+        </div>
+      `;
+      return;
+    }
+
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-users-viewfinder" style="color:var(--sky);"></i> تتبع الدور (Live)</h2>
+      ${myAppts.map(appt => {
+        const sameSessionAppts = DB.appointments
+          .filter(a => a.doctorId === appt.doctorId && a.date === appt.date && a.status !== 'canceled' && a.status !== 'completed')
+          .sort((a,b) => a.ts - b.ts);
+        const position = sameSessionAppts.findIndex(a => a.id === appt.id) + 1;
+        const ahead = position - 1;
+        const doc = DB.doctors.find(d => d.id === appt.doctorId);
+        const etaMin = ahead * (doc?.avgTime || 20);
+        const isCurrent = appt.status === 'next';
+        const isWaiting = appt.status === 'waiting';
+
+        return `
+        <div class="card" style="border-right:4px solid ${isCurrent?'var(--amber)':'var(--sky)'};">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
             <div>
-              <h4 style="margin:0; font-weight:900; font-size:14px;">${a.patientName}</h4>
-              <p style="margin:4px 0 0; font-size:11px; color:var(--gray); font-weight:700;">${a.doctorName} • ${a.slot}</p>
-              <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:${a.status==='next'?'#FEF3C7':'var(--sky-light)'}; color:${a.status==='next'?'#92400E':'var(--sky)'}; font-weight:900;">
-                ${a.status === 'next' ? 'عند الطبيب' : 'في الانتظار'}
-              </span>
+              <h4 style="margin:0; font-weight:900; font-size:15px;">${appt.doctorName}</h4>
+              <p style="margin:4px 0 0; font-size:11px; color:var(--gray); font-weight:700;">${appt.doctorSpec}</p>
+              <p style="margin:4px 0 0; font-size:11px; color:var(--sky); font-weight:900;"><i class="fa-solid fa-calendar"></i> ${Utils.fmtDate(appt.date)} • ${appt.slot}</p>
             </div>
-            ${a.status === 'next' 
-              ? `<button onclick="StaffModule.finish('${a.id}')" class="btn-action" style="padding:8px 14px; font-size:11px;">إنهاء</button>`
-              : `<button onclick="StaffModule.call('${a.id}')" class="btn-action" style="padding:8px 14px; font-size:11px; background:var(--amber);">نداء</button>`
-            }
+            <span style="font-size:11px; font-weight:900; padding:4px 10px; border-radius:6px; background:${isCurrent?'#FEF3C7':'var(--sky-light)'}; color:${isCurrent?'#92400E':'var(--sky)'};">
+              ${isCurrent?'دورك الآن':'في الانتظار'}
+            </span>
           </div>
-        `).join('') || '<div class="card text-center" style="color:var(--gray);">لا يوجد مرضى في الانتظار</div>'}
-      </div>
+
+          <div style="background:var(--gray-light); padding:16px; border-radius:12px; text-align:center; margin-bottom:12px;">
+            <div style="font-size:11px; color:var(--gray); font-weight:900; margin-bottom:4px;">رقم دورك</div>
+            <div style="font-size:42px; font-weight:900; color:${isCurrent?'var(--amber)':'var(--emerald)'}; line-height:1;">#${position}</div>
+            <div style="font-size:11px; color:var(--gray); font-weight:700; margin-top:6px;">
+              ${isCurrent ? 'توجه للعيادة الآن' : ahead > 0 ? `${ahead} حالات قبلك` : 'أنت التالي'}
+            </div>
+          </div>
+
+          ${!isCurrent ? `
+            <div style="background:var(--sky-light); padding:12px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <div style="font-size:11px; font-weight:900; color:var(--sky);"><i class="fa-solid fa-clock"></i> الوقت المتوقع</div>
+              <div style="font-size:14px; font-weight:900; color:var(--sky);">${etaMin > 0 ? `~${etaMin} دقيقة` : 'دقائق'}</div>
+            </div>
+          ` : `
+            <div style="background:var(--amber-light); padding:14px; border-radius:10px; text-align:center; color:#9A3412; font-size:13px; font-weight:900; margin-bottom:12px;">
+              🔔 توجه للطبيب الآن
+            </div>
+          `}
+
+          <div class="stepper" style="margin:0;">
+            <div class="step active"><div class="step-icon"><i class="fa-solid fa-check"></i></div><div class="step-label">محجوز</div></div>
+            <div class="step ${isCurrent?'current active':''}"><div class="step-icon"><i class="fa-solid ${isCurrent?'fa-microphone':'fa-hourglass-half'}"></i></div><div class="step-label">نداء</div></div>
+            <div class="step"><div class="step-icon"><i class="fa-solid fa-stethoscope"></i></div><div class="step-label">كشف</div></div>
+            <div class="step"><div class="step-icon"><i class="fa-solid fa-check"></i></div><div class="step-label">تم</div></div>
+          </div>
+
+          <button onclick="QueueModule.cancel('${appt.id}')" class="btn-action" style="width:100%; background:var(--danger-light); color:var(--danger); margin-top:12px; padding:10px; font-size:12px;">
+            <i class="fa-solid fa-xmark"></i> إلغاء الحجز
+          </button>
+        </div>
+        `;
+      }).join('')}
     `;
   },
 
-  doctor: () => {
-    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return router.navigate('medical');
-    const myDocId = Auth.currentUser.doctorId;
-    const myAppts = DB.appointments.filter(a => a.doctorId === myDocId && a.status !== 'completed').sort((a,b) => a.ts - b.ts);
-    document.getElementById('view-doctor').innerHTML = `
-      <div class="card" style="background:var(--primary); color:#fff; border:none;">
-        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-user-md"></i> بوابة الطبيب</h2>
-        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">أهلاً ${Auth.currentUser.name}</p>
-      </div>
-      <h3 class="section-title">طابور المرضى (${myAppts.length})</h3>
-      <div class="grid-list">
-        ${myAppts.map(a => `
-          <div class="card" style="padding:14px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <div>
-                <h4 style="margin:0; font-weight:900; font-size:14px;">${a.patientName}</h4>
-                <p style="margin:4px 0 0; font-size:11px; color:var(--gray);">${a.slot} • ${a.paymentType === 'insurance' ? 'تأمين' : 'كاش'}</p>
-              </div>
-              <span style="font-size:10px; padding:4px 10px; border-radius:99px; background:${a.status==='next'?'var(--emerald)':'var(--gray-light)'}; color:${a.status==='next'?'#fff':'var(--gray)'}; font-weight:900;">
-                ${a.status==='next'?'عندك الآن':'في الانتظار'}
-              </span>
-            </div>
-            <div style="display:flex; gap:6px;">
-              ${a.status==='waiting' 
-                ? `<button onclick="DoctorModule.call('${a.id}')" class="btn-action" style="flex:1; padding:8px; font-size:11px; background:var(--amber);">استدعاء</button>`
-                : `<button onclick="DoctorModule.finish('${a.id}')" class="btn-action" style="flex:1; padding:8px; font-size:11px;">إنهاء الكشف</button>`
-              }
-              <button onclick="DoctorModule.scribe('${a.patientId}')" class="btn-action" style="padding:8px 12px; font-size:11px; background:var(--indigo);"><i class="fa-solid fa-microphone"></i></button>
-            </div>
-          </div>
-        `).join('') || '<div class="card text-center" style="color:var(--gray);">لا يوجد مرضى</div>'}
-      </div>
-    `;
-  },
+  cancel: (apptId) => {
+    if (!confirm('هل تريد إلغاء الحجز؟')) return;
+    const appt = DB.appointments.find(a => a.id === apptId);
+    if (appt) {
+      appt.status = 'canceled';
+      saveDB();
+      Utils.toast('تم إلغاء الحجز');
+      QueueModule.render();
+    }
+  }
+};
 
+/* ---------- VIEWS ---------- */
+const Views = {
   dashboard: () => {
     if (!Auth.currentUser) return AuthUI.open();
     const myAppts = DB.appointments.filter(a => a.patientId === Auth.currentUser.id).sort((a,b) => b.ts - a.ts);
     const myOrders = DB.orders.filter(o => o.userId === Auth.currentUser.id).sort((a,b) => b.ts - a.ts);
-    const emr = Auth.currentUser.emr || { blood: 'غير محدد', allergies: [], chronic: [] };
-    
-    const activeAppts = myAppts.filter(a => a.status !== 'completed');
+    const emr = Auth.currentUser.emr || {blood:'غير محدد', allergies:[], chronic:[]};
+    const activeAppts = myAppts.filter(a => a.status !== 'completed' && a.status !== 'canceled');
+
     const queueSection = activeAppts.length ? `
-      <h3 class="section-title"><i class="fa-solid fa-users-viewfinder" style="color:var(--sky);"></i> تتبع الطابور</h3>
+      <h3 class="section-title"><i class="fa-solid fa-users-viewfinder" style="color:var(--sky);"></i> حجوزاتي النشطة</h3>
       <div class="grid-list">
         ${activeAppts.map(appt => {
-          const allWaiting = DB.appointments.filter(a => a.doctorId === appt.doctorId && a.date === appt.date && a.status === 'waiting').sort((a,b) => a.ts - b.ts);
-          const ahead = allWaiting.findIndex(a => a.id === appt.id);
+          const same = DB.appointments.filter(a => a.doctorId === appt.doctorId && a.date === appt.date && a.status !== 'canceled' && a.status !== 'completed').sort((a,b)=>a.ts-b.ts);
+          const pos = same.findIndex(a => a.id === appt.id) + 1;
           return `
-            <div class="card" style="border-right:4px solid ${appt.status==='next'?'var(--amber)':'var(--sky)'};">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div class="card" onclick="router.navigate('queue')" style="cursor:pointer; border-right:4px solid ${appt.status==='next'?'var(--amber)':'var(--sky)'};">
+              <div style="display:flex; justify-content:space-between;">
                 <div>
-                  <h4 style="margin:0; font-weight:900; font-size:15px;">${appt.doctorName}</h4>
-                  <p style="margin:4px 0 0; font-size:12px; color:var(--gray); font-weight:700;">${appt.slot}</p>
+                  <h4 style="margin:0; font-weight:900; font-size:14px;">${appt.doctorName}</h4>
+                  <p style="margin:4px 0 0; font-size:11px; color:var(--gray);">${Utils.fmtDate(appt.date)} • ${appt.slot}</p>
                 </div>
-                <span style="font-size:11px; font-weight:900; padding:4px 10px; border-radius:6px; background:${appt.status==='next'?'#FEF3C7':'var(--sky-light)'}; color:${appt.status==='next'?'#92400E':'var(--sky)'};">
-                  ${appt.status==='next'?'دورك الآن':'في الانتظار'}
+                <span style="font-size:10px; font-weight:900; padding:4px 10px; border-radius:6px; background:${appt.status==='next'?'#FEF3C7':'var(--sky-light)'}; color:${appt.status==='next'?'#92400E':'var(--sky)'};">
+                  #${pos} ${appt.status==='next'?'دورك':'انتظار'}
                 </span>
               </div>
-              ${appt.status === 'waiting' 
-                ? `<div style="background:var(--gray-light); padding:14px; border-radius:10px; text-align:center; font-weight:900; font-size:14px;">
-                    ${ahead > 0 ? `فاضل عليك ${ahead} حالات` : 'أنت التالي'}
-                  </div>`
-                : `<div style="background:var(--amber-light); padding:14px; border-radius:10px; text-align:center; font-weight:900; color:#9A3412; font-size:14px;">
-                    🚨 توجه للطبيب الآن
-                  </div>`
-              }
             </div>
           `;
         }).join('')}
@@ -1074,32 +1294,34 @@ const Views = {
       
       <div class="card" style="background:linear-gradient(135deg, var(--emerald-light), #D1FAE5); border-color:#A7F3D0;">
         <h2 style="margin:0 0 4px; font-weight:900; color:#047857;">أهلاً ${Auth.currentUser.name}</h2>
-        <p style="margin:0; font-size:12px; font-weight:700; color:#065F46;">رقمك التعريفي: ${Auth.currentUser.waslaId}</p>
+        <p style="margin:0; font-size:12px; font-weight:700; color:#065F46;">رقمك: ${Auth.currentUser.waslaId}</p>
         <div style="margin-top:12px; background:#fff; padding:8px 16px; border-radius:99px; display:inline-block; font-weight:900; color:var(--emerald);">
           <i class="fa-solid fa-wallet"></i> ${Utils.money(Auth.currentUser.wallet || 0)}
         </div>
       </div>
 
-      <h3 class="section-title"><i class="fa-solid fa-calendar-check" style="color:var(--emerald);"></i> مواعيدي (${myAppts.length})</h3>
+      <h3 class="section-title"><i class="fa-solid fa-calendar-check" style="color:var(--emerald);"></i> كل حجوزاتي (${myAppts.length})</h3>
       <div class="grid-list">
-        ${myAppts.slice(0, 5).map(a => `
-          <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px;">
-            <div>
-              <h4 style="margin:0; font-weight:900; font-size:13px;">${a.doctorName}</h4>
-              <p style="margin:4px 0 0; font-size:11px; color:var(--gray);">${a.slot} • ${a.price} ج.م</p>
+        ${myAppts.slice(0, 8).map(a => `
+          <div class="card" style="padding:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <h4 style="margin:0; font-weight:900; font-size:13px;">${a.doctorName}</h4>
+                <p style="margin:4px 0 0; font-size:11px; color:var(--gray);">${Utils.fmtDate(a.date)} • ${a.slot} • ${Utils.money(a.price)}</p>
+              </div>
+              <span style="font-size:10px; padding:4px 10px; border-radius:6px; background:${a.status==='completed'?'var(--emerald-light)':a.status==='canceled'?'var(--danger-light)':'var(--gray-light)'}; color:${a.status==='completed'?'var(--emerald)':a.status==='canceled'?'var(--danger)':'var(--gray)'}; font-weight:900;">
+                ${a.status==='completed'?'مكتمل':a.status==='canceled'?'ملغي':a.status==='next'?'دورك':'انتظار'}
+              </span>
             </div>
-            <span style="font-size:10px; padding:4px 10px; border-radius:6px; background:${a.status==='completed'?'var(--emerald-light)':'var(--gray-light)'}; color:${a.status==='completed'?'var(--emerald)':'var(--gray)'}; font-weight:900;">
-              ${a.status==='completed'?'مكتمل':a.status==='next'?'دورك':'انتظار'}
-            </span>
           </div>
-        `).join('') || '<p style="font-size:12px; color:var(--gray); text-align:center;">لا مواعيد</p>'}
+        `).join('') || '<p style="font-size:12px; color:var(--gray); text-align:center;">لا حجوزات</p>'}
       </div>
 
       <h3 class="section-title"><i class="fa-solid fa-box" style="color:var(--sky);"></i> طلباتي (${myOrders.length})</h3>
       <div class="grid-list">
-        ${myOrders.slice(0, 3).map(o => {
+        ${myOrders.slice(0, 5).map(o => {
           const stages = ['preparing', 'on_way', 'delivered'];
-          const labels = { preparing: 'جاري التجهيز', on_way: 'في الطريق', delivered: 'تم التسليم' };
+          const labels = {preparing:'جاري التجهيز', on_way:'في الطريق', delivered:'تم التسليم'};
           const idx = stages.indexOf(o.status);
           return `
             <div class="card" style="padding:14px;">
@@ -1131,22 +1353,172 @@ const Views = {
           <div style="font-size:14px; font-weight:900;">${emr.allergies.join('، ') || 'لا يوجد'}</div>
         </div>
       </div>
+    `;
+  },
 
-      <h3 class="section-title"><i class="fa-solid fa-prescription" style="color:var(--emerald);"></i> الروشتات</h3>
+  staff: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'staff') return router.navigate('medical');
+    const todayISO = Utils.todayISO();
+    const appts = DB.appointments.filter(a => a.status !== 'completed' && a.status !== 'canceled' && a.date === todayISO).sort((a,b) => a.ts - b.ts);
+    document.getElementById('view-staff').innerHTML = `
+      <div class="card" style="background:var(--primary); color:#fff; border:none;">
+        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-headset"></i> إدارة الطابور</h2>
+        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">${Utils.fmtDate(todayISO)} • ${appts.length} مريض</p>
+      </div>
       <div class="grid-list">
-        ${DB.emrNotes.filter(n => n.patientId === Auth.currentUser.id).map(n => `
-          <div class="card" style="padding:12px; border-right:4px solid var(--emerald);">
-            <div style="font-size:10px; font-weight:900; color:var(--gray);">${n.doctorName || 'الطبيب'}</div>
-            <div style="font-size:13px; font-weight:900; color:var(--emerald); margin-top:4px;">${n.note}</div>
-            <div style="font-size:10px; color:var(--gray); margin-top:4px;">${new Date(n.ts).toLocaleDateString('ar-EG')}</div>
+        ${appts.map(a => `
+          <div class="card" style="padding:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <h4 style="margin:0; font-weight:900; font-size:14px;">${a.patientName}</h4>
+                <p style="margin:4px 0 0; font-size:11px; color:var(--gray); font-weight:700;">${a.doctorName} • ${a.slot} • #${a.queueNumber}</p>
+                <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:${a.status==='next'?'#FEF3C7':'var(--sky-light)'}; color:${a.status==='next'?'#92400E':'var(--sky)'}; font-weight:900;">
+                  ${a.status === 'next' ? 'عند الطبيب' : 'في الانتظار'}
+                </span>
+              </div>
+              ${a.status === 'next'
+                ? `<button onclick="StaffModule.finish('${a.id}')" class="btn-action" style="padding:8px 14px; font-size:11px;">إنهاء</button>`
+                : `<button onclick="StaffModule.call('${a.id}')" class="btn-action" style="padding:8px 14px; font-size:11px; background:var(--amber);">نداء</button>`
+              }
+            </div>
           </div>
-        `).join('') || '<p style="font-size:12px; color:var(--gray); text-align:center;">لا روشتات</p>'}
+        `).join('') || '<div class="card text-center" style="color:var(--gray);">لا مرضى اليوم</div>'}
+      </div>
+    `;
+  },
+
+  doctor: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return router.navigate('medical');
+    const doc = DB.doctors.find(d => d.id === Auth.currentUser.doctorId);
+    if (!doc) return;
+    const todayISO = Utils.todayISO();
+    const myAppts = DB.appointments.filter(a => a.doctorId === doc.id && a.date === todayISO && a.status !== 'canceled').sort((a,b) => a.ts - b.ts);
+    const days = ['saturday','sunday','monday','tuesday','wednesday','thursday','friday'];
+
+    document.getElementById('view-doctor').innerHTML = `
+      <div class="card" style="background:var(--primary); color:#fff; border:none;">
+        <h2 style="margin:0; font-weight:900;"><i class="fa-solid fa-user-md"></i> بوابة الطبيب</h2>
+        <p style="margin:4px 0 0; font-size:12px; opacity:0.8;">أهلاً ${Auth.currentUser.name}</p>
+      </div>
+
+      <h3 class="section-title"><i class="fa-solid fa-calendar-week" style="color:var(--emerald);"></i> جدولي الأسبوعي</h3>
+      <div class="card">
+        ${days.map(day => {
+          const s = doc.schedule[day];
+          return `<div class="schedule-day ${s.active?'active':''}">
+            <div class="day-name">${Utils.dayArabic(day)}</div>
+            ${s.active 
+              ? `<div style="flex:1; display:flex; gap:4px; flex-wrap:wrap;">
+                  <input type="time" class="time-input" value="${s.start}" onchange="DoctorModule.updateSchedule('${doc.id}','${day}','start',this.value)">
+                  <span style="align-self:center; font-size:11px; font-weight:900;">-</span>
+                  <input type="time" class="time-input" value="${s.end}" onchange="DoctorModule.updateSchedule('${doc.id}','${day}','end',this.value)">
+                  <input type="number" class="time-input" value="${s.duration}" min="5" max="60" title="مدة الكشف" onchange="DoctorModule.updateSchedule('${doc.id}','${day}','duration',this.value)">
+                  <span style="font-size:10px; color:var(--gray); font-weight:900; align-self:center;">د</span>
+                </div>
+                <button onclick="DoctorModule.toggleDay('${doc.id}','${day}')" class="btn-ui" style="background:var(--danger-light); color:var(--danger); padding:4px 8px; font-size:10px;">إيقاف</button>`
+              : `<div style="flex:1; font-size:11px; color:var(--gray); font-weight:700;">مغلق</div>
+                 <button onclick="DoctorModule.toggleDay('${doc.id}','${day}')" class="btn-ui" style="background:var(--emerald-light); color:var(--emerald); padding:4px 8px; font-size:10px;">تشغيل</button>`}
+          </div>`;
+        }).join('')}
+      </div>
+
+      <h3 class="section-title"><i class="fa-solid fa-stethoscope" style="color:var(--sky);"></i> خدماتي (${doc.services.length})</h3>
+      <div class="grid-list">
+        ${doc.services.map(sv => `
+          <div class="item-box">
+            <div class="item-icon" style="background:var(--sky-light); color:var(--sky);"><i class="fa-solid ${sv.icon}"></i></div>
+            <div class="item-info">
+              <div class="item-title">${sv.name}</div>
+              <div class="item-sub">${sv.duration} دقيقة • ${sv.price===0?'ضمن الكشف':Utils.money(sv.price)}</div>
+            </div>
+            <button onclick="DoctorModule.removeService('${doc.id}','${sv.id}')" class="btn-ui" style="background:var(--danger-light); color:var(--danger); padding:6px 10px;"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `).join('')}
+      </div>
+      <button onclick="DoctorModule.addServiceModal('${doc.id}')" class="btn-action" style="width:100%; margin-top:8px; background:var(--sky);"><i class="fa-solid fa-plus"></i> إضافة خدمة</button>
+
+      <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-users" style="color:var(--amber);"></i> مرضى اليوم (${myAppts.length})</h3>
+      <div class="grid-list">
+        ${myAppts.map(a => `
+          <div class="card" style="padding:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div>
+                <h4 style="margin:0; font-weight:900; font-size:14px;">#${a.queueNumber} ${a.patientName}</h4>
+                <p style="margin:4px 0 0; font-size:11px; color:var(--gray);">${a.slot} • ${a.paymentType === 'insurance' ? 'تأمين' : 'كاش'}</p>
+              </div>
+              <span style="font-size:10px; padding:4px 10px; border-radius:99px; background:${a.status==='next'?'var(--emerald)':a.status==='completed'?'var(--emerald-light)':'var(--gray-light)'}; color:${a.status==='next'?'#fff':'var(--gray)'}; font-weight:900;">
+                ${a.status==='next'?'عندك':a.status==='completed'?'تم':'انتظار'}
+              </span>
+            </div>
+            <div style="display:flex; gap:6px;">
+              ${a.status==='waiting' ? `<button onclick="DoctorModule.call('${a.id}')" class="btn-action" style="flex:1; padding:8px; font-size:11px; background:var(--amber);">استدعاء</button>` : ''}
+              ${a.status==='next' ? `<button onclick="DoctorModule.finish('${a.id}')" class="btn-action" style="flex:1; padding:8px; font-size:11px;">إنهاء الكشف</button>` : ''}
+            </div>
+          </div>
+        `).join('') || '<div class="card text-center" style="color:var(--gray);">لا مرضى</div>'}
+      </div>
+    `;
+  },
+
+  founder: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'founder') return router.navigate('medical');
+    const totalRevenue = DB.appointments.filter(a => a.status === 'completed').reduce((s,a) => s + a.price, 0) + DB.orders.reduce((s,o) => s + o.price, 0);
+    const commission = Math.round(totalRevenue * 0.15);
+    const patients = DB.users.filter(u => u.role === 'patient');
+
+    document.getElementById('view-founder').innerHTML = `
+      <div class="card" style="background:var(--primary); color:#fff; border:none;">
+        <h2 style="margin:0 0 16px; font-weight:900;"><i class="fa-solid fa-crown" style="color:var(--gold);"></i> لوحة المؤسس</h2>
+        <div class="grid-2" style="gap:10px;">
+          <div style="background:rgba(255,255,255,0.1); padding:14px; border-radius:10px;">
+            <div style="font-size:11px; color:#94A3B8;">الإيرادات</div>
+            <div style="font-size:18px; font-weight:900; color:#34D399;">${Utils.money(totalRevenue)}</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.1); padding:14px; border-radius:10px;">
+            <div style="font-size:11px; color:#94A3B8;">عمولة المنصة</div>
+            <div style="font-size:18px; font-weight:900; color:var(--gold);">${Utils.money(commission)}</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.1); padding:14px; border-radius:10px;">
+            <div style="font-size:11px; color:#94A3B8;">المرضى</div>
+            <div style="font-size:18px; font-weight:900;">${patients.length}</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.1); padding:14px; border-radius:10px;">
+            <div style="font-size:11px; color:#94A3B8;">الأطباء</div>
+            <div style="font-size:18px; font-weight:900;">${DB.doctors.length}</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-title"><i class="fa-solid fa-user-doctor" style="color:var(--emerald);"></i> الأطباء</h3>
+      <div class="grid-list">
+        ${DB.doctors.map(d => `
+          <div class="item-box">
+            <div class="item-icon"><i class="fa-solid fa-user-doctor"></i></div>
+            <div class="item-info">
+              <div class="item-title">${d.name}</div>
+              <div class="item-sub">${d.spec} • ${Utils.money(d.price)} • ${d.services.length} خدمة</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-shield-halved" style="color:var(--gold);"></i> شركات التأمين (${DB.insuranceCompanies.length})</h3>
+      <div class="grid-list">
+        ${DB.insuranceCompanies.map(ins => `
+          <div class="item-box">
+            <div class="item-icon" style="background:var(--gold-light); color:var(--gold);"><i class="fa-solid ${ins.logo}"></i></div>
+            <div class="item-info">
+              <div class="item-title">${ins.name}</div>
+              <div class="item-sub">تغطية ${ins.coverage}%</div>
+            </div>
+          </div>
+        `).join('')}
       </div>
     `;
   }
 };
 
-/* Staff Module */
+/* ---------- STAFF MODULE ---------- */
 const StaffModule = {
   call: (apptId) => {
     const appt = DB.appointments.find(a => a.id === apptId);
@@ -1165,7 +1537,7 @@ const StaffModule = {
   }
 };
 
-/* Doctor Module */
+/* ---------- DOCTOR MODULE ---------- */
 const DoctorModule = {
   call: (apptId) => {
     const appt = DB.appointments.find(a => a.id === apptId);
@@ -1178,82 +1550,69 @@ const DoctorModule = {
   finish: (apptId) => {
     const appt = DB.appointments.find(a => a.id === apptId);
     if (!appt) return;
-    const followUp = confirm('هل يحتاج المريض لمتابعة؟');
-    appt.status = 'completed'; appt.followUp = followUp; saveDB();
-    Utils.toast('تم إنهاء الكشف' + (followUp ? ' - تم تحديد متابعة' : ''));
+    appt.status = 'completed'; saveDB();
+    Utils.toast('تم إنهاء الكشف');
     Views.doctor();
   },
-  scribe: (patientId) => {
-    document.getElementById('modal-map-body').innerHTML = `
-      <button class="modal-close" onclick="Utils.closeModal('modal-map')"><i class="fa-solid fa-xmark"></i></button>
-      <div style="text-align:center; margin-bottom:16px;">
-        <div style="width:70px; height:70px; background:var(--danger); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px; animation:pulse 1.5s infinite;"><i class="fa-solid fa-microphone"></i></div>
-        <h3 style="margin:0; font-weight:900;">المساعد الصوتي (AI Scribe)</h3>
-        <p style="margin:4px 0 0; font-size:12px; color:var(--gray);">تحدث وسيتم تحويل كلامك إلى روشتة</p>
-      </div>
-      <div style="background:var(--gray-light); border-radius:10px; padding:16px; min-height:120px; margin-bottom:16px;">
-        <div id="scribe-text" style="font-size:13px; font-weight:700; color:var(--gray);">جاري الاستماع...</div>
-      </div>
-      <button onclick="DoctorModule.saveScribe('${patientId}')" class="btn-action" style="width:100%; padding:14px;">حفظ الروشتة</button>
+  updateSchedule: (docId, day, field, value) => {
+    const doc = DB.doctors.find(d => d.id === docId);
+    if (!doc) return;
+    if (field === 'duration') value = parseInt(value) || 20;
+    doc.schedule[day][field] = value;
+    saveDB();
+    Utils.toast('تم تحديث الجدول');
+  },
+  toggleDay: (docId, day) => {
+    const doc = DB.doctors.find(d => d.id === docId);
+    if (!doc) return;
+    const s = doc.schedule[day];
+    if (s.active) {
+      doc.schedule[day] = {active:false};
+    } else {
+      doc.schedule[day] = {active:true, start:'17:00', end:'21:00', duration:20, breakStart:null, breakEnd:null};
+    }
+    saveDB();
+    Views.doctor();
+  },
+  addServiceModal: (docId) => {
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px; font-weight:900;">إضافة خدمة جديدة</h3>
+      <input type="text" id="svc-name" class="input-field" placeholder="اسم الخدمة">
+      <input type="number" id="svc-price" class="input-field" placeholder="السعر (0 = ضمن الكشف)">
+      <input type="number" id="svc-dur" class="input-field" placeholder="المدة (دقائق)" value="15">
+      <button onclick="DoctorModule.addService('${docId}')" class="btn-action" style="width:100%;">إضافة</button>
     `;
-    Utils.openModal('modal-map');
-    setTimeout(() => {
-      const el = document.getElementById('scribe-text');
-      if (el) {
-        el.style.color = 'var(--primary)';
-        el.innerHTML = `"المريض يشكو من صداع شديد منذ يومين مع ارتفاع حرارة.<br><br>التشخيص: نزلة برد.<br>الروشتة: بانادول كل 8 ساعات + فيتامين سي."`;
-        el.dataset.text = "المريض يشكو من صداع شديد منذ يومين مع ارتفاع حرارة. التشخيص: نزلة برد. الروشتة: بانادول كل 8 ساعات + فيتامين سي.";
-      }
-    }, 2500);
+    Utils.openModal('modal-generic');
   },
-  saveScribe: (patientId) => {
-    const el = document.getElementById('scribe-text');
-    const text = el.dataset.text;
-    if (!text) return Utils.toast('لم يتم التعرف على شيء', true);
-    DB.emrNotes.push({
-      id: Utils.id(), patientId, doctorId: Auth.currentUser.id,
-      doctorName: Auth.currentUser.name, note: text, ts: Date.now()
-    });
+  addService: (docId) => {
+    const name = document.getElementById('svc-name').value.trim();
+    const price = parseInt(document.getElementById('svc-price').value) || 0;
+    const dur = parseInt(document.getElementById('svc-dur').value) || 15;
+    if (!name) return Utils.toast('اكتب اسم الخدمة', true);
+    const doc = DB.doctors.find(d => d.id === docId);
+    doc.services.push({id: 'sv-'+Utils.id(), name, price, duration: dur, icon:'fa-stethoscope'});
     saveDB();
-    Notifier.push(patientId, `📝 روشتة جديدة من ${Auth.currentUser.name}`, false);
-    Utils.closeModal('modal-map');
-    Utils.toast('تم حفظ الروشتة');
+    Utils.closeModal('modal-generic');
+    Utils.toast('تمت الإضافة');
     Views.doctor();
-  }
-};
-
-/* Founder Module */
-const FounderModule = {
-  addStaff: () => {
-    const name = document.getElementById('stf-name').value.trim();
-    const phone = document.getElementById('stf-phone').value.trim();
-    if (!name || !phone) return Utils.toast('أكمل البيانات', true);
-    DB.users.push({ id: 'u-' + Utils.id(), name, phone, role: 'staff', pass: '123456', wallet: 0, waslaId: 'WASLA-' + Math.floor(10000+Math.random()*90000) });
-    saveDB();
-    Views.founder();
-    Utils.toast('تم إضافة الموظف');
   },
-  deleteDoctor: (id) => {
-    if (!confirm('حذف الطبيب؟')) return;
-    DB.doctors = DB.doctors.filter(d => d.id !== id);
+  removeService: (docId, svcId) => {
+    if (!confirm('حذف الخدمة؟')) return;
+    const doc = DB.doctors.find(d => d.id === docId);
+    doc.services = doc.services.filter(s => s.id !== svcId);
     saveDB();
-    Views.founder();
-    Utils.toast('تم الحذف');
-  },
-  deletePharmacy: (id) => {
-    if (!confirm('حذف الصيدلية؟')) return;
-    DB.pharmacies = DB.pharmacies.filter(p => p.id !== id);
-    saveDB();
-    Views.founder();
+    Views.doctor();
     Utils.toast('تم الحذف');
   }
 };
 
-/* INIT */
+/* ---------- INIT ---------- */
 window.addEventListener('DOMContentLoaded', () => {
   UI.renderHeader();
   router.navigate('medical');
-  
+
+  // محاكاة تحديث الطلبات
   setInterval(() => {
     let changed = false;
     DB.orders.forEach(o => {
@@ -1262,11 +1621,15 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     if (changed) {
       saveDB();
-      if (Auth.currentUser?.role === 'patient' && document.getElementById('view-dashboard').classList.contains('active')) {
+      if (Auth.currentUser && document.getElementById('view-dashboard').classList.contains('active')) {
         Views.dashboard();
       }
     }
-  }, 20000);
+    // تحديث الطابور تلقائياً لو المستخدم في شاشة التتبع
+    if (Auth.currentUser && document.getElementById('view-queue').classList.contains('active')) {
+      QueueModule.render();
+    }
+  }, 15000);
 });
 </script>
 </body>
