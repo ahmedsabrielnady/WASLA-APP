@@ -6105,5 +6105,425 @@ document.addEventListener('DOMContentLoaded', () => {
 
 })();
 </script>
+  <script>
+/* ================================================================
+   WASLA PHASE 14 — THE ULTIMATE REBUILD (UI, STAFF, QUEUE, ANALYTICS)
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const NS = 'wasla_v2_';
+  const S = {
+    get(k, d) { try { const r = localStorage.getItem(NS + k); return r ? JSON.parse(r) : d; } catch (_) { return d; } },
+    set(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); return true; } catch (_) { return false; } }
+  };
+
+  /* ============== 1. حقن CSS صارم لإصلاح "العك" نهائياً ============== */
+  const style = document.createElement('style');
+  style.innerHTML = `
+    /* إصلاح الهيدر */
+    .wasla-header-inner { display: flex !important; flex-direction: column !important; align-items: stretch !important; padding: 10px !important; gap: 10px !important; }
+    .wasla-header-inner > div:first-child { display: flex; justify-content: center; align-items: center; gap: 10px; }
+    .brand-text h1 { font-size: 20px !important; white-space: nowrap !important; }
+    .brand-text p { display: none !important; } /* إخفاء الوصف لتوفير مساحة الموبايل */
+    
+    #header-actions { display: flex !important; flex-direction: row !important; overflow-x: auto !important; gap: 8px !important; padding-bottom: 5px !important; align-items: center !important; }
+    #header-actions::-webkit-scrollbar { display: none; }
+    #header-actions > * { flex-shrink: 0 !important; }
+
+    /* إخفاء أي جرس عائم قديم */
+    #floating-bell, #float-notif-panel, #patient-queue-widget { display: none !important; }
+
+    /* إصلاح التبويبات (Super Tabs) */
+    .super-tabs { display: flex !important; flex-wrap: wrap !important; justify-content: center !important; gap: 8px !important; padding: 10px !important; }
+    .super-tab { flex: 1 1 auto !important; min-width: 120px; padding: 10px 8px !important; font-size: 13px !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; }
+    .super-tab i { font-size: 16px !important; }
+
+    /* تنسيقات لوحات التحكم */
+    .dash-tab { padding: 10px 15px; font-weight: 900; font-family: inherit; border: none; background: none; color: #64748B; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; }
+    .dash-tab.active { color: #EA580C; border-bottom-color: #EA580C; }
+    .data-table { width: 100%; text-align: right; border-collapse: collapse; font-size: 13px; font-weight: 700; }
+    .data-table th { background: #F8FAFC; padding: 12px; color: #64748B; font-weight: 900; }
+    .data-table td { padding: 12px; border-bottom: 1px solid #E2E8F0; }
+  `;
+  document.head.appendChild(style);
+
+  /* ============== 2. نظام الصوت والإشعارات ============== */
+  let audioCtx = null;
+  document.addEventListener('click', () => {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+    }
+  }, { once: true });
+
+  window.playDing = function(isAlert) {
+    if (!audioCtx) return;
+    try {
+      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.frequency.value = isAlert ? 880 : 600; osc.type = isAlert ? 'square' : 'sine';
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+    } catch(e){}
+  };
+
+  window.WaslaNotifs = {
+    list: S.get('notifs', []),
+    add(text, type = 'info') {
+      this.list.unshift({ id: Date.now(), text, type, read: false, ts: Date.now() });
+      S.set('notifs', this.list);
+      this.render();
+      window.playDing(type === 'alert');
+      // Toast
+      const t = document.createElement('div');
+      t.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#0B1220;color:#fff;padding:12px 20px;border-radius:12px;font-family:Cairo;font-weight:900;font-size:14px;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,0.3);border-right:4px solid ${type==='alert'?'#E11D48':'#059669'};`;
+      t.innerHTML = `<i class="fa-solid fa-bell"></i> ${text}`;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 4000);
+    },
+    render() {
+      const badge = document.getElementById('notif-badge');
+      if (badge) {
+        const unread = this.list.filter(n => !n.read).length;
+        badge.textContent = unread;
+        badge.style.display = unread > 0 ? 'flex' : 'none';
+      }
+      const dd = document.getElementById('notif-list');
+      if (dd) {
+        dd.innerHTML = this.list.length ? this.list.map(n => `<div style="padding:10px;border-bottom:1px solid #E2E8F0;font-size:12px;font-weight:700;"><span style="color:#64748B;font-size:10px;">${new Date(n.ts).toLocaleTimeString('ar-EG')}</span><br>${n.text}</div>`).join('') : '<div style="text-align:center;padding:20px;color:#94A3B8;">لا إشعارات</div>';
+      }
+    }
+  };
+
+  /* ============== 3. بناء الهيدر والتبويبات ============== */
+  function rebuildUI() {
+    const session = S.get('session');
+    const user = session ? S.get('users', []).find(u => u.id === session.userId) : null;
+    const isFounder = user && user.role === 'founder';
+    const isStaff = user && user.role === 'staff';
+
+    // 3.1 الهيدر
+    const actions = document.getElementById('header-actions');
+    if (actions) {
+      if (!user) {
+        actions.innerHTML = `<button class="login-btn" onclick="window.openAuthModal('login')">دخول</button>`;
+      } else {
+        actions.innerHTML = `
+          <div style="background:rgba(255,255,255,0.1);color:#34D399;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:900;border:1px solid rgba(255,255,255,0.15);"><i class="fa-solid fa-id-card"></i> ${user.waslaId}</div>
+          <button onclick="window.openCart()" style="position:relative;background:rgba(255,255,255,0.1);color:#fff;border:none;padding:8px 12px;border-radius:10px;font-weight:900;font-size:12px;"><i class="fa-solid fa-cart-shopping"></i> السلة</button>
+          <button onclick="document.getElementById('notif-dropdown').style.display = document.getElementById('notif-dropdown').style.display==='block'?'none':'block'" style="position:relative;background:rgba(255,255,255,0.1);color:#fff;border:none;padding:8px 12px;border-radius:10px;font-weight:900;font-size:12px;">
+            <i class="fa-solid fa-bell"></i> تنبيهات <span id="notif-badge" style="position:absolute;top:-5px;right:-5px;background:#E11D48;color:#fff;width:18px;height:18px;border-radius:50%;font-size:10px;display:none;align-items:center;justify-content:center;">0</span>
+          </button>
+          ${isFounder ? `<button onclick="window.switchSector('founder')" style="background:linear-gradient(135deg,#EA580C,#F59E0B);color:#fff;border:none;padding:8px 12px;border-radius:10px;font-weight:900;font-size:12px;"><i class="fa-solid fa-crown"></i> لوحة المؤسس</button>` : ''}
+          ${isStaff ? `<button onclick="window.switchSector('staff')" style="background:linear-gradient(135deg,#3730A3,#6366F1);color:#fff;border:none;padding:8px 12px;border-radius:10px;font-weight:900;font-size:12px;"><i class="fa-solid fa-headset"></i> بوابة الموظف</button>` : ''}
+          <button onclick="window.Auth.logout()" style="background:#E11D48;color:#fff;border:none;padding:8px 12px;border-radius:10px;font-weight:900;font-size:12px;"><i class="fa-solid fa-power-off"></i></button>
+          
+          <!-- Dropdown الإشعارات -->
+          <div id="notif-dropdown" style="display:none;position:absolute;top:60px;left:20px;width:300px;max-height:300px;overflow-y:auto;background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.2);z-index:999;text-align:right;border:1px solid #E2E8F0;">
+            <div style="padding:10px;border-bottom:1px solid #E2E8F0;font-weight:900;font-size:12px;background:#F8FAFC;">الإشعارات</div>
+            <div id="notif-list"></div>
+          </div>
+        `;
+        window.WaslaNotifs.render();
+      }
+    }
+
+    // 3.2 التبويبات (Super Tabs)
+    const tabs = document.getElementById('super-tabs');
+    if (tabs) {
+      tabs.innerHTML = `
+        <button class="super-tab active" data-sector="medical" onclick="window.switchSector('medical')"><i class="fa-solid fa-stethoscope"></i> طبي</button>
+        <button class="super-tab" data-sector="market" onclick="window.switchSector('market')"><i class="fa-solid fa-cart-shopping"></i> تسوق</button>
+        <button class="super-tab" data-sector="cars" onclick="window.switchSector('cars')"><i class="fa-solid fa-car"></i> سيارات</button>
+        <button class="super-tab" data-sector="home" onclick="window.switchSector('home')"><i class="fa-solid fa-screwdriver-wrench"></i> صيانة</button>
+        ${isFounder ? `<button class="super-tab" data-sector="founder" onclick="window.switchSector('founder')" style="border-color:#EA580C;color:#EA580C;"><i class="fa-solid fa-crown"></i> لوحة المؤسس</button>` : ''}
+        ${isStaff ? `<button class="super-tab" data-sector="staff" onclick="window.switchSector('staff')" style="border-color:#3730A3;color:#3730A3;"><i class="fa-solid fa-headset"></i> بوابة الموظف</button>` : ''}
+      `;
+    }
+  }
+
+  /* ============== 4. إعادة بناء التوجيه (Routing) وإرجاع قسم السيارات ============== */
+  window.switchSector = function(sector) {
+    document.querySelectorAll('.sector-view').forEach(v => { v.classList.add('hidden'); v.classList.remove('active'); });
+    let target = document.getElementById('sector-' + sector);
+    if (!target) {
+      target = document.createElement('section'); target.id = 'sector-' + sector; target.className = 'sector-view';
+      document.querySelector('.page-shell').appendChild(target);
+    }
+    target.classList.remove('hidden'); target.classList.add('active');
+    
+    document.querySelectorAll('.super-tab').forEach(t => { if(t.dataset.sector === sector) t.classList.add('active'); else t.classList.remove('active'); });
+
+    if (sector === 'medical' && window.renderDoctors) window.renderDoctors();
+    if (sector === 'market' && window.renderFoodSector) window.renderFoodSector();
+    if (sector === 'cars' && window.renderCarsSector) window.renderCarsSector();
+    if (sector === 'home' && window.renderMaintenanceSector) window.renderMaintenanceSector();
+    if (sector === 'founder') window.renderFounderDashboard();
+    if (sector === 'staff') window.renderStaffDashboard();
+    
+    window.scrollTo({top:0, behavior:'smooth'});
+  };
+
+  /* ============== 5. لوحة المؤسس (الإحصائيات + الموظفين) ============== */
+  window.renderFounderDashboard = function() {
+    const body = document.getElementById('sector-founder');
+    if (!body) return;
+
+    // حساب الإحصائيات
+    const users = S.get('users', []);
+    const appts = S.get('appointments', []);
+    const txs = S.get('transactions', []);
+    const totalRev = txs.reduce((s, t) => s + t.amount, 0);
+    const commission = txs.reduce((s, t) => s + t.commission, 0);
+    
+    // محاكاة معدل النمو والاشتراكات
+    const growthRate = "+24%"; 
+    const activeSubs = 148; 
+
+    body.innerHTML = `
+      <div class="panel" style="background:linear-gradient(135deg,#0B1220,#1E293B);color:#fff;margin-bottom:16px;">
+        <h2 style="font-weight:900;font-size:20px;margin:0;"><i class="fa-solid fa-crown" style="color:#F59E0B;"></i> مركز تحكم المؤسس</h2>
+        <p style="font-size:12px;color:#94A3B8;margin:4px 0 0;">مرحباً أحمد صبري، إليك نبض المنصة.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div class="panel" style="background:#ECFDF5;border-color:#A7F3D0;">
+          <p style="font-size:11px;font-weight:900;color:#047857;margin:0;">أرباح المنصة</p>
+          <h3 style="font-size:20px;font-weight:900;color:#059669;margin:4px 0 0;">${commission} ج.م</h3>
+        </div>
+        <div class="panel" style="background:#EFF6FF;border-color:#BFDBFE;">
+          <p style="font-size:11px;font-weight:900;color:#1D4ED8;margin:0;">معدل النمو الأسبوعي</p>
+          <h3 style="font-size:20px;font-weight:900;color:#2563EB;margin:4px 0 0;">${growthRate} <i class="fa-solid fa-arrow-trend-up" style="font-size:14px;"></i></h3>
+        </div>
+        <div class="panel" style="background:#FFF7ED;border-color:#FDBA74;">
+          <p style="font-size:11px;font-weight:900;color:#9A3412;margin:0;">الاشتراكات النشطة (برو)</p>
+          <h3 style="font-size:20px;font-weight:900;color:#EA580C;margin:4px 0 0;">${activeSubs} مشترك</h3>
+        </div>
+        <div class="panel">
+          <p style="font-size:11px;font-weight:900;color:#64748B;margin:0;">إجمالي الحجوزات</p>
+          <h3 style="font-size:20px;font-weight:900;color:#0F172A;margin:4px 0 0;">${appts.length}</h3>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;border-bottom:1px solid #E2E8F0;margin-bottom:16px;overflow-x:auto;">
+        <button class="dash-tab active" onclick="window.switchFounderTab('staff', event)">إدارة الموظفين</button>
+        <button class="dash-tab" onclick="window.switchFounderTab('doctors', event)">إدارة الأطباء</button>
+        <button class="dash-tab" onclick="window.switchFounderTab('users', event)">المواطنين</button>
+        <button class="dash-tab" onclick="window.switchFounderTab('ads', event)">الإعلانات</button>
+      </div>
+
+      <div id="founder-tab-content"></div>
+    `;
+    window.switchFounderTab('staff', { target: document.querySelector('.dash-tab') });
+  };
+
+  window.switchFounderTab = function(tab, e) {
+    document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+    if(e && e.target) e.target.classList.add('active');
+    const c = document.getElementById('founder-tab-content');
+    const users = S.get('users', []);
+    const docs = S.get('doctors', []);
+    const ads = S.get('ads', []);
+
+    if (tab === 'staff') {
+      const staff = users.filter(u => u.role === 'staff');
+      c.innerHTML = `
+        <div class="panel">
+          <h3 style="font-size:14px;font-weight:900;margin:0 0 10px;">الموظفين (${staff.length})</h3>
+          <table class="data-table">
+            <thead><tr><th>الاسم</th><th>الهاتف</th><th>الصلاحيات</th><th>إجراء</th></tr></thead>
+            <tbody>
+              ${staff.map(s => `<tr><td>${s.name}</td><td>${s.phone}</td><td>طابور المرضى، حجز وإلغاء</td><td><button onclick="window.deleteUser('${s.id}')" style="color:#E11D48;background:none;border:none;font-weight:900;">حذف</button></td></tr>`).join('')}
+            </tbody>
+          </table>
+          <div style="margin-top:12px;padding:12px;background:#F8FAFC;border-radius:10px;">
+            <h4 style="font-size:12px;font-weight:900;margin:0 0 8px;">إضافة موظف جديد</h4>
+            <input type="text" id="st-name" class="input-box" placeholder="الاسم" style="margin-bottom:8px;">
+            <input type="tel" id="st-phone" class="input-box" placeholder="الهاتف (01...)" style="margin-bottom:8px;">
+            <button onclick="window.addStaff()" class="primary-btn" style="width:100%;">إضافة موظف</button>
+          </div>
+        </div>
+      `;
+    }
+
+    if (tab === 'doctors') {
+      c.innerHTML = `
+        <div class="panel">
+          <h3 style="font-size:14px;font-weight:900;margin:0 0 10px;">الأطباء (${docs.length})</h3>
+          <table class="data-table">
+            <thead><tr><th>الاسم</th><th>التخصص</th><th>إجراء</th></tr></thead>
+            <tbody>
+              ${docs.map(d => `<tr><td>${d.name}</td><td>${d.specialty}</td><td><button onclick="window.deleteDoctor('${d.id}')" style="color:#E11D48;background:none;border:none;font-weight:900;">حذف</button></td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    if (tab === 'users') {
+      c.innerHTML = `
+        <div class="panel">
+          <h3 style="font-size:14px;font-weight:900;margin:0 0 10px;">المواطنين</h3>
+          <table class="data-table">
+            <thead><tr><th>الاسم</th><th>الرقم التعريفي</th><th>إجراء</th></tr></thead>
+            <tbody>
+              ${users.filter(u=>u.role==='patient').map(u => `<tr><td>${u.name}</td><td>${u.waslaId}</td><td><button onclick="window.deleteUser('${u.id}')" style="color:#E11D48;background:none;border:none;font-weight:900;">حذف</button></td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    if (tab === 'ads') {
+      c.innerHTML = `
+        <div class="panel">
+          <h3 style="font-size:14px;font-weight:900;margin:0 0 10px;">الإعلانات</h3>
+          <input type="text" id="ad-txt" class="input-box" placeholder="نص الإعلان..." style="margin-bottom:8px;">
+          <button onclick="window.addAdBtn()" class="primary-btn" style="width:100%;margin-bottom:12px;">إضافة إعلان</button>
+          ${ads.map(a => `<div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #E2E8F0;font-size:12px;font-weight:700;">${a.text} <button onclick="window.delAd('${a.id}')" style="color:#E11D48;background:none;border:none;">حذف</button></div>`).join('')}
+        </div>
+      `;
+    }
+  };
+
+  window.addStaff = function() {
+    const name = document.getElementById('st-name').value;
+    const phone = document.getElementById('st-phone').value;
+    if(!name || !phone) return;
+    let users = S.get('users', []);
+    users.push({ id: 'staff-'+Date.now(), name, phone, role: 'staff', waslaId: 'STF-'+Math.floor(1000+Math.random()*9000), passwordHash: 'demo', salt: 'demo' });
+    S.set('users', users);
+    window.switchFounderTab('staff', { target: document.querySelectorAll('.dash-tab')[0] });
+    alert('تم إضافة الموظف. (للتجربة يمكنه الدخول برقمه وكلمة سر 123456)');
+  };
+
+  window.deleteUser = function(id) {
+    if(!confirm('تأكيد الحذف؟')) return;
+    S.set('users', S.get('users', []).filter(u => u.id !== id));
+    window.renderFounderDashboard();
+  };
+
+  /* ============== 6. بوابة الموظف (لإدارة الطابور) ============== */
+  window.renderStaffDashboard = function() {
+    const body = document.getElementById('sector-staff');
+    if (!body) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const appts = S.get('appointments', []).filter(a => a.date === today && a.status !== 'cancelled').sort((a,b)=>a.slot.localeCompare(b.slot));
+
+    body.innerHTML = `
+      <div class="panel" style="background:linear-gradient(135deg,#3730A3,#6366F1);color:#fff;margin-bottom:16px;">
+        <h2 style="font-weight:900;font-size:18px;margin:0;"><i class="fa-solid fa-headset"></i> بوابة الموظف - إدارة العيادة</h2>
+        <p style="font-size:12px;opacity:0.9;margin:4px 0 0;">اضغط "التالي" عند انتهاء كشف المريض لينتقل الدور للمريض الذي يليه.</p>
+      </div>
+
+      <div class="panel">
+        <h3 style="font-size:15px;font-weight:900;margin:0 0 12px;">طابور اليوم (${appts.length} مريض)</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${appts.length ? appts.map(a => `
+            <div style="border:1px solid #E2E8F0;border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;background:${a.medicalStatus === 'now' ? '#ECFDF5' : '#fff'};">
+              <div>
+                <div style="font-weight:900;font-size:14px;">${a.patientName} <span style="font-size:11px;color:#64748B;">(${a.slot})</span></div>
+                <div style="font-size:11px;color:#3730A3;font-weight:800;">${a.doctorName} - ${a.specialty}</div>
+              </div>
+              <div>
+                ${a.medicalStatus === 'now' 
+                  ? `<button onclick="window.nextPatient('${a.id}')" style="background:#059669;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:900;cursor:pointer;box-shadow:0 4px 10px rgba(5,150,105,0.3);">إنهاء الكشف (التالي)</button>`
+                  : `<span style="font-size:11px;font-weight:900;color:${a.medicalStatus==='ahead'?'#EA580C':'#64748B'};">${a.medicalStatus === 'ahead' ? 'في الانتظار (قريب)' : 'في الانتظار'}</span>`
+                }
+              </div>
+            </div>
+          `).join('') : '<div style="text-align:center;padding:20px;color:#94A3B8;">لا توجد حجوزات اليوم</div>'}
+        </div>
+      </div>
+    `;
+  };
+
+  // زر Next للموظف
+  window.nextPatient = function(apptId) {
+    let appts = S.get('appointments', []);
+    let current = appts.find(a => a.id === apptId);
+    if (!current) return;
+
+    // 1. إنهاء حالة المريض الحالي
+    current.medicalStatus = 'completed';
+    current.status = 'completed';
+
+    // 2. إيجاد المريض التالي في نفس العيادة (نفس اليوم)
+    let next = appts.find(a => a.doctorId === current.doctorId && a.date === current.date && a.medicalStatus !== 'completed' && a.id !== current.id);
+    
+    if (next) {
+      next.medicalStatus = 'now'; // المريض التالي يصبح "دورك الآن"
+      
+      // إرسال إشعار حقيقي (سيقرأه المريض إذا كان في متصفح آخر، أو سيظهر هنا)
+      window.WaslaNotifs.add(`🔔 حان دور المريض: ${next.patientName}`, 'alert');
+      
+      // إرسال رسالة واتساب (للتجربة)
+      const waMsg = `🔔 دورك الآن في منصة وصلة! برجاء التوجه للعيادة لمقابلة ${current.doctorName}.`;
+      window.open(`https://wa.me/2${next.patientPhone}?text=${encodeURIComponent(waMsg)}`, '_blank');
+    } else {
+      window.WaslaNotifs.add('تم إنهاء كشف المريض. لا يوجد مرضى آخرون في الانتظار.', 'info');
+    }
+
+    S.set('appointments', appts);
+    window.renderStaffDashboard();
+  };
+
+  /* ============== 7. استعادة قسم السيارات ============== */
+  window.renderCarsSector = function() {
+    const sec = document.getElementById('sector-cars');
+    if(!sec) return;
+    sec.innerHTML = `
+      <div class="panel" style="background:linear-gradient(135deg,#1E1B4B,#3730A3);color:#fff;margin-bottom:16px;">
+        <h3 style="font-weight:900;font-size:18px;margin:0;"><i class="fa-solid fa-car"></i> خدمات السيارات</h3>
+        <p style="font-size:12px;opacity:0.8;margin:4px 0 0;">ونش إنقاذ، تغيير إطارات، وكشف أعطال في مكانك.</p>
+      </div>
+      <div class="panel">
+        <button onclick="window.emergencyTow()" style="width:100%;background:#E11D48;color:#fff;padding:14px;border-radius:12px;border:none;font-weight:900;font-size:14px;margin-bottom:10px;box-shadow:0 4px 10px rgba(225,29,72,0.3);"><i class="fa-solid fa-truck-pickup"></i> طلب ونش إنقاذ طارئ</button>
+        <button onclick="window.addFoodToCart('خدمة سيارات','تغيير إطار',120)" style="width:100%;background:#F8FAFC;color:#0F172A;border:1px solid #E2E8F0;padding:14px;border-radius:12px;font-weight:900;font-size:14px;margin-bottom:10px;"><i class="fa-solid fa-circle-dot"></i> تغيير إطار (120 ج.م)</button>
+        <button onclick="window.addFoodToCart('خدمة سيارات','غسيل سيارة',80)" style="width:100%;background:#F8FAFC;color:#0F172A;border:1px solid #E2E8F0;padding:14px;border-radius:12px;font-weight:900;font-size:14px;"><i class="fa-solid fa-droplet"></i> غسيل متنقل (80 ج.م)</button>
+      </div>
+    `;
+  };
+
+  /* ============== 8. مراقبة حالة المريض (للإشعارات والصوت) ============== */
+  setInterval(() => {
+    const session = S.get('session');
+    if (!session) return;
+    const user = S.get('users', []).find(u => u.id === session.userId);
+    if (!user || user.role !== 'patient') return;
+
+    const myAppts = S.get('appointments', []).filter(a => a.patientId === user.id && a.medicalStatus !== 'completed');
+    const active = myAppts[myAppts.length - 1]; // آخر موعد
+
+    if (active) {
+      if (active.medicalStatus === 'now' && !window._alertedNow) {
+        window.WaslaNotifs.add(`🔔 دورك الآن يا ${user.name.split(' ')[0]}! توجه لعيادة ${active.doctorName}`, 'alert');
+        window._alertedNow = true;
+      } else if (active.medicalStatus === 'ahead' && !window._alertedAhead) {
+        window.WaslaNotifs.add(`⏳ أنت التالي في طابور ${active.doctorName}. برجاء الاستعداد.`, 'info');
+        window._alertedAhead = true;
+      }
+    }
+  }, 5000);
+
+  /* ============== 9. التشغيل ============== */
+  setTimeout(() => {
+    rebuildUI();
+    const origSubmit = window.submitAuth;
+    window.submitAuth = function(mode) {
+      origSubmit(mode);
+      setTimeout(() => {
+        rebuildUI();
+        const user = S.get('users', []).find(u => u.id === S.get('session')?.userId);
+        if (user?.role === 'founder') window.switchSector('founder');
+        else if (user?.role === 'staff') window.switchSector('staff');
+      }, 300);
+    };
+  }, 300);
+
+})();
+</script>
 </body>
 </html>
