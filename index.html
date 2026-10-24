@@ -6112,5 +6112,271 @@ window.onload = () => {
   UI.renderTicker();
 })();
   </script>
+  <script>
+/* ==========================================================================
+   WASLA PART 17 — FINANCIAL (ROSCA), DOCTOR EARNINGS, WISHLIST & SETTINGS
+   ========================================================================== */
+(function() {
+  'use strict';
+
+  // --- 1. فحص وتنظيف الواجهة (UI Safety Check) ---
+  ['app-header', 'super-tabs', 'wasla-ticker'].forEach(cls => {
+    const els = document.querySelectorAll('.' + cls);
+    els.forEach((el, index) => { if (index > 0) el.remove(); });
+  });
+
+  // --- 2. توسيع قاعدة البيانات ---
+  if (!DB.wishlist) DB.wishlist = {};
+  if (!DB.savingsPools) {
+    DB.savingsPools = [
+      { id: 'p1', name: 'جمعية أصدقاء وصلة', target: 5000, members: 5, amountPerMonth: 1000, status: 'active', creator: 'أحمد صبري' }
+    ];
+  }
+  if (!DB.notifPrefs) DB.notifPrefs = { orders: true, offers: true, health: true };
+  if (!DB.emergencyContacts) DB.emergencyContacts = [];
+
+  // =========================================================================
+  // 3. قائمة المفضلة (Wishlist)
+  // =========================================================================
+  Views.toggleWishlist = (itemId, itemName, itemPrice, itemIcon) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    if (!DB.wishlist[Auth.currentUser.id]) DB.wishlist[Auth.currentUser.id] = [];
+    
+    const list = DB.wishlist[Auth.currentUser.id];
+    const existing = list.findIndex(i => i.id === itemId);
+    
+    if (existing >= 0) {
+      list.splice(existing, 1);
+      Utils.toast('تم الحذف من المفضلة');
+    } else {
+      list.push({ id: itemId, name: itemName, price: itemPrice, icon: itemIcon, ts: Date.now() });
+      Utils.toast('تمت الإضافة للمفضلة');
+    }
+    saveDB();
+  };
+
+  Views.wishlist = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    let wlView = document.getElementById('view-wishlist');
+    if (!wlView) {
+      wlView = document.createElement('section');
+      wlView.id = 'view-wishlist';
+      wlView.className = 'view-section';
+      document.querySelector('main').appendChild(wlView);
+    }
+    wlView.classList.add('active');
+
+    const items = DB.wishlist[Auth.currentUser.id] || [];
+
+    wlView.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, #FEE2E2, #FECACA); border-color:#FCA5A5;">
+        <h2 style="margin:0; font-weight:900; color:#991B1B;"><i class="fa-solid fa-heart"></i> قائمة المفضلة</h2>
+        <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#B91C1C;">الأشياء التي تحبها محفوظة هنا.</p>
+      </div>
+      <div class="grid-list mt-4">
+        ${items.map(i => `
+          <div class="card" style="display:flex; align-items:center; gap:12px;">
+            <div class="item-icon"><i class="fa-solid ${i.icon}"></i></div>
+            <div style="flex:1;">
+              <div class="item-title">${i.name}</div>
+              <div class="item-price">${Utils.money(i.price)}</div>
+            </div>
+            <button onclick="cart.add('${i.name}', ${i.price}, '${i.icon}'); Views.toggleWishlist('${i.id}', '${i.name}', ${i.price}, '${i.icon}'); Views.wishlist();" class="btn-action" style="padding:8px 12px; font-size:11px; background:var(--emerald);">أضف للسلة</button>
+          </div>
+        `).join('') || '<p style="text-align:center; color:var(--gray); font-weight:700;">المفضلة فارغة، تصفح المنتجات وأضف ما يعجبك.</p>'}
+      </div>
+    `;
+    
+    const tabs = document.getElementById('super-tabs');
+    if (tabs && !document.getElementById('tab-wishlist')) {
+      tabs.insertAdjacentHTML('beforeend', `<button id="tab-wishlist" class="tab dynamic" data-sector="wishlist" onclick="Views.wishlist()"><i class="fa-solid fa-heart"></i> المفضلة</button>`);
+    }
+  };
+
+  // =========================================================================
+  // 4. جمعية وصلة (ROSCA / Savings Pool)
+  // =========================================================================
+  Views.savings = () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    let savView = document.getElementById('view-savings');
+    if (!savView) {
+      savView = document.createElement('section');
+      savView.id = 'view-savings';
+      savView.className = 'view-section';
+      document.querySelector('main').appendChild(savView);
+    }
+    savView.classList.add('active');
+
+    savView.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, #D1FAE5, #A7F3D0); border-color:#6EE7B7;">
+        <h2 style="margin:0; font-weight:900; color:#047857;"><i class="fa-solid fa-hand-holding-dollar"></i> جمعية وصلة</h2>
+        <p style="margin:4px 0 0; font-size:12px; font-weight:700; color:#059669;">وفر مع أصدقائك بأمان وبدون تعقيد.</p>
+      </div>
+      
+      <div class="grid-list mt-4">
+        ${DB.savingsPools.map(p => `
+          <div class="card">
+            <h4 style="margin:0 0 4px; font-weight:900;">${p.name}</h4>
+            <p style="margin:0 0 8px; font-size:12px; color:var(--gray); font-weight:700;">المنشئ: ${p.creator} • المبلغ المستهدف: ${Utils.money(p.target)}</p>
+            <div style="background:var(--gray-light); height:8px; border-radius:10px; overflow:hidden; margin-bottom:8px;">
+              <div style="background:var(--emerald); height:100%; width:${(p.members / 10) * 100}%;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; margin-bottom:12px; color:var(--gray);">
+              <span>${p.members} / 10 أعضاء</span>
+              <span>الاشتراك: ${Utils.money(p.amountPerMonth)} / شهر</span>
+            </div>
+            <button onclick="Views.joinPool('${p.id}')" class="btn-action" style="width:100%;">انضم للجمعية</button>
+          </div>
+        `).join('')}
+      </div>
+      
+      <button onclick="Views.createSavingsPool()" class="btn-action outline" style="width:100%; margin-top:16px; border-color:var(--emerald); color:var(--emerald);">إنشاء جمعية جديدة</button>
+    `;
+
+    const tabs = document.getElementById('super-tabs');
+    if (tabs && !document.getElementById('tab-savings')) {
+      tabs.insertAdjacentHTML('beforeend', `<button id="tab-savings" class="tab dynamic" data-sector="savings" onclick="Views.savings()"><i class="fa-solid fa-piggy-bank"></i> جمعية</button>`);
+    }
+  };
+
+  Views.joinPool = (poolId) => {
+    const pool = DB.savingsPools.find(p => p.id === poolId);
+    if (!pool) return;
+    if (Auth.currentUser.wallet < pool.amountPerMonth) return Utils.toast('رصيدك غير كافٍ للاشتراك', true);
+    
+    Auth.currentUser.wallet -= pool.amountPerMonth;
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+    
+    pool.members++;
+    saveDB();
+    fireConfetti();
+    UI.renderHeader();
+    Views.savings();
+    Utils.toast('تم الانضمام للجمعية وخصم الاشتراك بنجاح!');
+  };
+
+  Views.createSavingsPool = () => {
+    const name = prompt('اسم الجمعية:');
+    if (!name) return;
+    const amount = prompt('مبلغ الاشتراك الشهري (ج.م):', '500');
+    if (!amount || isNaN(amount)) return;
+
+    DB.savingsPools.push({ id: Utils.id(), name, target: Number(amount) * 10, members: 1, amountPerMonth: Number(amount), status: 'active', creator: Auth.currentUser.name });
+    saveDB();
+    Views.savings();
+    Utils.toast('تم إنشاء الجمعية بنجاح');
+  };
+
+  // =========================================================================
+  // 5. محفظة الطبيب وأرباحه (Doctor Earnings)
+  // =========================================================================
+  const origDoctor = Views.doctor;
+  Views.doctor = () => {
+    origDoctor();
+    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return;
+    
+    const myAppts = DB.appointments.filter(a => a.doctorName === Auth.currentUser.name);
+    const totalEarnings = myAppts.reduce((sum, a) => sum + (a.price * 0.85), 0); // 15% platform fee
+    
+    const el = document.getElementById('view-doctor');
+    el.insertAdjacentHTML('afterbegin', `
+      <div class="card" style="background:linear-gradient(135deg, #F8FAFC, #E2E8F0); border-color:#CBD5E1; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h3 style="margin:0; font-weight:900;">أرباحي (صافي)</h3>
+            <p style="margin:4px 0 0; font-size:11px; color:var(--gray); font-weight:700;">بعد خصم عمولة المنصة 15%</p>
+          </div>
+          <div style="font-size:24px; font-weight:900; color:var(--emerald);">${Utils.money(totalEarnings)}</div>
+        </div>
+        <button onclick="Views.withdrawDoctorEarnings(${totalEarnings})" class="btn-action" style="width:100%; margin-top:12px; background:var(--primary);">تحويل للمحفظة</button>
+      </div>
+    `);
+  };
+
+  Views.withdrawDoctorEarnings = (amount) => {
+    if (amount <= 0) return Utils.toast('لا توجد أرباح للسحب', true);
+    
+    Auth.currentUser.wallet = (Auth.currentUser.wallet || 0) + amount;
+    const uIdx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[uIdx] = Auth.currentUser;
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+    
+    // تصفير أرباح الحجوزات المسحوبة (للتجربة، هنمسح الحجوزات من حسابه)
+    DB.appointments = DB.appointments.filter(a => a.doctorName !== Auth.currentUser.name);
+
+    saveDB();
+    fireConfetti();
+    UI.renderHeader();
+    Utils.toast(`تم تحويل ${Utils.money(amount)} لمحفظتك.`);
+    Views.doctor();
+  };
+
+  // =========================================================================
+  // 6. إعدادات الإشعارات وجهات اتصال الطوارئ (Settings & Safety)
+  // =========================================================================
+  const origSettings = Views.dashboard;
+  Views.dashboard = () => {
+    origSettings();
+    if (!Auth.currentUser) return;
+
+    const el = document.getElementById('view-dashboard');
+    el.insertAdjacentHTML('beforeend', `
+      <h3 class="section-title mt-4"><i class="fa-solid fa-gear" style="color:var(--gray);"></i> الإعدادات والأمان</h3>
+      <div class="card mb-4">
+        <h4 style="margin:0 0 12px; font-weight:900; font-size:14px;">تفضيلات الإشعارات</h4>
+        <label style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:13px; font-weight:700;">
+          <input type="checkbox" ${DB.notifPrefs.orders ? 'checked' : ''} onchange="DB.notifPrefs.orders = this.checked; saveDB();"> إشعارات الطلبات
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:13px; font-weight:700;">
+          <input type="checkbox" ${DB.notifPrefs.offers ? 'checked' : ''} onchange="DB.notifPrefs.offers = this.checked; saveDB();"> إشعارات العروض
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700;">
+          <input type="checkbox" ${DB.notifPrefs.health ? 'checked' : ''} onchange="DB.notifPrefs.health = this.checked; saveDB();"> إشعارات طبية
+        </label>
+      </div>
+      
+      <div class="card mb-4">
+        <h4 style="margin:0 0 12px; font-weight:900; font-size:14px;">جهات اتصال الطوارئ</h4>
+        <button onclick="Views.addEmergencyContact()" class="btn-action" style="width:100%; background:var(--danger);">إضافة جهة اتصال</button>
+        <div style="margin-top:12px;">
+          ${(DB.emergencyContacts.filter(c => c.userId === Auth.currentUser.id)).map(c => `
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line);">
+              <span style="font-weight:900; font-size:13px;">${c.name} (${c.phone})</span>
+              <button onclick="Views.removeEmergencyContact('${c.id}')" style="color:var(--danger); background:none; border:none;"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `);
+  };
+
+  Views.addEmergencyContact = () => {
+    const name = prompt('اسم جهة الاتصال (مثال: أخي):');
+    const phone = prompt('رقم الهاتف:');
+    if (!name || !phone) return;
+    
+    DB.emergencyContacts.push({ id: Utils.id(), userId: Auth.currentUser.id, name, phone });
+    saveDB();
+    Utils.toast('تمت الإضافة');
+    router.navigate('dashboard');
+  };
+
+  Views.removeEmergencyContact = (id) => {
+    DB.emergencyContacts = DB.emergencyContacts.filter(c => c.id !== id);
+    saveDB();
+    router.navigate('dashboard');
+  };
+
+  console.log('✅ WASLA PART 17 LOADED: Wishlist, ROSCA, Doctor Earnings, Notification Prefs & Emergency Contacts.');
+  
+  // إعادة بناء الواجهة للتأكد من التحديثات
+  UI.renderHeader();
+  UI.renderTicker();
+})();
+</script>
 </body>
 </html>
