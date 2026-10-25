@@ -948,6 +948,688 @@ const SymptomChecker = {
 };
 </script>
 <!-- ============ PART 6/10 END ============ -->
-
-
-
+<!-- ============ PART 7/10 START ============ -->
+<script>
+const VaultModule = {
+  render: () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const el = document.getElementById('view-vault');
+    const records = DB.healthRecords.filter(r => r.userId === Auth.currentUser.id).sort((a,b) => b.ts - a.ts);
+    const categories = [
+      {id:'lab', name:'تحاليل', icon:'fa-vial', color:'var(--sky)'},
+      {id:'xray', name:'أشعة', icon:'fa-x-ray', color:'var(--purple)'},
+      {id:'prescription', name:'روشتات', icon:'fa-prescription', color:'var(--emerald)'},
+      {id:'report', name:'تقارير', icon:'fa-file-medical', color:'var(--amber)'},
+      {id:'vaccine', name:'تطعيمات', icon:'fa-syringe', color:'var(--gold)'}
+    ];
+    el.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--sky),#0EA5E9);color:#fff;border:none;">
+        <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-folder-medical"></i> خزنتك الطبية</h2>
+        <p style="margin:4px 0 0;font-size:12px;opacity:.9;">كل تحاليلك وأشعتك وروشتاتك في مكان واحد آمن</p>
+      </div>
+      <div class="grid-3" style="margin-bottom:16px;">
+        ${categories.map(c => `<div class="card" onclick="VaultModule.upload('${c.id}')" style="cursor:pointer;text-align:center;padding:14px;margin:0;"><i class="fa-solid ${c.icon}" style="font-size:24px;color:${c.color};margin-bottom:6px;"></i><div style="font-size:11px;font-weight:900;">${c.name}</div></div>`).join('')}
+      </div>
+      <h3 class="section-title"><i class="fa-solid fa-list" style="color:var(--emerald);"></i> مستنداتك (${records.length})</h3>
+      <div class="grid-list">
+        ${records.length ? records.map(r => {
+          const cat = categories.find(c => c.id === r.type) || categories[3];
+          return `<div class="record-card"><div class="record-icon" style="background:${cat.color}20;color:${cat.color};"><i class="fa-solid ${cat.icon}"></i></div><div style="flex:1;"><div style="font-weight:900;font-size:13px;">${r.title}</div><div style="font-size:10px;color:var(--gray);">${new Date(r.ts).toLocaleDateString('ar-EG')}</div></div><button onclick="VaultModule.view('${r.id}')" class="btn-ui" style="background:var(--sky-light);color:var(--sky);padding:6px 10px;"><i class="fa-solid fa-eye"></i></button><button onclick="VaultModule.remove('${r.id}')" class="btn-ui" style="background:var(--danger-light);color:var(--danger);padding:6px 10px;"><i class="fa-solid fa-trash"></i></button></div>`;
+        }).join('') : '<div class="card text-center" style="color:var(--gray);">لا مستندات بعد. ابدأ برفع أول تحليل!</div>'}
+      </div>
+    `;
+  },
+  upload: (type) => {
+    const names = {lab:'تحليل', xray:'أشعة', prescription:'روشتة', report:'تقرير', vaccine:'تطعيم'};
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px;font-weight:900;">رفع ${names[type]} جديد</h3>
+      <input type="text" id="rec-title" class="input-field" placeholder="عنوان المستند">
+      <textarea id="rec-notes" class="input-field" placeholder="ملاحظات (اختياري)" rows="3"></textarea>
+      <div style="padding:20px;border:2px dashed var(--line);border-radius:10px;text-align:center;color:var(--gray);margin-bottom:12px;">
+        <i class="fa-solid fa-camera" style="font-size:32px;margin-bottom:8px;"></i>
+        <div style="font-size:12px;font-weight:900;">صوّر المستند أو ارفعه</div>
+        <div style="font-size:10px;">(محاكاة - يُخزن النص فقط)</div>
+      </div>
+      <button onclick="VaultModule.saveRecord('${type}')" class="btn-action" style="width:100%;"><i class="fa-solid fa-save"></i> حفظ</button>
+    `;
+    Utils.openModal('modal-generic');
+  },
+  saveRecord: (type) => {
+    const title = document.getElementById('rec-title').value.trim();
+    const notes = document.getElementById('rec-notes').value.trim();
+    if (!title) return Utils.toast('اكتب عنوان', true);
+    DB.healthRecords.push({id:'rec-'+Utils.id(), userId:Auth.currentUser.id, type, title, notes, ts:Date.now()});
+    saveDB();
+    Auth.addPoints(REWARD_RULES.upload_record);
+    Utils.closeModal('modal-generic');
+    VaultModule.render();
+  },
+  view: (id) => {
+    const r = DB.healthRecords.find(x => x.id === id);
+    if (!r) return;
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 8px;font-weight:900;">${r.title}</h3>
+      <p style="font-size:11px;color:var(--gray);margin-bottom:12px;">${new Date(r.ts).toLocaleString('ar-EG')}</p>
+      <div style="padding:16px;background:var(--gray-light);border-radius:10px;min-height:100px;font-size:13px;font-weight:700;line-height:1.6;">${r.notes || 'لا ملاحظات'}</div>
+    `;
+    Utils.openModal('modal-generic');
+  },
+  remove: (id) => {
+    if (!confirm('حذف؟')) return;
+    DB.healthRecords = DB.healthRecords.filter(r => r.id !== id);
+    saveDB(); VaultModule.render();
+  }
+};
+const TrackerModule = {
+  render: () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const el = document.getElementById('view-tracker');
+    const logs = DB.healthLogs.filter(l => l.userId === Auth.currentUser.id);
+    const latest = {};
+    HEALTH_METRICS.forEach(m => {
+      const metricLogs = logs.filter(l => l.metricId === m.id).sort((a,b) => b.ts - a.ts);
+      latest[m.id] = metricLogs[0];
+    });
+    el.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--emerald),#10B981);color:#fff;border:none;">
+        <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-chart-line"></i> صحتي</h2>
+        <p style="margin:4px 0 0;font-size:12px;opacity:.9;">تابع ضغطك وسكرك ووزنك برسوم بيانية</p>
+      </div>
+      <button onclick="TrackerModule.addLog()" class="btn-action" style="width:100%;padding:14px;margin-bottom:16px;"><i class="fa-solid fa-plus"></i> تسجيل قياس جديد (+${REWARD_RULES.track_health} نقاط)</button>
+      <h3 class="section-title"><i class="fa-solid fa-heart-pulse" style="color:var(--danger);"></i> أحدث القياسات</h3>
+      <div class="grid-2" style="margin-bottom:16px;">
+        ${HEALTH_METRICS.map(m => {
+          const val = latest[m.id];
+          return `<div class="metric-card"><i class="fa-solid ${m.icon}" style="font-size:20px;color:${m.color};margin-bottom:6px;"></i><div class="metric-value" style="color:${m.color};">${val ? val.value : '—'}<span class="metric-unit">${val ? m.unit : ''}</span></div><div class="metric-label">${m.name}</div><div style="font-size:9px;color:var(--gray);margin-top:2px;">طبيعي: ${m.normal}</div></div>`;
+        }).join('')}
+      </div>
+      <h3 class="section-title"><i class="fa-solid fa-chart-simple" style="color:var(--sky);"></i> الرسوم البيانية</h3>
+      ${HEALTH_METRICS.map(m => {
+        const metricLogs = logs.filter(l => l.metricId === m.id).sort((a,b) => a.ts - b.ts).slice(-7);
+        if (!metricLogs.length) return '';
+        const max = Math.max(...metricLogs.map(l => l.value)) * 1.2;
+        return `<div class="card"><h4 style="margin:0 0 12px;font-weight:900;font-size:13px;color:${m.color};"><i class="fa-solid ${m.icon}"></i> ${m.name}</h4><div class="bar-chart">${metricLogs.map(l => { const h = (l.value/max)*100; return `<div class="bar-col"><div class="bar-val">${l.value}</div><div class="bar" style="height:${h}%;background:linear-gradient(180deg,${m.color},${m.color}88);"></div><div class="bar-label">${new Date(l.ts).getDate()}/${new Date(l.ts).getMonth()+1}</div></div>`; }).join('')}</div></div>`;
+      }).join('')}
+    `;
+  },
+  addLog: () => {
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px;font-weight:900;">تسجيل قياس</h3>
+      <select id="log-metric" class="input-field">
+        ${HEALTH_METRICS.map(m => `<option value="${m.id}">${m.name} (${m.unit})</option>`).join('')}
+      </select>
+      <input type="number" id="log-value" class="input-field" placeholder="القيمة" step="0.1">
+      <input type="date" id="log-date" class="input-field" value="${Utils.todayISO()}">
+      <button onclick="TrackerModule.saveLog()" class="btn-action" style="width:100%;">حفظ</button>
+    `;
+    Utils.openModal('modal-generic');
+  },
+  saveLog: () => {
+    const metricId = document.getElementById('log-metric').value;
+    const value = parseFloat(document.getElementById('log-value').value);
+    const dateISO = document.getElementById('log-date').value;
+    if (!value) return Utils.toast('أدخل القيمة', true);
+    DB.healthLogs.push({id:'hl-'+Utils.id(), userId:Auth.currentUser.id, metricId, value, dateISO, ts:new Date(dateISO).getTime()});
+    saveDB();
+    Auth.addPoints(REWARD_RULES.track_health);
+    Utils.closeModal('modal-generic');
+    TrackerModule.render();
+  }
+};
+</script>
+<!-- ============ PART 7/10 END ============ -->
+  <!-- ============ PART 8/10 START ============ -->
+<script>
+const VideoModule = {
+  currentRoom: null,
+  start: (doctorId) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const doc = DB.doctors.find(d => d.id === doctorId);
+    const roomName = `wasla-${doctorId}-${Auth.currentUser.id}-${Date.now()}`;
+    document.getElementById('video-frame').src = `https://meet.jit.si/${roomName}`;
+    document.getElementById('video-title').innerText = `استشارة فيديو • ${doc?.name || 'الطبيب'}`;
+    document.getElementById('video-wrap').classList.add('open');
+    VideoModule.currentRoom = roomName;
+    Utils.toast('جاري فتح غرفة الفيديو...');
+  },
+  close: () => {
+    document.getElementById('video-wrap').classList.remove('open');
+    document.getElementById('video-frame').src = '';
+    VideoModule.currentRoom = null;
+    Utils.toast('تم إنهاء المكالمة');
+  }
+};
+const ChatModule = {
+  currentDoctorId: null,
+  render: (doctorId) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    if (!doctorId) {
+      document.getElementById('view-chat').innerHTML = `
+        <h2 class="section-title"><i class="fa-solid fa-comments" style="color:var(--emerald);"></i> شات مع الأطباء</h2>
+        <div class="grid-list">
+          ${DB.doctors.map(d => `<div class="item-box" onclick="ChatModule.render('${d.id}')"><div class="avatar">${d.name[0]}</div><div class="item-info"><div class="item-title">${d.name}</div><div class="item-sub">${d.spec}</div></div><i class="fa-solid fa-chevron-left" style="color:var(--gray);"></i></div>`).join('')}
+        </div>`;
+      return;
+    }
+    ChatModule.currentDoctorId = doctorId;
+    const doc = DB.doctors.find(d => d.id === doctorId);
+    const roomId = `chat-${[Auth.currentUser.id, doctorId].sort().join('-')}`;
+    const messages = DB.chats.filter(c => c.roomId === roomId).sort((a,b) => a.ts - b.ts);
+    document.getElementById('view-chat').innerHTML = `
+      <button onclick="ChatModule.render(null)" class="btn-ui" style="background:var(--gray-light);color:var(--primary);margin-bottom:12px;"><i class="fa-solid fa-arrow-right"></i> كل الأطباء</button>
+      <div class="card">
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
+          <div class="avatar">${doc.name[0]}</div>
+          <div><div style="font-weight:900;">${doc.name}</div><div style="font-size:11px;color:var(--gray);">${doc.spec}</div></div>
+        </div>
+        <div class="chat-box" id="chat-box">
+          ${messages.map(m => `<div class="bubble ${m.fromId===Auth.currentUser.id?'me':'them'}">${m.text}</div>`).join('') || '<div style="text-align:center;color:var(--gray);font-size:12px;padding:20px;">ابدأ المحادثة</div>'}
+        </div>
+        <div class="chat-input">
+          <input type="text" id="chat-input" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter')ChatModule.send()">
+          <button onclick="ChatModule.send()" class="btn-action" style="padding:12px 18px;"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>`;
+    setTimeout(() => { const b = document.getElementById('chat-box'); if (b) b.scrollTop = b.scrollHeight; }, 100);
+  },
+  send: () => {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+    const roomId = `chat-${[Auth.currentUser.id, ChatModule.currentDoctorId].sort().join('-')}`;
+    DB.chats.push({id:'ch-'+Utils.id(), roomId, fromId:Auth.currentUser.id, text, ts:Date.now()});
+    saveDB();
+    input.value = '';
+    ChatModule.render(ChatModule.currentDoctorId);
+    setTimeout(() => {
+      const replies = ['تمام، هبعتلك الروشتة حالاً.', 'شكراً لتواصلك، ممكن تحجز كشف لمتابعة أدق.', 'الأعراض دي بسيطة، اطمن.', 'لو استمرت الأعراض راجعنا فوراً.'];
+      const reply = replies[Math.floor(Math.random()*replies.length)];
+      DB.chats.push({id:'ch-'+Utils.id(), roomId, fromId:ChatModule.currentDoctorId, text:reply, ts:Date.now()});
+      saveDB();
+      ChatModule.render(ChatModule.currentDoctorId);
+    }, 1500);
+  }
+};
+const RemindersModule = {
+  render: () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const el = document.getElementById('view-reminders');
+    const mine = DB.reminders.filter(r => r.userId === Auth.currentUser.id);
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-bell" style="color:var(--amber);"></i> تذكير الأدوية</h2>
+      <button onclick="RemindersModule.add()" class="btn-action" style="width:100%;padding:14px;margin-bottom:16px;"><i class="fa-solid fa-plus"></i> إضافة تذكير</button>
+      <div class="grid-list">
+        ${mine.length ? mine.map(r => `<div class="card" style="padding:14px;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:900;font-size:13px;">💊 ${r.medName}</div><div style="font-size:11px;color:var(--gray);">${r.dose} • كل ${r.interval} ساعات</div><div style="font-size:10px;color:var(--emerald);font-weight:900;">🕐 ${r.times.join(' • ')}</div></div><button onclick="RemindersModule.remove('${r.id}')" class="btn-ui" style="background:var(--danger-light);color:var(--danger);padding:6px 10px;"><i class="fa-solid fa-trash"></i></button></div></div>`).join('') : '<div class="card text-center" style="color:var(--gray);">لا تذكيرات بعد</div>'}
+      </div>`;
+  },
+  add: () => {
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px;font-weight:900;">تذكير دواء جديد</h3>
+      <input type="text" id="rem-name" class="input-field" placeholder="اسم الدواء">
+      <input type="text" id="rem-dose" class="input-field" placeholder="الجرعة (مثلاً: قرص)">
+      <input type="number" id="rem-interval" class="input-field" placeholder="كل كام ساعة؟" value="8">
+      <button onclick="RemindersModule.save()" class="btn-action" style="width:100%;">حفظ</button>
+    `;
+    Utils.openModal('modal-generic');
+  },
+  save: () => {
+    const medName = document.getElementById('rem-name').value.trim();
+    const dose = document.getElementById('rem-dose').value.trim();
+    const interval = parseInt(document.getElementById('rem-interval').value) || 8;
+    if (!medName) return Utils.toast('اسم الدواء مطلوب', true);
+    const times = [];
+    for (let h = 8; h < 24; h += interval) times.push(`${h.toString().padStart(2,'0')}:00`);
+    DB.reminders.push({id:'rem-'+Utils.id(), userId:Auth.currentUser.id, medName, dose, interval, times, ts:Date.now()});
+    saveDB();
+    Utils.closeModal('modal-generic');
+    Utils.toast('تم إضافة التذكير 🔔');
+    RemindersModule.render();
+  },
+  remove: (id) => {
+    DB.reminders = DB.reminders.filter(r => r.id !== id);
+    saveDB();
+    RemindersModule.render();
+  }
+};
+const RewardsModule = {
+  render: () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const el = document.getElementById('view-rewards');
+    const pts = Auth.currentUser.points || 0;
+    const tier = pts >= 1000 ? {name:'بلاتيني', color:'var(--purple)', icon:'fa-crown'} : pts >= 500 ? {name:'ذهبي', color:'var(--gold)', icon:'fa-medal'} : pts >= 200 ? {name:'فضي', color:'var(--gray)', icon:'fa-star'} : {name:'برونزي', color:'var(--amber)', icon:'fa-award'};
+    const rewards = [
+      {pts:100, name:'خصم 20 ج.م على أي كشف', icon:'fa-percent'},
+      {pts:250, name:'كشف مجاني عند طبيب شريك', icon:'fa-stethoscope'},
+      {pts:500, name:'باقة تحاليل شاملة', icon:'fa-vial'},
+      {pts:1000, name:'استشارة فيديو مجانية', icon:'fa-video'}
+    ];
+    const actions = [
+      {action:'حجز موعد', pts:REWARD_RULES.book_appointment, icon:'fa-calendar-plus'},
+      {action:'زيارة مكتملة', pts:REWARD_RULES.complete_visit, icon:'fa-check'},
+      {action:'تقييم طبيب', pts:REWARD_RULES.write_review, icon:'fa-star'},
+      {action:'رفع مستند', pts:REWARD_RULES.upload_record, icon:'fa-folder'},
+      {action:'قياس صحي', pts:REWARD_RULES.track_health, icon:'fa-heart'},
+      {action:'إضافة فرد عائلة', pts:REWARD_RULES.add_family, icon:'fa-users'}
+    ];
+    el.innerHTML = `
+      <div class="reward-card" style="margin-bottom:16px;">
+        <i class="fa-solid ${tier.icon}" style="font-size:42px;color:${tier.color};margin-bottom:8px;"></i>
+        <div style="font-size:11px;font-weight:900;color:var(--gray);">مستواك</div>
+        <div style="font-size:24px;font-weight:900;color:${tier.color};">${tier.name}</div>
+        <div style="font-size:32px;font-weight:900;color:var(--primary);margin-top:8px;">${pts} <span style="font-size:14px;">نقطة</span></div>
+      </div>
+      <h3 class="section-title"><i class="fa-solid fa-gift" style="color:var(--gold);"></i> استبدل نقاطك</h3>
+      <div class="grid-list">
+        ${rewards.map(r => {
+          const can = pts >= r.pts;
+          return `<div class="card" style="padding:14px;opacity:${can?1:.6};"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:900;font-size:13px;"><i class="fa-solid ${r.icon}" style="color:var(--gold);"></i> ${r.name}</div><div style="font-size:11px;color:var(--gold);font-weight:900;">${r.pts} نقطة</div></div><button onclick="RewardsModule.redeem(${r.pts},'${r.name}')" class="btn-action" style="padding:6px 12px;font-size:11px;background:${can?'var(--gold)':'var(--gray)'};" ${can?'':'disabled'}>استبدال</button></div></div>`;
+        }).join('')}
+      </div>
+      <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-plus-circle" style="color:var(--emerald);"></i> ازاي تكسب نقاط؟</h3>
+      <div class="grid-list">
+        ${actions.map(h => `<div class="item-box"><div class="item-icon"><i class="fa-solid ${h.icon}"></i></div><div class="item-info"><div class="item-title">${h.action}</div></div><div class="item-price">+${h.pts}</div></div>`).join('')}
+      </div>
+    `;
+  },
+  redeem: (pts, name) => {
+    if ((Auth.currentUser.points||0) < pts) return Utils.toast('نقاطك غير كافية', true);
+    if (!confirm(`استبدال ${pts} نقطة مقابل: ${name}؟`)) return;
+    Auth.currentUser.points -= pts;
+    Auth.currentUser.wallet = (Auth.currentUser.wallet||0) + pts;
+    const idx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    DB.users[idx] = Auth.currentUser;
+    saveDB();
+    sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser));
+    Utils.toast(`تم الاستبدال! +${pts} ج.م في محفظتك`);
+    UI.renderHeader();
+    RewardsModule.render();
+  }
+};
+const FamilyModule = {
+  render: () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const el = document.getElementById('view-family');
+    const fams = Family.getMine();
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-users" style="color:var(--purple);"></i> حسابي العائلي</h2>
+      <div class="grid-list">
+        ${fams.map(f => `<div class="card" style="padding:14px;"><div style="display:flex;gap:12px;align-items:center;"><div class="avatar family">${f.name[0]}</div><div style="flex:1;"><div style="font-weight:900;font-size:14px;">${f.name}</div><div style="font-size:11px;color:var(--gray);">${f.relation} • ${f.age} سنة • ${f.blood}</div>${f.allergies.length ? `<div style="font-size:10px;color:var(--danger);font-weight:900;margin-top:2px;">⚠️ حساسية: ${f.allergies.join('، ')}</div>` : ''}</div><button onclick="Family.remove('${f.id}')" class="btn-ui" style="background:var(--danger-light);color:var(--danger);padding:6px 10px;"><i class="fa-solid fa-trash"></i></button></div></div>`).join('')}
+        <div class="card" onclick="FamilyModule.addModal()" style="cursor:pointer;text-align:center;padding:24px;border:2px dashed var(--line);">
+          <i class="fa-solid fa-user-plus" style="font-size:32px;color:var(--purple);margin-bottom:8px;"></i>
+          <div style="font-weight:900;color:var(--purple);">إضافة فرد للعائلة</div>
+          <div style="font-size:11px;color:var(--gray);margin-top:4px;">+${REWARD_RULES.add_family} نقطة</div>
+        </div>
+      </div>
+    `;
+  },
+  addModal: () => {
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px;font-weight:900;">إضافة فرد</h3>
+      <input type="text" id="fam-name" class="input-field" placeholder="الاسم">
+      <select id="fam-relation" class="input-field"><option>الزوجة</option><option>الزوج</option><option>الابن</option><option>الابنة</option><option>الأب</option><option>الأم</option><option>أخرى</option></select>
+      <input type="number" id="fam-age" class="input-field" placeholder="العمر">
+      <select id="fam-gender" class="input-field"><option value="male">ذكر</option><option value="female">أنثى</option></select>
+      <select id="fam-blood" class="input-field"><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option></select>
+      <input type="text" id="fam-allergies" class="input-field" placeholder="حساسية (مفصولة بفاصلة)">
+      <button onclick="FamilyModule.save()" class="btn-action" style="width:100%;">إضافة</button>
+    `;
+    Utils.openModal('modal-generic');
+  },
+  save: () => {
+    const name = document.getElementById('fam-name').value.trim();
+    const relation = document.getElementById('fam-relation').value;
+    const age = parseInt(document.getElementById('fam-age').value);
+    const gender = document.getElementById('fam-gender').value;
+    const blood = document.getElementById('fam-blood').value;
+    const allergies = document.getElementById('fam-allergies').value.split(',').map(x=>x.trim()).filter(Boolean);
+    if (!name || !age) return Utils.toast('أكمل البيانات', true);
+    Family.add({name, relation, age, gender, blood, allergies});
+    Utils.closeModal('modal-generic');
+    FamilyModule.render();
+  }
+};
+</script>
+<!-- ============ PART 8/10 END ============ -->
+  <!-- ============ PART 9/10 START ============ -->
+<script>
+const AnalyticsModule = {
+  render: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return router.navigate('medical');
+    const docId = Auth.currentUser.doctorId;
+    const doc = DB.doctors.find(d => d.id === docId);
+    const el = document.getElementById('view-doctor-analytics');
+    const allAppts = DB.appointments.filter(a => a.doctorId === docId);
+    const completed = allAppts.filter(a => a.status === 'completed');
+    const canceled = allAppts.filter(a => a.status === 'canceled');
+    const totalRevenue = completed.reduce((s,a) => s + a.price, 0);
+    const platformFee = Math.round(totalRevenue * 0.15);
+    const netRevenue = totalRevenue - platformFee;
+    const uniquePatients = new Set(allAppts.map(a => a.patientId)).size;
+    const reviews = DB.reviews.filter(r => r.doctorId === docId);
+    const avgRating = reviews.length ? (reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1) : doc.rating;
+    const last7 = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const iso = d.toISOString().split('T')[0];
+      const dayAppts = allAppts.filter(a => a.date === iso);
+      last7.push({date:iso, count:dayAppts.length});
+    }
+    const maxAppts = Math.max(...last7.map(x=>x.count), 1);
+    el.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--primary),#1E293B);color:#fff;border:none;">
+        <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-chart-pie"></i> تحليلات العيادة</h2>
+        <p style="margin:4px 0 0;font-size:12px;opacity:.8;">أداءك الشهري على وصلة</p>
+      </div>
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="card" style="margin:0;padding:14px;background:var(--emerald-light);border-color:var(--emerald);"><div style="font-size:11px;font-weight:900;color:var(--gray);">إجمالي الإيرادات</div><div style="font-size:22px;font-weight:900;color:var(--emerald);">${Utils.money(totalRevenue)}</div></div>
+        <div class="card" style="margin:0;padding:14px;background:var(--gold-light);border-color:var(--gold);"><div style="font-size:11px;font-weight:900;color:var(--gray);">صافي بعد العمولة (15%)</div><div style="font-size:22px;font-weight:900;color:var(--gold);">${Utils.money(netRevenue)}</div></div>
+        <div class="card" style="margin:0;padding:14px;"><div style="font-size:11px;font-weight:900;color:var(--gray);">المرضى</div><div style="font-size:22px;font-weight:900;color:var(--primary);">${uniquePatients}</div></div>
+        <div class="card" style="margin:0;padding:14px;"><div style="font-size:11px;font-weight:900;color:var(--gray);">التقييم</div><div style="font-size:22px;font-weight:900;color:var(--gold);">⭐ ${avgRating}</div></div>
+        <div class="card" style="margin:0;padding:14px;background:var(--danger-light);"><div style="font-size:11px;font-weight:900;color:var(--gray);">ملغية/عدم حضور</div><div style="font-size:22px;font-weight:900;color:var(--danger);">${canceled.length}</div></div>
+        <div class="card" style="margin:0;padding:14px;background:var(--sky-light);"><div style="font-size:11px;font-weight:900;color:var(--gray);">نسبة الحضور</div><div style="font-size:22px;font-weight:900;color:var(--sky);">${allAppts.length ? Math.round(completed.length/allAppts.length*100) : 0}%</div></div>
+      </div>
+      <h3 class="section-title"><i class="fa-solid fa-chart-bar" style="color:var(--sky);"></i> آخر 7 أيام</h3>
+      <div class="card"><div class="bar-chart">${last7.map(d => `<div class="bar-col"><div class="bar-val">${d.count}</div><div class="bar" style="height:${(d.count/maxAppts)*100}%;"></div><div class="bar-label">${new Date(d.date).getDate()}/${new Date(d.date).getMonth()+1}</div></div>`).join('')}</div><div style="text-align:center;font-size:11px;color:var(--gray);font-weight:900;margin-top:8px;">عدد الحجوزات اليومية</div></div>
+      <h3 class="section-title"><i class="fa-solid fa-star" style="color:var(--gold);"></i> تقييمات المرضى</h3>
+      <div class="grid-list">
+        ${reviews.slice(0,5).map(r => `<div class="review-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div style="font-weight:900;font-size:12px;">${r.patientName}</div>${Utils.stars(r.rating)}</div><p style="margin:0 0 8px;font-size:12px;">${r.comment}</p>${r.reply ? `<div style="padding:8px;background:var(--emerald-light);border-radius:6px;font-size:11px;"><strong style="color:var(--emerald);">ردّك:</strong> ${r.reply}</div>` : `<button onclick="AnalyticsModule.reply('${r.id}')" class="btn-action" style="padding:6px 12px;font-size:11px;">رد على التقييم</button>`}</div>`).join('') || '<p style="text-align:center;color:var(--gray);font-size:12px;">لا تقييمات بعد</p>'}
+      </div>
+    `;
+  },
+  reply: (reviewId) => {
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px;font-weight:900;">رد على التقييم</h3>
+      <textarea id="reply-text" class="input-field" rows="4" placeholder="اكتب ردك المهني..."></textarea>
+      <button onclick="AnalyticsModule.saveReply('${reviewId}')" class="btn-action" style="width:100%;">إرسال</button>
+    `;
+    Utils.openModal('modal-generic');
+  },
+  saveReply: (id) => {
+    const text = document.getElementById('reply-text').value.trim();
+    if (!text) return Utils.toast('اكتب رد', true);
+    const rev = DB.reviews.find(r => r.id === id);
+    if (rev) { rev.reply = text; saveDB(); Utils.closeModal('modal-generic'); Utils.toast('تم الرد'); AnalyticsModule.render(); }
+  }
+};
+const DoctorDashboard = {
+  render: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return router.navigate('medical');
+    const doc = DB.doctors.find(d => d.id === Auth.currentUser.doctorId);
+    if (!doc) return;
+    const todayISO = Utils.todayISO();
+    const myAppts = DB.appointments.filter(a => a.doctorId === doc.id && a.date === todayISO && a.status !== 'canceled').sort((a,b) => a.ts - b.ts);
+    const days = ['saturday','sunday','monday','tuesday','wednesday','thursday','friday'];
+    document.getElementById('view-doctor').innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--primary),#1E293B);color:#fff;border:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-user-md"></i> بوابة الطبيب</h2><p style="margin:4px 0 0;font-size:12px;opacity:.8;">${Auth.currentUser.name}</p></div>
+          <div style="text-align:center;background:rgba(255,255,255,.1);padding:8px 12px;border-radius:10px;"><div style="font-size:20px;font-weight:900;color:#34D399;">${myAppts.length}</div><div style="font-size:9px;">مريض اليوم</div></div>
+        </div>
+      </div>
+      <h3 class="section-title"><i class="fa-solid fa-users" style="color:var(--amber);"></i> مرضى اليوم (${myAppts.length})</h3>
+      <div class="grid-list">
+        ${myAppts.map(a => `<div class="card" style="padding:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div><h4 style="margin:0;font-weight:900;font-size:14px;">#${a.queueNumber} ${a.patientName}</h4><p style="margin:4px 0 0;font-size:11px;color:var(--gray);">${a.slot} • ${a.paymentType==='insurance'?'تأمين':'كاش'} • ${Utils.money(a.price)}</p></div><span style="font-size:10px;padding:4px 10px;border-radius:99px;background:${a.status==='next'?'var(--emerald)':a.status==='completed'?'var(--emerald-light)':'var(--gray-light)'};color:${a.status==='next'?'#fff':'var(--gray)'};font-weight:900;">${a.status==='next'?'عندك':a.status==='completed'?'تم':'انتظار'}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;">${a.status==='waiting' ? `<button onclick="DoctorModule.call('${a.id}')" class="btn-action" style="flex:1;padding:8px;font-size:11px;background:var(--amber);"><i class="fa-solid fa-bullhorn"></i> استدعاء</button>` : ''}${a.status==='next' ? `<button onclick="DoctorModule.scribe('${a.id}')" class="btn-action" style="flex:1;padding:8px;font-size:11px;background:var(--indigo);"><i class="fa-solid fa-microphone"></i> روشتة صوت</button><button onclick="DoctorModule.finish('${a.id}')" class="btn-action" style="flex:1;padding:8px;font-size:11px;">إنهاء</button>` : ''}<button onclick="ChatModule.render('${doc.id}');router.navigate('chat','${doc.id}')" class="btn-action" style="padding:8px 12px;font-size:11px;background:var(--sky);"><i class="fa-solid fa-comment"></i></button></div></div>`).join('') || '<div class="card text-center" style="color:var(--gray);">لا مرضى اليوم</div>'}
+      </div>
+      <h3 class="section-title"><i class="fa-solid fa-calendar-week" style="color:var(--emerald);"></i> جدولي</h3>
+      <div class="card">
+        ${days.map(day => { const s = doc.schedule[day]; return `<div class="schedule-day ${s.active?'active':''}"><div class="day-name">${Utils.dayArabic(day)}</div>${s.active ? `<div style="flex:1;display:flex;gap:4px;flex-wrap:wrap;"><input type="time" class="time-input" value="${s.start}" onchange="DoctorModule.updateSchedule('${doc.id}','${day}','start',this.value)"><span style="align-self:center;font-size:11px;font-weight:900;">-</span><input type="time" class="time-input" value="${s.end}" onchange="DoctorModule.updateSchedule('${doc.id}','${day}','end',this.value)"><input type="number" class="time-input" value="${s.duration}" min="5" max="60" onchange="DoctorModule.updateSchedule('${doc.id}','${day}','duration',this.value)"></div><button onclick="DoctorModule.toggleDay('${doc.id}','${day}')" class="btn-ui" style="background:var(--danger-light);color:var(--danger);padding:4px 8px;font-size:10px;">إيقاف</button>` : `<div style="flex:1;font-size:11px;color:var(--gray);font-weight:700;">مغلق</div><button onclick="DoctorModule.toggleDay('${doc.id}','${day}')" class="btn-ui" style="background:var(--emerald-light);color:var(--emerald);padding:4px 8px;font-size:10px;">تشغيل</button>`}</div>`; }).join('')}
+      </div>
+      <h3 class="section-title"><i class="fa-solid fa-stethoscope" style="color:var(--sky);"></i> خدماتي</h3>
+      <div class="grid-list">
+        ${doc.services.map(sv => `<div class="item-box"><div class="item-icon" style="background:var(--sky-light);color:var(--sky);"><i class="fa-solid ${sv.icon}"></i></div><div class="item-info"><div class="item-title">${sv.name}</div><div class="item-sub">${sv.duration}د • ${sv.price===0?'ضمن الكشف':Utils.money(sv.price)}</div></div><button onclick="DoctorModule.removeService('${doc.id}','${sv.id}')" class="btn-ui" style="background:var(--danger-light);color:var(--danger);padding:6px 10px;"><i class="fa-solid fa-trash"></i></button></div>`).join('')}
+      </div>
+      <button onclick="DoctorModule.addServiceModal('${doc.id}')" class="btn-action" style="width:100%;margin-top:8px;background:var(--sky);"><i class="fa-solid fa-plus"></i> إضافة خدمة</button>
+    `;
+  }
+};
+const StaffDashboard = {
+  render: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'staff') return router.navigate('medical');
+    const todayISO = Utils.todayISO();
+    const appts = DB.appointments.filter(a => a.status !== 'completed' && a.status !== 'canceled' && a.date === todayISO).sort((a,b) => a.ts - b.ts);
+    document.getElementById('view-staff').innerHTML = `
+      <div class="card" style="background:var(--primary);color:#fff;border:none;">
+        <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-headset"></i> إدارة الطابور</h2>
+        <p style="margin:4px 0 0;font-size:12px;opacity:.8;">${Utils.fmtDate(todayISO)} • ${appts.length} مريض</p>
+      </div>
+      <div class="grid-list">
+        ${appts.map(a => `<div class="card" style="padding:14px;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><h4 style="margin:0;font-weight:900;font-size:14px;">${a.patientName}</h4><p style="margin:4px 0 0;font-size:11px;color:var(--gray);font-weight:700;">${a.doctorName} • ${a.slot} • #${a.queueNumber}</p><span style="font-size:10px;padding:2px 6px;border-radius:4px;background:${a.status==='next'?'#FEF3C7':'var(--sky-light)'};color:${a.status==='next'?'#92400E':'var(--sky)'};font-weight:900;">${a.status==='next'?'عند الطبيب':'انتظار'}</span></div>${a.status==='next'?`<button onclick="StaffModule.finish('${a.id}')" class="btn-action" style="padding:8px 14px;font-size:11px;">إنهاء</button>`:`<button onclick="StaffModule.call('${a.id}')" class="btn-action" style="padding:8px 14px;font-size:11px;background:var(--amber);">نداء</button>`}</div></div>`).join('') || '<div class="card text-center" style="color:var(--gray);">لا مرضى اليوم</div>'}
+      </div>
+    `;
+  }
+};
+const DoctorModule = {
+  call: (id) => {
+    const a = DB.appointments.find(x => x.id === id);
+    if (!a) return;
+    a.status = 'next'; saveDB();
+    Notifier.push(a.patientId, `🔔 دورك الآن! توجه لعيادة ${a.doctorName}`, true);
+    Utils.toast('تم النداء');
+    DoctorDashboard.render();
+  },
+  finish: (id) => {
+    const a = DB.appointments.find(x => x.id === id);
+    if (!a) return;
+    a.status = 'completed'; saveDB();
+    Auth.addPoints(REWARD_RULES.complete_visit);
+    Utils.toast('تم إنهاء الكشف');
+    DoctorDashboard.render();
+  },
+  scribe: (apptId) => {
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="width:70px;height:70px;background:var(--danger);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 12px;animation:pulse 1.5s infinite;"><i class="fa-solid fa-microphone"></i></div>
+        <h3 style="margin:0;font-weight:900;">المساعد الصوتي</h3>
+        <p style="font-size:12px;color:var(--gray);">اتكلم وهنكتب الروشتة</p>
+      </div>
+      <div style="background:var(--gray-light);border-radius:10px;padding:16px;min-height:120px;margin-bottom:16px;">
+        <div id="scribe-text" style="font-size:13px;font-weight:700;color:var(--gray);">جاري الاستماع...</div>
+      </div>
+      <button onclick="DoctorModule.saveScribe('${apptId}')" class="btn-action" style="width:100%;">حفظ الروشتة</button>
+    `;
+    Utils.openModal('modal-generic');
+    setTimeout(() => {
+      const el = document.getElementById('scribe-text');
+      if (el) {
+        el.style.color = 'var(--primary)';
+        el.innerHTML = `"المريض يشكو من صداع شديد منذ يومين مع ارتفاع حرارة.<br><br><strong>التشخيص:</strong> نزلة برد.<br><strong>الروشتة:</strong> بانادول 500mg كل 8 ساعات + فيتامين سي يومياً."`;
+        el.dataset.text = "المريض يشكو من صداع شديد منذ يومين مع ارتفاع حرارة. التشخيص: نزلة برد. الروشتة: بانادول 500mg كل 8 ساعات + فيتامين سي يومياً.";
+      }
+    }, 2500);
+  },
+  saveScribe: (apptId) => {
+    const el = document.getElementById('scribe-text');
+    const text = el.dataset.text;
+    if (!text) return Utils.toast('لم يتم التعرف', true);
+    const appt = DB.appointments.find(a => a.id === apptId);
+    if (appt) {
+      DB.prescriptions = DB.prescriptions || [];
+      DB.prescriptions.push({id:'rx-'+Utils.id(), apptId, doctorId:Auth.currentUser.doctorId, patientId:appt.patientId, patientName:appt.patientName, text, ts:Date.now()});
+      saveDB();
+      Notifier.push(appt.patientId, `📝 روشتة جديدة من ${Auth.currentUser.name}`, false);
+    }
+    Utils.closeModal('modal-generic');
+    Utils.toast('تم حفظ الروشتة');
+  },
+  updateSchedule: (docId, day, field, value) => {
+    const doc = DB.doctors.find(d => d.id === docId);
+    if (!doc) return;
+    if (field === 'duration') value = parseInt(value) || 20;
+    doc.schedule[day][field] = value;
+    saveDB();
+    Utils.toast('تم التحديث');
+  },
+  toggleDay: (docId, day) => {
+    const doc = DB.doctors.find(d => d.id === docId);
+    if (!doc) return;
+    const s = doc.schedule[day];
+    doc.schedule[day] = s.active ? {active:false} : {active:true,start:'17:00',end:'21:00',duration:20,breakStart:null,breakEnd:null};
+    saveDB();
+    DoctorDashboard.render();
+  },
+  addServiceModal: (docId) => {
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px;font-weight:900;">إضافة خدمة</h3>
+      <input type="text" id="svc-name" class="input-field" placeholder="اسم الخدمة">
+      <input type="number" id="svc-price" class="input-field" placeholder="السعر (0 = ضمن الكشف)">
+      <input type="number" id="svc-dur" class="input-field" placeholder="المدة" value="15">
+      <button onclick="DoctorModule.addService('${docId}')" class="btn-action" style="width:100%;">إضافة</button>`;
+    Utils.openModal('modal-generic');
+  },
+  addService: (docId) => {
+    const name = document.getElementById('svc-name').value.trim();
+    const price = parseInt(document.getElementById('svc-price').value) || 0;
+    const dur = parseInt(document.getElementById('svc-dur').value) || 15;
+    if (!name) return Utils.toast('اكتب اسم', true);
+    const doc = DB.doctors.find(d => d.id === docId);
+    doc.services.push({id:'sv-'+Utils.id(), name, price, duration:dur, icon:'fa-stethoscope'});
+    saveDB(); Utils.closeModal('modal-generic'); Utils.toast('تمت'); DoctorDashboard.render();
+  },
+  removeService: (docId, svcId) => {
+    if (!confirm('حذف؟')) return;
+    const doc = DB.doctors.find(d => d.id === docId);
+    doc.services = doc.services.filter(s => s.id !== svcId);
+    saveDB(); DoctorDashboard.render();
+  }
+};
+const StaffModule = {
+  call: (id) => {
+    const a = DB.appointments.find(x => x.id === id);
+    if (!a) return;
+    a.status = 'next'; saveDB();
+    Notifier.push(a.patientId, `🔔 دورك الآن!`, true);
+    StaffDashboard.render();
+  },
+  finish: (id) => {
+    const a = DB.appointments.find(x => x.id === id);
+    if (!a) return;
+    a.status = 'completed'; saveDB();
+    StaffDashboard.render();
+  }
+};
+</script>
+<!-- ============ PART 9/10 END ============ -->
+  <!-- ============ PART 10/10 START ============ -->
+<script>
+const PatientDashboard = {
+  render: () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const u = Auth.currentUser;
+    const myAppts = DB.appointments.filter(a => a.patientId === u.id).sort((a,b) => b.ts - a.ts);
+    const active = myAppts.filter(a => a.status !== 'completed' && a.status !== 'canceled');
+    const myFam = Family.getMine();
+    const emr = u.emr || {blood:'غير محدد', allergies:[], chronic:[]};
+    const myRx = (DB.prescriptions||[]).filter(p => p.patientId === u.id);
+    const tier = (u.points||0) >= 1000 ? 'بلاتيني' : (u.points||0) >= 500 ? 'ذهبي' : (u.points||0) >= 200 ? 'فضي' : 'برونزي';
+    document.getElementById('view-dashboard').innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--emerald),#10B981);color:#fff;border:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><h2 style="margin:0;font-weight:900;">أهلاً ${u.name.split(' ')[0]} 👋</h2><p style="margin:4px 0 0;font-size:12px;opacity:.9;">${u.waslaId}</p></div>
+          <div style="text-align:center;background:rgba(255,255,255,.15);padding:8px 14px;border-radius:12px;"><div style="font-size:11px;font-weight:900;opacity:.85;">${tier}</div><div style="font-size:20px;font-weight:900;">⭐ ${u.points||0}</div><div style="font-size:9px;">نقطة</div></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <div style="flex:1;background:rgba(255,255,255,.15);padding:8px;border-radius:10px;text-align:center;"><div style="font-size:16px;font-weight:900;">${Utils.money(u.wallet||0)}</div><div style="font-size:9px;">محفظة</div></div>
+          <div style="flex:1;background:rgba(255,255,255,.15);padding:8px;border-radius:10px;text-align:center;"><div style="font-size:16px;font-weight:900;">${active.length}</div><div style="font-size:9px;">حجز نشط</div></div>
+          <div style="flex:1;background:rgba(255,255,255,.15);padding:8px;border-radius:10px;text-align:center;"><div style="font-size:16px;font-weight:900;">${myFam.length}</div><div style="font-size:9px;">عائلة</div></div>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-bottom:16px;">
+        <button onclick="router.navigate('symptom-checker')" class="btn-action" style="padding:14px;background:var(--purple);"><i class="fa-solid fa-notes-medical"></i> افحص أعراضك</button>
+        <button onclick="router.navigate('vault')" class="btn-action" style="padding:14px;background:var(--sky);"><i class="fa-solid fa-folder-medical"></i> ملفي الطبي</button>
+        <button onclick="router.navigate('tracker')" class="btn-action" style="padding:14px;background:var(--amber);"><i class="fa-solid fa-chart-line"></i> صحتي</button>
+        <button onclick="router.navigate('rewards')" class="btn-action" style="padding:14px;background:var(--gold);"><i class="fa-solid fa-gift"></i> مكافآت</button>
+        <button onclick="router.navigate('family')" class="btn-action" style="padding:14px;background:var(--purple);"><i class="fa-solid fa-users"></i> عائلتي</button>
+        <button onclick="router.navigate('chat', '${DB.doctors[0].id}')" class="btn-action" style="padding:14px;background:var(--emerald);"><i class="fa-solid fa-comments"></i> شات طبيب</button>
+        <button onclick="router.navigate('reminders')" class="btn-action" style="padding:14px;background:var(--danger);"><i class="fa-solid fa-bell"></i> تذكير دواء</button>
+        <button onclick="router.navigate('medical')" class="btn-action" style="padding:14px;background:var(--primary);"><i class="fa-solid fa-calendar-plus"></i> احجز جديد</button>
+      </div>
+      ${active.length ? `
+      <h3 class="section-title"><i class="fa-solid fa-users-viewfinder" style="color:var(--sky);"></i> حجوزات نشطة (${active.length})</h3>
+      <div class="grid-list">
+        ${active.map(a => {
+          const same = DB.appointments.filter(x => x.doctorId === a.doctorId && x.date === a.date && x.status !== 'canceled' && x.status !== 'completed').sort((x,y) => x.ts - y.ts);
+          const pos = same.findIndex(x => x.id === a.id) + 1;
+          return `<div class="card" onclick="router.navigate('queue')" style="cursor:pointer;padding:14px;border-right:4px solid ${a.status==='next'?'var(--amber)':'var(--sky)'};"><div style="display:flex;justify-content:space-between;"><div><h4 style="margin:0;font-weight:900;font-size:14px;">${a.doctorName}</h4><p style="margin:4px 0 0;font-size:11px;color:var(--gray);">${Utils.fmtDate(a.date)} • ${a.slot}</p>${a.patientName !== u.name ? `<p style="font-size:10px;color:var(--purple);font-weight:900;margin:2px 0 0;">لـ ${a.patientName}</p>` : ''}</div><div style="text-align:center;"><div style="font-size:22px;font-weight:900;color:${a.status==='next'?'var(--amber)':'var(--sky)'};">#${pos}</div><div style="font-size:9px;color:var(--gray);">دورك</div></div></div></div>`;
+        }).join('')}
+      </div>` : ''}
+      ${myRx.length ? `
+      <h3 class="section-title"><i class="fa-solid fa-prescription" style="color:var(--emerald);"></i> روشتاتي (${myRx.length})</h3>
+      <div class="grid-list">
+        ${myRx.slice(0,3).map(r => `<div class="card" style="padding:12px;border-right:4px solid var(--emerald);"><div style="font-size:10px;color:var(--gray);font-weight:900;">${new Date(r.ts).toLocaleDateString('ar-EG')}</div><div style="font-size:12px;margin-top:4px;">${r.text.substring(0,120)}...</div></div>`).join('')}
+      </div>` : ''}
+      <h3 class="section-title"><i class="fa-solid fa-notes-medical" style="color:var(--danger);"></i> الملف الطبي</h3>
+      <div class="card grid-2">
+        <div style="background:var(--danger-light);padding:14px;border-radius:10px;text-align:center;"><div style="font-size:10px;font-weight:900;color:var(--gray);">فصيلة الدم</div><div style="font-size:20px;font-weight:900;">${emr.blood}</div></div>
+        <div style="background:var(--amber-light);padding:14px;border-radius:10px;text-align:center;"><div style="font-size:10px;font-weight:900;color:var(--gray);">حساسية</div><div style="font-size:14px;font-weight:900;">${emr.allergies.join('، ') || 'لا يوجد'}</div></div>
+      </div>
+      <h3 class="section-title"><i class="fa-solid fa-clock" style="color:var(--gray);"></i> كل الحجوزات (${myAppts.length})</h3>
+      <div class="grid-list">
+        ${myAppts.slice(0,10).map(a => `<div class="card" style="padding:12px;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><h4 style="margin:0;font-weight:900;font-size:13px;">${a.doctorName}</h4><p style="margin:4px 0 0;font-size:11px;color:var(--gray);">${Utils.fmtDate(a.date)} • ${a.slot} • ${Utils.money(a.price)}</p></div><span style="font-size:10px;padding:4px 10px;border-radius:6px;background:${a.status==='completed'?'var(--emerald-light)':a.status==='canceled'?'var(--danger-light)':'var(--gray-light)'};color:${a.status==='completed'?'var(--emerald)':a.status==='canceled'?'var(--danger)':'var(--gray)'};font-weight:900;">${a.status==='completed'?'✓':a.status==='canceled'?'✗':a.status==='next'?'دورك':'انتظار'}</span></div></div>`).join('') || '<p style="font-size:12px;color:var(--gray);text-align:center;">لا حجوزات</p>'}
+      </div>
+    `;
+  }
+};
+const FounderDashboard = {
+  render: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'founder') return router.navigate('medical');
+    const totalRevenue = DB.appointments.filter(a => a.status === 'completed').reduce((s,a) => s + a.price, 0) + DB.orders.reduce((s,o) => s + o.price, 0);
+    const commission = Math.round(totalRevenue * 0.15);
+    const patients = DB.users.filter(u => u.role === 'patient');
+    document.getElementById('view-founder').innerHTML = `
+      <div class="card" style="background:var(--primary);color:#fff;border:none;">
+        <h2 style="margin:0 0 16px;font-weight:900;"><i class="fa-solid fa-crown" style="color:var(--gold);"></i> لوحة المؤسس</h2>
+        <div class="grid-2" style="gap:10px;">
+          <div style="background:rgba(255,255,255,.1);padding:14px;border-radius:10px;"><div style="font-size:11px;color:#94A3B8;">الإيرادات</div><div style="font-size:18px;font-weight:900;color:#34D399;">${Utils.money(totalRevenue)}</div></div>
+          <div style="background:rgba(255,255,255,.1);padding:14px;border-radius:10px;"><div style="font-size:11px;color:#94A3B8;">العمولة</div><div style="font-size:18px;font-weight:900;color:var(--gold);">${Utils.money(commission)}</div></div>
+          <div style="background:rgba(255,255,255,.1);padding:14px;border-radius:10px;"><div style="font-size:11px;color:#94A3B8;">المرضى</div><div style="font-size:18px;font-weight:900;">${patients.length}</div></div>
+          <div style="background:rgba(255,255,255,.1);padding:14px;border-radius:10px;"><div style="font-size:11px;color:#94A3B8;">الأطباء</div><div style="font-size:18px;font-weight:900;">${DB.doctors.length}</div></div>
+        </div>
+      </div>
+      <h3 class="section-title"><i class="fa-solid fa-user-doctor" style="color:var(--emerald);"></i> الأطباء</h3>
+      <div class="grid-list">
+        ${DB.doctors.map(d => `<div class="item-box"><div class="item-icon"><i class="fa-solid fa-user-doctor"></i></div><div class="item-info"><div class="item-title">${d.name}</div><div class="item-sub">${d.spec} • ⭐ ${d.rating} • ${d.services.length} خدمة</div></div></div>`).join('')}
+      </div>
+      <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-shield-halved" style="color:var(--gold);"></i> التأمين (${DB.insuranceCompanies.length})</h3>
+      <div class="grid-list">
+        ${DB.insuranceCompanies.map(ins => `<div class="item-box"><div class="item-icon" style="background:var(--gold-light);color:var(--gold);"><i class="fa-solid ${ins.logo}"></i></div><div class="item-info"><div class="item-title">${ins.name}</div><div class="item-sub">تغطية ${ins.coverage}%</div></div></div>`).join('')}
+      </div>
+    `;
+  }
+};
+window.addEventListener('DOMContentLoaded', () => {
+  UI.renderHeader();
+  router.navigate('medical');
+  setInterval(() => {
+    let changed = false;
+    DB.orders.forEach(o => {
+      if (o.status === 'preparing') { o.status = 'on_way'; changed = true; }
+      else if (o.status === 'on_way') { o.status = 'delivered'; changed = true; }
+    });
+    if (changed) saveDB();
+    if (Auth.currentUser) {
+      if (document.getElementById('view-queue')?.classList.contains('active')) QueueModule.render();
+      if (document.getElementById('view-dashboard')?.classList.contains('active')) PatientDashboard.render();
+    }
+  }, 15000);
+  setInterval(() => {
+    if (!Auth.currentUser) return;
+    const now = new Date();
+    const hhmm = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    DB.reminders.filter(r => r.userId === Auth.currentUser.id && r.times.includes(hhmm)).forEach(r => {
+      Notifier.push(Auth.currentUser.id, `💊 وقت دواء ${r.medName} - ${r.dose}`, true);
+    });
+  }, 60000);
+});
+</script>
+</body>
+</html>
+<!-- ============ PART 10/10 END — الملف كامل ============ -->
