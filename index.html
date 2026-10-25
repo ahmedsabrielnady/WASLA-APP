@@ -3022,6 +3022,224 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
   setTimeout(() => UI.renderHeader(), 200);
 }
 </script>
+<!-- ============ PART 28/28 END — الملف كامل الآن ============ -->
+  <!-- ============ PART 34/36 START ============ -->
+<script>
+const GPSManager = {
+  getLocation: () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject('المتصفح لا يدعم تحديد الموقع');
+      } else {
+        Utils.toast('جاري تحديد الموقع...', false);
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          (err) => reject('فشل في تحديد الموقع. يرجى السماح بالوصول للموقع من إعدادات المتصفح.')
+        );
+      }
+    });
+  },
+  getMapLink: (lat, lng) => `https://www.google.com/maps?q=${lat},${lng}`,
+  fillLocation: (inputId) => {
+    GPSManager.getLocation().then(coords => {
+      const mapLink = GPSManager.getMapLink(coords.lat, coords.lng);
+      const input = document.getElementById(inputId);
+      if (input) {
+        input.value = `موقعي (GPS): ${mapLink}`;
+        Utils.toast('✓ تم إرفاق الموقع بنجاح');
+      }
+    }).catch(err => {
+      Utils.toast(err, true);
+    });
+  }
+};
+
+// 1) إضافة زر GPS في قطاع السيارات
+const _origCarBook = CarsSector.book;
+CarsSector.book = function(id) {
+  _origCarBook.call(CarsSector, id);
+  setTimeout(() => {
+    const addrInput = document.getElementById('car-address');
+    if (addrInput) {
+      addrInput.insertAdjacentHTML('afterend', `<button onclick="GPSManager.fillLocation('car-address')" class="btn-ui" style="background:var(--sky);color:#fff;margin-bottom:12px;width:100%;justify-content:center;"><i class="fa-solid fa-location-dot"></i> استخدام موقعي الحالي</button>`);
+    }
+  }, 100);
+};
+
+// 2) إضافة زر GPS في قطاع الصيانة
+const _origHomeBook = HomeServicesSector.book;
+HomeServicesSector.book = function(id) {
+  _origHomeBook.call(HomeServicesSector, id);
+  setTimeout(() => {
+    const addrInput = document.getElementById('home-address');
+    if (addrInput) {
+      addrInput.insertAdjacentHTML('afterend', `<button onclick="GPSManager.fillLocation('home-address')" class="btn-ui" style="background:var(--sky);color:#fff;margin-bottom:12px;width:100%;justify-content:center;"><i class="fa-solid fa-location-dot"></i> استخدام موقعي الحالي</button>`);
+    }
+  }, 100);
+};
+
+// 3) إضافة زر GPS في السوبر ماركت
+const _origGroceryCheckout = GrocerySector.checkout;
+GrocerySector.checkout = function(storeId) {
+  _origGroceryCheckout.call(GrocerySector, storeId);
+  setTimeout(() => {
+    const addrInput = document.getElementById('grocery-address');
+    if (addrInput) {
+      addrInput.insertAdjacentHTML('afterend', `<button onclick="GPSManager.fillLocation('grocery-address')" class="btn-ui" style="background:var(--sky);color:#fff;margin-bottom:12px;width:100%;justify-content:center;"><i class="fa-solid fa-location-dot"></i> استخدام موقعي الحالي للتوصيل</button>`);
+    }
+  }, 100);
+};
+
+// 4) عرض خريطة العيادة في الملف الطبي
+const _origMedicalRenderProfile = MedicalModule.renderProfile;
+MedicalModule.renderProfile = function(doctorId) {
+  _origMedicalRenderProfile.call(MedicalModule, doctorId);
+  const doc = DB.doctors.find(d => d.id === doctorId);
+  if (doc) {
+    const mapBtn = `<button onclick="window.open('https://maps.google.com/?q=${encodeURIComponent(doc.area)}', '_blank')" class="btn-action" style="width:100%; background:var(--sky); margin-bottom:16px; font-size:12px; padding:10px;"><i class="fa-solid fa-map-location-dot"></i> عرض موقع العيادة على الخريطة</button>`;
+    const el = document.getElementById('view-doctor-profile');
+    if (el) {
+      const card = el.querySelector('.card');
+      if (card) card.insertAdjacentHTML('afterend', mapBtn);
+    }
+  }
+};
+console.log('✅ GPS Engine integrated');
+</script>
+<!-- ============ PART 34/36 END ============ -->
+  <!-- ============ PART 35/36 START ============ -->
+<script>
+const FraudProtection = {
+  getRequiredDeposit: (user, amount, sector) => {
+    if (!user) return 0;
+    
+    // 1. المستخدم الموثوق (3+ طلبات ناجحة) -> إعفاء كامل
+    if ((user.successfulOrders || 0) >= 3) return 0;
+
+    const isFirstOrder = (user.successfulOrders || 0) === 0;
+    
+    if (sector === 'medical') {
+      // العيادة: أول حجز معفى، بعد كده 25% عربون
+      if (isFirstOrder) return 0;
+      return Math.round(amount * 0.25);
+    } else {
+      // باقي القطاعات: أول طلب معفى لو <= 300، وإلا 20% عربون
+      if (isFirstOrder) {
+        if (amount > 300) return Math.round(amount * 0.20);
+        return 0;
+      }
+      // من الطلب الثاني: عربون 20%
+      return Math.round(amount * 0.20);
+    }
+  },
+
+  recordSuccess: (userId) => {
+    const u = DB.users.find(x => x.id === userId);
+    if (u) {
+      u.successfulOrders = (u.successfulOrders || 0) + 1;
+      saveDB();
+    }
+  },
+
+  recordFailure: (userId, reason) => {
+    const u = DB.users.find(x => x.id === userId);
+    if (u) {
+      if (reason === 'legitimate_cancel') {
+        Utils.toast('تم الإلغاء وفقاً للشروط. لن يؤثر على سجلك.', false);
+      } else {
+        u.cancellations = (u.cancellations || 0) + 1;
+        saveDB();
+        Utils.toast('تم تسجيل الطلب كغير مكتمل. تطبق شروط العربون على الطلبات القادمة.', true);
+      }
+    }
+  }
+};
+console.log('✅ Fraud Protection Engine ready');
+</script>
+<!-- ============ PART 35/36 END ============ -->
+  <!-- ============ PART 36/36 START ============ -->
+<script>
+// ===== 1) حماية العيادة =====
+const _origMedicalConfirmHybrid = MedicalModule.confirmBooking;
+MedicalModule.confirmBooking = function(docId) {
+  const user = Auth.currentUser;
+  if (!user) return AuthUI.open();
+  
+  const doc = DB.doctors.find(d => d.id === docId);
+  const amount = doc.price;
+  const deposit = FraudProtection.getRequiredDeposit(user, amount, 'medical');
+
+  if (deposit > 0) {
+    if (!confirm(`⚠️ نظام الحماية:\nهذا ليس حجزك الأول، لذا يُطلب دفع عربون جدية بقيمة ${Utils.money(deposit)} (يُخصم من الكشف).\nهل توافق؟`)) {
+      FraudProtection.recordFailure(user.id, 'user_cancelled_booking');
+      return Utils.toast('تم إلغاء الحجز.', true);
+    }
+  } else {
+    if (!confirm(`طلبك الأول معفى من العربون.\nإذا لم يتم إلغاء الحجز وفقاً للشروط (قبل 12 ساعة)، سيُطبق عربون إجباري على طلبك القادم.\n\nهل توافق على سياسة الإلغاء؟`)) return;
+  }
+
+  _origMedicalConfirmHybrid.apply(MedicalModule, arguments);
+  FraudProtection.recordSuccess(user.id);
+};
+
+// ===== 2) حماية السوبر ماركت =====
+const _origGroceryConfirmHybrid = GrocerySector.confirmOrder;
+GrocerySector.confirmOrder = function(storeId, total) {
+  const user = Auth.currentUser;
+  if (!user) return AuthUI.open();
+
+  const deposit = FraudProtection.getRequiredDeposit(user, total, 'grocery');
+  
+  if (deposit > 0) {
+    if (!confirm(`⚠️ نظام الحماية:\nالطلب بقيمة ${Utils.money(total)}.\nيُطلب عربون بقيمة ${Utils.money(deposit)} (يُخصم عند الاستلام).\nهل توافق؟`)) return;
+  } else {
+    if (!confirm(`طلبك الأول معفى من العربون.\nإذا لم يتم استلام الطلب، سيُطبق عربون إجباري على طلبك القادم.\nهل توافق؟`)) return;
+  }
+
+  _origGroceryConfirmHybrid.apply(GrocerySector, arguments);
+  FraudProtection.recordSuccess(user.id);
+};
+
+// ===== 3) حماية السيارات =====
+const _origCarsConfirmHybrid = CarsSector.confirm;
+CarsSector.confirm = function(id) {
+  const user = Auth.currentUser;
+  if (!user) return AuthUI.open();
+
+  const svc = DB.carServices.find(s => s.id === id);
+  const deposit = FraudProtection.getRequiredDeposit(user, svc.price, 'cars');
+
+  if (deposit > 0) {
+    if (!confirm(`⚠️ يُطلب عربون بقيمة ${Utils.money(deposit)}. هل توافق؟`)) return;
+  } else {
+    if (!confirm(`طلبك الأول معفى من العربون. سيُطبق العربون عند الطلب القادم إذا لم يتم الاستلام. هل توافق؟`)) return;
+  }
+
+  _origCarsConfirmHybrid.apply(CarsSector, arguments);
+  FraudProtection.recordSuccess(user.id);
+};
+
+// ===== 4) حماية الصيانة =====
+const _origHomeConfirmHybrid = HomeServicesSector.confirm;
+HomeServicesSector.confirm = function(id) {
+  const user = Auth.currentUser;
+  if (!user) return AuthUI.open();
+
+  const svc = DB.homeServices.find(s => s.id === id);
+  const deposit = FraudProtection.getRequiredDeposit(user, svc.price, 'home');
+
+  if (deposit > 0) {
+    if (!confirm(`⚠️ يُطلب عربون بقيمة ${Utils.money(deposit)}. هل توافق؟`)) return;
+  } else {
+    if (!confirm(`طلبك الأول معفى من العربون. سيُطبق العربون عند الطلب القادم إذا لم يتم الاستلام. هل توافق؟`)) return;
+  }
+
+  _origHomeConfirmHybrid.apply(HomeServicesSector, arguments);
+  FraudProtection.recordSuccess(user.id);
+};
+
+console.log('✅ Hybrid Fraud Protection applied to all sectors');
+</script>
 </body>
 </html>
-<!-- ============ PART 28/28 END — الملف كامل الآن ============ -->
+<!-- ============ PART 36/36 END — الملف كامل الآن ============ -->
