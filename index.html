@@ -3693,6 +3693,256 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
   setTimeout(() => UI.renderHeader(), 300);
 }
 </script>
+<!-- ============ PART 43/43 END — الملف كامل الآن ============ -->
+<!-- ============ PART 44/47 START ============ -->
+<script>
+const HomeDashboard = {
+  render: () => {
+    let view = document.getElementById('view-home');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-home';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+    
+    if (!Auth.currentUser) {
+      view.innerHTML = `
+        <div class="card" style="text-align:center; padding:40px 20px; background:linear-gradient(135deg,var(--primary),#1E293B); color:#fff; border:none;">
+          <i class="fa-solid fa-link" style="font-size:48px; margin-bottom:16px; color:#34D399;"></i>
+          <h2 style="margin:0; font-weight:900;">أهلاً بك في وصلة</h2>
+          <p style="margin:8px 0 20px; font-size:14px; opacity:0.8;">منصة واحدة تجمع لك كل الخدمات: طبي، تسوق، سيارات، وصيانة.</p>
+          <button onclick="AuthUI.open()" class="btn-action" style="background:#fff; color:var(--primary); padding:12px 30px;">تسجيل الدخول / إنشاء حساب</button>
+        </div>
+        <div class="grid-2" style="margin-top:20px;">
+           <div class="card" onclick="router.navigate('medical')" style="cursor:pointer; text-align:center;">
+             <i class="fa-solid fa-stethoscope" style="font-size:24px; color:var(--emerald); margin-bottom:8px;"></i>
+             <div style="font-weight:900;">احجز طبيب</div>
+           </div>
+           <div class="card" onclick="router.navigate('grocery')" style="cursor:pointer; text-align:center;">
+             <i class="fa-solid fa-cart-shopping" style="font-size:24px; color:var(--amber); margin-bottom:8px;"></i>
+             <div style="font-weight:900;">اطلب سوبر ماركت</div>
+           </div>
+        </div>
+      `;
+      return;
+    }
+
+    const u = Auth.currentUser;
+    const myAppts = (DB.appointments || []).filter(a => a.patientId === u.id && a.status !== 'completed' && a.status !== 'canceled');
+    const activeOrders = (DB.orders || []).filter(o => o.userId === u.id && o.status !== 'delivered');
+    
+    // نظرة عامة
+    view.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--emerald),#10B981);color:#fff;border:none;padding:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h2 style="margin:0;font-weight:900;">مرحباً، ${u.name.split(' ')[0]} 👋</h2>
+            <p style="margin:4px 0 0;font-size:12px;opacity:0.9;">إيه اللي محتاجه النهاردة؟</p>
+          </div>
+          <div style="background:rgba(255,255,255,.2);padding:8px 12px;border-radius:12px;text-align:center;">
+            <div style="font-size:18px;font-weight:900;">⭐ ${u.points || 0}</div>
+            <div style="font-size:9px;">نقطة</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-title"><i class="fa-solid fa-bolt" style="color:var(--gold);"></i> اختصارات سريعة</h3>
+      <div class="grid-2" style="margin-bottom:20px;">
+        <button onclick="router.navigate('medical')" class="btn-action" style="padding:16px; background:var(--emerald-light); color:var(--emerald); flex-direction:column; gap:8px;">
+          <i class="fa-solid fa-user-doctor" style="font-size:24px;"></i> عيادات وأطباء
+        </button>
+        <button onclick="router.navigate('grocery')" class="btn-action" style="padding:16px; background:var(--amber-light); color:var(--amber); flex-direction:column; gap:8px;">
+          <i class="fa-solid fa-basket-shopping" style="font-size:24px;"></i> سوبر ماركت
+        </button>
+        <button onclick="router.navigate('cars')" class="btn-action" style="padding:16px; background:var(--sky-light); color:var(--sky); flex-direction:column; gap:8px;">
+          <i class="fa-solid fa-car" style="font-size:24px;"></i> خدمات سيارات
+        </button>
+        <button onclick="router.navigate('home-services')" class="btn-action" style="padding:16px; background:var(--purple-light); color:var(--purple); flex-direction:column; gap:8px;">
+          <i class="fa-solid fa-screwdriver-wrench" style="font-size:24px;"></i> صيانة منزلية
+        </button>
+      </div>
+
+      ${myAppts.length ? `
+        <h3 class="section-title"><i class="fa-solid fa-calendar-check" style="color:var(--sky);"></i> مواعيدك القادمة</h3>
+        <div class="grid-list">
+          ${myAppts.map(a => `
+            <div class="card" onclick="router.navigate('queue')" style="cursor:pointer; border-right:4px solid var(--sky); padding:14px;">
+              <div style="display:flex; justify-content:space-between;">
+                <div>
+                  <h4 style="margin:0; font-weight:900; font-size:14px;">${a.doctorName}</h4>
+                  <p style="margin:4px 0 0; font-size:11px; color:var(--gray);">${Utils.fmtDate(a.date)} • ${a.slot}</p>
+                </div>
+                <span style="font-size:10px; background:var(--sky-light); color:var(--sky); padding:4px 8px; border-radius:6px; font-weight:900;">تتبع الدور</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${activeOrders.length ? `
+        <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-truck-fast" style="color:var(--emerald);"></i> طلباتك الجارية</h3>
+        <div class="grid-list">
+          ${activeOrders.map(o => `
+            <div class="card" style="padding:14px; border-right:4px solid var(--emerald);">
+              <div style="display:flex; justify-content:space-between;">
+                <div>
+                  <h4 style="margin:0; font-weight:900; font-size:14px;">${o.storeName || o.service}</h4>
+                  <p style="margin:4px 0 0; font-size:11px; color:var(--gray);">${Utils.money(o.total || o.price)}</p>
+                </div>
+                <span style="font-size:10px; background:var(--emerald-light); color:var(--emerald); padding:4px 8px; border-radius:6px; font-weight:900;">جاري التجهيز</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+    `;
+  }
+};
+
+// ربط الرئيسية بالراوتر
+const _origRouterNavigateHome = router.navigate;
+router.navigate = function(sector, data) {
+  if (sector === 'home') {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    const view = document.getElementById('view-home');
+    if (view) view.classList.add('active');
+    const tab = document.querySelector('.tab[data-sector="home"]');
+    if (tab) tab.classList.add('active');
+    HomeDashboard.render();
+    window.scrollTo(0,0);
+    return;
+  }
+  _origRouterNavigateHome.call(router, sector, data);
+};
+</script>
+<!-- ============ PART 44/47 END ============ -->
+  <!-- ============ PART 45/47 START ============ -->
+<script>
+// إعادة كتابة دالة الـ Checkout لضمان وجود GPS وزر الدفع
+GrocerySector.checkout = function(storeId) {
+  if (GrocerySector.cart.length === 0) return Utils.toast('السلة فاضية', true);
+  const store = DB.groceryStores.find(s => s.id === storeId);
+  const total = GrocerySector.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  if (total < store.minOrder) return Utils.toast(`الحد الأدنى ${Utils.money(store.minOrder)}`, true);
+
+  Utils.closeModal('modal-generic');
+  document.getElementById('modal-generic-body').innerHTML = `
+    <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+    <h3 style="margin:0 0 16px;font-weight:900;">تأكيد الطلب</h3>
+    
+    <label style="font-size:12px; font-weight:900; display:block; margin-bottom:6px;">عنوان التوصيل:</label>
+    <input type="text" id="grocery-address" class="input-field" placeholder="اكتب عنوانك بالتفصيل...">
+    <button onclick="GPSManager.fillLocation('grocery-address')" class="btn-ui" style="background:var(--sky); color:#fff; width:100%; justify-content:center; margin-bottom:12px; padding:10px;">
+      <i class="fa-solid fa-location-dot"></i> إرفاق موقعي الحالي (GPS)
+    </button>
+
+    <label style="font-size:12px; font-weight:900; display:block; margin-bottom:6px;">رقم الموبايل:</label>
+    <input type="text" id="grocery-phone" class="input-field" value="${Auth.currentUser.phone}">
+    
+    <div style="background:var(--gray-light);padding:12px;border-radius:10px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;font-weight:900;"><span>إجمالي المنتجات</span><span style="color:var(--emerald);">${Utils.money(total)}</span></div>
+    </div>
+    
+    <button onclick="GrocerySector.confirmOrder('${storeId}', ${total})" class="btn-action" style="width:100%;">متابعة للدفع</button>
+  `;
+  Utils.openModal('modal-generic');
+};
+
+// إصلاح منطق تأكيد الطلب لفتح شاشة العربون لو زاد عن 300
+GrocerySector.confirmOrder = function(storeId, total) {
+  const user = Auth.currentUser;
+  const address = document.getElementById('grocery-address').value.trim();
+  if (!address) return Utils.toast('يرجى إدخال عنوان التوصيل أو إرفاق الموقع', true);
+
+  const deposit = FraudProtection.getRequiredDeposit(user, total, 'grocery');
+
+  // دالة إتمام الطلب الفعلي
+  const finalizeOrder = () => {
+    const store = DB.groceryStores.find(s => s.id === storeId);
+    DB.orders = DB.orders || [];
+    DB.orders.push({
+      id: Utils.id(), userId: user.id, sector: 'grocery', storeId, storeName: store.name,
+      items: [...GrocerySector.cart], total, address, status: 'pending', ts: Date.now()
+    });
+    saveDB();
+    GrocerySector.cart = []; // تفريغ السلة بعد النجاح
+    Utils.closeModal('modal-generic');
+    Utils.toast('✅ تم استلام طلبك! جاري التحضير...');
+    router.navigate('home'); // العودة للرئيسية
+    FraudProtection.recordSuccess(user.id);
+  };
+
+  if (deposit > 0) {
+    // لو الطلب > 300 وفاتورة أول طلب أو تاني، هتفتح شاشة الدفع
+    DepositPaymentModule.open(deposit, finalizeOrder);
+  } else {
+    // الطلب الأول أقل من 300
+    if (!confirm(`طلبك الأول معفى من العربون.\nإذا لم يتم استلامه، سيُطبق عربون إجباري على طلبك القادم.\nهل توافق؟`)) return;
+    finalizeOrder();
+  }
+};
+</script>
+<!-- ============ PART 45/47 END ============ -->
+  <!-- ============ PART 46/47 START ============ -->
+<script>
+// إعادة كتابة شاشة طلب السيارة لضمان وجود GPS
+CarsSector.book = function(id) {
+  if (!Auth.currentUser) return AuthUI.open();
+  const svc = DB.carServices.find(s => s.id === id);
+  document.getElementById('modal-generic-body').innerHTML = `
+    <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+    <h3 style="margin:0 0 4px;font-weight:900;">${svc.name}</h3>
+    <p style="margin:0 0 16px;font-size:13px;color:var(--gray);">${svc.desc} • ${Utils.money(svc.price)}</p>
+    
+    <label style="font-size:12px; font-weight:900; display:block; margin-bottom:6px;">مكان السيارة:</label>
+    <input type="text" id="car-address" class="input-field" placeholder="اكتب العنوان أو أرفق الموقع...">
+    <button onclick="GPSManager.fillLocation('car-address')" class="btn-ui" style="background:var(--sky); color:#fff; width:100%; justify-content:center; margin-bottom:12px; padding:10px;">
+      <i class="fa-solid fa-location-dot"></i> إرفاق موقع السيارة (GPS)
+    </button>
+
+    <label style="font-size:12px; font-weight:900; display:block; margin-bottom:6px;">نوع السيارة:</label>
+    <input type="text" id="car-model" class="input-field" placeholder="تويوتا، هيونداي...">
+    
+    <button onclick="CarsSector.confirm('${id}')" class="btn-action" style="width:100%;">متابعة للدفع (${Utils.money(svc.price)})</button>
+  `;
+  Utils.openModal('modal-generic');
+};
+
+// إعادة كتابة شاشة طلب الصيانة لضمان وجود GPS
+HomeServicesSector.book = function(id) {
+  if (!Auth.currentUser) return AuthUI.open();
+  const svc = DB.homeServices.find(s => s.id === id);
+  document.getElementById('modal-generic-body').innerHTML = `
+    <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+    <h3 style="margin:0 0 4px;font-weight:900;">${svc.name}</h3>
+    <p style="margin:0 0 16px;font-size:13px;color:var(--gray);">${svc.desc} • يبدأ من ${Utils.money(svc.price)}</p>
+    
+    <label style="font-size:12px; font-weight:900; display:block; margin-bottom:6px;">عنوان المنزل:</label>
+    <input type="text" id="home-address" class="input-field" placeholder="اكتب العنوان أو أرفق الموقع...">
+    <button onclick="GPSManager.fillLocation('home-address')" class="btn-ui" style="background:var(--sky); color:#fff; width:100%; justify-content:center; margin-bottom:12px; padding:10px;">
+      <i class="fa-solid fa-location-dot"></i> إرفاق موقع المنزل (GPS)
+    </button>
+
+    <textarea id="home-notes" class="input-field" placeholder="وصف المشكلة (اختياري)" rows="2"></textarea>
+    
+    <button onclick="HomeServicesSector.confirm('${id}')" class="btn-action" style="width:100%;">تأكيد الطلب</button>
+  `;
+  Utils.openModal('modal-generic');
+};
+</script>
+<!-- ============ PART 46/47 END ============ -->
+  <!-- ============ PART 47/47 START ============ -->
+<script>
+// إعادة رسم الهيدر عند التحميل لضمان ظهور التابات
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => { UI.renderHeader(); }, 200);
+});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(() => UI.renderHeader(), 200);
+}
+</script>
 </body>
 </html>
-<!-- ============ PART 43/43 END — الملف كامل الآن ============ -->
+<!-- ============ PART 47/47 END — الملف كامل الآن ============ -->
