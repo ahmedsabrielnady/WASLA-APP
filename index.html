@@ -4143,6 +4143,99 @@ PatientDashboard.render = function() {
   }
 };
 </script>
+<!-- ============ PART 51/51 END — الملف كامل الآن ============ -->
+<!-- ============ PART 52/54 START ============ -->
+<script>
+// إعادة تعريف واجهة دفع العربون لإزالة خيار "كاش"
+DepositPaymentModule.open = function(amount, onSuccess) {
+    DepositPaymentModule._onSuccess = onSuccess;
+    
+    // تم إزالة "كاش" من الخيارات لأن العربون يدفع مقدماً
+    const methods = [
+      {id: 'card', name: 'بطاقة ائتمانية', icon: 'fa-credit-card', desc: 'فيزا / ماستر كارد'},
+      {id: 'wallet', name: 'محفظة إلكترونية', icon: 'fa-wallet', desc: 'فودافون كاش / إتصالات'},
+      {id: 'instapay', name: 'إنستاباي', icon: 'fa-bolt', desc: 'تحويل بنكي فوري'}
+    ];
+
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div style="text-align:center; margin-bottom: 20px;">
+        <div style="width:60px; height:60px; background:var(--amber-light); color:var(--amber); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; margin:0 auto 12px;">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 style="margin:0; font-weight:900;">تأكيد دفع العربون</h3>
+        <p style="margin:4px 0 0; font-size:13px; color:var(--gray);">مطلوب دفع عربون جدية بقيمة <strong style="color:var(--emerald); font-size:18px;">${Utils.money(amount)}</strong></p>
+        <p style="margin:8px 0 0; font-size:11px; color:var(--danger); font-weight:700;">⚠️ العربون يُدفع مقدماً ولا يمكن اختيار "الدفع عند الاستلام"</p>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px; color:var(--primary);">اختر طريقة دفع العربون:</label>
+        ${methods.map((m, i) => `
+          <label class="pay-option ${i===0?'selected':''}" onclick="DepositPaymentModule.select(this, '${m.id}')">
+            <input type="radio" name="deposit-method" value="${m.id}" ${i===0?'checked':''}>
+            <div style="flex:1;">
+              <div style="font-size:13px; font-weight:900; color:var(--primary);"><i class="fa-solid ${m.icon}" style="color:var(--emerald); margin-left:4px;"></i> ${m.name}</div>
+              <div style="font-size:10px; color:var(--gray); margin-top:2px;">${m.desc}</div>
+            </div>
+          </label>
+        `).join('')}
+      </div>
+
+      <button onclick="DepositPaymentModule.confirm(${amount})" class="btn-action" style="width:100%; padding:14px; font-size:15px;">
+        <i class="fa-solid fa-lock"></i> دفع العربون ${Utils.money(amount)}
+      </button>
+    `;
+    Utils.openModal('modal-generic');
+};
+console.log('✅ Deposit Payment UI updated (Cash removed)');
+</script>
+<!-- ============ PART 52/54 END ============ -->
+  <!-- ============ PART 53/54 START ============ -->
+<script>
+// تعديل منطق حجز العيادة عشان يمنع "كاش" لو اختار "تقسيط"
+const _origMedicalConfirmForInstallment = MedicalModule.confirmBooking;
+MedicalModule.confirmBooking = function(docId) {
+    const user = Auth.currentUser;
+    if (!user) return AuthUI.open();
+
+    const doc = DB.doctors.find(d => d.id === docId);
+    const amount = doc.price;
+    const deposit = FraudProtection.getRequiredDeposit(user, amount, 'medical');
+
+    // فحص طريقة الدفع المختارة (لو كانت تقسيط، مينفعش كاش)
+    const payMethodRadio = document.querySelector('input[name="paymethod"]:checked');
+    const selectedPayMethod = payMethodRadio ? payMethodRadio.value : 'cash';
+
+    if (selectedPayMethod === 'installment') {
+        Utils.toast('⚠️ الدفع بالتقسيط غير متاح مع الدفع عند الاستلام. يرجى اختيار الدفع المقدم.', true);
+        return; // إيقاف العملية
+    }
+
+    const proceed = () => {
+        _origMedicalConfirmForInstallment.apply(MedicalModule, arguments);
+        FraudProtection.recordSuccess(user.id);
+    };
+
+    if (deposit > 0) {
+        DepositPaymentModule.open(deposit, proceed);
+    } else {
+        if (!confirm(`طلبك الأول معفى من العربون.\nإذا لم يتم إلغاء الحجز وفقاً للشروط، سيُطبق عربون إجباري على طلبك القادم.\n\nهل توافق؟`)) return;
+        proceed();
+    }
+};
+console.log('✅ Installment logic fixed (Cash blocked)');
+</script>
+<!-- ============ PART 53/54 END ============ -->
+  <!-- ============ PART 54/54 START ============ -->
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => { UI.renderHeader(); }, 200);
+});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(() => UI.renderHeader(), 200);
+}
+</script>
 </body>
 </html>
-<!-- ============ PART 51/51 END — الملف كامل الآن ============ -->
+<!-- ============ PART 54/54 END — الملف كامل الآن ============ -->
