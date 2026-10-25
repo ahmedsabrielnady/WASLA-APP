@@ -3943,6 +3943,181 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
   setTimeout(() => UI.renderHeader(), 200);
 }
 </script>
+<!-- ============ PART 47/47 END — الملف كامل الآن ============ -->
+<!-- ============ PART 48/50 START ============ -->
+<script>
+// إعادة كتابة دالة حساب العربون بشكل صارم جداً
+FraudProtection.getRequiredDeposit = function(user, amount, sector) {
+    if (!user) return 0;
+    
+    const numAmount = Number(amount);
+    const successfulOrders = user.successfulOrders || 0;
+
+    // 1. المستخدم الموثوق (3 طلبات ناجحة أو أكتر): إعفاء كامل
+    if (successfulOrders >= 3) {
+        return 0;
+    }
+
+    // 2. العيادات
+    if (sector === 'medical') {
+        // أول حجز: 0. تاني حجز وطالع: 25%
+        return successfulOrders === 0 ? 0 : Math.round(numAmount * 0.25);
+    } 
+    
+    // 3. باقي القطاعات (سوبر ماركت، سيارات، صيانة)
+    // أول طلب: لو أكبر من 300، عربون 20%. لو أقل، 0.
+    // تاني طلب وطالع: عربون 20% مهما كان المبلغ.
+    if (successfulOrders === 0) {
+        return numAmount > 300 ? Math.round(numAmount * 0.20) : 0;
+    }
+    
+    return Math.round(numAmount * 0.20);
+};
+
+// تعديل رسالة التأكيد عشان تبان صح لو المستخدم موثوق
+const _origGroceryConfirmCartFixed = GrocerySector.confirmOrder;
+GrocerySector.confirmOrder = function(storeId, total) {
+    const user = Auth.currentUser;
+    const address = document.getElementById('grocery-address').value.trim();
+    if (!address) return Utils.toast('يرجى إدخال عنوان التوصيل أو إرفاق الموقع', true);
+
+    const deposit = FraudProtection.getRequiredDeposit(user, total, 'grocery');
+    const successfulOrders = user.successfulOrders || 0;
+
+    const finalizeOrder = () => {
+        const store = DB.groceryStores.find(s => s.id === storeId);
+        DB.orders = DB.orders || [];
+        DB.orders.push({
+          id: Utils.id(), userId: user.id, sector: 'grocery', storeId, storeName: store.name,
+          items: [...GrocerySector.cart], total, address, status: 'pending', ts: Date.now()
+        });
+        saveDB();
+        GrocerySector.cart = [];
+        Utils.closeModal('modal-generic');
+        Utils.toast('✅ تم استلام طلبك! جاري التحضير...');
+        router.navigate('home');
+        FraudProtection.recordSuccess(user.id);
+    };
+
+    if (deposit > 0) {
+        // يفتح شاشة الدفع بالعربون
+        DepositPaymentModule.open(deposit, finalizeOrder);
+    } else {
+        // رسالة حسب حالة المستخدم
+        let msg = '';
+        if (successfulOrders >= 3) {
+            msg = `أهلاً بك مجدداً!\nأنت مستخدم موثوق، لذا لا يوجد عربون.\nهل توافق؟`;
+        } else {
+            msg = `طلبك الأول معفى من العربون (أقل من 300ج).\nإذا لم يتم استلامه، سيُطبق عربون إجباري على طلبك القادم.\nهل توافق؟`;
+        }
+        
+        if (!confirm(msg)) return;
+        finalizeOrder();
+    }
+};
+
+// 🔥 أمر سحري لتصفير حسابك وتجربة العربون من الأول
+window.resetMyFraudTest = () => {
+    if(!Auth.currentUser) return alert('سجل دخول الأول');
+    const u = DB.users.find(x => x.id === Auth.currentUser.id);
+    u.successfulOrders = 0;
+    u.cancellations = 0;
+    saveDB();
+    Auth.currentUser = u;
+    sessionStorage.setItem('wasla_session', JSON.stringify(u));
+    Utils.toast('🔄 تم تصفير سجلك بنجاح! جرب تعمل طلب فوق 300ج دلوقتي.');
+};
+console.log('✅ Deposit Logic Fixed & resetMyFraudTest() added');
+</script>
+<!-- ============ PART 48/50 END ============ -->
+<!-- ============ PART 49/50 START ============ -->
+<script>
+// إعادة تصميم واجهة دفع العربون لتكون فخمة وواضحة
+DepositPaymentModule.open = function(amount, onSuccess) {
+    DepositPaymentModule._onSuccess = onSuccess;
+    
+    const methods = [
+      {id: 'cash', name: 'كاش', icon: 'fa-money-bill-wave', desc: 'ادفع للفني عند الاستلام'},
+      {id: 'card', name: 'بطاقة ائتمانية', icon: 'fa-credit-card', desc: 'فيزا / ماستر كارد'},
+      {id: 'wallet', name: 'محفظة إلكترونية', icon: 'fa-wallet', desc: 'فودافون كاش / إتصالات'},
+      {id: 'instapay', name: 'إنستاباي', icon: 'fa-bolt', desc: 'تحويل بنكي فوري'}
+    ];
+
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div style="text-align:center; margin-bottom: 20px;">
+        <div style="width:60px; height:60px; background:var(--amber-light); color:var(--amber); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; margin:0 auto 12px;">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 style="margin:0; font-weight:900;">تأكيد العربون</h3>
+        <p style="margin:4px 0 0; font-size:13px; color:var(--gray);">مطلوب دفع عربون جدية بقيمة <strong style="color:var(--emerald); font-size:18px;">${Utils.money(amount)}</strong></p>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px; color:var(--primary);">اختر طريقة الدفع:</label>
+        ${methods.map((m, i) => `
+          <label class="pay-option ${i===0?'selected':''}" onclick="DepositPaymentModule.select(this, '${m.id}')">
+            <input type="radio" name="deposit-method" value="${m.id}" ${i===0?'checked':''}>
+            <div style="flex:1;">
+              <div style="font-size:13px; font-weight:900; color:var(--primary);"><i class="fa-solid ${m.icon}" style="color:var(--emerald); margin-left:4px;"></i> ${m.name}</div>
+              <div style="font-size:10px; color:var(--gray); margin-top:2px;">${m.desc}</div>
+            </div>
+          </label>
+        `).join('')}
+      </div>
+
+      <button onclick="DepositPaymentModule.confirm(${amount})" class="btn-action" style="width:100%; padding:14px; font-size:15px;">
+        <i class="fa-solid fa-check"></i> تأكيد ودفع ${Utils.money(amount)}
+      </button>
+    `;
+    Utils.openModal('modal-generic');
+};
+</script>
+<!-- ============ PART 49/50 END ============ -->
+  <!-- ============ PART 50/50 START ============ -->
+<script>
+// إصلاح مشكلة الرئيسية لما تدوس عليها
+const _finalNavigateFixed = router.navigate;
+router.navigate = function(sector, data) {
+    if (sector === 'home') {
+        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        
+        let view = document.getElementById('view-home');
+        if (!view) {
+            view = document.createElement('section');
+            view.id = 'view-home';
+            view.className = 'view-section active';
+            document.getElementById('main-container').appendChild(view);
+        } else {
+            view.classList.add('active');
+        }
+        
+        const tab = document.querySelector('.tab[data-sector="home"]');
+        if (tab) tab.classList.add('active');
+        
+        // تشغيل لوحة التحكم
+        if (typeof HomeDashboard !== 'undefined') {
+            HomeDashboard.render();
+        } else {
+            view.innerHTML = `<h2 class="section-title">أهلاً بك في وصلة</h2>`;
+        }
+        
+        window.scrollTo(0,0);
+        return;
+    }
+    _finalNavigateFixed.call(router, sector, data);
+};
+
+// إعادة رسم الهيدر لضمان ظهور الأزرار
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => { UI.renderHeader(); }, 200);
+});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(() => UI.renderHeader(), 200);
+}
+</script>
 </body>
 </html>
-<!-- ============ PART 47/47 END — الملف كامل الآن ============ -->
+<!-- ============ PART 50/50 END — الملف كامل الآن ============ -->
