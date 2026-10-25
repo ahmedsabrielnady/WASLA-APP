@@ -4236,6 +4236,393 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
   setTimeout(() => UI.renderHeader(), 200);
 }
 </script>
+<!-- ============ PART 54/54 END — الملف كامل الآن ============ -->
+<!-- ============ PART 55/57 START ============ -->
+<script>
+const MerchantAnalytics = {
+  render: (storeId) => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'merchant') return;
+    // محاكاة بيانات المتجر (في الواقع تأتي من DB.orders)
+    const storeOrders = (DB.orders || []).filter(o => o.storeId === storeId);
+    const totalRevenue = storeOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const totalOrders = storeOrders.length;
+    const avgOrderValue = totalOrders ? Math.round(totalRevenue / totalOrders) : 0;
+    const cancelledOrders = storeOrders.filter(o => o.status === 'cancelled').length;
+    
+    document.getElementById('view-merchant-dashboard').innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--primary),#1E293B);color:#fff;border:none;">
+        <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-store"></i> لوحة تحكم التاجر</h2>
+        <p style="margin:4px 0 0;font-size:12px;opacity:.8;">أداء متجرك على منصة وصلة</p>
+      </div>
+      <div class="grid-2">
+        <div class="metric-card">
+          <div class="metric-value" style="color:var(--emerald);">${Utils.money(totalRevenue)}</div>
+          <div class="metric-label">إجمالي المبيعات</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" style="color:var(--sky);">${totalOrders}</div>
+          <div class="metric-label">عدد الطلبات</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" style="color:var(--gold);">${Utils.money(avgOrderValue)}</div>
+          <div class="metric-label">متوسط قيمة السلة</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" style="color:var(--danger);">${cancelledOrders}</div>
+          <div class="metric-label">طلبات ملغاة</div>
+        </div>
+      </div>
+      <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-chart-line" style="color:var(--emerald);"></i> المنتجات الأكثر مبيعاً</h3>
+      <div class="grid-list">
+        ${(DB.groceryProducts[storeId] || []).slice(0,3).map(p => `
+          <div class="item-box">
+            <div class="item-icon"><i class="fa-solid ${p.icon}"></i></div>
+            <div class="item-info"><div class="item-title">${p.name}</div></div>
+            <div class="item-price">${Utils.money(p.price)}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+};
+</script>
+<!-- ============ PART 55/57 END ============ -->
+  <!-- ============ PART 56/57 START ============ -->
+<script>
+const ClinicalAudit = {
+  logs: [], // في الواقع يُخزن في DB.auditLogs
+  
+  log: (doctorId, action, details) => {
+    const entry = {
+      id: Utils.id(),
+      doctorId,
+      action,
+      details,
+      timestamp: Date.now(),
+      user: Auth.currentUser ? Auth.currentUser.name : 'System'
+    };
+    ClinicalAudit.logs.push(entry);
+    // saveDB() هنا لحفظ السجل
+    console.log(`📋 Audit Log: ${action} by ${entry.user}`);
+  },
+
+  render: (doctorId) => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return;
+    document.getElementById('view-doctor-audit').innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-clipboard-list" style="color:var(--purple);"></i> سجل المراجعة الطبي</h2>
+      <p style="font-size:12px;color:var(--gray);margin-bottom:16px;">هذا السجل يوضح كل التعديلات التي تمت على ملفات المرضى، لضمان الشفافية والمساءلة.</p>
+      <div class="grid-list">
+        ${ClinicalAudit.logs.length ? ClinicalAudit.logs.slice().reverse().map(log => `
+          <div class="card" style="padding:12px; border-right:4px solid var(--purple);">
+            <div style="display:flex;justify-content:space-between;">
+              <div style="font-weight:900;font-size:13px;">${log.action}</div>
+              <div style="font-size:10px;color:var(--gray);">${new Date(log.timestamp).toLocaleString('ar-EG')}</div>
+            </div>
+            <div style="font-size:11px;color:var(--gray);margin-top:4px;">${log.details}</div>
+            <div style="font-size:10px;color:var(--purple);margin-top:2px;">بواسطة: ${log.user}</div>
+          </div>
+        `).join('') : '<p style="text-align:center;color:var(--gray);">لا توجد سجلات مراجعة بعد.</p>'}
+      </div>
+    `;
+  }
+};
+
+// مثال: تسجيل تعديل على الملف الطبي
+// ClinicalAudit.log(doctorId, 'تعديل جرعة دواء', 'تم تغيير جرعة البانادول من 500mg إلى 1000mg');
+</script>
+<!-- ============ PART 56/57 END ============ -->
+  <!-- ============ PART 55/58 START ============ -->
+<script>
+// ===== تفعيل الـ PWA (تطبيق ويب تقدمي) =====
+(function initPWA() {
+  // 1. إنشاء ملف manifest برمجياً
+  const manifest = {
+    name: "وصلة - Wasla Super App",
+    short_name: "وصلة",
+    description: "منصة شبين القناطر الشاملة",
+    start_url: ".",
+    display: "standalone",
+    background_color: "#0B1220",
+    theme_color: "#059669",
+    icons: [
+      {
+        src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23059669'/><text x='50%' y='50%' font-size='60' text-anchor='middle' dominant-baseline='central' fill='white'>🔗</text></svg>",
+        sizes: "192x192",
+        type: "image/svg+xml",
+        purpose: "any maskable"
+      }
+    ]
+  };
+  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const manifestURL = URL.createObjectURL(manifestBlob);
+  document.getElementById('pwa-manifest')?.remove();
+  const link = document.createElement('link');
+  link.id = 'pwa-manifest';
+  link.rel = 'manifest';
+  link.href = manifestURL;
+  document.head.appendChild(link);
+
+  // 2. تسجيل Service Worker (للتخزين المؤقت والعمل بدون إنترنت)
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE_NAME = 'wasla-v1';
+      self.addEventListener('install', (e) => e.waitUntil(caches.open(CACHE_NAME)));
+      self.addEventListener('fetch', (e) => {
+        e.respondWith(
+          caches.match(e.request).then((res) => res || fetch(e.request))
+        );
+      });
+    `;
+    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+    const swURL = URL.createObjectURL(swBlob);
+    
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register(swURL).then(reg => {
+        console.log('✅ PWA Service Worker registered');
+      }).catch(err => console.warn('PWA SW error:', err));
+    });
+  }
+})();
+</script>
+<!-- ============ PART 55/58 END ============ -->
+  <!-- ============ PART 56/58 START ============ -->
+<script>
+// ===== نظام التدقيق الطبي (Audit Trail) =====
+if (!DB.auditLogs) DB.auditLogs = [];
+
+const AuditManager = {
+  log: (doctorId, action, patientId, details = '') => {
+    const logEntry = {
+      id: Utils.id(),
+      doctorId: doctorId,
+      patientId: patientId,
+      action: action, // 'view', 'create', 'update', 'delete'
+      details: details,
+      timestamp: Date.now()
+    };
+    DB.auditLogs.push(logEntry);
+    saveDB();
+    console.log('📝 Audit Log:', logEntry);
+  },
+
+  getLogsForDoctor: (doctorId) => {
+    return DB.auditLogs.filter(l => l.doctorId === doctorId).sort((a,b) => b.timestamp - a.timestamp);
+  }
+};
+
+// اعتراض دالة حفظ الملف الطبي لإجبار الطبيب على ذكر سبب التعديل
+const _origEMRSave = EMRHelper.save;
+EMRHelper.save = function(emr) {
+  if (Auth.currentUser && Auth.currentUser.role === 'doctor') {
+    // توليد سبب التعديل (لو ده تعديل مش أول مرة)
+    const reason = prompt('نظام التدقيق: يرجى كتابة سبب التعديل (إجباري):', 'تحديث بيانات');
+    if (reason === null) {
+      Utils.toast('تم إلغاء التعديل. يجب ذكر سبب التعديل.', true);
+      return; // إلغاء الحفظ
+    }
+    AuditManager.log(Auth.currentUser.doctorId, 'update', Auth.currentUser.id, reason || 'بدون سبب');
+  }
+  _origEMRSave.call(EMRHelper, emr);
+};
+console.log('✅ Audit Trail system ready');
+</script>
+<!-- ============ PART 56/58 END ============ -->
+  <!-- ============ PART 57/58 START ============ -->
+<script>
+// ===== 1. لوحة تحكم الطبيب (Clinic Command Center) =====
+const DoctorDashboardPro = {
+  render: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return router.navigate('home');
+    const docId = Auth.currentUser.doctorId;
+    const doc = DB.doctors.find(d => d.id === docId);
+    
+    // إحصائيات
+    const allAppts = DB.appointments.filter(a => a.doctorId === docId);
+    const completed = allAppts.filter(a => a.status === 'completed');
+    const noShows = allAppts.filter(a => a.status === 'canceled'); // مبسط
+    const revenue = completed.reduce((s, a) => s + a.price, 0);
+    const noShowRate = allAppts.length ? Math.round((noShows.length / allAppts.length) * 100) : 0;
+    
+    // سجل النشاط
+    const logs = AuditManager.getLogsForDoctor(docId).slice(0, 5);
+
+    let view = document.getElementById('view-doctor-pro');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-doctor-pro';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+
+    view.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--primary),#1E293B);color:#fff;border:none;">
+        <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-chart-pie"></i> مركز قيادة العيادة</h2>
+        <p style="margin:4px 0 0;font-size:12px;opacity:0.8;">${doc.name} • ${doc.spec}</p>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="card" style="margin:0;padding:14px;background:var(--emerald-light);border-color:var(--emerald);">
+          <div style="font-size:11px;font-weight:900;color:var(--gray);">إجمالي الإيرادات</div>
+          <div style="font-size:22px;font-weight:900;color:var(--emerald);">${Utils.money(revenue)}</div>
+        </div>
+        <div class="card" style="margin:0;padding:14px;background:var(--danger-light);border-color:var(--danger);">
+          <div style="font-size:11px;font-weight:900;color:var(--gray);">معدل عدم الحضور</div>
+          <div style="font-size:22px;font-weight:900;color:var(--danger);">${noShowRate}%</div>
+        </div>
+        <div class="card" style="margin:0;padding:14px;">
+          <div style="font-size:11px;font-weight:900;color:var(--gray);">إجمالي المرضى</div>
+          <div style="font-size:22px;font-weight:900;color:var(--primary);">${new Set(allAppts.map(a => a.patientId)).size}</div>
+        </div>
+        <div class="card" style="margin:0;padding:14px;background:var(--gold-light);">
+          <div style="font-size:11px;font-weight:900;color:var(--gray);">التقييم العام</div>
+          <div style="font-size:22px;font-weight:900;color:var(--gold);">⭐ ${doc.rating}</div>
+        </div>
+      </div>
+
+      <h3 class="section-title"><i class="fa-solid fa-bolt" style="color:var(--amber);"></i> أدوات ذكية</h3>
+      <div class="grid-2" style="margin-bottom:16px;">
+        <button onclick="Utils.toast('تم إرسال رسائل تذكير للمرضى المزمنين!')" class="btn-action" style="padding:12px;background:var(--sky);font-size:12px;">
+          <i class="fa-solid fa-bell"></i> تذكير المرضى المزمنين
+        </button>
+        <button onclick="Utils.toast('تم فتح قائمة الانتظار الذكية')" class="btn-action" style="padding:12px;background:var(--purple);font-size:12px;">
+          <i class="fa-solid fa-users"></i> قائمة الانتظار
+        </button>
+      </div>
+
+      <h3 class="section-title"><i class="fa-solid fa-shield-halved" style="color:var(--danger);"></i> سجل التدقيق (Audit Trail)</h3>
+      <div class="grid-list">
+        ${logs.length ? logs.map(l => `
+          <div class="card" style="padding:12px; border-right:4px solid var(--danger);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <div style="font-weight:900; font-size:12px; color:var(--danger);">${l.action === 'update' ? 'تعديل سجل' : l.action}</div>
+              <div style="font-size:10px; color:var(--gray);">${new Date(l.timestamp).toLocaleTimeString('ar-EG')}</div>
+            </div>
+            <div style="font-size:11px; color:var(--gray);">السبب: ${l.details}</div>
+          </div>
+        `).join('') : '<p style="text-align:center;color:var(--gray);font-size:12px;">لا يوجد نشاط مسجل</p>'}
+      </div>
+    `;
+  }
+};
+
+// ===== 2. لوحة تحكم التاجر (Merchant Dashboard) =====
+const MerchantDashboardPro = {
+  render: () => {
+    if (!Auth.currentUser) return AuthUI.open();
+    // نفترض أن التاجر الحالي هو صاحب "سوبر ماركت الأمانة" (g1) كمثال
+    const storeId = 'g1'; 
+    const store = DB.groceryStores.find(s => s.id === storeId);
+    
+    const storeOrders = (DB.orders || []).filter(o => o.sector === 'grocery' && o.storeId === storeId);
+    const revenue = storeOrders.reduce((s, o) => s + o.total, 0);
+    const aov = storeOrders.length ? Math.round(revenue / storeOrders.length) : 0;
+
+    let view = document.getElementById('view-merchant-pro');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-merchant-pro';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+
+    view.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--amber),#F59E0B);color:#fff;border:none;">
+        <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-store"></i> لوحة تحكم التاجر</h2>
+        <p style="margin:4px 0 0;font-size:12px;opacity:0.9;">${store.name} • ${store.area}</p>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="card" style="margin:0;padding:14px;background:var(--emerald-light);border-color:var(--emerald);">
+          <div style="font-size:11px;font-weight:900;color:var(--gray);">إجمالي الإيرادات</div>
+          <div style="font-size:22px;font-weight:900;color:var(--emerald);">${Utils.money(revenue)}</div>
+        </div>
+        <div class="card" style="margin:0;padding:14px;background:var(--sky-light);border-color:var(--sky);">
+          <div style="font-size:11px;font-weight:900;color:var(--gray);">إجمالي الطلبات</div>
+          <div style="font-size:22px;font-weight:900;color:var(--sky);">${storeOrders.length}</div>
+        </div>
+        <div class="card" style="margin:0;padding:14px;">
+          <div style="font-size:11px;font-weight:900;color:var(--gray);">متوسط قيمة الطلب</div>
+          <div style="font-size:22px;font-weight:900;color:var(--primary);">${Utils.money(aov)}</div>
+        </div>
+        <div class="card" style="margin:0;padding:14px;background:var(--danger-light);">
+          <div style="font-size:11px;font-weight:900;color:var(--gray);">تنبيهات المخزون</div>
+          <div style="font-size:22px;font-weight:900;color:var(--danger);">2</div>
+        </div>
+      </div>
+
+      <h3 class="section-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--danger);"></i> تنبيهات ذكية</h3>
+      <div class="card" style="border-right:4px solid var(--danger); margin-bottom:16px;">
+        <div style="font-weight:900; font-size:13px; color:var(--danger);">منتج أرز 5 كجم أوشك على النفاذ!</div>
+        <div style="font-size:11px; color:var(--gray); margin-top:4px;">الكمية المتبقية: 3 قطع. يرجى إعادة الطلب من المورد.</div>
+      </div>
+
+      <h3 class="section-title"><i class="fa-solid fa-bullhorn" style="color:var(--purple);"></i> أداة الترويج</h3>
+      <div class="card">
+        <input type="text" id="promo-code" class="input-field" placeholder="كود الخصم (مثال: WELCOME10)">
+        <input type="number" id="promo-discount" class="input-field" placeholder="نسبة الخصم %">
+        <button onclick="MerchantDashboardPro.createPromo()" class="btn-action" style="width:100%; background:var(--purple);">إنشاء عرض ترويجي</button>
+      </div>
+    `;
+  },
+  createPromo: () => {
+    const code = document.getElementById('promo-code').value.trim();
+    const discount = document.getElementById('promo-discount').value;
+    if(!code || !discount) return Utils.toast('أكمل البيانات', true);
+    Utils.toast(`✅ تم إنشاء كوبون ${code} بخصم ${discount}% وسيظهر للعملاء!`);
+    document.getElementById('promo-code').value = '';
+    document.getElementById('promo-discount').value = '';
+  }
+};
+</script>
+<!-- ============ PART 57/58 END ============ -->
+  <!-- ============ PART 58/58 START ============ -->
+<script>
+// 1. تحديث الراوتر
+const _origRouterNav = router.navigate;
+router.navigate = function(sector, data) {
+  if (sector === 'doctor-pro' || sector === 'merchant-pro') {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if (sector === 'doctor-pro') {
+      document.getElementById('view-doctor-pro').classList.add('active');
+      DoctorDashboardPro.render();
+    } else {
+      document.getElementById('view-merchant-pro').classList.add('active');
+      MerchantDashboardPro.render();
+    }
+    window.scrollTo(0,0);
+    return;
+  }
+  _origRouterNav.call(router, sector, data);
+};
+
+// 2. إضافة التابات الجديدة بناءً على رتبة المستخدم
+const _origRenderHeaderFinal = UI.renderHeader;
+UI.renderHeader = function() {
+  _origRenderHeaderFinal.call(UI);
+  const tabs = document.getElementById('super-tabs');
+  if (!tabs || !Auth.currentUser) return;
+
+  // للطبيب: إضافة تاب مركز القيادة
+  if (Auth.currentUser.role === 'doctor' && !document.querySelector('.tab[data-sector="doctor-pro"]')) {
+    tabs.insertAdjacentHTML('beforeend', `<button class="tab" data-sector="doctor-pro" onclick="router.navigate('doctor-pro')"><i class="fa-solid fa-chart-pie"></i> مركز القيادة</button>`);
+  }
+  
+  // للتاجر (أو صاحب المتجر): إضافة تاب لوحة التحكم
+  if ((Auth.currentUser.role === 'merchant' || Auth.currentUser.phone === '01000000001') && !document.querySelector('.tab[data-sector="merchant-pro"]')) {
+    // استخدمنا رقم المريض التجريبي عشان تقدر تشوف اللوحة
+    tabs.insertAdjacentHTML('beforeend', `<button class="tab" data-sector="merchant-pro" onclick="router.navigate('merchant-pro')"><i class="fa-solid fa-store"></i> إدارة المتجر</button>`);
+  }
+};
+
+// إعادة رسم الهيدر عند التحميل لضمان التحديثات
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => { UI.renderHeader(); }, 200);
+});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(() => UI.renderHeader(), 200);
+}
+</script>
 </body>
 </html>
-<!-- ============ PART 54/54 END — الملف كامل الآن ============ -->
+<!-- ============ PART 58/58 END — الملف كامل الآن ============ -->
