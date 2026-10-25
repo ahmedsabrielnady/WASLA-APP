@@ -2375,6 +2375,274 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 
 console.log('✅ New sectors (Cars, Marketing, Home Services) loaded successfully');
 </script>
+<!-- ============ PART 17/17 END — الملف كامل الآن ============ -->
+<!-- ============ PART 18/22 START ============ -->
+<script>
+// ===== SEED: قطاع السوبر ماركت (البقالة) =====
+(function seedGrocery() {
+  if (!DB.groceryStores) {
+    DB.groceryStores = [
+      {id:'g1', name:'سوبر ماركت الأمانة', area:'بورسعيد', rating:4.8, deliveryTime:'25-40 دقيقة', minOrder:50, icon:'fa-store', color:'var(--emerald)'},
+      {id:'g2', name:'هايبر السعادة', area:'المحطة', rating:4.6, deliveryTime:'30-50 دقيقة', minOrder:80, icon:'fa-cart-shopping', color:'var(--sky)'},
+      {id:'g3', name:'مخبز وماركت النور', area:'شارع الجيش', rating:4.9, deliveryTime:'15-25 دقيقة', minOrder:30, icon:'fa-bread-slice', color:'var(--amber)'}
+    ];
+    saveDB();
+  }
+  if (!DB.groceryProducts) {
+    DB.groceryProducts = {
+      g1: [
+        {id:'p1', name:'أرز مصري 5 كجم', price:180, icon:'fa-bowl-rice'},
+        {id:'p2', name:'زيت عافية 2 لتر', price:210, icon:'fa-bottle-water'},
+        {id:'p3', name:'شاي العروسة 250 جم', price:95, icon:'fa-mug-hot'},
+        {id:'p4', name:'سكر 1 كجم', price:35, icon:'fa-cube'},
+        {id:'p5', name:'جبنة رومي 500 جم', price:120, icon:'fa-cheese'}
+      ],
+      g2: [
+        {id:'p6', name:'لبن جهينة 1 لتر', price:45, icon:'fa-cow'},
+        {id:'p7', name:'بيض 30 بيضة', price:160, icon:'fa-egg'},
+        {id:'p8', name:'دقيق فاخر 1 كجم', price:40, icon:'fa-wheat-awn'},
+        {id:'p9', name:'مكرونة إيطالية 400 جم', price:28, icon:'fa-utensils'}
+      ],
+      g3: [
+        {id:'p10', name:'عيش فينو (10 قطع)', price:15, icon:'fa-bread-slice'},
+        {id:'p11', name:'كرواسون بالشوكولاتة', price:25, icon:'fa-cookie'},
+        {id:'p12', name:'كيك عسل', price:60, icon:'fa-cake-candles'}
+      ]
+    };
+    saveDB();
+  }
+})();
+</script>
+<!-- ============ PART 18/22 END ============ -->
+  <!-- ============ PART 19/22 START ============ -->
+<script>
+const GrocerySector = {
+  currentStore: null,
+  cart: [],
+  
+  render: () => {
+    let view = document.getElementById('view-grocery');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-grocery';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+    view.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--emerald),#10B981);color:#fff;border:none;">
+        <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-basket-shopping"></i> سوبر ماركت وتسوق</h2>
+        <p style="margin:4px 0 0;font-size:12px;opacity:.9;">طلبك هيوصلك لحد باب البيت</p>
+      </div>
+      <div class="grid-list">
+        ${DB.groceryStores.map(s => `
+          <div class="card" onclick="GrocerySector.openStore('${s.id}')" style="cursor:pointer;padding:14px;display:flex;align-items:center;gap:12px;">
+            <div class="item-icon" style="background:var(--emerald-light);color:${s.color};"><i class="fa-solid ${s.icon}"></i></div>
+            <div style="flex:1;">
+              <h4 style="margin:0;font-weight:900;font-size:14px;">${s.name}</h4>
+              <div style="font-size:11px;color:var(--gray);">${s.area} • ⭐ ${s.rating} • ${s.deliveryTime}</div>
+              <div style="font-size:10px;color:var(--emerald);font-weight:900;">الحد الأدنى: ${Utils.money(s.minOrder)}</div>
+            </div>
+            <i class="fa-solid fa-chevron-left" style="color:var(--gray);"></i>
+          </div>
+        `).join('')}
+      </div>
+      <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-clock" style="color:var(--amber);"></i> طلباتي السابقة</h3>
+      <div class="grid-list">
+        ${(DB.orders || []).filter(o => Auth.currentUser && o.userId === Auth.currentUser.id && o.sector === 'grocery').map(o => `
+          <div class="card" style="padding:12px;border-right:4px solid var(--emerald);">
+            <div style="display:flex;justify-content:space-between;">
+              <div>
+                <div style="font-weight:900;font-size:13px;">${o.storeName}</div>
+                <div style="font-size:11px;color:var(--gray);">${o.items.length} منتج</div>
+              </div>
+              <div style="text-align:left;">
+                <div style="font-weight:900;color:var(--emerald);">${Utils.money(o.total)}</div>
+                <div style="font-size:10px;color:var(--amber);font-weight:900;">${o.status === 'pending' ? 'قيد التحضير' : o.status}</div>
+              </div>
+            </div>
+          </div>
+        `).join('') || '<p style="text-align:center;color:var(--gray);font-size:12px;">لا طلبات سابقة</p>'}
+      </div>
+    `;
+  },
+
+  openStore: (storeId) => {
+    GrocerySector.currentStore = storeId;
+    const store = DB.groceryStores.find(s => s.id === storeId);
+    const products = DB.groceryProducts[storeId] || [];
+    
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 4px;font-weight:900;">${store.name}</h3>
+      <p style="margin:0 0 16px;font-size:12px;color:var(--gray);">${store.area} • التوصيل ${store.deliveryTime}</p>
+      
+      <div class="grid-list" style="margin-bottom:16px;">
+        ${products.map(p => `
+          <div class="item-box" onclick="GrocerySector.addToCart('${p.id}', '${p.name}', ${p.price})" style="padding:10px;">
+            <div class="item-icon" style="width:36px;height:36px;font-size:14px;"><i class="fa-solid ${p.icon}"></i></div>
+            <div class="item-info"><div class="item-title">${p.name}</div></div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="font-weight:900;color:var(--emerald);">${Utils.money(p.price)}</div>
+              <button class="btn-action" style="padding:4px 8px;font-size:11px;"><i class="fa-solid fa-plus"></i></button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <button onclick="GrocerySector.checkout('${store.id}')" class="btn-action" style="width:100%;"><i class="fa-solid fa-cart-shopping"></i> إتمام الطلب</button>
+    `;
+    GrocerySector.cart = [];
+    Utils.openModal('modal-generic');
+  },
+
+  addToCart: (id, name, price) => {
+    GrocerySector.cart.push({id, name, price});
+    Utils.toast(`✓ تمت إضافة ${name}`);
+  },
+
+  checkout: (storeId) => {
+    if (GrocerySector.cart.length === 0) return Utils.toast('السلة فاضية', true);
+    const store = DB.groceryStores.find(s => s.id === storeId);
+    const total = GrocerySector.cart.reduce((sum, item) => sum + item.price, 0);
+    if (total < store.minOrder) return Utils.toast(`الحد الأدنى ${Utils.money(store.minOrder)}`, true);
+    
+    Utils.closeModal('modal-generic');
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px;font-weight:900;">تأكيد الطلب</h3>
+      <input type="text" id="grocery-address" class="input-field" placeholder="عنوان التوصيل بالتفصيل">
+      <input type="text" id="grocery-phone" class="input-field" placeholder="رقم الموبايل" value="${Auth.currentUser.phone}">
+      <div style="background:var(--gray-light);padding:12px;border-radius:10px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;font-weight:900;"><span>الإجمالي</span><span style="color:var(--emerald);">${Utils.money(total)}</span></div>
+      </div>
+      <button onclick="GrocerySector.confirmOrder('${storeId}', ${total})" class="btn-action" style="width:100%;">تأكيد واستلام (كاش)</button>
+    `;
+    Utils.openModal('modal-generic');
+  },
+
+  confirmOrder: (storeId, total) => {
+    const address = document.getElementById('grocery-address').value.trim();
+    if (!address) return Utils.toast('أدخل العنوان', true);
+    const store = DB.groceryStores.find(s => s.id === storeId);
+    
+    DB.orders = DB.orders || [];
+    DB.orders.push({
+      id: Utils.id(),
+      userId: Auth.currentUser.id,
+      sector: 'grocery',
+      storeId,
+      storeName: store.name,
+      items: [...GrocerySector.cart],
+      total,
+      address,
+      status: 'pending',
+      ts: Date.now()
+    });
+    saveDB();
+    GrocerySector.cart = [];
+    Utils.closeModal('modal-generic');
+    Utils.toast('✅ تم استلام طلبك! جاري التحضير...');
+    GrocerySector.render();
+  }
+};
+</script>
+<!-- ============ PART 19/22 END ============ -->
+  <!-- ============ PART 20/22 START ============ -->
+<script>
+// ===== تحسين نطق الصوت (طبيعي وليس روبوتي) =====
+const _origVoiceSpeak = VoiceReminder.speak;
+VoiceReminder.speak = function(text, urgent=false) {
+  if (!this.voiceEnabled) return;
+  if (!('speechSynthesis' in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    // تقسيم النص إلى جمل قصيرة للنطق الأكثر طبيعية
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    const voices = window.speechSynthesis.getVoices();
+    const arVoices = voices.filter(v => v.lang && v.lang.startsWith('ar'));
+    // تفضيل الأصوات الطبيعية (Google / Microsoft) إن وجدت
+    const bestVoice = arVoices.find(v => /Google|Microsoft|Samantha/i.test(v.name)) || arVoices[0] || null;
+
+    sentences.forEach((sentence, index) => {
+      if (!sentence.trim()) return;
+      const u = new SpeechSynthesisUtterance(sentence.trim());
+      u.lang = 'ar-EG';
+      // إبطاء السرعة قليلاً لتبدو أكثر واقعية
+      u.rate = urgent ? 1.0 : 0.9;
+      u.pitch = urgent ? 1.1 : 0.95;
+      u.volume = 1;
+      if (bestVoice) u.voice = bestVoice;
+      
+      // إضافة وقفة قصيرة بين الجمل (يتم التعامل معها بـ onend)
+      if (index > 0) {
+        // تأخير بسيط قبل بدء الجملة التالية
+        setTimeout(() => window.speechSynthesis.speak(u), 150);
+      } else {
+        window.speechSynthesis.speak(u);
+      }
+    });
+  } catch(e) { console.warn('Speech error:', e); }
+};
+
+// تحميل قائمة الأصوات مسبقاً
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+console.log('🔊 Voice quality improved');
+</script>
+<!-- ============ PART 20/22 END ============ -->
+  <!-- ============ PART 21/22 START ============ -->
+<script>
+// 1) تحديث التابات لتشمل "سوبر ماركت" بدلاً من "تسويق"
+const _origRenderHeaderG = UI.renderHeader;
+UI.renderHeader = function() {
+  _origRenderHeaderG.call(UI);
+  const tabs = document.getElementById('super-tabs');
+  if (!tabs) return;
+
+  // إزالة تاب التسويق القديم
+  const mktTab = document.querySelector('.tab[data-sector="marketing"]');
+  if (mktTab) mktTab.remove();
+
+  // إضافة تاب السوبر ماركت
+  if (!document.querySelector('.tab[data-sector="grocery"]')) {
+    const groceryTabHTML = `<button class="tab" data-sector="grocery" onclick="router.navigate('grocery')"><i class="fa-solid fa-basket-shopping"></i> سوبر ماركت</button>`;
+    const medTab = document.querySelector('.tab[data-sector="medical"]');
+    if (medTab) medTab.insertAdjacentHTML('afterend', groceryTabHTML);
+    else tabs.insertAdjacentHTML('beforeend', groceryTabHTML);
+  }
+};
+
+// 2) تحديث الراوتر لدعم القطاع الجديد
+const _origNavigateG = router.navigate;
+router.navigate = function(sector, data) {
+  if (sector === 'grocery') {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    let view = document.getElementById('view-grocery');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-grocery';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+    view.classList.add('active');
+    const tab = document.querySelector(`.tab[data-sector="grocery"]`);
+    if (tab) tab.classList.add('active');
+    GrocerySector.render();
+    window.scrollTo(0, 0);
+    return;
+  }
+  // التعامل مع القطاعات القديمة
+  _origNavigateG.call(router, sector, data);
+};
+
+// 3) إعادة تفعيل التابات بعد التحميل
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => UI.renderHeader(), 100);
+});
+</script>
 </body>
 </html>
-<!-- ============ PART 17/17 END — الملف كامل الآن ============ -->
+<!-- ============ PART 22/22 END — الملف كامل الآن ============ -->
+<!-- ============ PART 21/22 END ============ -->
