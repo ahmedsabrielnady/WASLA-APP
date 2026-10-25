@@ -4118,6 +4118,31 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
   setTimeout(() => UI.renderHeader(), 200);
 }
 </script>
+<!-- ============ PART 50/50 END — الملف كامل الآن ============ -->
+<!-- ============ PART 51/51 START ============ -->
+<script>
+// إضافة زرار تجريبي في صفحة "حسابي" لتصفير العداد (للموبايل)
+const _origPatientRenderForTesting = PatientDashboard.render;
+PatientDashboard.render = function() {
+  _origPatientRenderForTesting.call(PatientDashboard);
+  const view = document.getElementById('view-dashboard');
+  if (view && Auth.currentUser) {
+    // إضافة زرار التصفير تحت كارت الترحيب
+    const resetBtnHTML = `
+      <div class="card" style="border:2px dashed var(--danger); background:#FFF1F2; padding:12px; margin-bottom:16px;">
+        <div style="font-size:12px; font-weight:900; color:var(--danger); margin-bottom:8px;">
+          <i class="fa-solid fa-vial-circle-check"></i> مساحة التجربة (للمطورين)
+        </div>
+        <button onclick="window.resetMyFraudTest(); PatientDashboard.render();" class="btn-action" style="width:100%; background:var(--danger); font-size:12px; padding:10px;">
+          <i class="fa-solid fa-rotate-right"></i> تصفير سجلي (لإعادة تجربة العربون)
+        </button>
+      </div>
+    `;
+    // نحط الزرار قبل أول قسم في الصفحة
+    view.insertAdjacentHTML('afterbegin', resetBtnHTML);
+  }
+};
+</script>
 </body>
 </html>
-<!-- ============ PART 50/50 END — الملف كامل الآن ============ -->
+<!-- ============ PART 51/51 END — الملف كامل الآن ============ -->
