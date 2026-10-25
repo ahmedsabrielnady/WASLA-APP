@@ -1631,3 +1631,298 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <!-- ============ PART 10/13 END (مصحّح) ============ -->
+<!-- ============ PART 11/13 START ============ -->
+<script>
+const WaslaID = {
+  generate: (role) => {
+    const prefix = {patient:'P', doctor:'D', staff:'S', founder:'F'}[role] || 'P';
+    const num = Math.floor(100000 + Math.random() * 900000);
+    let sum = 0;
+    for (let c of num.toString()) sum += parseInt(c);
+    return `WASLA-${prefix}-${num}-${sum%10}`;
+  },
+  copy: (id) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(id).then(() => Utils.toast('✓ تم نسخ الرقم')).catch(() => Utils.toast('فشل النسخ', true));
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = id; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); Utils.toast('✓ تم نسخ الرقم'); } catch(e) { Utils.toast('فشل النسخ', true); }
+      ta.remove();
+    }
+  },
+  share: (id, name) => {
+    if (navigator.share) navigator.share({title:'رقمي في وصلة', text:`رقمي: ${id}\nالاسم: ${name}`}).catch(()=>{});
+    else WaslaID.copy(id);
+  },
+  getQR: (id) => `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(id)}&color=059669&bgcolor=ffffff`
+};
+
+const EMRHelper = {
+  migrate: (emr) => {
+    if (!emr) emr = {};
+    if (emr.allergies && Array.isArray(emr.allergies)) {
+      emr.allergies = emr.allergies.map(a => typeof a === 'string' ? {name:a, severity:'medium', reaction:'', addedAt:Date.now()} : a);
+    } else emr.allergies = [];
+    if (emr.chronic && Array.isArray(emr.chronic)) {
+      emr.chronic = emr.chronic.map(c => typeof c === 'string' ? {name:c, since:'', controlled:'unknown', addedAt:Date.now()} : c);
+    } else emr.chronic = [];
+    if (!emr.blood) emr.blood = 'غير محدد';
+    if (!emr.dob) emr.dob = '';
+    if (!emr.currentMeds) emr.currentMeds = [];
+    if (!emr.pastMeds) emr.pastMeds = [];
+    if (!emr.vitals) emr.vitals = [];
+    if (!emr.labs) emr.labs = [];
+    if (!emr.imaging) emr.imaging = [];
+    if (!emr.visitNotes) emr.visitNotes = [];
+    if (!emr.familyHistory) emr.familyHistory = [];
+    if (!emr.socialHistory) emr.socialHistory = {smoking:false, alcohol:false, exercise:'low'};
+    return emr;
+  },
+  save: (emr) => {
+    if (!Auth.currentUser) return;
+    Auth.currentUser.emr = emr;
+    const idx = DB.users.findIndex(u => u.id === Auth.currentUser.id);
+    if (idx >= 0) { DB.users[idx] = Auth.currentUser; saveDB(); sessionStorage.setItem('wasla_session', JSON.stringify(Auth.currentUser)); }
+  },
+  get: () => {
+    if (!Auth.currentUser) return null;
+    const emr = EMRHelper.migrate(Auth.currentUser.emr || {});
+    Auth.currentUser.emr = emr;
+    return emr;
+  }
+};
+
+(function migrateAll() {
+  let changed = false;
+  const newIdFormat = /^WASLA-[PDFS]-\d{6}-\d$/;
+  DB.users.forEach(u => {
+    if (u.emr) { const before = JSON.stringify(u.emr); u.emr = EMRHelper.migrate(u.emr); if (JSON.stringify(u.emr) !== before) changed = true; }
+    if (u.waslaId && !newIdFormat.test(u.waslaId)) { u.oldWaslaId = u.waslaId; u.waslaId = WaslaID.generate(u.role); changed = true; }
+  });
+  if (changed) {
+    saveDB();
+    if (Auth.currentUser) { const fresh = DB.users.find(x => x.id === Auth.currentUser.id); if (fresh) { Auth.currentUser = fresh; sessionStorage.setItem('wasla_session', JSON.stringify(fresh)); } }
+  }
+})();
+
+const EMRModule = {
+  activeTab: 'overview',
+  render: (tab) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    if (tab) EMRModule.activeTab = tab;
+    const u = Auth.currentUser;
+    const emr = EMRHelper.get();
+    const el = document.getElementById('view-emr');
+    if (!el) return;
+    const tabs = [
+      {id:'overview', name:'نظرة عامة', icon:'fa-eye'},
+      {id:'allergies', name:'حساسية ومزمن', icon:'fa-triangle-exclamation'},
+      {id:'meds', name:'أدوية', icon:'fa-pills'},
+      {id:'tests', name:'تحاليل', icon:'fa-vial'},
+      {id:'visits', name:'زيارات', icon:'fa-notes-medical'},
+      {id:'history', name:'تاريخ', icon:'fa-history'}
+    ];
+    el.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--emerald),#10B981);color:#fff;border:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-file-medical"></i> ملفي الطبي</h2><p style="margin:4px 0 0;font-size:12px;opacity:.9;">${u.name}</p></div>
+          <div style="text-align:center;background:rgba(255,255,255,.15);padding:6px 10px;border-radius:8px;"><div style="font-size:9px;opacity:.9;">رقمي</div><div style="font-size:10px;font-weight:900;">${u.waslaId}</div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;">
+        ${tabs.map(t => `<button class="chip ${EMRModule.activeTab===t.id?'active':''}" onclick="EMRModule.render('${t.id}')" style="white-space:nowrap;"><i class="fa-solid ${t.icon}"></i> ${t.name}</button>`).join('')}
+      </div>
+      <div id="emr-content">${EMRModule.renderTab(emr)}</div>
+    `;
+  },
+  renderTab: (emr) => {
+    const t = EMRModule.activeTab;
+    if (t === 'overview') return EMRModule.renderOverview(emr);
+    if (t === 'allergies') return EMRModule.renderAllergies(emr);
+    if (t === 'meds') return EMRModule.renderMeds(emr);
+    if (t === 'tests') return EMRModule.renderTests(emr);
+    if (t === 'visits') return EMRModule.renderVisits(emr);
+    if (t === 'history') return EMRModule.renderHistory(emr);
+    return '';
+  },
+  refresh: () => {
+    const emr = EMRHelper.get();
+    const c = document.getElementById('emr-content');
+    if (c) c.innerHTML = EMRModule.renderTab(emr);
+  },
+  renderOverview: (emr) => {
+    const activeMeds = emr.currentMeds.filter(m => m.active !== false);
+    return `
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="card" style="text-align:center;margin:0;padding:14px;background:var(--danger-light);border-color:var(--danger);cursor:pointer;" onclick="EMRModule.editBlood()">
+          <div style="font-size:10px;color:var(--gray);font-weight:900;">فصيلة الدم</div>
+          <div style="font-size:24px;font-weight:900;color:var(--danger);">${emr.blood}</div>
+        </div>
+        <div class="card" style="text-align:center;margin:0;padding:14px;background:var(--gray-light);"><div style="font-size:10px;color:var(--gray);font-weight:900;">الزيارات</div><div style="font-size:24px;font-weight:900;">${emr.visitNotes.length}</div></div>
+      </div>
+      ${emr.allergies.length ? `<div class="card" style="border-right:4px solid var(--danger);background:var(--danger-light);"><h4 style="margin:0 0 8px;color:var(--danger);font-weight:900;"><i class="fa-solid fa-triangle-exclamation"></i> تحذير حساسية</h4>${emr.allergies.map(a => `<div style="font-size:12px;font-weight:900;color:var(--danger);padding:4px 0;">⚠️ ${a.name}</div>`).join('')}</div>` : ''}
+      ${activeMeds.length ? `<div class="card"><h4 style="margin:0 0 8px;font-weight:900;"><i class="fa-solid fa-pills" style="color:var(--emerald);"></i> أدوية حالية</h4>${activeMeds.map(m => `<div style="font-size:12px;font-weight:700;padding:6px;background:var(--gray-light);border-radius:6px;margin-bottom:4px;">💊 ${m.name} - ${m.dose}</div>`).join('')}</div>` : ''}
+    `;
+  },
+  editBlood: () => { const emr=EMRHelper.get(); const v=prompt('فصيلة الدم:', emr.blood); if(v!==null&&v.trim()){emr.blood=v.trim();EMRHelper.save(emr);EMRModule.refresh();} },
+  renderAllergies: (emr) => `
+    <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><h4 style="margin:0;font-weight:900;color:var(--danger);">الحساسية (${emr.allergies.length})</h4><button onclick="EMRModule.addAllergy()" class="btn-action" style="padding:6px 12px;font-size:11px;background:var(--danger);"><i class="fa-solid fa-plus"></i> إضافة</button></div>
+    ${emr.allergies.length ? emr.allergies.map((a,i)=>`<div style="padding:10px;background:var(--danger-light);border-radius:8px;margin-bottom:6px;display:flex;justify-content:space-between;"><div><div style="font-weight:900;font-size:13px;">⚠️ ${a.name}</div></div><button onclick="EMRModule.removeAllergy(${i})" class="btn-ui" style="background:transparent;color:var(--danger);padding:4px 8px;"><i class="fa-solid fa-trash"></i></button></div>`).join('') : '<p style="text-align:center;color:var(--gray);font-size:12px;">لا يوجد</p>'}</div>`,
+  addAllergy: () => {
+    document.getElementById('modal-generic-body').innerHTML = `<button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button><h3 style="margin:0 0 16px;font-weight:900;">إضافة حساسية</h3><input type="text" id="allerg-name" class="input-field" placeholder="اسم المادة"><button onclick="EMRModule.saveAllergy()" class="btn-action" style="width:100%;">حفظ</button>`;
+    Utils.openModal('modal-generic');
+  },
+  saveAllergy: () => {
+    const name = document.getElementById('allerg-name').value.trim();
+    if (!name) return Utils.toast('اكتب اسم المادة', true);
+    const emr = EMRHelper.get(); emr.allergies.push({name, severity:'medium', addedAt:Date.now()});
+    EMRHelper.save(emr); Utils.closeModal('modal-generic'); Utils.toast('تمت الإضافة ✓'); EMRModule.refresh();
+  },
+  removeAllergy: (i) => { if(!confirm('حذف؟'))return; const emr=EMRHelper.get(); emr.allergies.splice(i,1); EMRHelper.save(emr); EMRModule.refresh(); },
+  renderMeds: (emr) => `
+    <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><h4 style="margin:0;font-weight:900;color:var(--emerald);">الأدوية (${emr.currentMeds.length})</h4><button onclick="EMRModule.addMed()" class="btn-action" style="padding:6px 12px;font-size:11px;"><i class="fa-solid fa-plus"></i> إضافة</button></div>
+    ${emr.currentMeds.length ? emr.currentMeds.map((m,i)=>`<div style="padding:10px;background:var(--emerald-light);border-radius:8px;margin-bottom:6px;display:flex;justify-content:space-between;"><div><div style="font-weight:900;font-size:13px;">💊 ${m.name}</div><div style="font-size:10px;color:var(--gray);">${m.dose}</div></div><button onclick="EMRModule.stopMed(${i})" class="btn-ui" style="background:var(--amber-light);color:var(--amber);padding:4px 8px;font-size:10px;">إيقاف</button></div>`).join('') : '<p style="text-align:center;color:var(--gray);font-size:12px;">لا يوجد</p>'}</div>`,
+  addMed: () => {
+    document.getElementById('modal-generic-body').innerHTML = `<button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button><h3 style="margin:0 0 16px;font-weight:900;">إضافة دواء</h3><input type="text" id="med-name" class="input-field" placeholder="اسم الدواء"><input type="text" id="med-dose" class="input-field" placeholder="الجرعة"><button onclick="EMRModule.saveMed()" class="btn-action" style="width:100%;">حفظ</button>`;
+    Utils.openModal('modal-generic');
+  },
+  saveMed: () => {
+    const name = document.getElementById('med-name').value.trim();
+    const dose = document.getElementById('med-dose').value.trim();
+    if (!name) return Utils.toast('اكتب اسم الدواء', true);
+    const emr = EMRHelper.get(); emr.currentMeds.push({name, dose, active:true, addedAt:Date.now()});
+    EMRHelper.save(emr); Utils.closeModal('modal-generic'); Utils.toast('تمت الإضافة ✓'); EMRModule.refresh();
+  },
+  stopMed: (i) => { if(!confirm('إيقاف؟'))return; const emr=EMRHelper.get(); emr.pastMeds.push(emr.currentMeds[i]); emr.currentMeds.splice(i,1); EMRHelper.save(emr); EMRModule.refresh(); },
+  renderTests: (emr) => `
+    <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><h4 style="margin:0;font-weight:900;color:var(--sky);">تحاليل (${emr.labs.length})</h4><button onclick="EMRModule.addLab()" class="btn-action" style="padding:6px 12px;font-size:11px;background:var(--sky);"><i class="fa-solid fa-plus"></i> إضافة</button></div>
+    ${emr.labs.length ? emr.labs.map(l=>`<div style="padding:10px;background:var(--sky-light);border-radius:8px;margin-bottom:6px;"><div style="font-weight:900;font-size:13px;">${l.test} - ${l.value}</div></div>`).join('') : '<p style="text-align:center;color:var(--gray);font-size:12px;">لا يوجد</p>'}</div>`,
+  addLab: () => {
+    document.getElementById('modal-generic-body').innerHTML = `<button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button><h3 style="margin:0 0 16px;font-weight:900;">إضافة تحليل</h3><input type="text" id="lab-test" class="input-field" placeholder="التحليل"><input type="text" id="lab-value" class="input-field" placeholder="القيمة"><button onclick="EMRModule.saveLab()" class="btn-action" style="width:100%;">حفظ</button>`;
+    Utils.openModal('modal-generic');
+  },
+  saveLab: () => {
+    const test = document.getElementById('lab-test').value.trim();
+    const value = document.getElementById('lab-value').value.trim();
+    if (!test) return Utils.toast('اكتب اسم التحليل', true);
+    const emr = EMRHelper.get(); emr.labs.push({test, value, date:Utils.todayISO(), addedAt:Date.now()});
+    EMRHelper.save(emr); Utils.closeModal('modal-generic'); Utils.toast('تمت الإضافة ✓'); EMRModule.refresh();
+  },
+  renderVisits: (emr) => `
+    <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><h4 style="margin:0;font-weight:900;color:var(--emerald);">زيارات (${emr.visitNotes.length})</h4><button onclick="EMRModule.addVisit()" class="btn-action" style="padding:6px 12px;font-size:11px;"><i class="fa-solid fa-plus"></i> إضافة</button></div>
+    ${emr.visitNotes.length ? emr.visitNotes.map(v=>`<div style="padding:12px;background:var(--gray-light);border-radius:8px;margin-bottom:8px;"><div style="font-weight:900;font-size:13px;">${v.chiefComplaint}</div></div>`).join('') : '<p style="text-align:center;color:var(--gray);font-size:12px;">لا يوجد</p>'}</div>`,
+  addVisit: () => {
+    document.getElementById('modal-generic-body').innerHTML = `<button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button><h3 style="margin:0 0 16px;font-weight:900;">إضافة زيارة</h3><input type="text" id="visit-cc" class="input-field" placeholder="الشكوى"><button onclick="EMRModule.saveVisit()" class="btn-action" style="width:100%;">حفظ</button>`;
+    Utils.openModal('modal-generic');
+  },
+  saveVisit: () => {
+    const chiefComplaint = document.getElementById('visit-cc').value.trim();
+    if (!chiefComplaint) return Utils.toast('اكتب الشكوى', true);
+    const emr = EMRHelper.get(); emr.visitNotes.push({chiefComplaint, date:Utils.todayISO(), addedAt:Date.now()});
+    EMRHelper.save(emr); Utils.closeModal('modal-generic'); Utils.toast('تمت الإضافة ✓'); EMRModule.refresh();
+  },
+  renderHistory: () => '<div class="card text-center"><p style="color:var(--gray);">قيد التطوير</p></div>'
+};
+</script>
+<!-- ============ PART 11/13 END ============ -->
+  <!-- ============ PART 12/13 START ============ -->
+<script>
+const VoiceReminder = {
+  FLAGS_KEY: 'wasla_voice_flags',
+  flags: JSON.parse(localStorage.getItem('wasla_voice_flags') || '{}'),
+  voiceEnabled: true,
+  saveFlags: () => localStorage.setItem(VoiceReminder.FLAGS_KEY, JSON.stringify(VoiceReminder.flags)),
+  speak: (text, urgent=false) => {
+    if (!VoiceReminder.voiceEnabled) return;
+    if (!('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ar-EG';
+      const voices = window.speechSynthesis.getVoices();
+      const arVoice = voices.find(v => v.lang && v.lang.startsWith('ar'));
+      if (arVoice) u.voice = arVoice;
+      window.speechSynthesis.speak(u);
+    } catch(e) { console.warn(e); }
+  },
+  check: () => {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'patient') return;
+    const todayISO = Utils.todayISO();
+    const myToday = DB.appointments.filter(a => a.patientId === Auth.currentUser.id && a.date === todayISO && a.status !== 'completed' && a.status !== 'canceled');
+    myToday.forEach(appt => {
+      if (!VoiceReminder.flags[appt.id]) VoiceReminder.flags[appt.id] = {};
+      if (!VoiceReminder.flags[appt.id].dayOf) {
+        VoiceReminder.flags[appt.id].dayOf = true; VoiceReminder.saveFlags();
+        VoiceReminder.speak(`تذكير: لديك موعد اليوم مع ${appt.doctorName} الساعة ${appt.slot}.`);
+        Utils.toast(`📢 تذكير موعد اليوم`);
+      }
+      const sameSession = DB.appointments.filter(a => a.doctorId === appt.doctorId && a.date === appt.date && a.status !== 'canceled' && a.status !== 'completed').sort((a,b) => a.ts - b.ts);
+      const myPos = sameSession.findIndex(a => a.id === appt.id) + 1;
+      const ahead = myPos - 1;
+      if (ahead > 0 && ahead <= 3 && !VoiceReminder.flags[appt.id].threeAhead) {
+        VoiceReminder.flags[appt.id].threeAhead = true; VoiceReminder.saveFlags();
+        VoiceReminder.speak(`تنبيه: فاضل ${ahead} حالات قبل دورك في عيادة ${appt.doctorName}.`);
+        Utils.toast(`📢 فاضل ${ahead} حالات قبل دورك`);
+      }
+      if (appt.status === 'next' && !VoiceReminder.flags[appt.id].yourTurn) {
+        VoiceReminder.flags[appt.id].yourTurn = true; VoiceReminder.saveFlags();
+        VoiceReminder.speak(`دورك الآن! برجاء التوجه إلى عيادة ${appt.doctorName}.`, true);
+        Utils.toast('🔔 دورك الآن!', false);
+        playSound(true);
+      }
+    });
+  },
+  init: () => {
+    setTimeout(VoiceReminder.check, 3000);
+    setInterval(VoiceReminder.check, 15000);
+  },
+  test: () => VoiceReminder.speak('مرحباً بك في منصة وصلة. هذا اختبار للتذكيرات الصوتية.')
+};
+
+const FollowUp = {
+  request: (apptId, afterDays=7) => {
+    const a = DB.appointments.find(x => x.id === apptId); if (!a) return;
+    a.needsFollowUp = true; a.followUpAfterDays = afterDays; a.followUpBooked = false;
+    const d = new Date(); d.setDate(d.getDate() + afterDays); a.followUpDate = d.toISOString().split('T')[0];
+    saveDB();
+  },
+  getMyPending: () => {
+    if (!Auth.currentUser) return [];
+    return DB.appointments.filter(a => a.patientId === Auth.currentUser.id && a.status === 'completed' && a.needsFollowUp === true && a.followUpBooked !== true);
+  },
+  markBooked: (apptId, followUpApptId) => {
+    const a = DB.appointments.find(x => x.id === apptId);
+    if (a) { a.followUpBooked = true; a.followUpApptId = followUpApptId; saveDB(); }
+  }
+};
+
+const _origFinish = DoctorModule.finish;
+DoctorModule.finish = function(apptId) {
+  const a = DB.appointments.find(x => x.id === apptId); if (!a) return;
+  const wantsFollowUp = confirm(`إنهاء الكشف مع طلب متابعة للمريض ${a.patientName}؟`);
+  let days = 7;
+  if (wantsFollowUp) { const input = prompt('بعد كام يوم؟', '7'); if (input && !isNaN(parseInt(input))) days = parseInt(input); }
+  _origFinish.call(DoctorModule, apptId);
+  if (wantsFollowUp) { FollowUp.request(apptId, days); Utils.toast(`🔄 متابعة بعد ${days} أيام`); }
+};
+
+const _origOpenBooking = MedicalModule.openBooking;
+MedicalModule.openBooking = function(docId, followUpApptId) {
+  window._pendingFollowUpId = followUpApptId || null;
+  _origOpenBooking.call(MedicalModule, docId);
+};
+
+const _origConfirmBooking = MedicalModule.confirmBooking;
+MedicalModule.confirmBooking = function(docId) {
+  const before = DB.appointments.length;
+  _origConfirmBooking.call(MedicalModule, docId);
+  if (window._pendingFollowUpId && DB.appointments.length > before) {
+    const newAppt = DB.appointments[DB.appointments.length - 1];
+    newAppt.isFollowUpOf = window._pendingFollowUpId;
+    FollowUp.markBooked(window._pendingFollowUpId, newAppt.id);
+    saveDB(); window._pendingFollowUpId = null;
+  }
+};
+</script>
+<!-- ============ PART 12/13 END ============ -->
