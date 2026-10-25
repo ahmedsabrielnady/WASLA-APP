@@ -3240,6 +3240,250 @@ HomeServicesSector.confirm = function(id) {
 
 console.log('✅ Hybrid Fraud Protection applied to all sectors');
 </script>
+<!-- ============ PART 36/36 END — الملف كامل الآن ============ -->
+  <!-- ============ PART 37/40 START ============ -->
+<script>
+const TTSHelper = {
+  // تحويل النص العربي إلى شكل منطوق طبيعي
+  preprocess: (text) => {
+    let processed = text;
+    // استبدال الاختصارات
+    processed = processed.replace(/د\.\s*/g, 'دكتور ');
+    processed = processed.replace(/أ\.\s*/g, 'أستاذ ');
+    processed = processed.replace(/م\.\s*/g, 'مهندس ');
+    // استبدال العملة
+    processed = processed.replace(/ج\.م/g, 'جنيه');
+    // إزالة الرموز التعبيرية
+    processed = processed.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}]/gu, '');
+    // استبدال الأرقام بكلمات (مبسط للأرقام الشائعة)
+    const numbersMap = {'0':'صفر','1':'واحد','2':'اتنين','3':'تلاتة','4':'أربعة','5':'خمسة','6':'ستة','7':'سبعة','8':'تمانية','9':'تسعة'};
+    // لا نستبدل كل الأرقام لأنها قد تكون أوقاتاً، لكن نستبدل الأرقام المفردة في السياق
+    // يمكن تحسين ذلك لاحقاً
+    return processed.trim();
+  },
+
+  speak: (text, urgent = false) => {
+    if (!VoiceReminder.voiceEnabled || !('speechSynthesis' in window)) return;
+    
+    const processedText = TTSHelper.preprocess(text);
+    if (!processedText) return;
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(processedText);
+    utterance.lang = 'ar-EG';
+    // ضبط السرعة والنبرة لتكون بشرية (0.95 سرعة، 1.0 نبرة)
+    utterance.rate = urgent ? 1.05 : 0.95;
+    utterance.pitch = urgent ? 1.1 : 1.0;
+    utterance.volume = 1;
+
+    const voices = window.speechSynthesis.getVoices();
+    const arVoices = voices.filter(v => v.lang && v.lang.startsWith('ar'));
+    // تفضيل الأصوات الطبيعية (Google / Microsoft)
+    const bestVoice = arVoices.find(v => /Google|Microsoft|Samantha/i.test(v.name)) || arVoices[0] || null;
+    if (bestVoice) utterance.voice = bestVoice;
+
+    window.speechSynthesis.speak(utterance);
+  }
+};
+
+// استبدال دالة النطق القديمة
+VoiceReminder.speak = TTSHelper.speak;
+console.log('🔊 TTS Helper: Human-like Arabic pronunciation enabled');
+</script>
+<!-- ============ PART 37/40 END ============ -->
+  <!-- ============ PART 38/40 START ============ -->
+<script>
+const DepositPaymentModule = {
+  // فتح واجهة دفع العربون
+  open: (amount, onSuccess) => {
+    // حفظ الدالة للتنفيذ بعد الدفع
+    DepositPaymentModule._onSuccess = onSuccess;
+
+    const methods = [
+      {id: 'cash', name: 'كاش عند الاستلام', icon: 'fa-money-bill-wave', desc: 'ادفع العربون للفني'},
+      {id: 'card', name: 'بطاقة ائتمانية', icon: 'fa-credit-card', desc: 'فيزا / ماستر'},
+      {id: 'wallet', name: 'محفظة إلكترونية', icon: 'fa-wallet', desc: 'فودافون كاش'},
+      {id: 'instapay', name: 'إنستاباي', icon: 'fa-bolt', desc: 'تحويل فوري'}
+    ];
+
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom: 20px;">
+        <div style="width:60px; height:60px; background:var(--amber-light); color:var(--amber); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; margin:0 auto 12px;">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 style="margin:0; font-weight:900;">تأكيد العربون</h3>
+        <p style="margin:4px 0 0; font-size:13px; color:var(--gray);">مطلوب دفع عربون جدية بقيمة <strong>${Utils.money(amount)}</strong></p>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="font-size:12px; font-weight:900; display:block; margin-bottom:8px;">اختر طريقة الدفع:</label>
+        ${methods.map((m, i) => `
+          <label class="pay-option ${i===0?'selected':''}" onclick="DepositPaymentModule.select(this, '${m.id}')">
+            <input type="radio" name="deposit-method" value="${m.id}" ${i===0?'checked':''}>
+            <div style="flex:1;">
+              <div style="font-size:13px; font-weight:900;"><i class="fa-solid ${m.icon}"></i> ${m.name}</div>
+              <div style="font-size:10px; color:var(--gray);">${m.desc}</div>
+            </div>
+          </label>
+        `).join('')}
+      </div>
+
+      <button onclick="DepositPaymentModule.confirm(${amount})" class="btn-action" style="width:100%; padding:14px;">
+        <i class="fa-solid fa-check"></i> تأكيد ودفع ${Utils.money(amount)}
+      </button>
+    `;
+    Utils.openModal('modal-generic');
+  },
+
+  select: (el, method) => {
+    document.querySelectorAll('input[name="deposit-method"]').forEach(r => r.checked = false);
+    document.querySelectorAll('.pay-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+  },
+
+  confirm: (amount) => {
+    const selected = document.querySelector('input[name="deposit-method"]:checked');
+    if (!selected) return Utils.toast('اختر طريقة الدفع', true);
+    
+    // محاكاة نجاح الدفع
+    Utils.closeModal('modal-generic');
+    Utils.toast(`✅ تم دفع العربون (${Utils.money(amount)}) بنجاح عبر ${selected.value}`);
+    
+    // تنفيذ الدالة الأصلية (التي كانت ستؤكد الطلب)
+    if (DepositPaymentModule._onSuccess) {
+      DepositPaymentModule._onSuccess();
+      DepositPaymentModule._onSuccess = null;
+    }
+  }
+};
+console.log('💳 Deposit Payment Module ready');
+</script>
+<!-- ============ PART 38/40 END ============ -->
+  <!-- ============ PART 39/40 START ============ -->
+<script>
+// 1) تعديل دوال الحماية لاستخدام واجهة الدفع بدلاً من confirm
+// السوبر ماركت
+const _origGroceryConfirmUI = GrocerySector.confirmOrder;
+GrocerySector.confirmOrder = function(storeId, total) {
+  const user = Auth.currentUser;
+  if (!user) return AuthUI.open();
+
+  const deposit = FraudProtection.getRequiredDeposit(user, total, 'grocery');
+  
+  if (deposit > 0) {
+    DepositPaymentModule.open(deposit, () => {
+      _origGroceryConfirmUI.apply(GrocerySector, arguments);
+      FraudProtection.recordSuccess(user.id);
+    });
+  } else {
+    // طلب أول معفى
+    if (!confirm(`طلبك الأول معفى من العربون.\nإذا لم يتم استلام الطلب، سيُطبق عربون إجباري على طلبك القادم.\nهل توافق؟`)) return;
+    _origGroceryConfirmUI.apply(GrocerySector, arguments);
+    FraudProtection.recordSuccess(user.id);
+  }
+};
+
+// العيادة
+const _origMedicalConfirmUI = MedicalModule.confirmBooking;
+MedicalModule.confirmBooking = function(docId) {
+  const user = Auth.currentUser;
+  if (!user) return AuthUI.open();
+  
+  const doc = DB.doctors.find(d => d.id === docId);
+  const amount = doc.price;
+  const deposit = FraudProtection.getRequiredDeposit(user, amount, 'medical');
+
+  if (deposit > 0) {
+    DepositPaymentModule.open(deposit, () => {
+      _origMedicalConfirmUI.apply(MedicalModule, arguments);
+      FraudProtection.recordSuccess(user.id);
+    });
+  } else {
+    if (!confirm(`طلبك الأول معفى من العربون.\nإذا لم يتم إلغاء الحجز وفقاً للشروط (قبل 12 ساعة)، سيُطبق عربون إجباري على طلبك القادم.\n\nهل توافق؟`)) return;
+    _origMedicalConfirmUI.apply(MedicalModule, arguments);
+    FraudProtection.recordSuccess(user.id);
+  }
+};
+
+// السيارات
+const _origCarsConfirmUI = CarsSector.confirm;
+CarsSector.confirm = function(id) {
+  const user = Auth.currentUser;
+  if (!user) return AuthUI.open();
+  const svc = DB.carServices.find(s => s.id === id);
+  const deposit = FraudProtection.getRequiredDeposit(user, svc.price, 'cars');
+  if (deposit > 0) {
+    DepositPaymentModule.open(deposit, () => {
+      _origCarsConfirmUI.apply(CarsSector, arguments);
+      FraudProtection.recordSuccess(user.id);
+    });
+  } else {
+    if (!confirm(`طلبك الأول معفى من العربون. سيُطبق العربون عند الطلب القادم إذا لم يتم الاستلام. هل توافق؟`)) return;
+    _origCarsConfirmUI.apply(CarsSector, arguments);
+    FraudProtection.recordSuccess(user.id);
+  }
+};
+
+// الصيانة
+const _origHomeConfirmUI = HomeServicesSector.confirm;
+HomeServicesSector.confirm = function(id) {
+  const user = Auth.currentUser;
+  if (!user) return AuthUI.open();
+  const svc = DB.homeServices.find(s => s.id === id);
+  const deposit = FraudProtection.getRequiredDeposit(user, svc.price, 'home');
+  if (deposit > 0) {
+    DepositPaymentModule.open(deposit, () => {
+      _origHomeConfirmUI.apply(HomeServicesSector, arguments);
+      FraudProtection.recordSuccess(user.id);
+    });
+  } else {
+    if (!confirm(`طلبك الأول معفى من العربون. سيُطبق العربون عند الطلب القادم إذا لم يتم الاستلام. هل توافق؟`)) return;
+    _origHomeConfirmUI.apply(HomeServicesSector, arguments);
+    FraudProtection.recordSuccess(user.id);
+  }
+};
+
+// 2) إعادة تنظيم الهيدر: تابات أساسية فقط
+const _origRenderHeaderOrganized = UI.renderHeader;
+UI.renderHeader = function() {
+  _origRenderHeaderOrganized.call(UI);
+  const tabs = document.getElementById('super-tabs');
+  if (!tabs) return;
+
+  // إزالة التابات القديمة وإعادة بناءها بشكل منظم
+  const baseTabs = [
+    {id: 'home', name: 'الرئيسية', icon: 'fa-house'},
+    {id: 'medical', name: 'طبي', icon: 'fa-stethoscope'},
+    {id: 'grocery', name: 'سوبر ماركت', icon: 'fa-basket-shopping'},
+    {id: 'cars', name: 'سيارات', icon: 'fa-car'},
+    {id: 'home-services', name: 'صيانة', icon: 'fa-screwdriver-wrench'},
+    {id: 'dashboard', name: 'حسابي', icon: 'fa-user'}
+  ];
+
+  tabs.innerHTML = baseTabs.map(t => `
+    <button class="tab" data-sector="${t.id}" onclick="router.navigate('${t.id}')">
+      <i class="fa-solid ${t.icon}"></i> ${t.name}
+    </button>
+  `).join('');
+};
+console.log('✅ Deposit UI & Organized Header applied');
+</script>
+<!-- ============ PART 39/40 END ============ -->
+  <!-- ============ PART 40/40 START ============ -->
+<script>
+// تأكيد نهائي لإعادة رسم الهيدر بعد التحميل
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    UI.renderHeader();
+  }, 300);
+});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(() => UI.renderHeader(), 300);
+}
+</script>
 </body>
 </html>
-<!-- ============ PART 36/36 END — الملف كامل الآن ============ -->
+<!-- ============ PART 40/40 END — الملف كامل الآن ============ -->
