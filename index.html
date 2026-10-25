@@ -4852,6 +4852,98 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
   setTimeout(() => UI.renderHeader(), 200);
 }
 </script>
+<!-- ============ PART 61/61 END — الملف كامل الآن ============ -->
+<!-- ============ PART 62/64 START ============ -->
+<script>
+// إصلاح مشكلة الصفحات الفاضية وتفعيل لوحات التحكم بشكل آمن
+const _fixRouterDashboards = router.navigate;
+router.navigate = function(sector, data) {
+  // 1. لو القطاع هو لوحة قيادة (طبيب أو تاجر)
+  if (sector === 'doctor-pro' || sector === 'merchant-pro') {
+    // إخفاء كل الصفحات
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+    // تحديد الـ ID بناءً على القطاع
+    let viewId = sector === 'doctor-pro' ? 'view-doctor-pro' : 'view-merchant-pro';
+    let view = document.getElementById(viewId);
+
+    // لو الصفحة مش موجودة، ننشئها
+    if (!view) {
+      view = document.createElement('section');
+      view.id = viewId;
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+    
+    // نظهر الصفحة
+    view.classList.add('active');
+
+    // ننفذ دالة العرض
+    if (sector === 'doctor-pro') {
+      if (typeof DoctorDashboardPro !== 'undefined') DoctorDashboardPro.render();
+    } else {
+      if (typeof MerchantDashboardPro !== 'undefined') MerchantDashboardPro.render();
+    }
+
+    // نظهر التاب النشط
+    const tab = document.querySelector(`.tab[data-sector="${sector}"]`);
+    if (tab) tab.classList.add('active');
+
+    window.scrollTo(0,0);
+    return; // نوقف التنفيذ هنا عشان نمنع أي تعارض
+  }
+
+  // لو قطاع عادي، نكمل بالشكل الطبيعي
+  _fixRouterDashboards.call(router, sector, data);
+};
+console.log('✅ Router fixed for Dashboards');
+</script>
+<!-- ============ PART 62/64 END ============ -->
+  <!-- ============ PART 63/64 START ============ -->
+<script>
+// تحديث أسامي الخدمات في الذاكرة عشان تبقى احترافية
+(function updateServiceNames() {
+  let changed = false;
+  
+  if (DB.carServices) {
+    DB.carServices = [
+      {id:'car1', name:'استبدال إطارات متنقل', price:120, icon:'fa-circle-dot', desc:'فني متخصص يصل إليك فوراً'},
+      {id:'car2', name:'استعادة شحن البطارية', price:150, icon:'fa-car-battery', desc:'شحن آمن وسريع 15 دقيقة'},
+      {id:'car3', name:'غسيل وتلميع VIP', price:120, icon:'fa-droplet', desc:'غسيل احترافي في موقعك'},
+      {id:'car4', name:'استجابة طوارئ (SOS)', price:300, icon:'fa-truck-pickup', desc:'إنقاذ فوري 24/7'},
+      {id:'car5', name:'تشخيص إلكتروني (OBD)', price:100, icon:'fa-wrench', desc:'فحص دقيق بكمبيوتر السيارة'},
+      {id:'car6', name:'تغيير زيت وفلاتر', price:450, icon:'fa-oil-can', desc:'زيوت أصلية معتمدة'}
+    ];
+    changed = true;
+  }
+
+  if (DB.homeServices) {
+    DB.homeServices = [
+      {id:'hs1', name:'صيانة سباكة طارئة', price:150, icon:'fa-wrench', desc:'تسليك وإصلاح فوري'},
+      {id:'hs2', name:'تأسيس وصيانة كهرباء', price:120, icon:'fa-bolt', desc:'كشف أعطال لوحة الكهرباء'},
+      {id:'hs3', name:'أعمال نجارة وتركيب', price:200, icon:'fa-hammer', desc:'تركيب أبواب ومطابخ'},
+      {id:'hs4', name:'صيانة وتكييف مركزي', price:250, icon:'fa-wind', desc:'تنظيف وشحن فريون'},
+      {id:'hs5', name:'تنظيف منازل عميق', price:350, icon:'fa-broom', desc:'فريق تنظيف متكامل'},
+      {id:'hs6', name:'مكافحة حشرات وقوارض', price:300, icon:'fa-bug', desc:'مواد آمنة معتمدة'}
+    ];
+    changed = true;
+  }
+
+  if (changed) saveDB();
+})();
+</script>
+<!-- ============ PART 63/64 END ============ -->
+  <!-- ============ PART 64/64 START ============ -->
+<script>
+// إعادة رسم الهيدر عند التحميل لضمان ظهور التابات
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => { UI.renderHeader(); }, 200);
+});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(() => UI.renderHeader(), 200);
+}
+</script>
 </body>
 </html>
-<!-- ============ PART 61/61 END — الملف كامل الآن ============ -->
+<!-- ============ PART 64/64 END — الملف كامل الآن ============ -->
