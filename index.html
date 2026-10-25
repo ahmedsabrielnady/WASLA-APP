@@ -2014,6 +2014,367 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
   VoiceReminder.init();
 }
 </script>
+<!-- ============ PART 13/13 END — الملف كامل ============ -->
+<!-- ============ PART 14/17 START ============ -->
+<script>
+// ===== SEED: القطاعات الجديدة بدون المساس بالبيانات القديمة =====
+(function seedSectors() {
+  let changed = false;
+  if (!DB.carServices) {
+    DB.carServices = [
+      {id:'car1', name:'تغيير إطار', price:120, icon:'fa-circle-dot', desc:'فني متخصص'},
+      {id:'car2', name:'شحن بطارية', price:150, icon:'fa-car-battery', desc:'شحن سريع 15 دقيقة'},
+      {id:'car3', name:'غسيل متنقل', price:80, icon:'fa-droplet', desc:'غسيل احترافي'},
+      {id:'car4', name:'ونش إنقاذ', price:300, icon:'fa-truck-pickup', desc:'إنقاذ 24 ساعة'},
+      {id:'car5', name:'كشف أعطال', price:100, icon:'fa-wrench', desc:'فحص شامل بـ OBD'},
+      {id:'car6', name:'تغيير زيت', price:250, icon:'fa-oil-can', desc:'زيت أصلي + فلتر'}
+    ];
+    changed = true;
+  }
+  if (!DB.marketingPackages) {
+    DB.marketingPackages = [
+      {id:'mk1', name:'باقة الهوية البصرية', price:1500, icon:'fa-palette', desc:'لوجو + بروفايل + سوشيال'},
+      {id:'mk2', name:'إدارة سوشيال (شهر)', price:3000, icon:'fa-hashtag', desc:'12 بوست + ردود + تقارير'},
+      {id:'mk3', name:'حملة إعلانية ممولة', price:5000, icon:'fa-bullhorn', desc:'إدارة حملة كاملة (FB/IG)'},
+      {id:'mk4', name:'كتابة محتوى (5 مقالات)', price:800, icon:'fa-pen-nib', desc:'مقالات SEO متوافقة'}
+    ];
+    changed = true;
+  }
+  if (!DB.homeServices) {
+    DB.homeServices = [
+      {id:'hs1', name:'سباكة', price:100, icon:'fa-wrench', desc:'سباك معتمد'},
+      {id:'hs2', name:'كهرباء', price:100, icon:'fa-bolt', desc:'كهربائي معتمد'},
+      {id:'hs3', name:'نجارة', price:150, icon:'fa-hammer', desc:'نجار شاطر'},
+      {id:'hs4', name:'تكييف', price:200, icon:'fa-wind', desc:'صيانة وتركيب'},
+      {id:'hs5', name:'تنظيف منازل', price:300, icon:'fa-broom', desc:'تنظيف شامل'},
+      {id:'hs6', name:'مكافحة حشرات', price:250, icon:'fa-bug', desc:'مواد آمنة'}
+    ];
+    changed = true;
+  }
+  if (changed) saveDB();
+})();
+</script>
+<!-- ============ PART 14/17 END ============ -->
+  <!-- ============ PART 15/17 START ============ -->
+<script>
+const CarsSector = {
+  render: () => {
+    let view = document.getElementById('view-cars');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-cars';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+    view.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--primary),#1E293B);color:#fff;border:none;">
+        <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-car"></i> خدمات السيارات</h2>
+        <p style="margin:4px 0 0;font-size:12px;opacity:.8;">فنيون معتمدون يصلون لموقعك</p>
+      </div>
+      <div class="grid-2">
+        ${DB.carServices.map(s => `
+          <div class="card" onclick="CarsSector.book('${s.id}')" style="cursor:pointer;text-align:center;padding:16px;margin:0;">
+            <i class="fa-solid ${s.icon}" style="font-size:28px;color:var(--sky);margin-bottom:8px;"></i>
+            <h4 style="font-weight:900;font-size:13px;margin:0;">${s.name}</h4>
+            <div style="font-size:11px;color:var(--emerald);font-weight:900;margin-top:2px;">${Utils.money(s.price)}</div>
+            <div style="font-size:10px;color:var(--gray);margin-top:2px;">${s.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+      <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-clock" style="color:var(--amber);"></i> طلباتي</h3>
+      <div class="grid-list">
+        ${(DB.orders || []).filter(o => Auth.currentUser && o.userId === Auth.currentUser.id && o.sector === 'cars').map(o => `
+          <div class="card" style="padding:12px;border-right:4px solid var(--sky);">
+            <div style="display:flex;justify-content:space-between;">
+              <div>
+                <div style="font-weight:900;font-size:13px;">${o.service}</div>
+                <div style="font-size:11px;color:var(--gray);">${o.address} ${o.carModel ? '• '+o.carModel : ''}</div>
+              </div>
+              <div style="text-align:left;">
+                <div style="font-weight:900;color:var(--emerald);">${Utils.money(o.price)}</div>
+                <div style="font-size:10px;color:var(--amber);font-weight:900;">${o.status === 'pending' ? 'قيد المراجعة' : o.status}</div>
+              </div>
+            </div>
+          </div>
+        `).join('') || '<p style="text-align:center;color:var(--gray);font-size:12px;">لا طلبات سابقة</p>'}
+      </div>
+    `;
+  },
+  book: (id) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const svc = DB.carServices.find(s => s.id === id);
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 4px;font-weight:900;">${svc.name}</h3>
+      <p style="margin:0 0 16px;font-size:13px;color:var(--gray);">${svc.desc} • ${Utils.money(svc.price)}</p>
+      <input type="text" id="car-address" class="input-field" placeholder="عنوانك بالتفصيل (المكان الحالي)">
+      <input type="text" id="car-model" class="input-field" placeholder="نوع السيارة (تويوتا، هيونداي...)">
+      <textarea id="car-notes" class="input-field" placeholder="ملاحظات إضافية (اختياري)" rows="2"></textarea>
+      <button onclick="CarsSector.confirm('${id}')" class="btn-action" style="width:100%;"><i class="fa-solid fa-check"></i> تأكيد الطلب (${Utils.money(svc.price)})</button>
+    `;
+    Utils.openModal('modal-generic');
+  },
+  confirm: (id) => {
+    const svc = DB.carServices.find(s => s.id === id);
+    const addr = document.getElementById('car-address').value.trim();
+    const car = document.getElementById('car-model').value.trim();
+    const notes = document.getElementById('car-notes').value.trim();
+    if (!addr) return Utils.toast('أدخل عنوانك', true);
+    DB.orders = DB.orders || [];
+    DB.orders.push({
+      id: Utils.id(),
+      userId: Auth.currentUser.id,
+      userName: Auth.currentUser.name,
+      sector: 'cars',
+      serviceId: id,
+      service: svc.name,
+      price: svc.price,
+      address: addr,
+      carModel: car,
+      notes,
+      status: 'pending',
+      ts: Date.now()
+    });
+    saveDB();
+    Utils.closeModal('modal-generic');
+    Utils.toast('✅ تم استلام طلبك! سيتواصل معك الفني خلال دقائق');
+    CarsSector.render();
+  }
+};
+</script>
+<!-- ============ PART 15/17 END ============ -->
+  <!-- ============ PART 16/17 START ============ -->
+<script>
+const MarketingSector = {
+  render: () => {
+    let view = document.getElementById('view-marketing');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-marketing';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+    view.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--purple),#8B5CF6);color:#fff;border:none;">
+        <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-chart-line"></i> خدمات التسويق</h2>
+        <p style="margin:4px 0 0;font-size:12px;opacity:.9;">نمّي مشروعك مع خبراء معتمدين</p>
+      </div>
+      <div class="grid-list">
+        ${DB.marketingPackages.map(p => `
+          <div class="item-box" onclick="MarketingSector.book('${p.id}')">
+            <div class="item-icon" style="background:var(--purple-light);color:var(--purple);"><i class="fa-solid ${p.icon}"></i></div>
+            <div class="item-info">
+              <div class="item-title">${p.name}</div>
+              <div class="item-sub">${p.desc}</div>
+            </div>
+            <div class="item-price" style="color:var(--purple);">${Utils.money(p.price)}</div>
+          </div>
+        `).join('')}
+      </div>
+      <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-clock" style="color:var(--amber);"></i> طلباتي</h3>
+      <div class="grid-list">
+        ${(DB.orders || []).filter(o => Auth.currentUser && o.userId === Auth.currentUser.id && o.sector === 'marketing').map(o => `
+          <div class="card" style="padding:12px;border-right:4px solid var(--purple);">
+            <div style="display:flex;justify-content:space-between;">
+              <div>
+                <div style="font-weight:900;font-size:13px;">${o.service}</div>
+                <div style="font-size:11px;color:var(--gray);">${o.brand ? 'البراند: '+o.brand : ''} ${o.contactPhone ? '• '+o.contactPhone : ''}</div>
+              </div>
+              <div style="text-align:left;">
+                <div style="font-weight:900;color:var(--purple);">${Utils.money(o.price)}</div>
+                <div style="font-size:10px;color:var(--amber);font-weight:900;">${o.status === 'pending' ? 'قيد المراجعة' : o.status}</div>
+              </div>
+            </div>
+          </div>
+        `).join('') || '<p style="text-align:center;color:var(--gray);font-size:12px;">لا طلبات سابقة</p>'}
+      </div>
+    `;
+  },
+  book: (id) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const pkg = DB.marketingPackages.find(p => p.id === id);
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 4px;font-weight:900;">${pkg.name}</h3>
+      <p style="margin:0 0 16px;font-size:13px;color:var(--gray);">${pkg.desc} • ${Utils.money(pkg.price)}</p>
+      <input type="text" id="mkt-brand" class="input-field" placeholder="اسم البراند / النشاط">
+      <input type="text" id="mkt-phone" class="input-field" placeholder="رقم واتساب للتواصل">
+      <textarea id="mkt-notes" class="input-field" placeholder="تفاصيل إضافية عن مشروعك" rows="2"></textarea>
+      <button onclick="MarketingSector.confirm('${id}')" class="btn-action" style="width:100%;background:var(--purple);"><i class="fa-solid fa-check"></i> إرسال الطلب</button>
+    `;
+    Utils.openModal('modal-generic');
+  },
+  confirm: (id) => {
+    const pkg = DB.marketingPackages.find(p => p.id === id);
+    const brand = document.getElementById('mkt-brand').value.trim();
+    const phone = document.getElementById('mkt-phone').value.trim();
+    const notes = document.getElementById('mkt-notes').value.trim();
+    if (!brand) return Utils.toast('أدخل اسم البراند', true);
+    if (!phone) return Utils.toast('أدخل رقم الواتساب', true);
+    DB.orders = DB.orders || [];
+    DB.orders.push({
+      id: Utils.id(),
+      userId: Auth.currentUser.id,
+      userName: Auth.currentUser.name,
+      sector: 'marketing',
+      serviceId: id,
+      service: pkg.name,
+      price: pkg.price,
+      brand,
+      contactPhone: phone,
+      notes,
+      status: 'pending',
+      ts: Date.now()
+    });
+    saveDB();
+    Utils.closeModal('modal-generic');
+    Utils.toast('✅ تم استلام طلبك! سيتواصل معك فريق التسويق');
+    MarketingSector.render();
+  }
+};
+
+const HomeServicesSector = {
+  render: () => {
+    let view = document.getElementById('view-home-services');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-home-services';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+    view.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--amber),#F59E0B);color:#fff;border:none;">
+        <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-screwdriver-wrench"></i> الصيانة المنزلية</h2>
+        <p style="margin:4px 0 0;font-size:12px;opacity:.9;">فنيون معتمدون بضمان 30 يوم</p>
+      </div>
+      <div class="grid-2">
+        ${DB.homeServices.map(s => `
+          <div class="card" onclick="HomeServicesSector.book('${s.id}')" style="cursor:pointer;text-align:center;padding:16px;margin:0;">
+            <i class="fa-solid ${s.icon}" style="font-size:28px;color:var(--amber);margin-bottom:8px;"></i>
+            <h4 style="font-weight:900;font-size:13px;margin:0;">${s.name}</h4>
+            <div style="font-size:11px;color:var(--emerald);font-weight:900;margin-top:2px;">تبدأ من ${Utils.money(s.price)}</div>
+            <div style="font-size:10px;color:var(--gray);margin-top:2px;">${s.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+      <h3 class="section-title" style="margin-top:24px;"><i class="fa-solid fa-clock" style="color:var(--amber);"></i> طلباتي</h3>
+      <div class="grid-list">
+        ${(DB.orders || []).filter(o => Auth.currentUser && o.userId === Auth.currentUser.id && o.sector === 'home').map(o => `
+          <div class="card" style="padding:12px;border-right:4px solid var(--amber);">
+            <div style="display:flex;justify-content:space-between;">
+              <div>
+                <div style="font-weight:900;font-size:13px;">${o.service}</div>
+                <div style="font-size:11px;color:var(--gray);">${o.address}</div>
+              </div>
+              <div style="text-align:left;">
+                <div style="font-weight:900;color:var(--emerald);">${Utils.money(o.price)}</div>
+                <div style="font-size:10px;color:var(--amber);font-weight:900;">${o.status === 'pending' ? 'قيد المراجعة' : o.status}</div>
+              </div>
+            </div>
+          </div>
+        `).join('') || '<p style="text-align:center;color:var(--gray);font-size:12px;">لا طلبات سابقة</p>'}
+      </div>
+    `;
+  },
+  book: (id) => {
+    if (!Auth.currentUser) return AuthUI.open();
+    const svc = DB.homeServices.find(s => s.id === id);
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 4px;font-weight:900;">${svc.name}</h3>
+      <p style="margin:0 0 16px;font-size:13px;color:var(--gray);">${svc.desc} • يبدأ من ${Utils.money(svc.price)}</p>
+      <input type="text" id="home-address" class="input-field" placeholder="عنوانك بالتفصيل">
+      <textarea id="home-notes" class="input-field" placeholder="وصف المشكلة (اختياري)" rows="2"></textarea>
+      <button onclick="HomeServicesSector.confirm('${id}')" class="btn-action" style="width:100%;background:var(--amber);"><i class="fa-solid fa-check"></i> تأكيد الطلب</button>
+    `;
+    Utils.openModal('modal-generic');
+  },
+  confirm: (id) => {
+    const svc = DB.homeServices.find(s => s.id === id);
+    const addr = document.getElementById('home-address').value.trim();
+    const notes = document.getElementById('home-notes').value.trim();
+    if (!addr) return Utils.toast('أدخل العنوان', true);
+    DB.orders = DB.orders || [];
+    DB.orders.push({
+      id: Utils.id(),
+      userId: Auth.currentUser.id,
+      userName: Auth.currentUser.name,
+      sector: 'home',
+      serviceId: id,
+      service: svc.name,
+      price: svc.price,
+      address: addr,
+      notes,
+      status: 'pending',
+      ts: Date.now()
+    });
+    saveDB();
+    Utils.closeModal('modal-generic');
+    Utils.toast('✅ تم استلام طلبك! سيتواصل معك الفني');
+    HomeServicesSector.render();
+  }
+};
+</script>
+<!-- ============ PART 16/17 END ============ -->
+  <!-- ============ PART 17/17 START ============ -->
+<script>
+// ===== 1) Override UI.renderHeader لضمان ظهور تابات القطاعات الجديدة =====
+const _origRenderHeaderNew = UI.renderHeader;
+UI.renderHeader = function() {
+  _origRenderHeaderNew.call(UI);
+  const tabs = document.getElementById('super-tabs');
+  if (!tabs) return;
+
+  if (!document.querySelector('.tab[data-sector="cars"]')) {
+    const newTabsHTML = `
+      <button class="tab" data-sector="cars" onclick="router.navigate('cars')"><i class="fa-solid fa-car"></i> سيارات</button>
+      <button class="tab" data-sector="marketing" onclick="router.navigate('marketing')"><i class="fa-solid fa-chart-line"></i> تسويق</button>
+      <button class="tab" data-sector="home-services" onclick="router.navigate('home-services')"><i class="fa-solid fa-screwdriver-wrench"></i> صيانة</button>
+    `;
+    const medTab = document.querySelector('.tab[data-sector="medical"]');
+    if (medTab) medTab.insertAdjacentHTML('afterend', newTabsHTML);
+    else tabs.insertAdjacentHTML('beforeend', newTabsHTML);
+  }
+};
+
+// ===== 2) Override router.navigate لدعم القطاعات الجديدة =====
+const _origNavigateNew = router.navigate;
+router.navigate = function(sector, data) {
+  if (sector === 'cars' || sector === 'marketing' || sector === 'home-services') {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    let view = document.getElementById('view-' + sector);
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-' + sector;
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+    view.classList.add('active');
+    const tab = document.querySelector(`.tab[data-sector="${sector}"]`);
+    if (tab) tab.classList.add('active');
+    if (sector === 'cars') CarsSector.render();
+    else if (sector === 'marketing') MarketingSector.render();
+    else if (sector === 'home-services') HomeServicesSector.render();
+    window.scrollTo(0, 0);
+    return;
+  }
+  _origNavigateNew.call(router, sector, data);
+};
+
+// ===== 3) بعد التحميل: تأكد إن التابات ظهرت =====
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    UI.renderHeader();
+  }, 100);
+});
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(() => UI.renderHeader(), 100);
+}
+
+console.log('✅ New sectors (Cars, Marketing, Home Services) loaded successfully');
+</script>
 </body>
 </html>
-<!-- ============ PART 13/13 END — الملف كامل ============ -->
+<!-- ============ PART 17/17 END — الملف كامل الآن ============ -->
