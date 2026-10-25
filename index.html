@@ -3484,6 +3484,215 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
   setTimeout(() => UI.renderHeader(), 300);
 }
 </script>
+<!-- ============ PART 40/40 END — الملف كامل الآن ============ -->
+  <!-- ============ PART 41/43 START ============ -->
+<script>
+// تحسين دالة معالجة النص قبل النطق
+TTSHelper.preprocess = function(text) {
+  let processed = text;
+
+  // 1. إزالة التشكيل (الفتحة، الضمة، الكسرة، السكون، الشدة، التنوين)
+  processed = processed.replace(/[\u064B-\u0652]/g, '');
+
+  // 2. استبدال الاختصارات
+  processed = processed.replace(/د\.\s*/g, 'دكتور ');
+  processed = processed.replace(/أ\.\s*/g, 'أستاذ ');
+  processed = processed.replace(/م\.\s*/g, 'مهندس ');
+
+  // 3. استبدال العملة
+  processed = processed.replace(/ج\.م/g, 'جنيه');
+
+  // 4. إزالة الرموز التعبيرية
+  processed = processed.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}]/gu, '');
+
+  // 5. تحويل بعض الحروف لتحسين النطق (مثال: تحويل "ى" إلى "ي" لتسهيل النطق)
+  processed = processed.replace(/ى/g, 'ي');
+
+  return processed.trim();
+};
+
+// إعادة تعريف دالة النطق لتستخدم المعالجة الجديدة
+VoiceReminder.speak = function(text, urgent = false) {
+  if (!VoiceReminder.voiceEnabled || !('speechSynthesis' in window)) return;
+
+  const processedText = TTSHelper.preprocess(text);
+  if (!processedText) return;
+
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(processedText);
+  utterance.lang = 'ar-EG';
+  utterance.rate = urgent ? 1.05 : 0.95;
+  utterance.pitch = urgent ? 1.1 : 1.0;
+  utterance.volume = 1;
+
+  const voices = window.speechSynthesis.getVoices();
+  const arVoices = voices.filter(v => v.lang && v.lang.startsWith('ar'));
+  const bestVoice = arVoices.find(v => /Google|Microsoft|Samantha/i.test(v.name)) || arVoices[0] || null;
+  if (bestVoice) utterance.voice = bestVoice;
+
+  window.speechSynthesis.speak(utterance);
+};
+
+console.log('🔊 TTS: Diacritics removed and abbreviations handled');
+</script>
+<!-- ============ PART 41/43 END ============ -->
+  <!-- ============ PART 42/43 START ============ -->
+<script>
+// إعادة تعريف GrocerySector ليعمل بنظام السلة
+GrocerySector.cart = []; // سلة المتجر الحالي
+
+GrocerySector.openStore = function(storeId) {
+  GrocerySector.currentStore = storeId;
+  GrocerySector.cart = []; // إعادة تعيين السلة عند دخول متجر جديد
+  const store = DB.groceryStores.find(s => s.id === storeId);
+  const products = DB.groceryProducts[storeId] || [];
+
+  document.getElementById('modal-generic-body').innerHTML = `
+    <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+    <h3 style="margin:0 0 4px;font-weight:900;">${store.name}</h3>
+    <p style="margin:0 0 16px;font-size:12px;color:var(--gray);">${store.area} • التوصيل ${store.deliveryTime}</p>
+    
+    <div class="grid-list" style="margin-bottom:16px;">
+      ${products.map(p => `
+        <div class="item-box" onclick="GrocerySector.addToCart('${p.id}', '${p.name}', ${p.price})" style="padding:10px;">
+          <div class="item-icon" style="width:36px;height:36px;font-size:14px;"><i class="fa-solid ${p.icon}"></i></div>
+          <div class="item-info"><div class="item-title">${p.name}</div></div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-weight:900;color:var(--emerald);">${Utils.money(p.price)}</div>
+            <button class="btn-action" style="padding:4px 8px;font-size:11px;"><i class="fa-solid fa-plus"></i></button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- عرض السلة -->
+    <div id="grocery-cart-container" style="background:var(--gray-light);padding:12px;border-radius:10px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;font-weight:900;margin-bottom:8px;">
+        <span>سلة المشتريات</span>
+        <span id="cart-count">0 منتج</span>
+      </div>
+      <div id="cart-items-list" style="max-height:150px;overflow-y:auto;margin-bottom:8px;"></div>
+      <div style="display:flex;justify-content:space-between;font-weight:900;border-top:1px solid var(--line);padding-top:8px;">
+        <span>الإجمالي</span>
+        <span id="cart-total" style="color:var(--emerald);">0 ج.م</span>
+      </div>
+    </div>
+
+    <button onclick="GrocerySector.checkout('${store.id}')" class="btn-action" style="width:100%;"><i class="fa-solid fa-cart-shopping"></i> إتمام الطلب</button>
+  `;
+  GrocerySector.renderCart();
+  Utils.openModal('modal-generic');
+};
+
+GrocerySector.addToCart = function(id, name, price) {
+  const existing = GrocerySector.cart.find(item => item.id === id);
+  if (existing) {
+    existing.quantity = (existing.quantity || 1) + 1;
+  } else {
+    GrocerySector.cart.push({ id, name, price, quantity: 1 });
+  }
+  GrocerySector.renderCart();
+  Utils.toast(`✓ تمت إضافة ${name}`);
+};
+
+GrocerySector.renderCart = function() {
+  const list = document.getElementById('cart-items-list');
+  const countEl = document.getElementById('cart-count');
+  const totalEl = document.getElementById('cart-total');
+  if (!list) return;
+
+  let total = 0;
+  let count = 0;
+  list.innerHTML = GrocerySector.cart.map(item => {
+    total += item.price * item.quantity;
+    count += item.quantity;
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0;">
+        <span>${item.name} × ${item.quantity}</span>
+        <span style="font-weight:900;">${Utils.money(item.price * item.quantity)}</span>
+      </div>
+    `;
+  }).join('') || '<div style="font-size:11px;color:var(--gray);text-align:center;">السلة فارغة</div>';
+
+  countEl.innerText = `${count} منتج`;
+  totalEl.innerText = Utils.money(total);
+};
+
+GrocerySector.checkout = function(storeId) {
+  if (GrocerySector.cart.length === 0) return Utils.toast('السلة فاضية', true);
+  const store = DB.groceryStores.find(s => s.id === storeId);
+  const total = GrocerySector.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  if (total < store.minOrder) return Utils.toast(`الحد الأدنى ${Utils.money(store.minOrder)}`, true);
+
+  Utils.closeModal('modal-generic');
+  document.getElementById('modal-generic-body').innerHTML = `
+    <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+    <h3 style="margin:0 0 16px;font-weight:900;">تأكيد الطلب</h3>
+    <input type="text" id="grocery-address" class="input-field" placeholder="عنوان التوصيل بالتفصيل">
+    <input type="text" id="grocery-phone" class="input-field" placeholder="رقم الموبايل" value="${Auth.currentUser.phone}">
+    <div style="background:var(--gray-light);padding:12px;border-radius:10px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;font-weight:900;"><span>الإجمالي</span><span style="color:var(--emerald);">${Utils.money(total)}</span></div>
+    </div>
+    <button onclick="GrocerySector.confirmOrder('${storeId}', ${total})" class="btn-action" style="width:100%;">تأكيد واستلام (كاش)</button>
+  `;
+  Utils.openModal('modal-generic');
+};
+
+// دالة confirmOrder ستستدعي FraudProtection وتستخدم واجهة الدفع
+const _origGroceryConfirmCart = GrocerySector.confirmOrder;
+GrocerySector.confirmOrder = function(storeId, total) {
+  const user = Auth.currentUser;
+  if (!user) return AuthUI.open();
+  const address = document.getElementById('grocery-address').value.trim();
+  if (!address) return Utils.toast('أدخل العنوان', true);
+
+  const deposit = FraudProtection.getRequiredDeposit(user, total, 'grocery');
+
+  const proceed = () => {
+    const store = DB.groceryStores.find(s => s.id === storeId);
+    DB.orders = DB.orders || [];
+    DB.orders.push({
+      id: Utils.id(),
+      userId: user.id,
+      sector: 'grocery',
+      storeId,
+      storeName: store.name,
+      items: [...GrocerySector.cart],
+      total,
+      address,
+      status: 'pending',
+      ts: Date.now()
+    });
+    saveDB();
+    GrocerySector.cart = []; // تفريغ السلة
+    Utils.closeModal('modal-generic');
+    Utils.toast('✅ تم استلام طلبك! جاري التحضير...');
+    GrocerySector.render();
+    FraudProtection.recordSuccess(user.id);
+  };
+
+  if (deposit > 0) {
+    DepositPaymentModule.open(deposit, proceed);
+  } else {
+    if (!confirm(`طلبك الأول معفى من العربون.\nإذا لم يتم استلام الطلب، سيُطبق عربون إجباري على طلبك القادم.\nهل توافق؟`)) return;
+    proceed();
+  }
+};
+
+console.log('🛒 Grocery Cart implemented with deposit logic');
+</script>
+<!-- ============ PART 42/43 END ============ -->
+  <!-- ============ PART 43/43 START ============ -->
+<script>
+// تأكيد نهائي لإعادة رسم الهيدر بعد التحميل
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => { UI.renderHeader(); }, 300);
+});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(() => UI.renderHeader(), 300);
+}
+</script>
 </body>
 </html>
-<!-- ============ PART 40/40 END — الملف كامل الآن ============ -->
+<!-- ============ PART 43/43 END — الملف كامل الآن ============ -->
