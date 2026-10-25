@@ -2642,7 +2642,386 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => UI.renderHeader(), 100);
 });
 </script>
-</body>
-</html>
 <!-- ============ PART 22/22 END — الملف كامل الآن ============ -->
 <!-- ============ PART 21/22 END ============ -->
+  <!-- ============ PART 23/28 START ============ -->
+<script>
+// 1) إزالة تاب "الكاليندر" من الهيدر
+const _origRenderHeaderCleanup = UI.renderHeader;
+UI.renderHeader = function() {
+  _origRenderHeaderCleanup.call(UI);
+  // إزالة تاب الكاليندر إن وجد
+  const calTab = document.querySelector('.tab[data-sector="calendar"]');
+  if (calTab) calTab.remove();
+};
+
+// 2) إعادة تعريف router.navigate لمنع الانتقال للكاليندر إذا تم استدعاؤه من مكان قديم
+const _origNavigateCleanup = router.navigate;
+router.navigate = function(sector, data) {
+  if (sector === 'calendar') {
+    Utils.toast('تمت إزالة الكاليندر، استخدم صفحة الطبيب للاطلاع على المواعيد', true);
+    return;
+  }
+  _origNavigateCleanup.call(router, sector, data);
+};
+console.log('🗑️ Calendar tab removed from header');
+</script>
+<!-- ============ PART 23/28 END ============ -->
+  <!-- ============ PART 24/28 START ============ -->
+<script>
+// استبدال QueueModule.render لعرض 5 مراحل احترافية
+QueueModule.render = function() {
+  const el = document.getElementById('view-queue');
+  if (!Auth.currentUser) {
+    el.innerHTML = `<div class="card text-center"><p>سجل دخول لتتبع دورك</p><button onclick="AuthUI.open()" class="btn-action">دخول</button></div>`;
+    return;
+  }
+
+  const mine = DB.appointments.filter(a => a.patientId === Auth.currentUser.id && a.status !== 'completed' && a.status !== 'canceled').sort((a,b) => a.ts - b.ts);
+  if (!mine.length) {
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-users-viewfinder" style="color:var(--sky);"></i> تتبع الدور</h2>
+      <div class="card text-center" style="padding:40px;">
+        <i class="fa-solid fa-calendar-xmark" style="font-size:48px;color:var(--gray);margin-bottom:16px;"></i>
+        <p style="font-weight:900;">لا يوجد حجز نشط</p>
+        <button onclick="router.navigate('medical')" class="btn-action">احجز الآن</button>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <h2 class="section-title"><i class="fa-solid fa-users-viewfinder" style="color:var(--sky);"></i> تتبع الدور (Live)</h2>
+    ${mine.map(appt => {
+      const sameSession = DB.appointments.filter(a => a.doctorId === appt.doctorId && a.date === appt.date && a.status !== 'canceled' && a.status !== 'completed').sort((a,b) => a.ts - b.ts);
+      const pos = sameSession.findIndex(a => a.id === appt.id) + 1;
+      const ahead = pos - 1;
+      const doc = DB.doctors.find(d => d.id === appt.doctorId);
+      const isCurrent = appt.status === 'next';
+      
+      // تحديد المرحلة الحالية (1: محجوز، 2: تذكير، 3: 3 حالات، 4: دورك، 5: متابعة)
+      let currentStep = 1;
+      if (isCurrent) currentStep = 4;
+      else if (ahead > 0 && ahead <= 3) currentStep = 3;
+      else if (ahead > 3) currentStep = 2;
+
+      // هل الطبيب طلب متابعة؟
+      const needsFollowUp = appt.status === 'completed' && appt.needsFollowUp && !appt.followUpBooked;
+
+      return `
+        <div class="card" style="border-right:4px solid ${isCurrent?'var(--amber)':'var(--sky)'};">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+            <div>
+              <h4 style="margin:0;font-weight:900;font-size:15px;">${appt.doctorName}</h4>
+              <p style="margin:4px 0 0;font-size:12px;color:var(--gray);">${appt.doctorSpec}</p>
+              <p style="margin:4px 0 0;font-size:11px;color:var(--sky);font-weight:900;"><i class="fa-solid fa-calendar"></i> ${Utils.fmtDate(appt.date)} • ${appt.slot}</p>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:36px;font-weight:900;color:${isCurrent?'var(--amber)':'var(--emerald)'};line-height:1;">#${pos}</div>
+              <div style="font-size:10px;color:var(--gray);">دورك</div>
+            </div>
+          </div>
+
+          <!-- Timeline احترافي -->
+          <div style="display:flex;align-items:center;justify-content:space-between;position:relative;margin:20px 0;padding:0 10px;">
+            <div style="position:absolute;top:12px;left:10px;right:10px;height:2px;background:var(--line);z-index:0;"></div>
+            ${[1,2,3,4,5].map(step => {
+              const isActive = step <= currentStep;
+              const isPast = step < currentStep;
+              const icons = ['fa-calendar-check','fa-bell','fa-clock','fa-bullhorn','fa-redo'];
+              const labels = ['محجوز','تذكير','3 حالات','دورك','متابعة'];
+              return `
+                <div style="display:flex;flex-direction:column;align-items:center;z-index:1;flex:1;">
+                  <div style="width:28px;height:28px;border-radius:50%;background:${isActive ? (isPast ? 'var(--emerald)' : 'var(--amber)') : 'var(--gray-light)'};color:${isActive?'#fff':'var(--gray)'};display:flex;align-items:center;justify-content:center;font-size:12px;border:3px solid #fff;box-shadow:var(--shadow-sm);">
+                    <i class="fa-solid ${icons[step-1]}"></i>
+                  </div>
+                  <div style="font-size:8px;font-weight:900;color:${isActive?'var(--primary)':'var(--gray)'};margin-top:4px;text-align:center;">${labels[step-1]}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <!-- نص توضيحي حسب الحالة -->
+          ${isCurrent ? `
+            <div style="background:var(--amber-light);padding:14px;border-radius:10px;text-align:center;color:#9A3412;font-size:13px;font-weight:900;margin-bottom:12px;">🔔 توجه للطبيب الآن</div>
+          ` : (ahead > 0 && ahead <= 3) ? `
+            <div style="background:var(--sky-light);padding:12px;border-radius:10px;text-align:center;color:var(--sky);font-size:12px;font-weight:900;margin-bottom:12px;">📢 فاضل ${ahead} حالات قبل دورك. برجاء التوجه للعيادة.</div>
+          ` : `
+            <div style="background:var(--gray-light);padding:12px;border-radius:10px;text-align:center;color:var(--gray);font-size:12px;font-weight:900;margin-bottom:12px;">⏳ جاري انتظار دورك...</div>
+          `}
+
+          <!-- زر إلغاء أو حجز متابعة -->
+          ${appt.status === 'completed' && needsFollowUp ? `
+            <button onclick="MedicalModule.openBooking('${appt.doctorId}','${appt.id}')" class="btn-action" style="width:100%;background:var(--emerald);margin-top:8px;"><i class="fa-solid fa-redo"></i> احجز المتابعة الآن</button>
+          ` : (appt.status !== 'completed' ? `
+            <button onclick="QueueModule.cancel('${appt.id}')" class="btn-action" style="width:100%;background:var(--danger-light);color:var(--danger);padding:10px;font-size:12px;margin-top:8px;"><i class="fa-solid fa-xmark"></i> إلغاء الحجز</button>
+          ` : '')}
+        </div>
+      `;
+    }).join('')}
+  `;
+};
+console.log('✅ Queue Timeline upgraded');
+</script>
+<!-- ============ PART 24/28 END ============ -->
+  <!-- ============ PART 25/28 START ============ -->
+<script>
+// تحسين دالة النطق لتكون طبيعية وبشرية
+const _origVoiceSpeakHuman = VoiceReminder.speak;
+VoiceReminder.speak = function(text, urgent=false) {
+  if (!this.voiceEnabled) return;
+  if (!('speechSynthesis' in window)) return;
+
+  try {
+    window.speechSynthesis.cancel();
+
+    // تقسيم النص إلى جمل قصيرة (أقل من 200 حرف لكل جملة) لنطق أكثر طبيعية
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    
+    const voices = window.speechSynthesis.getVoices();
+    const arVoices = voices.filter(v => v.lang && v.lang.startsWith('ar'));
+    
+    // تفضيل الأصوات الطبيعية (Google / Microsoft / Samantha) إن وجدت
+    const bestVoice = arVoices.find(v => /Google|Microsoft|Samantha/i.test(v.name)) || arVoices[0] || null;
+
+    // نطق الجمل بالتتابع مع تأخير بسيط بينها
+    let delay = 0;
+    sentences.forEach((sentence) => {
+      if (!sentence.trim()) return;
+      
+      const u = new SpeechSynthesisUtterance(sentence.trim());
+      u.lang = 'ar-EG';
+      // ضبط السرعة لتبدو محادثة (0.9) وليس روبوتية
+      u.rate = urgent ? 1.05 : 0.9;
+      // ضبط النبرة بشكل معتدل (تجنب التطرف)
+      u.pitch = urgent ? 1.15 : 0.95;
+      u.volume = 1;
+      if (bestVoice) u.voice = bestVoice;
+
+      setTimeout(() => {
+        window.speechSynthesis.speak(u);
+      }, delay);
+      
+      // حساب التأخير للجملة التالية بناءً على طولها التقريبي (لإعطاء وقفة طبيعية)
+      delay += Math.max(800, sentence.length * 40); 
+    });
+
+  } catch(e) { console.warn('Speech error:', e); }
+};
+console.log('🔊 Voice quality: Human-like tuning applied');
+</script>
+<!-- ============ PART 25/28 END ============ -->
+  <!-- ============ PART 26/28 START ============ -->
+<script>
+// تطوير GrocerySector لعرض تتبع الطلب بشكل احترافي
+const _origGroceryRender = GrocerySector.render;
+GrocerySector.render = function() {
+  let view = document.getElementById('view-grocery');
+  if (!view) {
+    view = document.createElement('section');
+    view.id = 'view-grocery';
+    view.className = 'view-section';
+    document.getElementById('main-container').appendChild(view);
+  }
+  
+  const myOrders = (DB.orders || []).filter(o => Auth.currentUser && o.userId === Auth.currentUser.id && o.sector === 'grocery').sort((a,b) => b.ts - a.ts);
+
+  view.innerHTML = `
+    <div class="card" style="background:linear-gradient(135deg,var(--emerald),#10B981);color:#fff;border:none;">
+      <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-basket-shopping"></i> سوبر ماركت وتسوق</h2>
+      <p style="margin:4px 0 0;font-size:12px;opacity:.9;">طلبك هيوصلك لحد باب البيت</p>
+    </div>
+    
+    <!-- المتاجر -->
+    <h3 class="section-title">المتاجر المتاحة</h3>
+    <div class="grid-list">
+      ${DB.groceryStores.map(s => `
+        <div class="card" onclick="GrocerySector.openStore('${s.id}')" style="cursor:pointer;padding:14px;display:flex;align-items:center;gap:12px;">
+          <div class="item-icon" style="background:var(--emerald-light);color:${s.color};"><i class="fa-solid ${s.icon}"></i></div>
+          <div style="flex:1;">
+            <h4 style="margin:0;font-weight:900;font-size:14px;">${s.name}</h4>
+            <div style="font-size:11px;color:var(--gray);">${s.area} • ⭐ ${s.rating} • ${s.deliveryTime}</div>
+          </div>
+          <i class="fa-solid fa-chevron-left" style="color:var(--gray);"></i>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- الطلبات السابقة مع التتبع -->
+    <h3 class="section-title" style="margin-top:24px;">طلباتي</h3>
+    <div class="grid-list">
+      ${myOrders.length ? myOrders.map(o => {
+        // تحديد المرحلة الحالية للطلب (1: استلام، 2: تجهيز، 3: في الطريق، 4: تم التوصيل)
+        let currentStage = 1;
+        if (o.status === 'preparing') currentStage = 2;
+        else if (o.status === 'on_way') currentStage = 3;
+        else if (o.status === 'delivered') currentStage = 4;
+
+        return `
+          <div class="card" style="padding:14px; border-right:4px solid var(--emerald);">
+            <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+              <div>
+                <h4 style="margin:0;font-weight:900;font-size:14px;">${o.storeName}</h4>
+                <p style="margin:4px 0 0;font-size:11px;color:var(--gray);">${o.items.length} منتج • ${Utils.money(o.total)}</p>
+              </div>
+              <div style="text-align:left;">
+                <span style="font-size:10px;padding:4px 8px;border-radius:6px;background:var(--emerald-light);color:var(--emerald);font-weight:900;">
+                  ${currentStage === 4 ? '✓ تم التوصيل' : currentStage === 3 ? 'في الطريق' : currentStage === 2 ? 'قيد التجهيز' : 'تم الاستلام'}
+                </span>
+              </div>
+            </div>
+            
+            <!-- Timeline الطلب -->
+            <div style="display:flex;align-items:center;justify-content:space-between;position:relative;margin:16px 0 8px;padding:0 10px;">
+              <div style="position:absolute;top:12px;left:10px;right:10px;height:2px;background:var(--line);z-index:0;"></div>
+              ${[1,2,3,4].map(step => {
+                const isActive = step <= currentStage;
+                const icons = ['fa-box','fa-utensils','fa-truck','fa-check-circle'];
+                const labels = ['تم الاستلام','قيد التجهيز','في الطريق','تم التوصيل'];
+                return `
+                  <div style="display:flex;flex-direction:column;align-items:center;z-index:1;flex:1;">
+                    <div style="width:24px;height:24px;border-radius:50%;background:${isActive ? 'var(--emerald)' : 'var(--gray-light)'};color:${isActive?'#fff':'var(--gray)'};display:flex;align-items:center;justify-content:center;font-size:10px;border:2px solid #fff;">
+                      <i class="fa-solid ${icons[step-1]}"></i>
+                    </div>
+                    <div style="font-size:8px;font-weight:900;color:${isActive?'var(--primary)':'var(--gray)'};margin-top:4px;text-align:center;">${labels[step-1]}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            ${currentStage === 4 ? `<div style="text-align:center;font-size:11px;color:var(--emerald);font-weight:900;">شكراً لطلبك! نتمنى لك وجبة شهية.</div>` : ''}
+          </div>
+        `;
+      }).join('') : '<p style="text-align:center;color:var(--gray);font-size:12px;">لا طلبات سابقة</p>'}
+    </div>
+  `;
+};
+console.log('✅ Grocery order tracking timeline added');
+</script>
+<!-- ============ PART 26/28 END ============ -->
+  <!-- ============ PART 27/28 START ============ -->
+<script>
+// 1) إضافة زر SOS في قطاع السيارات
+const _origCarsRender = CarsSector.render;
+CarsSector.render = function() {
+  let view = document.getElementById('view-cars');
+  if (!view) {
+    view = document.createElement('section');
+    view.id = 'view-cars';
+    view.className = 'view-section';
+    document.getElementById('main-container').appendChild(view);
+  }
+  
+  // إضافة زر SOS عائم
+  view.innerHTML = `
+    <div class="card" style="background:linear-gradient(135deg,var(--primary),#1E293B);color:#fff;border:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-car"></i> خدمات السيارات</h2>
+          <p style="margin:4px 0 0;font-size:12px;opacity:.8;">فنيون معتمدون يصلون لموقعك</p>
+        </div>
+        <button onclick="CarsSector.sos()" style="background:var(--danger);color:#fff;border:none;padding:12px 16px;border-radius:50%;font-size:20px;cursor:pointer;box-shadow:0 4px 12px rgba(225,29,72,.4);" title="طلب إنقاذ عاجل">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </button>
+      </div>
+    </div>
+    <div class="grid-2">
+      ${DB.carServices.map(s => `
+        <div class="card" onclick="CarsSector.book('${s.id}')" style="cursor:pointer;text-align:center;padding:16px;margin:0;">
+          <i class="fa-solid ${s.icon}" style="font-size:28px;color:var(--sky);margin-bottom:8px;"></i>
+          <h4 style="font-weight:900;font-size:13px;margin:0;">${s.name}</h4>
+          <div style="font-size:11px;color:var(--emerald);font-weight:900;margin-top:2px;">${Utils.money(s.price)}</div>
+        </div>
+      `).join('')}
+    </div>
+    <!-- طلباتي السابقة -->
+    <h3 class="section-title" style="margin-top:24px;">طلباتي</h3>
+    <div class="grid-list">
+      ${(DB.orders || []).filter(o => Auth.currentUser && o.userId === Auth.currentUser.id && o.sector === 'cars').map(o => `
+        <div class="card" style="padding:12px;border-right:4px solid var(--sky);">
+          <div style="display:flex;justify-content:space-between;">
+            <div><div style="font-weight:900;font-size:13px;">${o.service}</div><div style="font-size:11px;color:var(--gray);">${o.address}</div></div>
+            <div style="text-align:left;"><div style="font-weight:900;color:var(--emerald);">${Utils.money(o.price)}</div><div style="font-size:10px;color:var(--amber);font-weight:900;">${o.status === 'pending' ? 'قيد المراجعة' : o.status}</div></div>
+          </div>
+        </div>
+      `).join('') || '<p style="text-align:center;color:var(--gray);font-size:12px;">لا طلبات سابقة</p>'}
+    </div>
+  `;
+};
+
+// دالة SOS
+CarsSector.sos = function() {
+  if (!Auth.currentUser) return AuthUI.open();
+  if (confirm('هل أنت في حالة طوارئ؟ سيتم إرسال أقرب ونش إنقاذ إليك فوراً.')) {
+    DB.orders = DB.orders || [];
+    DB.orders.push({
+      id: Utils.id(),
+      userId: Auth.currentUser.id,
+      sector: 'cars',
+      service: 'SOS - إنقاذ طارئ',
+      price: 300, // سعر افتراضي
+      address: 'موقعك الحالي (سيتم تحديده)',
+      status: 'pending',
+      isSOS: true,
+      ts: Date.now()
+    });
+    saveDB();
+    Utils.toast('🚨 تم إرسال طلب الإنقاذ! سيصلك اتصال فوراً.', false);
+  }
+};
+
+// 2) إضافة شارة "ضمان 30 يوم" في قطاع الصيانة المنزلية
+const _origHomeRender = HomeServicesSector.render;
+HomeServicesSector.render = function() {
+  let view = document.getElementById('view-home-services');
+  if (!view) {
+    view = document.createElement('section');
+    view.id = 'view-home-services';
+    view.className = 'view-section';
+    document.getElementById('main-container').appendChild(view);
+  }
+  view.innerHTML = `
+    <div class="card" style="background:linear-gradient(135deg,var(--amber),#F59E0B);color:#fff;border:none;">
+      <h2 style="margin:0;font-weight:900;"><i class="fa-solid fa-screwdriver-wrench"></i> الصيانة المنزلية</h2>
+      <p style="margin:4px 0 0;font-size:12px;opacity:.9;">فنيون معتمدون بضمان 30 يوم على الأعمال</p>
+    </div>
+    <div class="grid-2">
+      ${DB.homeServices.map(s => `
+        <div class="card" onclick="HomeServicesSector.book('${s.id}')" style="cursor:pointer;text-align:center;padding:16px;margin:0;">
+          <i class="fa-solid ${s.icon}" style="font-size:28px;color:var(--amber);margin-bottom:8px;"></i>
+          <h4 style="font-weight:900;font-size:13px;margin:0;">${s.name}</h4>
+          <div style="font-size:11px;color:var(--emerald);font-weight:900;margin-top:2px;">تبدأ من ${Utils.money(s.price)}</div>
+          <div style="font-size:9px;color:var(--gold);font-weight:900;margin-top:4px;"><i class="fa-solid fa-shield-halved"></i> ضمان 30 يوم</div>
+        </div>
+      `).join('')}
+    </div>
+    <!-- طلباتي السابقة -->
+    <h3 class="section-title" style="margin-top:24px;">طلباتي</h3>
+    <div class="grid-list">
+      ${(DB.orders || []).filter(o => Auth.currentUser && o.userId === Auth.currentUser.id && o.sector === 'home').map(o => `
+        <div class="card" style="padding:12px;border-right:4px solid var(--amber);">
+          <div style="display:flex;justify-content:space-between;">
+            <div><div style="font-weight:900;font-size:13px;">${o.service}</div><div style="font-size:11px;color:var(--gray);">${o.address}</div></div>
+            <div style="text-align:left;"><div style="font-weight:900;color:var(--emerald);">${Utils.money(o.price)}</div><div style="font-size:10px;color:var(--amber);font-weight:900;">${o.status === 'pending' ? 'قيد المراجعة' : o.status}</div></div>
+          </div>
+        </div>
+      `).join('') || '<p style="text-align:center;color:var(--gray);font-size:12px;">لا طلبات سابقة</p>'}
+    </div>
+  `;
+};
+console.log('✅ Value-added features (SOS, Guarantee) added');
+</script>
+<!-- ============ PART 27/28 END ============ -->
+  <!-- ============ PART 28/28 START ============ -->
+<script>
+// تأكيد نهائي: إعادة رسم الهيدر بعد التحميل لضمان إزالة الكاليندر وظهور التابات الجديدة
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    UI.renderHeader();
+  }, 200);
+});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(() => UI.renderHeader(), 200);
+}
+</script>
+</body>
+</html>
+<!-- ============ PART 28/28 END — الملف كامل الآن ============ -->
