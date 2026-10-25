@@ -1926,3 +1926,94 @@ MedicalModule.confirmBooking = function(docId) {
 };
 </script>
 <!-- ============ PART 12/13 END ============ -->
+  <!-- ============ PART 13/13 START ============ -->
+<script>
+const _origRenderHeader = UI.renderHeader;
+UI.renderHeader = function() {
+  _origRenderHeader.call(UI);
+  if (!Auth.currentUser) return;
+  const u = Auth.currentUser;
+  const tabs = document.getElementById('super-tabs');
+  if (!tabs) return;
+  if (u.role === 'patient' && !document.querySelector('.tab[data-sector="emr"]')) {
+    tabs.insertAdjacentHTML('beforeend', `<button class="tab dynamic" data-sector="emr" onclick="router.navigate('emr')"><i class="fa-solid fa-file-medical"></i> ملفي الطبي</button>`);
+  }
+};
+
+const _origNavigate = router.navigate;
+router.navigate = function(sector, data) {
+  if (sector === 'emr') {
+    let v = document.getElementById('view-emr');
+    if (!v) { v = document.createElement('section'); v.id = 'view-emr'; v.className = 'view-section'; document.getElementById('main-container').appendChild(v); }
+    document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    v.classList.add('active');
+    const t = document.querySelector('.tab[data-sector="emr"]'); if (t) t.classList.add('active');
+    EMRModule.render(); window.scrollTo(0,0); return;
+  }
+  _origNavigate.call(router, sector, data);
+};
+
+const _origPatientRender = PatientDashboard.render;
+PatientDashboard.render = function() {
+  _origPatientRender.call(PatientDashboard);
+  const view = document.getElementById('view-dashboard');
+  if (!view || !Auth.currentUser) return;
+  const u = Auth.currentUser;
+
+  const idCardHTML = `
+    <div class="card" style="border:2px solid var(--emerald);background:linear-gradient(135deg,#ECFDF5,#fff);">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <div style="flex:1;">
+          <div style="font-size:10px;color:var(--gray);font-weight:900;">رقمي التعريفي</div>
+          <div style="font-size:16px;font-weight:900;color:var(--emerald);letter-spacing:.5px;direction:ltr;text-align:left;margin-top:4px;">${u.waslaId}</div>
+          <div style="font-size:10px;color:var(--gray);margin-top:4px;">${u.name}</div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button onclick="WaslaID.copy('${u.waslaId}')" class="btn-ui" style="background:var(--emerald);color:#fff;padding:6px 12px;border:none;"><i class="fa-solid fa-copy"></i> نسخ</button>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <img src="${WaslaID.getQR(u.waslaId)}" alt="QR" style="width:100px;height:100px;border-radius:8px;border:2px solid var(--line);" onerror="this.style.display='none'">
+        </div>
+      </div>
+    </div>
+  `;
+
+  const voiceCard = `
+    <div class="card" style="padding:12px;background:var(--purple-light);border-color:var(--purple);">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div style="font-weight:900;font-size:13px;color:var(--purple);"><i class="fa-solid fa-volume-high"></i> التذكيرات الصوتية</div><div style="font-size:10px;color:var(--gray);">تفعيل تذكير صوتي</div></div>
+        <button onclick="VoiceReminder.test();" class="btn-ui" style="background:var(--purple);color:#fff;padding:6px 12px;border:none;"><i class="fa-solid fa-play"></i> تجربة</button>
+      </div>
+    </div>
+  `;
+
+  const pendingFU = FollowUp.getMyPending();
+  const followUpHTML = pendingFU.length ? `
+    <h3 class="section-title"><i class="fa-solid fa-redo" style="color:var(--amber);"></i> متابعات مطلوبة</h3>
+    <div class="grid-list">
+      ${pendingFU.map(a => `<div class="card" style="border-right:4px solid var(--amber);padding:14px;"><div style="font-weight:900;font-size:14px;">${a.doctorName}</div><div style="font-size:11px;color:var(--gray);margin-top:4px;">طلب متابعة بعد ${a.followUpAfterDays} يوم</div><button onclick="MedicalModule.openBooking('${a.doctorId}','${a.id}')" class="btn-action" style="width:100%;margin-top:10px;background:var(--amber);"><i class="fa-solid fa-redo"></i> احجز المتابعة</button></div>`).join('')}
+    </div>
+  ` : '';
+
+  const emrQuick = `
+    <div class="grid-2" style="margin-bottom:16px;">
+      <button onclick="router.navigate('emr')" class="btn-action" style="padding:14px;background:var(--emerald);"><i class="fa-solid fa-file-medical"></i> ملفي الطبي</button>
+    </div>
+  `;
+
+  view.innerHTML = idCardHTML + voiceCard + followUpHTML + emrQuick + view.innerHTML;
+};
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (Auth.currentUser && Auth.currentUser.role === 'patient') VoiceReminder.voiceEnabled = true;
+  VoiceReminder.init();
+});
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  VoiceReminder.init();
+}
+</script>
+</body>
+</html>
+<!-- ============ PART 13/13 END — الملف كامل ============ -->
