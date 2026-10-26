@@ -5217,6 +5217,79 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => { UI.renderHeader(); }, 200);
 });
 </script>
+<!-- ============ PART 72/72 END — الملف كامل الآن ============ -->
+  <!-- ============ PART 73/73 START ============ -->
+<script>
+// إصلاح نهائي وشامل لمشكلة "مركز القيادة" والصفحات الفارغة
+// هذا الكود يضمن إنشاء الصفحة (DOM) قبل محاولة تفعيلها، ويمنع أي أخطاء تقطع التنفيذ.
+
+const _finalSafeRouter = router.navigate;
+router.navigate = function(sector, data) {
+  // 1. التعامل مع مراكز القيادة (الطبيب والتاجر) بطريقة آمنة
+  if (sector === 'doctor-pro' || sector === 'merchant-pro') {
+    // إخفاء كل الصفحات والتابات
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+    let viewId = sector === 'doctor-pro' ? 'view-doctor-pro' : 'view-merchant-pro';
+    let view = document.getElementById(viewId);
+
+    // 🔥 السر هنا: لو الصفحة مش موجودة في الـ HTML، ننشئها الأول
+    if (!view) {
+      view = document.createElement('section');
+      view.id = viewId;
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+
+    // دلوقتي آمنين إننا نفتح الصفحة
+    view.classList.add('active');
+    
+    // تشغيل دالة العرض الخاصة بالصفحة
+    if (sector === 'doctor-pro' && typeof DoctorDashboardPro !== 'undefined') {
+      DoctorDashboardPro.render();
+    } else if (sector === 'merchant-pro' && typeof MerchantDashboardPro !== 'undefined') {
+      MerchantDashboardPro.render();
+    }
+
+    // تفعيل التاب النشط
+    const tab = document.querySelector(`.tab[data-sector="${sector}"]`);
+    if (tab) tab.classList.add('active');
+    
+    window.scrollTo(0,0);
+    return;
+  }
+
+  // لو أي قطاع تاني، نكمل بالشكل الطبيعي
+  _finalSafeRouter.call(router, sector, data);
+};
+
+// 2. التأكد من إضافة التابات في الهيدر بشكل صحيح
+const _origFinalHeader = UI.renderHeader;
+UI.renderHeader = function() {
+  _origFinalHeader.call(UI);
+  const tabs = document.getElementById('super-tabs');
+  if (!tabs || !Auth.currentUser) return;
+
+  // إضافة تاب الطبيب
+  if (Auth.currentUser.role === 'doctor' && !document.querySelector('.tab[data-sector="doctor-pro"]')) {
+    tabs.insertAdjacentHTML('beforeend', `<button class="tab" data-sector="doctor-pro" onclick="router.navigate('doctor-pro')"><i class="fa-solid fa-satellite-dish"></i> مركز القيادة</button>`);
+  }
+  
+  // إضافة تاب التاجر (للتجربة على حساب المريض)
+  if ((Auth.currentUser.role === 'merchant' || Auth.currentUser.phone === '01000000001') && !document.querySelector('.tab[data-sector="merchant-pro"]')) {
+    tabs.insertAdjacentHTML('beforeend', `<button class="tab" data-sector="merchant-pro" onclick="router.navigate('merchant-pro')"><i class="fa-solid fa-satellite-dish"></i> مركز القيادة</button>`);
+  }
+};
+
+// إعادة رسم الهيدر عند التحميل لضمان ظهور التابات
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => { UI.renderHeader(); }, 200);
+});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(() => UI.renderHeader(), 200);
+}
+</script>
 </body>
 </html>
-<!-- ============ PART 72/72 END — الملف كامل الآن ============ -->
+<!-- ============ PART 73/73 END — الملف كامل الآن ============ -->
