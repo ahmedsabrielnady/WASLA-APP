@@ -5882,6 +5882,1032 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 
 console.log('🎉 All Systems Ready!');
 </script>
+<!-- ============ PART 77/77 END — الملف كامل الآن ============ -->
+  <!-- ============ PART 81/84 START ============ -->
+<style>
+/* ===== Executive Dashboard Styles ===== */
+.exec-dashboard {
+  background: #0A0E1A;
+  min-height: 100vh;
+  padding-bottom: 90px;
+  color: #fff;
+  margin: -16px -16px 0 -16px;
+  padding: 16px;
+}
+.exec-header {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+  border: 1px solid rgba(217, 119, 6, 0.3);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.exec-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(217,119,6,0.15), transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.exec-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #D97706, #F59E0B);
+  color: #0A0E1A;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.exec-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  margin: 8px 0 4px;
+}
+.exec-subtitle {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  font-weight: 700;
+}
+.exec-clock {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: #34D399;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.exec-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.exec-kpi-card {
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.exec-kpi-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--accent, #059669);
+}
+.exec-kpi-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.exec-kpi-value {
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+}
+.exec-kpi-change {
+  font-size: 10px;
+  font-weight: 900;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.exec-kpi-change.up { color: #34D399; }
+.exec-kpi-change.down { color: #F87171; }
+.exec-panel {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.exec-panel-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.exec-panel-title i { color: #F59E0B; }
+.exec-bar-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 120px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.exec-bar {
+  flex: 1;
+  background: linear-gradient(180deg, #D97706, #F59E0B);
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  position: relative;
+  transition: all 0.3s;
+}
+.exec-bar:hover { background: linear-gradient(180deg, #F59E0B, #FBBF24); }
+.exec-bar-label {
+  font-size: 9px;
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  margin-top: 6px;
+  font-weight: 900;
+}
+.exec-sector-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  border-right: 3px solid var(--sector-color, #059669);
+}
+.exec-sector-name {
+  font-size: 12px;
+  font-weight: 900;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.exec-sector-value {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--sector-color, #34D399);
+}
+.exec-sector-progress {
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.exec-sector-fill {
+  height: 100%;
+  background: var(--sector-color);
+  border-radius: 2px;
+}
+.exec-leaderboard-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
+.exec-rank {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.exec-rank.gold { background: linear-gradient(135deg, #FBBF24, #D97706); color: #0A0E1A; }
+.exec-rank.silver { background: linear-gradient(135deg, #E5E7EB, #9CA3AF); color: #0A0E1A; }
+.exec-rank.bronze { background: linear-gradient(135deg, #D97706, #92400E); color: #fff; }
+.exec-rank.other { background: rgba(255,255,255,0.1); color: #fff; }
+.exec-feed-item {
+  padding: 10px;
+  border-right: 2px solid #34D399;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  animation: slideIn 0.3s ease;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.exec-alert {
+  background: linear-gradient(135deg, rgba(225,29,72,0.15), rgba(225,29,72,0.05));
+  border: 1px solid rgba(225,29,72,0.3);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.exec-quick-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 900;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.exec-quick-btn:active { transform: scale(0.95); }
+.exec-tab-nav {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.exec-tab-nav::-webkit-scrollbar { display: none; }
+.exec-tab-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.6);
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.exec-tab-btn.active {
+  background: linear-gradient(135deg, #D97706, #F59E0B);
+  color: #0A0E1A;
+  border-color: #D97706;
+}
+.exec-live-dot {
+  width: 8px;
+  height: 8px;
+  background: #34D399;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulseLive 1.5s infinite;
+  box-shadow: 0 0 8px #34D399;
+}
+@keyframes pulseLive {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+</style>
+
+<script>
+// ===== تحسين محرك المؤشرات ليكون أعمق وأدق =====
+window.ExecutiveMetrics = {
+  calculate: function() {
+    const orders = DB.orders || [];
+    const appts = DB.appointments || [];
+    const users = DB.users || [];
+    const doctors = DB.doctors || [];
+    const stores = DB.groceryStores || [];
+    
+    const now = Date.now();
+    const day = 86400000;
+    
+    // Revenue calculations
+    const orderRevenue = orders.reduce((s,o) => s + (o.total || o.price || 0), 0);
+    const apptRevenue = appts.filter(a => a.status === 'completed').reduce((s,a) => s + (a.price || 0), 0);
+    const totalRevenue = orderRevenue + apptRevenue;
+    const commissionRate = DB.commissionRate || 0.15;
+    const netProfit = Math.round(totalRevenue * commissionRate);
+    
+    // Last 7 days revenue
+    const last7 = [];
+    const prev7 = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayRev = orders.filter(o => o.ts && new Date(o.ts).toISOString().split('T')[0] === dateStr).reduce((s,o) => s + (o.total || o.price || 0), 0)
+        + appts.filter(a => a.date === dateStr && a.status === 'completed').reduce((s,a) => s + (a.price || 0), 0);
+      last7.push({ label: `${d.getDate()}/${d.getMonth()+1}`, value: dayRev });
+    }
+    for (let i = 13; i >= 7; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayRev = orders.filter(o => o.ts && new Date(o.ts).toISOString().split('T')[0] === dateStr).reduce((s,o) => s + (o.total || o.price || 0), 0)
+        + appts.filter(a => a.date === dateStr && a.status === 'completed').reduce((s,a) => s + (a.price || 0), 0);
+      prev7.push(dayRev);
+    }
+    
+    const thisWeekTotal = last7.reduce((s,d) => s + d.value, 0);
+    const lastWeekTotal = prev7.reduce((s,v) => s + v, 0);
+    const weekGrowth = lastWeekTotal > 0 ? Math.round(((thisWeekTotal - lastWeekTotal) / lastWeekTotal) * 100) : 100;
+    
+    // Sector breakdown
+    const sectors = {
+      medical: {name: 'طبي', color: '#059669', icon: 'fa-stethoscope', value: apptRevenue, count: appts.filter(a => a.status === 'completed').length},
+      grocery: {name: 'سوبر ماركت', color: '#EA580C', icon: 'fa-basket-shopping', value: orders.filter(o => o.sector === 'grocery').reduce((s,o) => s + (o.total || 0), 0), count: orders.filter(o => o.sector === 'grocery').length},
+      cars: {name: 'سيارات', color: '#0284C7', icon: 'fa-car', value: orders.filter(o => o.sector === 'cars').reduce((s,o) => s + (o.price || o.total || 0), 0), count: orders.filter(o => o.sector === 'cars').length},
+      home: {name: 'صيانة', color: '#7C3AED', icon: 'fa-screwdriver-wrench', value: orders.filter(o => o.sector === 'home').reduce((s,o) => s + (o.price || o.total || 0), 0), count: orders.filter(o => o.sector === 'home').length}
+    };
+    
+    // Top doctors
+    const topDoctors = doctors.map(d => {
+      const dAppts = appts.filter(a => a.doctorId === d.id && a.status === 'completed');
+      return { ...d, revenue: dAppts.reduce((s,a) => s + (a.price || 0), 0), bookings: dAppts.length };
+    }).sort((a,b) => b.revenue - a.revenue).slice(0, 3);
+    
+    // Top stores
+    const topStores = stores.map(s => {
+      const sOrders = orders.filter(o => o.storeId === s.id);
+      return { ...s, revenue: sOrders.reduce((sum,o) => sum + (o.total || 0), 0), orders: sOrders.length };
+    }).sort((a,b) => b.revenue - a.revenue).slice(0, 3);
+    
+    // Users breakdown
+    const usersByRole = {
+      patient: users.filter(u => u.role === 'patient').length,
+      doctor: users.filter(u => u.role === 'doctor').length,
+      merchant: users.filter(u => u.role === 'merchant').length,
+      staff: users.filter(u => u.role === 'staff').length
+    };
+    
+    // Pending alerts
+    const pendingOrders = orders.filter(o => o.status === 'pending').length;
+    const pendingAppts = appts.filter(a => a.status === 'waiting').length;
+    
+    return {
+      totalRevenue, netProfit, commissionRate,
+      last7, weekGrowth,
+      sectors, topDoctors, topStores,
+      totalUsers: users.length, usersByRole,
+      orderCount: orders.length, apptCount: appts.length,
+      totalTransactions: orders.length + appts.length,
+      pendingOrders, pendingAppts,
+      doctorCount: doctors.length, storeCount: stores.length,
+      avgOrderValue: orders.length ? Math.round(orderRevenue / orders.length) : 0
+    };
+  }
+};
+console.log('✅ ExecutiveMetrics ready');
+</script>
+<!-- ============ PART 81/84 END ============ -->
+  
+<!-- ============ PART 82/84 START ============ -->
+<script>
+window.FounderExecutive = {
+  activeTab: 'overview',
+  
+  render: function() {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'founder') return router.navigate('home');
+    const m = ExecutiveMetrics.calculate();
+    
+    let view = document.getElementById('view-founder-exec');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-founder-exec';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+    
+    view.innerHTML = `
+      <div class="exec-dashboard">
+        <!-- ===== Header ===== -->
+        <div class="exec-header">
+          <div style="position:relative; z-index:1;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+              <div>
+                <span class="exec-badge"><i class="fa-solid fa-crown"></i> FOUNDER MODE</span>
+                <h1 class="exec-title">غرفة عمليات المؤسس</h1>
+                <p class="exec-subtitle">منصة وصلة • شبين القناطر</p>
+              </div>
+              <div style="text-align:left;">
+                <div class="exec-clock" id="execClock">00:00:00</div>
+                <div style="font-size:10px; color:rgba(255,255,255,0.5); font-weight:900; margin-top:4px;">
+                  <span class="exec-live-dot"></span> LIVE
+                </div>
+              </div>
+            </div>
+            <div style="background:rgba(217,119,6,0.1); border:1px solid rgba(217,119,6,0.3); border-radius:12px; padding:14px; margin-top:12px;">
+              <div style="font-size:11px; color:rgba(255,255,255,0.6); font-weight:900; margin-bottom:6px;">إجمالي إيرادات المنصة</div>
+              <div style="font-size:36px; font-weight:900; color:#34D399; line-height:1;">${Utils.money(m.totalRevenue)}</div>
+              <div style="display:flex; gap:12px; margin-top:10px; font-size:10px;">
+                <div style="background:rgba(5,150,105,0.15); padding:4px 10px; border-radius:8px; color:#34D399; font-weight:900;">
+                  <i class="fa-solid fa-coins"></i> صافي الأرباح: ${Utils.money(m.netProfit)}
+                </div>
+                <div style="background:rgba(255,255,255,0.05); padding:4px 10px; border-radius:8px; color:rgba(255,255,255,0.7); font-weight:900;">
+                  <i class="fa-solid fa-percent"></i> العمولة: ${Math.round(m.commissionRate * 100)}%
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- ===== KPI Cards ===== -->
+        <div class="exec-kpi-grid">
+          <div class="exec-kpi-card" style="--accent: #0284C7;">
+            <div class="exec-kpi-label">المعاملات</div>
+            <div class="exec-kpi-value" id="kpiTransactions">0</div>
+            <div class="exec-kpi-change up"><i class="fa-solid fa-arrow-up"></i> إجمالي ${m.totalTransactions}</div>
+          </div>
+          <div class="exec-kpi-card" style="--accent: #059669;">
+            <div class="exec-kpi-label">المستخدمون</div>
+            <div class="exec-kpi-value" id="kpiUsers">0</div>
+            <div class="exec-kpi-change up"><i class="fa-solid fa-user-plus"></i> ${m.usersByRole.patient} مريض</div>
+          </div>
+          <div class="exec-kpi-card" style="--accent: #D97706;">
+            <div class="exec-kpi-label">نمو الأسبوع</div>
+            <div class="exec-kpi-value" style="color:${m.weekGrowth >= 0 ? '#34D399' : '#F87171'};" id="kpiGrowth">${m.weekGrowth >= 0 ? '+' : ''}${m.weekGrowth}%</div>
+            <div class="exec-kpi-change ${m.weekGrowth >= 0 ? 'up' : 'down'}"><i class="fa-solid fa-arrow-${m.weekGrowth >= 0 ? 'up' : 'down'}"></i> مقارنة بالأسبوع السابق</div>
+          </div>
+          <div class="exec-kpi-card" style="--accent: #EA580C;">
+            <div class="exec-kpi-label">متوسط الطلب</div>
+            <div class="exec-kpi-value">${Utils.money(m.avgOrderValue)}</div>
+            <div class="exec-kpi-change up"><i class="fa-solid fa-calculator"></i> للطلب الواحد</div>
+          </div>
+        </div>
+        
+        <!-- ===== Tabs ===== -->
+        <div class="exec-tab-nav">
+          <button class="exec-tab-btn ${this.activeTab === 'overview' ? 'active' : ''}" onclick="FounderExecutive.switchTab('overview')"><i class="fa-solid fa-chart-line"></i> نظرة عامة</button>
+          <button class="exec-tab-btn ${this.activeTab === 'sectors' ? 'active' : ''}" onclick="FounderExecutive.switchTab('sectors')"><i class="fa-solid fa-layer-group"></i> القطاعات</button>
+          <button class="exec-tab-btn ${this.activeTab === 'leaders' ? 'active' : ''}" onclick="FounderExecutive.switchTab('leaders')"><i class="fa-solid fa-trophy"></i> القادة</button>
+          <button class="exec-tab-btn ${this.activeTab === 'activity' ? 'active' : ''}" onclick="FounderExecutive.switchTab('activity')"><i class="fa-solid fa-bolt"></i> النشاط</button>
+          <button class="exec-tab-btn ${this.activeTab === 'control' ? 'active' : ''}" onclick="FounderExecutive.switchTab('control')"><i class="fa-solid fa-shield-halved"></i> التحكم</button>
+        </div>
+        
+        <!-- ===== Tab Content ===== -->
+        <div id="exec-tab-content">${this.renderTab(m)}</div>
+      </div>
+    `;
+    
+    // Animate counters
+    this.animateCounter('kpiTransactions', m.totalTransactions);
+    this.animateCounter('kpiUsers', m.totalUsers);
+    
+    // Live clock
+    this.startClock();
+  },
+  
+  animateCounter: function(id, target) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let current = 0;
+    const step = Math.max(1, Math.ceil(target / 30));
+    const interval = setInterval(() => {
+      current += step;
+      if (current >= target) { current = target; clearInterval(interval); }
+      el.textContent = current.toLocaleString('ar-EG');
+    }, 30);
+  },
+  
+  startClock: function() {
+    if (this._clockInterval) clearInterval(this._clockInterval);
+    const update = () => {
+      const el = document.getElementById('execClock');
+      if (el) {
+        const now = new Date();
+        el.textContent = now.toLocaleTimeString('en-GB');
+      }
+    };
+    update();
+    this._clockInterval = setInterval(update, 1000);
+  },
+  
+  switchTab: function(tab) {
+    this.activeTab = tab;
+    this.render();
+  },
+  
+  renderTab: function(m) {
+    if (this.activeTab === 'overview') {
+      const maxVal = Math.max(...m.last7.map(d => d.value), 1);
+      return `
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-chart-bar"></i> الإيرادات - آخر 7 أيام</div>
+          <div style="display:flex; gap:4px; align-items:flex-end; height:140px; padding-bottom:20px;">
+            ${m.last7.map(d => `
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;">
+                <div style="font-size:9px; color:#FBBF24; font-weight:900; margin-bottom:4px;">${d.value > 0 ? (d.value >= 1000 ? Math.round(d.value/1000)+'k' : Math.round(d.value)) : ''}</div>
+                <div class="exec-bar" style="height:${(d.value/maxVal)*100}%; width:100%;"></div>
+              </div>
+            `).join('')}
+          </div>
+          <div style="display:flex; gap:4px;">
+            ${m.last7.map(d => `<div style="flex:1; text-align:center; font-size:9px; color:rgba(255,255,255,0.4); font-weight:900;">${d.label}</div>`).join('')}
+          </div>
+        </div>
+        
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-building"></i> حالة القطاعات</div>
+          ${Object.entries(m.sectors).map(([key, s]) => `
+            <div class="exec-sector-row" style="--sector-color:${s.color};">
+              <div>
+                <div class="exec-sector-name"><i class="fa-solid ${s.icon}" style="color:${s.color};"></i> ${s.name}</div>
+                <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:2px;">${s.count} معاملة</div>
+              </div>
+              <div style="text-align:left;">
+                <div class="exec-sector-value">${Utils.money(s.value)}</div>
+                <div style="font-size:9px; color:rgba(255,255,255,0.4); margin-top:2px;">${m.totalRevenue > 0 ? Math.round((s.value/m.totalRevenue)*100) : 0}%</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-bell"></i> تنبيهات فورية</div>
+          ${m.pendingOrders > 0 ? `<div class="exec-alert"><i class="fa-solid fa-exclamation-triangle" style="color:#E11D48;"></i><div style="flex:1; font-size:12px; font-weight:900;">${m.pendingOrders} طلب جديد ينتظر المراجعة</div></div>` : ''}
+          ${m.pendingAppts > 0 ? `<div class="exec-alert" style="border-color:rgba(234,88,12,0.3); background:linear-gradient(135deg, rgba(234,88,12,0.15), transparent);"><i class="fa-solid fa-clock" style="color:#EA580C;"></i><div style="flex:1; font-size:12px; font-weight:900;">${m.pendingAppts} موعد في الانتظار</div></div>` : ''}
+          ${m.pendingOrders === 0 && m.pendingAppts === 0 ? '<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.4); font-size:12px; font-weight:900;"><i class="fa-solid fa-check-circle" style="font-size:24px; display:block; margin-bottom:8px;"></i>كل شيء تحت السيطرة</div>' : ''}
+        </div>
+      `;
+    }
+    
+    if (this.activeTab === 'sectors') {
+      return Object.entries(m.sectors).map(([key, s]) => `
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid ${s.icon}" style="color:${s.color};"></i> ${s.name}</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div>
+              <div style="font-size:10px; color:rgba(255,255,255,0.5); font-weight:900;">الإيرادات</div>
+              <div style="font-size:18px; font-weight:900; color:${s.color}; margin-top:4px;">${Utils.money(s.value)}</div>
+            </div>
+            <div>
+              <div style="font-size:10px; color:rgba(255,255,255,0.5); font-weight:900;">المعاملات</div>
+              <div style="font-size:18px; font-weight:900; color:#fff; margin-top:4px;">${s.count}</div>
+            </div>
+          </div>
+          <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;">
+            <div style="width:${m.totalRevenue > 0 ? Math.round((s.value/m.totalRevenue)*100) : 0}%; height:100%; background:${s.color};"></div>
+          </div>
+          <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:6px; font-weight:900;">
+            ${m.totalRevenue > 0 ? Math.round((s.value/m.totalRevenue)*100) : 0}% من إجمالي إيرادات المنصة
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    if (this.activeTab === 'leaders') {
+      return `
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-user-doctor"></i> أطباء متفوقون</div>
+          ${m.topDoctors.length > 0 ? m.topDoctors.map((d, i) => `
+            <div class="exec-leaderboard-item">
+              <div class="exec-rank ${i === 0 ? 'gold' : i === 1 ? 'silver' : 'bronze'}">${i+1}</div>
+              <div style="flex:1;">
+                <div style="font-size:12px; font-weight:900; color:#fff;">${d.name}</div>
+                <div style="font-size:10px; color:rgba(255,255,255,0.5);">${d.spec} • ${d.bookings} زيارة</div>
+              </div>
+              <div style="text-align:left;">
+                <div style="font-size:12px; font-weight:900; color:#34D399;">${Utils.money(d.revenue)}</div>
+                <div style="font-size:10px; color:#FBBF24;">⭐ ${d.rating}</div>
+              </div>
+            </div>
+          `).join('') : '<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.4); font-size:12px;">لا يوجد بيانات كافية</div>'}
+        </div>
+        
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-store"></i> تجار متفوقون</div>
+          ${m.topStores.length > 0 ? m.topStores.map((s, i) => `
+            <div class="exec-leaderboard-item">
+              <div class="exec-rank ${i === 0 ? 'gold' : i === 1 ? 'silver' : 'bronze'}">${i+1}</div>
+              <div style="flex:1;">
+                <div style="font-size:12px; font-weight:900; color:#fff;">${s.name}</div>
+                <div style="font-size:10px; color:rgba(255,255,255,0.5);">${s.area} • ${s.orders} طلب</div>
+              </div>
+              <div style="text-align:left;">
+                <div style="font-size:12px; font-weight:900; color:#34D399;">${Utils.money(s.revenue)}</div>
+                <div style="font-size:10px; color:#FBBF24;">⭐ ${s.rating}</div>
+              </div>
+            </div>
+          `).join('') : '<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.4); font-size:12px;">لا يوجد بيانات كافية</div>'}
+        </div>
+        
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-users"></i> توزيع المستخدمين</div>
+          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;">
+            <div style="padding:12px; background:rgba(2,132,199,0.1); border-radius:10px; border:1px solid rgba(2,132,199,0.3);">
+              <div style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:900;">مرضى</div>
+              <div style="font-size:20px; font-weight:900; color:#0284C7; margin-top:4px;">${m.usersByRole.patient}</div>
+            </div>
+            <div style="padding:12px; background:rgba(5,150,105,0.1); border-radius:10px; border:1px solid rgba(5,150,105,0.3);">
+              <div style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:900;">أطباء</div>
+              <div style="font-size:20px; font-weight:900; color:#059669; margin-top:4px;">${m.usersByRole.doctor}</div>
+            </div>
+            <div style="padding:12px; background:rgba(234,88,12,0.1); border-radius:10px; border:1px solid rgba(234,88,12,0.3);">
+              <div style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:900;">تجار</div>
+              <div style="font-size:20px; font-weight:900; color:#EA580C; margin-top:4px;">${m.usersByRole.merchant}</div>
+            </div>
+            <div style="padding:12px; background:rgba(124,58,237,0.1); border-radius:10px; border:1px solid rgba(124,58,237,0.3);">
+              <div style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:900;">موظفين</div>
+              <div style="font-size:20px; font-weight:900; color:#7C3AED; margin-top:4px;">${m.usersByRole.staff}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    if (this.activeTab === 'activity') {
+      const orders = (DB.orders || []).slice(-10).reverse();
+      const appts = (DB.appointments || []).slice(-10).reverse();
+      const combined = [
+        ...orders.map(o => ({ type: 'order', ...o, ts: o.ts })),
+        ...appts.map(a => ({ type: 'appt', ...a, ts: a.ts }))
+      ].sort((a,b) => (b.ts || 0) - (a.ts || 0)).slice(0, 15);
+      
+      return `
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-bolt"></i> النشاط المباشر</div>
+          ${combined.length > 0 ? combined.map(item => `
+            <div class="exec-feed-item">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <i class="fa-solid ${item.type === 'order' ? 'fa-shopping-bag' : 'fa-calendar-check'}" style="color:${item.type === 'order' ? '#F59E0B' : '#34D399'};"></i>
+                  <div>
+                    <div style="font-size:11px; font-weight:900; color:#fff;">${item.userName || item.patientName || 'مستخدم'}</div>
+                    <div style="font-size:10px; color:rgba(255,255,255,0.5);">${item.storeName || item.service || item.doctorName || ''}</div>
+                  </div>
+                </div>
+                <div style="text-align:left;">
+                  <div style="font-size:11px; font-weight:900; color:#34D399;">${Utils.money(item.total || item.price || 0)}</div>
+                  <div style="font-size:9px; color:rgba(255,255,255,0.4);">${item.ts ? new Date(item.ts).toLocaleTimeString('ar-EG') : ''}</div>
+                </div>
+              </div>
+            </div>
+          `).join('') : '<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.4); font-size:12px;">لا يوجد نشاط بعد</div>'}
+        </div>
+      `;
+    }
+    
+    if (this.activeTab === 'control') {
+      return `
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-percent"></i> نسبة عمولة المنصة</div>
+          <div style="text-align:center; padding:16px 0;">
+            <div id="commDisplay" style="font-size:48px; font-weight:900; color:#FBBF24; line-height:1;">${Math.round(m.commissionRate * 100)}%</div>
+            <div style="font-size:11px; color:rgba(255,255,255,0.5); margin-top:8px;">تحديد العمولة لكل معاملة</div>
+          </div>
+          <input type="range" min="5" max="30" value="${Math.round(m.commissionRate * 100)}" 
+            oninput="document.getElementById('commDisplay').innerText = this.value + '%'" 
+            onchange="FounderExecutive.setCommission(this.value)"
+            style="width:100%; height:8px;">
+          <div style="display:flex; justify-content:space-between; font-size:10px; color:rgba(255,255,255,0.4); font-weight:900; margin-top:4px;">
+            <span>5%</span><span>15%</span><span>30%</span>
+          </div>
+        </div>
+        
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-bolt"></i> إجراءات سريعة</div>
+          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px;">
+            <button onclick="router.navigate('founder-control')" class="exec-quick-btn" style="background:linear-gradient(135deg,#0284C7,#0EA5E9); color:#fff;">
+              <i class="fa-solid fa-users-cog" style="font-size:20px;"></i> إدارة المستخدمين
+            </button>
+            <button onclick="router.navigate('founder')" class="exec-quick-btn" style="background:linear-gradient(135deg,#059669,#10B981); color:#fff;">
+              <i class="fa-solid fa-list" style="font-size:20px;"></i> كل الأطباء
+            </button>
+            <button onclick="Utils.toast('📢 تم إرسال إشعار لجميع المستخدمين')" class="exec-quick-btn" style="background:linear-gradient(135deg,#7C3AED,#8B5CF6); color:#fff;">
+              <i class="fa-solid fa-bullhorn" style="font-size:20px;"></i> إشعار جماعي
+            </button>
+            <button onclick="FounderExecutive.exportData()" class="exec-quick-btn" style="background:linear-gradient(135deg,#D97706,#F59E0B); color:#0A0E1A;">
+              <i class="fa-solid fa-download" style="font-size:20px;"></i> تصدير البيانات
+            </button>
+          </div>
+        </div>
+        
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-database"></i> صحة النظام</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div style="padding:10px; background:rgba(52,211,153,0.1); border-radius:8px;">
+              <div style="font-size:10px; color:rgba(255,255,255,0.5); font-weight:900;">حجم البيانات</div>
+              <div style="font-size:16px; font-weight:900; color:#34D399;">${Math.round(JSON.stringify(DB).length/1024)} KB</div>
+            </div>
+            <div style="padding:10px; background:rgba(52,211,153,0.1); border-radius:8px;">
+              <div style="font-size:10px; color:rgba(255,255,255,0.5); font-weight:900;">الحالة</div>
+              <div style="font-size:16px; font-weight:900; color:#34D399;">✓ يعمل</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    return '';
+  },
+  
+  setCommission: function(val) {
+    DB.commissionRate = parseInt(val) / 100;
+    saveDB();
+    Utils.toast(`✅ تم تحديث العمولة إلى ${val}%`);
+  },
+  
+  exportData: function() {
+    const dataStr = JSON.stringify(DB, null, 2);
+    const blob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wasla-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    Utils.toast('✅ تم تصدير البيانات');
+  }
+};
+console.log('✅ FounderExecutive ready');
+</script>
+<!-- ============ PART 82/84 END ============ -->
+  <!-- ============ PART 83/84 START ============ -->
+<script>
+window.FounderControlCenter = {
+  activeTab: 'users',
+  
+  render: function() {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'founder') return router.navigate('home');
+    
+    let view = document.getElementById('view-founder-control');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-founder-control';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+    
+    const tabs = [
+      {id:'users', name:'المستخدمون', icon:'fa-users'},
+      {id:'doctors', name:'الأطباء', icon:'fa-user-doctor'},
+      {id:'stores', name:'المتاجر', icon:'fa-store'},
+      {id:'orders', name:'الطلبات', icon:'fa-shopping-bag'},
+      {id:'audit', name:'سجل التفتيش', icon:'fa-shield-halved'}
+    ];
+    
+    view.innerHTML = `
+      <div class="exec-dashboard">
+        <div class="exec-header">
+          <div style="position:relative; z-index:1;">
+            <span class="exec-badge"><i class="fa-solid fa-shield-halved"></i> FULL CONTROL</span>
+            <h1 class="exec-title">مركز التحكم الكامل</h1>
+            <p class="exec-subtitle">صلاحيات مطلقة على المنصة</p>
+          </div>
+        </div>
+        
+        <div class="exec-tab-nav">
+          ${tabs.map(t => `<button class="exec-tab-btn ${this.activeTab === t.id ? 'active' : ''}" onclick="FounderControlCenter.switchTab('${t.id}')"><i class="fa-solid ${t.icon}"></i> ${t.name}</button>`).join('')}
+        </div>
+        
+        <div id="control-content">${this.renderTab()}</div>
+      </div>
+    `;
+  },
+  
+  switchTab: function(tab) { this.activeTab = tab; this.render(); },
+  
+  renderTab: function() {
+    if (this.activeTab === 'users') {
+      const users = DB.users || [];
+      return `
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-users"></i> جميع المستخدمين (${users.length})</div>
+          ${users.map(u => `
+            <div style="padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; gap:10px; align-items:center;">
+                <div style="width:32px; height:32px; border-radius:50%; background:${u.role === 'founder' ? '#D97706' : u.role === 'doctor' ? '#059669' : u.role === 'staff' ? '#7C3AED' : '#0284C7'}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px;">
+                  ${(u.name || '?')[0]}
+                </div>
+                <div>
+                  <div style="font-size:12px; font-weight:900; color:#fff;">${u.name || 'مستخدم'}</div>
+                  <div style="font-size:10px; color:rgba(255,255,255,0.5);">${u.phone} • ${u.role}</div>
+                </div>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button onclick="FounderControlCenter.viewUser('${u.id}')" style="padding:4px 8px; background:rgba(2,132,199,0.2); border:1px solid rgba(2,132,199,0.5); color:#0EA5E9; border-radius:6px; font-size:10px; font-weight:900; cursor:pointer; font-family:inherit;">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                ${u.role !== 'founder' ? `<button onclick="FounderControlCenter.suspendUser('${u.id}')" style="padding:4px 8px; background:rgba(225,29,72,0.2); border:1px solid rgba(225,29,72,0.5); color:#F87171; border-radius:6px; font-size:10px; font-weight:900; cursor:pointer; font-family:inherit;">
+                  <i class="fa-solid fa-ban"></i>
+                </button>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+    
+    if (this.activeTab === 'doctors') {
+      const doctors = DB.doctors || [];
+      return `
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-user-doctor"></i> جميع الأطباء (${doctors.length})</div>
+          ${doctors.map(d => {
+            const revenue = (DB.appointments || []).filter(a => a.doctorId === d.id && a.status === 'completed').reduce((s,a) => s + (a.price || 0), 0);
+            return `
+              <div style="padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div style="font-size:12px; font-weight:900; color:#fff;">${d.name}</div>
+                  <div style="font-size:10px; color:rgba(255,255,255,0.5);">${d.spec} • ${d.area}</div>
+                  <div style="font-size:10px; color:#34D399; margin-top:2px; font-weight:900;">${Utils.money(revenue)} إيرادات</div>
+                </div>
+                <div style="text-align:left;">
+                  <div style="font-size:11px; font-weight:900; color:#FBBF24;">⭐ ${d.rating}</div>
+                  <div style="font-size:10px; color:${d.status === 'available' ? '#34D399' : '#F87171'}; font-weight:900;">${d.status === 'available' ? '🟢 متاح' : '🔴 مشغول'}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+    
+    if (this.activeTab === 'stores') {
+      const stores = DB.groceryStores || [];
+      return `
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-store"></i> جميع المتاجر (${stores.length})</div>
+          ${stores.map(s => {
+            const revenue = (DB.orders || []).filter(o => o.storeId === s.id).reduce((sum,o) => sum + (o.total || 0), 0);
+            return `
+              <div style="padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div style="font-size:12px; font-weight:900; color:#fff;">${s.name}</div>
+                  <div style="font-size:10px; color:rgba(255,255,255,0.5);">${s.area} • ${s.deliveryTime || ''}</div>
+                  <div style="font-size:10px; color:#34D399; margin-top:2px; font-weight:900;">${Utils.money(revenue)} إيرادات</div>
+                </div>
+                <div style="font-size:11px; font-weight:900; color:#FBBF24;">⭐ ${s.rating}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+    
+    if (this.activeTab === 'orders') {
+      const orders = (DB.orders || []).slice(-30).reverse();
+      return `
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-shopping-bag"></i> آخر 30 طلب</div>
+          ${orders.map(o => `
+            <div style="padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:6px; border-right:3px solid ${o.sector === 'grocery' ? '#EA580C' : o.sector === 'cars' ? '#0284C7' : o.sector === 'home' ? '#7C3AED' : '#059669'};">
+              <div style="display:flex; justify-content:space-between;">
+                <div>
+                  <div style="font-size:11px; font-weight:900; color:#fff;">${o.storeName || o.service || 'طلب'}</div>
+                  <div style="font-size:10px; color:rgba(255,255,255,0.5);">${o.userName || 'مستخدم'} • ${o.sector}</div>
+                </div>
+                <div style="text-align:left;">
+                  <div style="font-size:11px; font-weight:900; color:#34D399;">${Utils.money(o.total || o.price || 0)}</div>
+                  <div style="font-size:9px; color:rgba(255,255,255,0.4);">${o.status}</div>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+    
+    if (this.activeTab === 'audit') {
+      const logs = (DB.auditLogs || []).slice(-20).reverse();
+      return `
+        <div class="exec-panel">
+          <div class="exec-panel-title"><i class="fa-solid fa-shield-halved"></i> سجل التفتيش (${logs.length})</div>
+          ${logs.length ? logs.map(l => `
+            <div style="padding:10px; background:rgba(225,29,72,0.08); border-radius:8px; margin-bottom:6px; border-right:3px solid #E11D48;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <div style="font-size:11px; font-weight:900; color:#F87171;">${l.action}</div>
+                <div style="font-size:9px; color:rgba(255,255,255,0.4);">${new Date(l.timestamp).toLocaleString('ar-EG')}</div>
+              </div>
+              <div style="font-size:10px; color:rgba(255,255,255,0.6);">${l.details || ''}</div>
+            </div>
+          `).join('') : '<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.4); font-size:12px;">لا يوجد سجلات</div>'}
+        </div>
+      `;
+    }
+    return '';
+  },
+  
+  viewUser: function(id) {
+    const u = DB.users.find(x => x.id === id);
+    if (!u) return;
+    document.getElementById('modal-generic-body').innerHTML = `
+      <button class="modal-close" onclick="Utils.closeModal('modal-generic')"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="margin:0 0 16px;font-weight:900;">بيانات المستخدم</h3>
+      <div style="padding:14px; background:#F4F6FB; border-radius:10px; margin-bottom:10px;">
+        <div style="font-size:11px; color:#64748B; font-weight:900;">الاسم</div>
+        <div style="font-size:14px; font-weight:900; color:#0B1220;">${u.name}</div>
+      </div>
+      <div style="padding:14px; background:#F4F6FB; border-radius:10px; margin-bottom:10px;">
+        <div style="font-size:11px; color:#64748B; font-weight:900;">الهاتف</div>
+        <div style="font-size:14px; font-weight:900; color:#0B1220;">${u.phone}</div>
+      </div>
+      <div style="padding:14px; background:#F4F6FB; border-radius:10px; margin-bottom:10px;">
+        <div style="font-size:11px; color:#64748B; font-weight:900;">الدور</div>
+        <div style="font-size:14px; font-weight:900; color:#0B1220;">${u.role}</div>
+      </div>
+      <div style="padding:14px; background:#F4F6FB; border-radius:10px;">
+        <div style="font-size:11px; color:#64748B; font-weight:900;">المحفظة</div>
+        <div style="font-size:14px; font-weight:900; color:#059669;">${Utils.money(u.wallet || 0)}</div>
+      </div>
+    `;
+    Utils.openModal('modal-generic');
+  },
+  
+  suspendUser: function(id) {
+    if (!confirm('هل تريد إيقاف هذا المستخدم؟')) return;
+    const u = DB.users.find(x => x.id === id);
+    if (u) {
+      u.status = u.status === 'suspended' ? 'active' : 'suspended';
+      saveDB();
+      Utils.toast(u.status === 'suspended' ? '🚫 تم إيقاف المستخدم' : '✅ تم تفعيل المستخدم');
+      this.render();
+    }
+  }
+};
+console.log('✅ FounderControlCenter ready');
+</script>
+<!-- ============ PART 83/84 END ============ -->
+  <!-- ============ PART 84/84 START ============ -->
+<script>
+// ===== Router للوحات المؤسس الجديدة =====
+const _origRouterExec = router.navigate;
+router.navigate = function(sector, data) {
+  if (sector === 'founder-exec' || sector === 'founder-control') {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    
+    const viewId = sector === 'founder-exec' ? 'view-founder-exec' : 'view-founder-control';
+    let view = document.getElementById(viewId);
+    if (!view) {
+      view = document.createElement('section');
+      view.id = viewId;
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+    view.classList.add('active');
+    
+    if (sector === 'founder-exec') FounderExecutive.render();
+    else FounderControlCenter.render();
+    
+    const tab = document.querySelector(`.tab[data-sector="${sector}"]`);
+    if (tab) tab.classList.add('active');
+    window.scrollTo(0,0);
+    return;
+  }
+  _origRouterExec.call(router, sector, data);
+};
+
+// ===== تابات المؤسس في الهيدر =====
+const _origHeaderExec = UI.renderHeader;
+UI.renderHeader = function() {
+  _origHeaderExec.call(UI);
+  const tabs = document.getElementById('super-tabs');
+  if (!tabs || !Auth.currentUser) return;
+  
+  // إعادة تسمية "مركز القيادة" → "مؤشر الأداء"
+  document.querySelectorAll('.tab').forEach(tab => {
+    if (tab.textContent.includes('مركز القيادة')) {
+      tab.innerHTML = tab.innerHTML.replace('مركز القيادة', 'مؤشر الأداء');
+    }
+  });
+  
+  // تابات المؤسس
+  if (Auth.currentUser.role === 'founder') {
+    // إزالة التابات القديمة
+    const oldPerf = tabs.querySelector(`.tab[data-sector="founder-perf"]`);
+    if (oldPerf) oldPerf.remove();
+    
+    if (!tabs.querySelector(`.tab[data-sector="founder-exec"]`)) {
+      const execTabHTML = `<button class="tab" data-sector="founder-exec" onclick="router.navigate('founder-exec')" style="background:linear-gradient(135deg,#D97706,#F59E0B);color:#0A0E1A;border:none;font-weight:900;"><i class="fa-solid fa-crown"></i> غرفة العمليات</button>`;
+      const firstTab = tabs.querySelector('.tab');
+      if (firstTab) firstTab.insertAdjacentHTML('beforebegin', execTabHTML);
+    }
+    if (!tabs.querySelector(`.tab[data-sector="founder-control"]`)) {
+      tabs.insertAdjacentHTML('beforeend', `<button class="tab" data-sector="founder-control" onclick="router.navigate('founder-control')" style="background:linear-gradient(135deg,#E11D48,#BE123C);color:#fff;border:none;"><i class="fa-solid fa-shield-halved"></i> التحكم الكامل</button>`);
+    }
+  }
+};
+
+// ===== Trigger initial render =====
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    UI.renderHeader();
+    // لو مؤسس، نوجهه تلقائياً لغرفة العمليات
+    if (Auth.currentUser && Auth.currentUser.role === 'founder' && (!location.hash || location.hash === '')) {
+      router.navigate('founder-exec');
+    }
+  }, 300);
+});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(() => {
+    UI.renderHeader();
+    if (Auth.currentUser && Auth.currentUser.role === 'founder') router.navigate('founder-exec');
+  }, 300);
+}
+
+console.log('👑 FOUNDER EXECUTIVE DASHBOARD READY');
+</script>
 </body>
 </html>
-<!-- ============ PART 77/77 END — الملف كامل الآن ============ -->
+<!-- ============ PART 84/84 END — الملف كامل الآن ============ -->
