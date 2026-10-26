@@ -1,4 +1,4 @@
-<!-- ============ PART 1/10 START ============ -->
+ة<!-- ============ PART 1/10 START ============ -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -5290,6 +5290,225 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
   setTimeout(() => UI.renderHeader(), 200);
 }
 </script>
+<!-- ============ PART 73/73 END — الملف كامل الآن ============ -->
+  <!-- ============ PART 74/74 START ============ -->
+<script>
+// ===== 1. فرض التعديل على كائن التاجر (Merchant) بدون مشاكل const =====
+Object.assign(MerchantDashboardPro, {
+  activeTab: 'copilot', // التاب الافتراضي هو المساعد الذكي
+  
+  render: function() {
+    if (!Auth.currentUser) return AuthUI.open();
+    const store = DB.groceryStores.find(s => s.id === 'g1') || {name:'متجر تجريبي'};
+    // استخدام دالة حساب المؤشرات الحقيقية
+    const stats = KPIEngine.getMerchantStats('g1'); 
+    const forecast = AISimulator.forecastSales();
+    const pendingOrders = (DB.orders || []).filter(o => o.sector === 'grocery' && o.storeId === 'g1' && o.status === 'pending');
+
+    let view = document.getElementById('view-merchant-pro');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-merchant-pro';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+
+    view.innerHTML = `
+      <!-- الهيدر الاحترافي -->
+      <div class="card" style="background:linear-gradient(135deg,var(--primary),#1E293B);color:#fff;border:none;padding:20px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h2 style="margin:0;font-weight:900;font-size:20px;">برج التحكم التجاري</h2>
+            <p style="margin:6px 0 0;font-size:13px;opacity:0.8;">مدعوم بالذكاء الاصطناعي • ${store.name}</p>
+          </div>
+          <i class="fa-solid fa-robot" style="font-size:32px;color:#34D399;animation:pulse 2s infinite;"></i>
+        </div>
+      </div>
+
+      <!-- التابات الداخلية -->
+      <div style="display:flex;gap:8px;margin:16px 0;overflow-x:auto;">
+        <button class="chip ${this.activeTab === 'copilot' ? 'active' : ''}" onclick="MerchantDashboardPro.switchTab('copilot')"><i class="fa-solid fa-wand-magic-sparkles"></i> المساعد الذكي</button>
+        <button class="chip ${this.activeTab === 'overview' ? 'active' : ''}" onclick="MerchantDashboardPro.switchTab('overview')"><i class="fa-solid fa-chart-line"></i> الأداء</button>
+        <button class="chip ${this.activeTab === 'orders' ? 'active' : ''}" onclick="MerchantDashboardPro.switchTab('orders')"><i class="fa-solid fa-list"></i> الطلبات (${pendingOrders.length})</button>
+      </div>
+
+      <div id="merchant-tab-content">
+        ${this.renderTabContent(stats, forecast, pendingOrders)}
+      </div>
+    `;
+  },
+
+  renderTabContent: function(stats, forecast, pendingOrders) {
+    if (this.activeTab === 'copilot') {
+      return `
+        <!-- مساعد الذكاء الاصطناعي -->
+        <div class="card" style="padding:16px;border-radius:16px;background:var(--purple-light);border:1px solid var(--purple);">
+          <h4 style="margin:0 0 12px;font-weight:900;color:var(--purple);"><i class="fa-solid fa-robot"></i> اسأل مساعدك الذكي</h4>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="ai-query" class="input-field" placeholder="مثال: إيه المنتجات اللي هتخلص؟" style="margin:0;flex:1;background:#fff;">
+            <button onclick="MerchantDashboardPro.askAI()" class="btn-action" style="padding:0 16px;background:var(--purple);"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+          <div id="ai-response" style="margin-top:12px;font-size:13px;font-weight:700;color:var(--primary);"></div>
+        </div>
+
+        <!-- التوقعات -->
+        <div class="card" style="padding:16px;border-radius:16px;margin-top:12px;">
+          <h4 style="margin:0 0 8px;font-weight:900;font-size:13px;"><i class="fa-solid fa-crystal-ball" style="color:var(--gold);"></i> توقعات الأسبوع القادم</h4>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:24px;font-weight:900;color:var(--emerald);">${Utils.money(forecast.nextWeek)}</div>
+            <div style="font-size:12px;font-weight:900;color:var(--emerald);"><i class="fa-solid fa-arrow-up"></i> ${forecast.growth}</div>
+          </div>
+          <div style="font-size:10px;color:var(--gray);margin-top:4px;">دقة التوقع: ${forecast.confidence}</div>
+        </div>
+      `;
+    }
+
+    if (this.activeTab === 'overview') {
+      const maxVal = Math.max(...stats.last7Days.map(d => d.value), 1);
+      return `
+        <div class="grid-2" style="margin-bottom:16px;">
+          <div class="card" style="margin:0;padding:16px;border-radius:16px;border-right:4px solid var(--emerald);">
+            <div style="font-size:11px;font-weight:900;color:var(--gray);">الإيرادات الحقيقية</div>
+            <div style="font-size:24px;font-weight:900;color:var(--emerald);">${Utils.money(stats.revenue)}</div>
+          </div>
+          <div class="card" style="margin:0;padding:16px;border-radius:16px;">
+            <div style="font-size:11px;font-weight:900;color:var(--gray);">الطلبات المكتملة</div>
+            <div style="font-size:24px;font-weight:900;color:var(--primary);">${stats.totalOrders}</div>
+          </div>
+        </div>
+        <div class="card" style="padding:16px;border-radius:16px;">
+          <h4 style="margin:0 0 16px;font-weight:900;font-size:13px;">مبيعات آخر 7 أيام</h4>
+          <div class="bar-chart" style="height:120px;">
+            ${stats.last7Days.map(d => `
+              <div class="bar-col">
+                <div class="bar-val">${d.value > 0 ? d.value : ''}</div>
+                <div class="bar" style="height:${(d.value/maxVal)*100}%; background:linear-gradient(180deg, var(--emerald), #34D399);"></div>
+                <div class="bar-label">${d.label}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    if (this.activeTab === 'orders') {
+      if (pendingOrders.length === 0) return `<div class="card text-center" style="color:var(--gray);">لا توجد طلبات جديدة.</div>`;
+      return pendingOrders.map(o => `
+        <div class="card" style="padding:14px;border-right:4px solid var(--amber);margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-weight:900;font-size:14px;">#${o.id.substring(0,6).toUpperCase()}</div>
+            <div style="font-weight:900;color:var(--emerald);">${Utils.money(o.total)}</div>
+          </div>
+          <div style="font-size:12px;color:var(--gray);margin-bottom:12px;">${o.items.map(i => i.name).join('، ')}</div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="MerchantDashboardPro.updateOrder('${o.id}', 'preparing')" class="btn-action" style="flex:1;padding:10px;background:var(--emerald);font-size:12px;">قبول وتجهيز</button>
+            <button onclick="MerchantDashboardPro.updateOrder('${o.id}', 'canceled')" class="btn-action" style="flex:1;padding:10px;background:var(--danger-light);color:var(--danger);font-size:12px;">رفض</button>
+          </div>
+        </div>
+      `).join('');
+    }
+  },
+
+  switchTab: function(tab) {
+    this.activeTab = tab;
+    this.render();
+  },
+
+  askAI: function() {
+    const input = document.getElementById('ai-query');
+    if (!input || !input.value) return;
+    const query = input.value;
+    const response = AISimulator.merchantCopilot(query);
+    const el = document.getElementById('ai-response');
+    el.innerHTML = `<div style="padding:12px;background:#fff;border-radius:10px;border:1px solid var(--purple);">${response.text}</div>`;
+    if (response.action) {
+      el.innerHTML += `<button class="btn-action" style="width:100%;margin-top:8px;background:var(--purple);font-size:11px;padding:8px;">${response.action}</button>`;
+    }
+    input.value = '';
+  },
+
+  updateOrder: function(orderId, newStatus) {
+    const order = DB.orders.find(o => o.id === orderId);
+    if (order) {
+      order.status = newStatus; saveDB();
+      Utils.toast(newStatus === 'preparing' ? '✅ تم قبول الطلب' : '❌ تم رفض الطلب');
+      this.render();
+    }
+  }
+});
+
+// ===== 2. فرض التعديل على كائن الطبيب (Doctor) =====
+Object.assign(DoctorDashboardPro, {
+  render: function() {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return router.navigate('home');
+    const docId = Auth.currentUser.doctorId;
+    const doc = DB.doctors.find(d => d.id === docId) || DB.doctors[0];
+    const stats = KPIEngine.getDoctorStats(docId);
+    
+    let healthScore = 70;
+    if (stats.noShowRate < 10) healthScore += 15;
+    if (stats.revenue > 1000) healthScore += 10;
+    healthScore = Math.min(healthScore, 98);
+
+    const todayAppts = DB.appointments.filter(a => a.doctorId === docId && a.status === 'waiting');
+    const analyzedAppts = todayAppts.map(a => {
+      const risk = AISimulator.predictNoShowRisk(a);
+      return { ...a, risk };
+    }).sort((a,b) => b.risk.risk - a.risk.risk);
+
+    let view = document.getElementById('view-doctor-pro');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-doctor-pro';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+
+    view.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,var(--emerald),#10B981);color:#fff;border:none;padding:20px;border-radius:20px;box-shadow:0 10px 30px rgba(5,150,105,0.3);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h2 style="margin:0;font-weight:900;font-size:20px;">مركز القيادة السريري</h2>
+            <p style="margin:6px 0 0;font-size:13px;opacity:0.9;">${doc.name}</p>
+          </div>
+          <div style="text-align:center;background:rgba(255,255,255,0.2);padding:8px 12px;border-radius:12px;">
+            <div style="font-size:24px;font-weight:900;">${healthScore}</div>
+            <div style="font-size:9px;">صحة العيادة</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:16px;margin-bottom:16px;">
+        <div class="card" style="margin:0;padding:16px;border-radius:16px;border-right:4px solid var(--emerald);">
+          <div style="font-size:11px;font-weight:900;color:var(--gray);">الإيرادات</div>
+          <div style="font-size:22px;font-weight:900;color:var(--emerald);">${Utils.money(stats.revenue)}</div>
+        </div>
+        <div class="card" style="margin:0;padding:16px;border-radius:16px;border-right:4px solid var(--danger);">
+          <div style="font-size:11px;font-weight:900;color:var(--gray);">نسبة الغياب</div>
+          <div style="font-size:22px;font-weight:900;color:var(--danger);">${stats.noShowRate}%</div>
+        </div>
+      </div>
+
+      <h3 class="section-title" style="font-size:16px;"><i class="fa-solid fa-brain" style="color:var(--purple);"></i> تحليل ذكي للمواعيد (No-Show AI)</h3>
+      <div class="grid-list">
+        ${analyzedAppts.length ? analyzedAppts.map(a => `
+          <div class="card" style="padding:14px; border-radius:12px; border-right:4px solid ${a.risk.risk > 70 ? 'var(--danger)' : a.risk.risk > 40 ? 'var(--amber)' : 'var(--emerald)'};">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <div style="font-weight:900;font-size:13px;">${a.patientName}</div>
+              <div style="font-size:11px;font-weight:900;color:${a.risk.risk > 70 ? 'var(--danger)' : a.risk.risk > 40 ? 'var(--amber)' : 'var(--emerald)'};">خطر الغياب: ${a.risk.risk}%</div>
+            </div>
+            <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">${a.slot} • ${a.risk.advice}</div>
+            ${a.risk.risk > 40 ? `<button onclick="Utils.toast('جاري الاتصال بالمريض...')" class="btn-action" style="width:100%;padding:8px;font-size:11px;background:var(--sky);"><i class="fa-solid fa-phone"></i> اتصال بالمريض</button>` : ''}
+          </div>
+        `).join('') : '<div class="card text-center" style="color:var(--gray);">لا مواعيد قادمة.</div>'}
+      </div>
+    `;
+  }
+});
+
+// إجبار المتصفح على إعادة التحميل عشان يمسح الكاش القديم
+console.log('🔥 Forced Override for AI Control Centers Executed!');
+</script>
 </body>
 </html>
-<!-- ============ PART 73/73 END — الملف كامل الآن ============ -->
+<!-- ============ PART 74/74 END — الملف كامل الآن ============ -->
