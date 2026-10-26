@@ -5509,6 +5509,379 @@ Object.assign(DoctorDashboardPro, {
 // إجبار المتصفح على إعادة التحميل عشان يمسح الكاش القديم
 console.log('🔥 Forced Override for AI Control Centers Executed!');
 </script>
+<!-- ============ PART 74/74 END — الملف كامل الآن ============ -->
+  <!-- ============ PART 75/77 START ============ -->
+<script>
+// ===== 1. محرك المؤشرات (KPI Engine) - كان ناقص =====
+window.KPIEngine = {
+  getMerchantStats: function(storeId) {
+    const storeOrders = (DB.orders || []).filter(o => o.sector === 'grocery' && o.storeId === storeId);
+    const completed = storeOrders.filter(o => o.status === 'delivered' || o.status === 'preparing' || o.status === 'pending');
+    const revenue = completed.reduce((sum, o) => sum + (o.total || 0), 0);
+    const aov = completed.length ? Math.round(revenue / completed.length) : 0;
+    
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayOrders = completed.filter(o => {
+        const oDate = new Date(o.ts).toISOString().split('T')[0];
+        return oDate === dateStr;
+      });
+      last7Days.push({
+        label: `${d.getDate()}/${d.getMonth()+1}`,
+        value: dayOrders.reduce((sum, o) => sum + (o.total || 0), 0)
+      });
+    }
+    
+    return { revenue, totalOrders: storeOrders.length, aov, last7Days };
+  },
+
+  getDoctorStats: function(doctorId) {
+    const appts = DB.appointments.filter(a => a.doctorId === doctorId);
+    const completed = appts.filter(a => a.status === 'completed');
+    const revenue = completed.reduce((sum, a) => sum + (a.price || 0), 0);
+    const noShows = appts.filter(a => a.status === 'canceled');
+    const noShowRate = appts.length ? Math.round((noShows.length / appts.length) * 100) : 0;
+    return { revenue, totalPatients: new Set(appts.map(a => a.patientId)).size, noShowRate, totalAppts: appts.length };
+  }
+};
+
+// ===== 2. محاكي AI (لو مش موجود) =====
+if (typeof window.AISimulator === 'undefined') {
+  window.AISimulator = {
+    predictNoShowRisk: function(appt) {
+      let risk = 20;
+      if (appt.patientName && appt.patientName.includes('محمد')) risk += 40;
+      if (appt.slot && (appt.slot.includes('19') || appt.slot.includes('20'))) risk += 15;
+      if (appt.price && appt.price > 300) risk += 10;
+      risk = Math.min(risk, 95);
+      let advice = 'مريض ملتزم.';
+      if (risk > 70) advice = '⚠️ خطر عالٍ! يُنصح بالاتصال للتأكيد.';
+      else if (risk > 40) advice = 'خطر متوسط. أرسل تذكير واتساب.';
+      return { risk: Math.round(risk), advice };
+    },
+    merchantCopilot: function(query) {
+      const q = (query || '').toLowerCase();
+      const orders = (DB.orders || []).filter(o => o.sector === 'grocery' && o.storeId === 'g1');
+      const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+      if (q.includes('مبيعات') || q.includes('إيراد')) {
+        return { text: `إجمالي مبيعاتك المسجلة هو ${Utils.money(revenue)}. توقعاتنا تشير إلى نمو 15% الأسبوع القادم.` };
+      }
+      if (q.includes('مخزون') || q.includes('هتخلص') || q.includes('نواقص')) {
+        return { text: 'المنتجات الأكثر خطورة: "أرز 5 كجم" (ينفد خلال 3 أيام)، "زيت عافية" (ينفد خلال 5 أيام). ننصح بطلب 20 قطعة من كل منتج.', action: 'طلب من المورد' };
+      }
+      if (q.includes('عملاء') || q.includes('سلة')) {
+        return { text: 'لديك 5 عملاء أضافوا منتجات للسلة ولم يكملوا. ننصح بإرسال كوبون خصم 5%.', action: 'إرسال عرض' };
+      }
+      return { text: 'أهلاً! يمكنك سؤالي عن: "مبيعاتي"، "المخزون"، "العملاء"، أو "التوقعات".' };
+    },
+    forecastSales: function() {
+      return { nextWeek: 4800, growth: '+12%', confidence: '92%' };
+    }
+  };
+}
+
+// ===== 3. بيانات تجريبية (Seed) - زرع طلبات ومواعيد لو مش موجودة =====
+(function seedTestData() {
+  let changed = false;
+  
+  // مواعيد للطبيب
+  if (!DB.appointments || DB.appointments.length === 0) {
+    const today = Utils.todayISO();
+    DB.appointments = [
+      {id:'test-ap1', patientId:'u-p1', patientName:'محمد المريض', doctorId:'d1', doctorName:'د. محمد الشريف', date:today, slot:'17:30', price:250, status:'completed', ts: Date.now() - 86400000},
+      {id:'test-ap2', patientId:'u-p2', patientName:'أحمد علي', doctorId:'d1', doctorName:'د. محمد الشريف', date:today, slot:'18:00', price:250, status:'completed', ts: Date.now() - 86400000},
+      {id:'test-ap3', patientId:'u-p3', patientName:'سارة حسن', doctorId:'d1', doctorName:'د. محمد الشريف', date:today, slot:'19:00', price:250, status:'canceled', ts: Date.now() - 86400000},
+      {id:'test-ap4', patientId:'u-p4', patientName:'خالد محمود', doctorId:'d1', doctorName:'د. محمد الشريف', date:today, slot:'20:00', price:350, status:'completed', ts: Date.now() - 86400000},
+      {id:'test-ap5', patientId:'u-p5', patientName:'منى إبراهيم', doctorId:'d1', doctorName:'د. محمد الشريف', date:today, slot:'21:00', price:250, status:'waiting', ts: Date.now()}
+    ];
+    changed = true;
+  }
+  
+  // طلبات للتاجر
+  if (!DB.orders) DB.orders = [];
+  const hasGroceryOrders = DB.orders.some(o => o.sector === 'grocery' && o.storeId === 'g1');
+  if (!hasGroceryOrders) {
+    const now = Date.now();
+    DB.orders.push(
+      {id:'test-ord1', userId:'u-p1', sector:'grocery', storeId:'g1', storeName:'سوبر ماركت الأمانة', items:[{name:'أرز', quantity:2, price:180}], total:360, address:'شارع بورسعيد', status:'delivered', ts: now - 86400000 * 2},
+      {id:'test-ord2', userId:'u-p2', sector:'grocery', storeId:'g1', storeName:'سوبر ماركت الأمانة', items:[{name:'زيت', quantity:1, price:210}], total:210, address:'ميدان المحطة', status:'delivered', ts: now - 86400000},
+      {id:'test-ord3', userId:'u-p3', sector:'grocery', storeId:'g1', storeName:'سوبر ماركت الأمانة', items:[{name:'لبن', quantity:3, price:45}], total:135, address:'شارع الجيش', status:'pending', ts: now}
+    );
+    changed = true;
+  }
+  
+  // سجل تدقيق
+  if (!DB.auditLogs || DB.auditLogs.length === 0) {
+    DB.auditLogs = [
+      {id:'test-log1', doctorId:'d1', action:'update', details:'تعديل جرعة بانادول للمريض محمد - تفاعل دوائي', timestamp: Date.now() - 3600000},
+      {id:'test-log2', doctorId:'d1', action:'view', details:'فتح السجل الطبي لسارة حسن', timestamp: Date.now() - 7200000}
+    ];
+    changed = true;
+  }
+  
+  if (changed) saveDB();
+})();
+
+console.log('✅ KPIEngine + AISimulator + Seed Data Ready');
+</script>
+<!-- ============ PART 75/77 END ============ -->
+  <!-- ============ PART 76/77 START ============ -->
+<script>
+// ===== 1. مركز قيادة التاجر (نسخة نهائية) =====
+window.MerchantDashboardPro = {
+  activeTab: 'copilot',
+  
+  render: function() {
+    if (!Auth.currentUser) return AuthUI.open();
+    const store = DB.groceryStores.find(s => s.id === 'g1') || {name:'متجر تجريبي'};
+    const stats = KPIEngine.getMerchantStats('g1');
+    const forecast = AISimulator.forecastSales();
+    const pendingOrders = (DB.orders || []).filter(o => o.sector === 'grocery' && o.storeId === 'g1' && o.status === 'pending');
+
+    let view = document.getElementById('view-merchant-pro');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-merchant-pro';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+
+    view.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,#0B1220,#1E293B);color:#fff;border:none;padding:20px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h2 style="margin:0;font-weight:900;font-size:20px;">برج التحكم التجاري</h2>
+            <p style="margin:6px 0 0;font-size:13px;opacity:0.8;">مدعوم بالذكاء الاصطناعي • ${store.name}</p>
+          </div>
+          <i class="fa-solid fa-robot" style="font-size:32px;color:#34D399;"></i>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin:16px 0;overflow-x:auto;">
+        <button class="chip ${this.activeTab === 'copilot' ? 'active' : ''}" onclick="MerchantDashboardPro.switchTab('copilot')"><i class="fa-solid fa-wand-magic-sparkles"></i> المساعد الذكي</button>
+        <button class="chip ${this.activeTab === 'overview' ? 'active' : ''}" onclick="MerchantDashboardPro.switchTab('overview')"><i class="fa-solid fa-chart-line"></i> الأداء</button>
+        <button class="chip ${this.activeTab === 'orders' ? 'active' : ''}" onclick="MerchantDashboardPro.switchTab('orders')"><i class="fa-solid fa-list"></i> الطلبات (${pendingOrders.length})</button>
+      </div>
+
+      <div id="merchant-tab-content">${this.renderTabContent(stats, forecast, pendingOrders)}</div>
+    `;
+  },
+
+  switchTab: function(tab) {
+    this.activeTab = tab;
+    this.render();
+  },
+
+  renderTabContent: function(stats, forecast, pendingOrders) {
+    if (this.activeTab === 'copilot') {
+      return `
+        <div class="card" style="padding:16px;border-radius:16px;background:#F5F3FF;border:1px solid #7C3AED;">
+          <h4 style="margin:0 0 12px;font-weight:900;color:#7C3AED;"><i class="fa-solid fa-robot"></i> اسأل مساعدك الذكي</h4>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="ai-query" class="input-field" placeholder="مثال: إيه اللي هيخلص من المخزن؟" style="margin:0;flex:1;background:#fff;">
+            <button onclick="MerchantDashboardPro.askAI()" class="btn-action" style="padding:0 16px;background:#7C3AED;"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+          <div id="ai-response" style="margin-top:12px;font-size:13px;font-weight:700;"></div>
+        </div>
+
+        <div class="card" style="padding:16px;border-radius:16px;margin-top:12px;">
+          <h4 style="margin:0 0 8px;font-weight:900;font-size:13px;"><i class="fa-solid fa-crystal-ball" style="color:#D97706;"></i> توقعات الأسبوع القادم</h4>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:24px;font-weight:900;color:#059669;">${Utils.money(forecast.nextWeek)}</div>
+            <div style="font-size:12px;font-weight:900;color:#059669;"><i class="fa-solid fa-arrow-up"></i> ${forecast.growth}</div>
+          </div>
+          <div style="font-size:10px;color:#64748B;margin-top:4px;">دقة التوقع: ${forecast.confidence}</div>
+        </div>
+      `;
+    }
+
+    if (this.activeTab === 'overview') {
+      const maxVal = Math.max(...stats.last7Days.map(d => d.value), 1);
+      return `
+        <div class="grid-2" style="margin-bottom:16px;">
+          <div class="card" style="margin:0;padding:16px;border-radius:16px;border-right:4px solid #059669;">
+            <div style="font-size:11px;font-weight:900;color:#64748B;">الإيرادات</div>
+            <div style="font-size:24px;font-weight:900;color:#059669;">${Utils.money(stats.revenue)}</div>
+          </div>
+          <div class="card" style="margin:0;padding:16px;border-radius:16px;">
+            <div style="font-size:11px;font-weight:900;color:#64748B;">الطلبات</div>
+            <div style="font-size:24px;font-weight:900;color:#0B1220;">${stats.totalOrders}</div>
+          </div>
+        </div>
+        <div class="card" style="padding:16px;border-radius:16px;">
+          <h4 style="margin:0 0 16px;font-weight:900;font-size:13px;">مبيعات آخر 7 أيام</h4>
+          <div class="bar-chart" style="height:120px;">
+            ${stats.last7Days.map(d => `
+              <div class="bar-col">
+                <div class="bar-val">${d.value > 0 ? d.value : ''}</div>
+                <div class="bar" style="height:${(d.value/maxVal)*100}%; background:linear-gradient(180deg, #059669, #34D399);"></div>
+                <div class="bar-label">${d.label}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    if (this.activeTab === 'orders') {
+      if (pendingOrders.length === 0) return `<div class="card text-center" style="color:#64748B;">لا توجد طلبات جديدة حالياً.</div>`;
+      return pendingOrders.map(o => `
+        <div class="card" style="padding:14px;border-right:4px solid #EA580C;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-weight:900;font-size:14px;">#${o.id.substring(0,6).toUpperCase()}</div>
+            <div style="font-weight:900;color:#059669;">${Utils.money(o.total)}</div>
+          </div>
+          <div style="font-size:12px;color:#64748B;margin-bottom:12px;">${o.items.map(i => i.name).join('، ')}</div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="MerchantDashboardPro.updateOrder('${o.id}', 'preparing')" class="btn-action" style="flex:1;padding:10px;background:#059669;font-size:12px;">قبول وتجهيز</button>
+            <button onclick="MerchantDashboardPro.updateOrder('${o.id}', 'canceled')" class="btn-action" style="flex:1;padding:10px;background:#FFF1F2;color:#E11D48;font-size:12px;">رفض</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    return '';
+  },
+
+  askAI: function() {
+    const input = document.getElementById('ai-query');
+    if (!input || !input.value) return;
+    const response = AISimulator.merchantCopilot(input.value);
+    const el = document.getElementById('ai-response');
+    el.innerHTML = `<div style="padding:12px;background:#fff;border-radius:10px;border:1px solid #7C3AED;">${response.text}</div>`;
+    if (response.action) {
+      el.innerHTML += `<button class="btn-action" style="width:100%;margin-top:8px;background:#7C3AED;font-size:11px;padding:8px;">${response.action}</button>`;
+    }
+    input.value = '';
+  },
+
+  updateOrder: function(orderId, newStatus) {
+    const order = DB.orders.find(o => o.id === orderId);
+    if (order) {
+      order.status = newStatus;
+      saveDB();
+      Utils.toast(newStatus === 'preparing' ? '✅ تم قبول الطلب' : '❌ تم رفض الطلب');
+      this.render();
+    }
+  }
+};
+
+// ===== 2. مركز قيادة الطبيب (نسخة نهائية) =====
+window.DoctorDashboardPro = {
+  render: function() {
+    if (!Auth.currentUser || Auth.currentUser.role !== 'doctor') return router.navigate('home');
+    const docId = Auth.currentUser.doctorId;
+    const doc = DB.doctors.find(d => d.id === docId) || DB.doctors[0];
+    const stats = KPIEngine.getDoctorStats(docId);
+    
+    let healthScore = 70;
+    if (stats.noShowRate < 10) healthScore += 15;
+    if (stats.revenue > 1000) healthScore += 10;
+    healthScore = Math.min(healthScore, 98);
+
+    const todayAppts = DB.appointments.filter(a => a.doctorId === docId && a.status === 'waiting');
+    const analyzedAppts = todayAppts.map(a => {
+      const risk = AISimulator.predictNoShowRisk(a);
+      return { ...a, risk };
+    }).sort((a,b) => b.risk.risk - a.risk.risk);
+
+    let view = document.getElementById('view-doctor-pro');
+    if (!view) {
+      view = document.createElement('section');
+      view.id = 'view-doctor-pro';
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+
+    view.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg,#059669,#10B981);color:#fff;border:none;padding:20px;border-radius:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h2 style="margin:0;font-weight:900;font-size:20px;">مركز القيادة السريري</h2>
+            <p style="margin:6px 0 0;font-size:13px;opacity:0.9;">${doc.name}</p>
+          </div>
+          <div style="text-align:center;background:rgba(255,255,255,0.2);padding:8px 12px;border-radius:12px;">
+            <div style="font-size:24px;font-weight:900;">${healthScore}</div>
+            <div style="font-size:9px;">صحة العيادة</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:16px;margin-bottom:16px;">
+        <div class="card" style="margin:0;padding:16px;border-radius:16px;border-right:4px solid #059669;">
+          <div style="font-size:11px;font-weight:900;color:#64748B;">الإيرادات</div>
+          <div style="font-size:22px;font-weight:900;color:#059669;">${Utils.money(stats.revenue)}</div>
+        </div>
+        <div class="card" style="margin:0;padding:16px;border-radius:16px;border-right:4px solid #E11D48;">
+          <div style="font-size:11px;font-weight:900;color:#64748B;">نسبة الغياب</div>
+          <div style="font-size:22px;font-weight:900;color:#E11D48;">${stats.noShowRate}%</div>
+        </div>
+      </div>
+
+      <h3 class="section-title" style="font-size:16px;"><i class="fa-solid fa-brain" style="color:#7C3AED;"></i> تحليل ذكي للمواعيد (No-Show AI)</h3>
+      <div class="grid-list">
+        ${analyzedAppts.length ? analyzedAppts.map(a => `
+          <div class="card" style="padding:14px;border-radius:12px;border-right:4px solid ${a.risk.risk > 70 ? '#E11D48' : a.risk.risk > 40 ? '#EA580C' : '#059669'};">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <div style="font-weight:900;font-size:13px;">${a.patientName}</div>
+              <div style="font-size:11px;font-weight:900;color:${a.risk.risk > 70 ? '#E11D48' : a.risk.risk > 40 ? '#EA580C' : '#059669'};">خطر الغياب: ${a.risk.risk}%</div>
+            </div>
+            <div style="font-size:11px;color:#64748B;margin-bottom:8px;">${a.slot} • ${a.risk.advice}</div>
+            ${a.risk.risk > 40 ? `<button onclick="Utils.toast('📞 جاري الاتصال بـ ${a.patientName}...')" class="btn-action" style="width:100%;padding:8px;font-size:11px;background:#0284C7;color:#fff;"><i class="fa-solid fa-phone"></i> اتصال بالمريض</button>` : ''}
+          </div>
+        `).join('') : '<div class="card text-center" style="color:#64748B;">لا مواعيد قادمة.</div>'}
+      </div>
+    `;
+  }
+};
+
+console.log('✅ Merchant & Doctor Command Centers Ready');
+</script>
+<!-- ============ PART 76/77 END ============ -->
+  <!-- ============ PART 77/77 START ============ -->
+<script>
+// إعادة تفعيل الراوتر للتعامل مع مراكز القيادة بشكل آمن
+const _finalRouter = router.navigate;
+router.navigate = function(sector, data) {
+  if (sector === 'doctor-pro' || sector === 'merchant-pro') {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    
+    const viewId = sector === 'doctor-pro' ? 'view-doctor-pro' : 'view-merchant-pro';
+    let view = document.getElementById(viewId);
+    
+    if (!view) {
+      view = document.createElement('section');
+      view.id = viewId;
+      view.className = 'view-section';
+      document.getElementById('main-container').appendChild(view);
+    }
+    view.classList.add('active');
+    
+    if (sector === 'doctor-pro') DoctorDashboardPro.render();
+    else MerchantDashboardPro.render();
+    
+    const tab = document.querySelector(`.tab[data-sector="${sector}"]`);
+    if (tab) tab.classList.add('active');
+    
+    window.scrollTo(0,0);
+    return;
+  }
+  _finalRouter.call(router, sector, data);
+};
+
+// إعادة رسم الهيدر بعد التحميل
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => { UI.renderHeader(); }, 300);
+});
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(() => UI.renderHeader(), 300);
+}
+
+console.log('🎉 All Systems Ready!');
+</script>
 </body>
 </html>
-<!-- ============ PART 74/74 END — الملف كامل الآن ============ -->
+<!-- ============ PART 77/77 END — الملف كامل الآن ============ -->
