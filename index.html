@@ -6928,5 +6928,603 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
 })();
 </script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 8/15: ADMIN DASHBOARD & PLATFORM MANAGEMENT
+     - Global Analytics (Revenue, Users, Appointments)
+     - User Management (Block/Unblock, Roles)
+     - Doctor Approval Flow (Accept/Reject pending)
+     - Global Audit Log Viewer
+     - Broadcast Messaging
+     - Content Management (Specialties & Areas)
+═════════════════════════════════════════════════════════════ -->
+<style>
+/* ── Admin Layout ── */
+.admin-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-default);
+  scrollbar-width: none;
+}
+.admin-tabs::-webkit-scrollbar { display: none; }
+.admin-tab {
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 900;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.admin-tab.active {
+  background: var(--sector-medical);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+/* ── Admin Cards ── */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.admin-stat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+.admin-stat-card .icon {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  font-size: 14px;
+}
+.admin-stat-card.blue .icon { background: #DBEAFE; color: #1D4ED8; }
+.admin-stat-card.green .icon { background: #D1FAE5; color: #059669; }
+.admin-stat-card.purple .icon { background: #F3E8FF; color: #7C3AED; }
+.admin-stat-card.orange .icon { background: #FEF3C7; color: #D97706; }
+.admin-stat-card .value { font-size: 24px; font-weight: 900; color: var(--text-primary); line-height: 1; }
+.admin-stat-card .label { font-size: 10.5px; font-weight: 800; color: var(--text-muted); }
+
+/* ── Data Tables ── */
+.admin-table-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 500px;
+}
+.admin-table th, .admin-table td {
+  padding: 10px 12px;
+  text-align: right;
+  border-bottom: 1px solid var(--border-default);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.admin-table th {
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+  font-weight: 900;
+  font-size: 10.5px;
+  text-transform: uppercase;
+}
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr:hover td { background: rgba(5, 150, 105, 0.03); }
+
+/* ── Status Badges ── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-size: 9.5px;
+  font-weight: 900;
+}
+.status-badge.active { background: #D1FAE5; color: #059669; }
+.status-badge.blocked { background: #FEE2E2; color: #DC2626; }
+.status-badge.pending { background: #FEF3C7; color: #D97706; }
+
+/* ── Admin Actions ── */
+.admin-btn {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 900;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.admin-btn.danger { background: #FEE2E2; color: #DC2626; border: 1px solid #FCA5A5; }
+.admin-btn.success { background: #D1FAE5; color: #059669; border: 1px solid #6EE7B7; }
+.admin-btn.primary { background: var(--sector-medical); color: #fff; }
+.admin-btn.outline { background: transparent; border: 1px solid var(--border-default); color: var(--text-primary); }
+
+/* ── Broadcast Form ── */
+.broadcast-form {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 16px;
+}
+.broadcast-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  min-height: 80px;
+  margin-bottom: 10px;
+}
+.broadcast-form select {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  background: var(--bg-surface);
+}
+</style>
+
+<script>
+(function WASLA_PART_8_ADMIN() {
+  'use strict';
+
+  if (!window.WaslaCore || !window.Auth) {
+    console.error('❌ PART 8 requires PART 2, 3');
+    return;
+  }
+
+  const { Utils, UI, Store, EventLog } = window.WaslaCore;
+
+  console.log('%c🛡️ [PART 8] Admin Dashboard loading...', 'color:#DC2626;font-weight:900');
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 1: SCHEMA & HELPERS
+  // ══════════════════════════════════════════════════════════════
+  function ensureSchema(db) {
+    db.settings = db.settings || {};
+    db.settings.specialties = db.settings.specialties || ['باطنة', 'أطفال', 'قلب', 'جلدية', 'عظام', 'أسنان'];
+    db.settings.areas = db.settings.areas || ['المعادي', 'مدينة نصر', 'المهندسين', 'الدقي', 'شبرا', 'المنصورة'];
+    
+    // Ensure all doctors have a status
+    (db.doctors || []).forEach(d => {
+      if (!d.status) d.status = 'active'; // Default to active for old doctors
+    });
+    return db;
+  }
+  (function() { Store.save(ensureSchema(Store.load())); })();
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 2: ANALYTICS ENGINE
+  // ══════════════════════════════════════════════════════════════
+  const Analytics = {
+    getStats() {
+      const db = Store.load();
+      const today = Utils.today();
+
+      const totalPatients = (db.users || []).filter(u => u.role === 'patient').length;
+      const totalDoctors = (db.doctors || []).length;
+      const pendingDoctors = (db.doctors || []).filter(d => d.status === 'pending').length;
+      const todayAppts = (db.appointments || []).filter(a => a.date === today).length;
+      const totalRevenue = (db.payments || []).reduce((sum, p) => sum + (p.paid || 0), 0);
+
+      return { totalPatients, totalDoctors, pendingDoctors, todayAppts, totalRevenue };
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 3: USER MANAGEMENT
+  // ══════════════════════════════════════════════════════════════
+  const UserManager = {
+    toggleBlock(userId, actorId) {
+      const db = Store.load();
+      const user = (db.users || []).find(u => u.id === userId);
+      if (!user) return;
+
+      user.status = user.status === 'blocked' ? 'active' : 'blocked';
+      Store.save(db);
+
+      (window.Audit || { log: () => {} }).log?.('admin_user_block_toggle', {
+        actorId, patientId: userId, meta: { newStatus: user.status }
+      });
+
+      UI.toast(user.status === 'blocked' ? '🚫 تم حجب المستخدم' : '✅ تم تفعيل المستخدم');
+      AdminPage.render('users');
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 4: DOCTOR APPROVAL FLOW
+  // ══════════════════════════════════════════════════════════════
+  const DoctorApproval = {
+    approve(doctorId, actorId) {
+      const db = Store.load();
+      const doc = db.doctors.find(d => d.id === doctorId);
+      if (!doc) return;
+
+      doc.status = 'active';
+      Store.save(db);
+
+      // Notify doctor
+      const docUser = db.users.find(u => u.doctorId === doctorId || u.id === doc.userId);
+      if (docUser && window.WaslaNotificationManager) {
+        window.WaslaNotificationManager.push({
+          userId: docUser.id,
+          text: `✅ تمت الموافقة على حسابك كطبيب في منصة وصلة. أهلاً بك!`,
+          type: 'system',
+          priority: 'high'
+        });
+      }
+
+      (window.Audit || { log: () => {} }).log?.('admin_doctor_approve', {
+        actorId, meta: { doctorId }
+      });
+
+      UI.toast('✅ تم قبول الطبيب');
+      AdminPage.render('doctors');
+    },
+
+    reject(doctorId, actorId) {
+      const db = Store.load();
+      const doc = db.doctors.find(d => d.id === doctorId);
+      if (!doc) return;
+
+      doc.status = 'rejected';
+      Store.save(db);
+
+      (window.Audit || { log: () => {} }).log?.('admin_doctor_reject', {
+        actorId, meta: { doctorId }
+      });
+
+      UI.toast('❌ تم رفض الطبيب');
+      AdminPage.render('doctors');
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 5: BROADCAST MESSAGING
+  // ══════════════════════════════════════════════════════════════
+  const Broadcast = {
+    send(target, text, actorId) {
+      if (!text.trim()) return UI.toast('اكتب نص الرسالة أولاً', 'error');
+
+      const db = Store.load();
+      let users = db.users || [];
+      
+      if (target === 'patients') users = users.filter(u => u.role === 'patient');
+      else if (target === 'doctors') users = users.filter(u => u.role === 'doctor');
+
+      if (users.length === 0) return UI.toast('لا يوجد مستخدمين في هذه الفئة', 'warning');
+
+      const notifManager = window.WaslaNotificationManager;
+      let count = 0;
+
+      users.forEach(u => {
+        if (notifManager) {
+          notifManager.push({
+            userId: u.id,
+            text: `📢 إعلان إداري: ${text}`,
+            type: 'admin_broadcast',
+            priority: 'high'
+          });
+          count++;
+        }
+      });
+
+      (window.Audit || { log: () => {} }).log?.('admin_broadcast_sent', {
+        actorId, meta: { target, textLength: text.length, count }
+      });
+
+      UI.toast(`📢 تم إرسال الرسالة لـ ${count} مستخدم`);
+      AdminPage.render('broadcast');
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 6: ADMIN UI RENDERER
+  // ══════════════════════════════════════════════════════════════
+  const AdminPage = {
+    currentTab: 'dashboard',
+
+    render(tab = 'dashboard') {
+      const user = window.Auth.getCurrentUser();
+      if (!user || user.role !== 'admin') {
+        return UI.toast('هذه الصفحة للمسؤولين فقط', 'error');
+      }
+
+      this.currentTab = tab;
+      const container = Utils.$('#page-container') || Utils.$('#app-main') || document.body;
+      const stats = Analytics.getStats();
+
+      container.innerHTML = `
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div>
+            <h1 style="font-size:18px;font-weight:900;">
+              <i class="fa-solid fa-shield-halved" style="color:#DC2626;"></i>
+              لوحة التحكم
+            </h1>
+            <p style="font-size:11px;color:var(--text-muted);font-weight:700;">
+              مرحباً ${Utils.escape(user.name)} — مدير النظام
+            </p>
+          </div>
+        </div>
+
+        <div class="admin-tabs">
+          ${this._tabBtn('dashboard', 'fa-chart-pie', 'نظرة عامة')}
+          ${this._tabBtn('users', 'fa-users', 'المستخدمين')}
+          ${this._tabBtn('doctors', 'fa-user-md', 'الأطباء')}
+          ${this._tabBtn('audit', 'fa-list-check', 'السجل')}
+          ${this._tabBtn('broadcast', 'fa-bullhorn', 'رسالة عامة')}
+        </div>
+
+        <div id="admin-content">
+          ${this._renderTab(tab, stats)}
+        </div>
+      `;
+
+      // Bind tabs
+      container.querySelectorAll('.admin-tab').forEach(btn => {
+        btn.onclick = () => this.render(btn.dataset.tab);
+      });
+    },
+
+    _tabBtn(id, icon, label) {
+      return `
+        <button class="admin-tab ${this.currentTab === id ? 'active' : ''}" data-tab="${id}">
+          <i class="fa-solid ${icon}"></i> ${label}
+        </button>
+      `;
+    },
+
+    _renderTab(tab, stats) {
+      if (tab === 'dashboard') return this._renderDashboard(stats);
+      if (tab === 'users')     return this._renderUsers();
+      if (tab === 'doctors')   return this._renderDoctors();
+      if (tab === 'audit')     return this._renderAudit();
+      if (tab === 'broadcast') return this._renderBroadcast();
+      return '';
+    },
+
+    _renderDashboard(stats) {
+      return `
+        <div class="admin-stats-grid">
+          <div class="admin-stat-card blue">
+            <div class="icon"><i class="fa-solid fa-users"></i></div>
+            <div class="value">${stats.totalPatients}</div>
+            <div class="label">إجمالي المرضى</div>
+          </div>
+          <div class="admin-stat-card green">
+            <div class="icon"><i class="fa-solid fa-user-md"></i></div>
+            <div class="value">${stats.totalDoctors}</div>
+            <div class="label">إجمالي الأطباء</div>
+          </div>
+          <div class="admin-stat-card orange">
+            <div class="icon"><i class="fa-solid fa-calendar-day"></i></div>
+            <div class="value">${stats.todayAppts}</div>
+            <div class="label">مواعيد اليوم</div>
+          </div>
+          <div class="admin-stat-card purple">
+            <div class="icon"><i class="fa-solid fa-sack-dollar"></i></div>
+            <div class="value">${stats.totalRevenue}</div>
+            <div class="label">إجمالي الإيرادات (ج.م)</div>
+          </div>
+        </div>
+
+        ${stats.pendingDoctors > 0 ? `
+          <div class="admin-table-container" style="border-color:#FCD34D;background:#FFFBEB;padding:12px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <i class="fa-solid fa-triangle-exclamation" style="color:#D97706;font-size:20px;"></i>
+              <div style="flex:1;">
+                <strong style="font-size:13px;color:#92400E;display:block;">يوجد ${stats.pendingDoctors} طبيب بانتظار الموافقة</strong>
+                <small style="font-size:10.5px;color:#B45309;font-weight:700;">راجع طلبات الانضمام لتفعيل حساباتهم.</small>
+              </div>
+              <button class="admin-btn primary" onclick="WaslaAdmin.render('doctors')">مراجعة</button>
+            </div>
+          </div>
+        ` : ''}
+      `;
+    },
+
+    _renderUsers() {
+      const db = Store.load();
+      const users = (db.users || []).filter(u => u.role === 'patient'); // Focus on patients for blocking
+
+      return `
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>الهاتف</th>
+                <th>الحالة</th>
+                <th>إجراء</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${users.length === 0 ? '<tr><td colspan="4" style="text-align:center;padding:20px;">لا يوجد مرضى</td></tr>' : 
+                users.map(u => `
+                  <tr>
+                    <td>${Utils.escape(u.name)}</td>
+                    <td>${Utils.escape(u.phone)}</td>
+                    <td>
+                      <span class="status-badge ${u.status === 'blocked' ? 'blocked' : 'active'}">
+                        ${u.status === 'blocked' ? 'محجوب' : 'نشط'}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="admin-btn ${u.status === 'blocked' ? 'success' : 'danger'}" 
+                        onclick="WaslaAdmin.UserManager.toggleBlock('${u.id}', '${window.Auth.getCurrentUser().id}')">
+                        ${u.status === 'blocked' ? 'تفعيل' : 'حجب'}
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    },
+
+    _renderDoctors() {
+      const db = Store.load();
+      const doctors = db.doctors || [];
+
+      return `
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>الطبيب</th>
+                <th>التخصص</th>
+                <th>المنطقة</th>
+                <th>الحالة</th>
+                <th>إجراء</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${doctors.length === 0 ? '<tr><td colspan="5" style="text-align:center;padding:20px;">لا يوجد أطباء</td></tr>' : 
+                doctors.map(d => `
+                  <tr>
+                    <td>${Utils.escape(d.name)}</td>
+                    <td>${Utils.escape(d.specialty || '-')}</td>
+                    <td>${Utils.escape(d.area || '-')}</td>
+                    <td>
+                      <span class="status-badge ${d.status}">
+                        ${d.status === 'active' ? 'نشط' : d.status === 'pending' ? 'بانتظار' : 'مرفوض'}
+                      </span>
+                    </td>
+                    <td>
+                      ${d.status === 'pending' ? `
+                        <button class="admin-btn success" onclick="WaslaAdmin.DoctorApproval.approve('${d.id}', '${window.Auth.getCurrentUser().id}')">قبول</button>
+                        <button class="admin-btn danger" onclick="WaslaAdmin.DoctorApproval.reject('${d.id}', '${window.Auth.getCurrentUser().id}')">رفض</button>
+                      ` : '-'}
+                    </td>
+                  </tr>
+                `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    },
+
+    _renderAudit() {
+      const db = Store.load();
+      const logs = (db.auditLog || []).slice(0, 50); // Show last 50
+
+      return `
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>العملية</th>
+                <th>المستخدم (ID)</th>
+                <th>الوقت</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${logs.length === 0 ? '<tr><td colspan="3" style="text-align:center;padding:20px;">لا يوجد سجل</td></tr>' : 
+                logs.map(l => `
+                  <tr>
+                    <td><strong>${Utils.escape(l.action)}</strong></td>
+                    <td><small>${Utils.escape(l.actorId?.slice(-6) || 'System')}</small></td>
+                    <td><small>${new Date(l.ts).toLocaleString('ar-EG')}</small></td>
+                  </tr>
+                `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    },
+
+    _renderBroadcast() {
+      return `
+        <div class="broadcast-form">
+          <h3 style="font-size:14px;font-weight:900;margin-bottom:10px;">📢 إرسال إشعار جماعي</h3>
+          <select id="broadcast-target">
+            <option value="all">كل المستخدمين</option>
+            <option value="patients">المرضى فقط</option>
+            <option value="doctors">الأطباء فقط</option>
+          </select>
+          <textarea id="broadcast-text" placeholder="اكتب نص الرسالة هنا..."></textarea>
+          <button class="admin-btn primary" style="width:100%;padding:10px;justify-content:center;" 
+            onclick="WaslaAdmin.Broadcast.send(document.getElementById('broadcast-target').value, document.getElementById('broadcast-text').value, '${window.Auth.getCurrentUser().id}')">
+            <i class="fa-solid fa-paper-plane"></i> إرسال للجميع
+          </button>
+        </div>
+      `;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 7: ROUTE REGISTRATION & BOOT
+  // ══════════════════════════════════════════════════════════════
+  window.WaslaAdmin = {
+    render: (tab) => AdminPage.render(tab),
+    UserManager,
+    DoctorApproval,
+    Broadcast,
+    // Quick access helper
+    loginAsAdmin: function() {
+      const db = Store.load();
+      const admin = db.users.find(u => u.role === 'admin');
+      if (admin) {
+        localStorage.setItem('wasla_v5_session', admin.id); // assuming session key
+        UI.toast('✅ تم الدخول كمسؤول. جاري التحديث...');
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        UI.toast('لا يوجد حساب مسؤول', 'error');
+      }
+    }
+  };
+
+  function registerRoutes() {
+    if (window.WaslaRender) {
+      const prev = window.WaslaRender.page;
+      window.WaslaRender.page = function(route, params) {
+        if (route === 'admin') { AdminPage.render(params?.tab || 'dashboard'); return; }
+        return prev?.call(this, route, params);
+      };
+    }
+  }
+
+  setTimeout(() => {
+    registerRoutes();
+    EventLog.log('patch_8_applied', {
+      features: ['admin_dashboard', 'user_management', 'doctor_approval', 'audit_viewer', 'broadcast'],
+      ts: Date.now()
+    });
+
+    console.log('%c🛡️ [PART 8] Admin Dashboard READY', 'background:#DC2626;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
+    console.log('%c🧪 للدخول للوحة كمسؤول: WaslaAdmin.loginAsAdmin()', 'color:#0284C7;font-weight:900');
+  }, 1800);
+
+})();
+</script>
 </body>
 </html>
