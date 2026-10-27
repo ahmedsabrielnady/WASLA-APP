@@ -2027,5 +2027,1302 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   setTimeout(boot, 400);
 })();
 </script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 5/15: MEDICAL SECTOR (Full)
+═════════════════════════════════════════════════════════════ -->
+<style>
+/* Medical Sector Styles */
+.doctor-card-med {
+  background: var(--bg-card); border: 1px solid var(--border-default);
+  border-radius: var(--radius-md); padding: 14px; margin-bottom: 10px;
+  cursor: pointer; transition: all 0.2s ease;
+  display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+}
+.doctor-card-med:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--sector-medical-border); }
+.doctor-avatar-med {
+  width: 54px; height: 54px; border-radius: var(--radius-md);
+  background: var(--sector-medical-soft); color: var(--sector-medical);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0; border: 1px solid var(--sector-medical-border);
+  position: relative;
+}
+.doctor-avatar-med.verified::after {
+  content: '\f058'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+  position: absolute; bottom: -3px; left: -3px;
+  background: var(--sector-medical); color: #fff;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; border: 2px solid #fff;
+}
+.doctor-info-med { min-width: 0; }
+.doctor-name-med { font-size: 14.5px; font-weight: 900; color: var(--text-primary); margin-bottom: 3px; }
+.doctor-spec-med { font-size: 11px; color: var(--sector-medical); font-weight: 900; margin-bottom: 4px; }
+.doctor-meta-med { font-size: 11px; color: var(--text-muted); font-weight: 700; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
+.insurance-badges-row { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 4px; }
+.ins-badge {
+  font-size: 9px; font-weight: 900; padding: 2px 7px;
+  background: var(--sector-cars-soft); color: var(--sector-cars);
+  border: 1px solid var(--sector-cars-border); border-radius: var(--radius-full);
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.ins-badge.more { background: var(--bg-muted); color: var(--text-muted); border-color: var(--border-default); }
+.doctor-price-med { text-align: center; min-width: 100px; }
+.doctor-price-med .price-old { font-size: 10.5px; color: var(--text-disabled); text-decoration: line-through; font-weight: 700; }
+.doctor-price-med .price-new { font-size: 19px; font-weight: 900; color: var(--sector-medical); }
+.doctor-price-med .price-new span { font-size: 10px; color: var(--text-muted); }
+.doctor-book-btn-med {
+  margin-top: 6px; width: 100%; padding: 8px 12px; font-size: 11px;
+  border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--sector-medical), #10B981);
+  color: #fff; border: none; font-weight: 900; cursor: pointer; font-family: inherit;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+@media (max-width: 500px) {
+  .doctor-card-med { grid-template-columns: auto 1fr; }
+  .doctor-price-med { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px dashed var(--border-default); margin-top: 4px; }
+  .doctor-price-med .doctor-book-btn-med { width: auto; margin-top: 0; padding: 8px 16px; }
+}
+
+/* Doctor Profile Hero */
+.doctor-profile-hero {
+  background: linear-gradient(135deg, #064E3B, var(--sector-medical) 55%, #10B981);
+  color: #fff; border-radius: var(--radius-lg); padding: 22px; margin-bottom: 16px; position: relative; overflow: hidden;
+}
+.doctor-profile-hero::before {
+  content: ''; position: absolute; top: -50%; right: -20%;
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 60%);
+  border-radius: 50%; pointer-events: none;
+}
+.doctor-profile-avatar {
+  width: 68px; height: 68px; border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; flex-shrink: 0; position: relative;
+}
+
+/* Schedule Row */
+.schedule-row-med {
+  display: flex; align-items: center; gap: 8px; padding: 9px 12px;
+  border: 1px solid var(--border-default); border-radius: var(--radius-sm);
+  background: var(--bg-muted); margin-bottom: 6px; font-size: 12px; font-weight: 800;
+}
+.schedule-row-med.active { background: var(--sector-medical-soft); border-color: var(--sector-medical-border); }
+.schedule-day-med { width: 60px; flex-shrink: 0; color: var(--text-secondary); }
+.schedule-row-med.active .schedule-day-med { color: var(--sector-medical); }
+
+/* Slot Picker */
+.slot-picker-med {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  max-height: 200px; overflow-y: auto; padding: 4px; margin-bottom: 12px;
+}
+.slot-option-med {
+  padding: 10px 8px; border-radius: var(--radius-xs);
+  border: 1.5px solid var(--border-default); text-align: center;
+  cursor: pointer; font-size: 11.5px; font-weight: 900;
+  background: #fff; font-family: inherit; transition: all 0.15s ease;
+}
+.slot-option-med:hover { border-color: var(--sector-medical); }
+.slot-option-med.selected { background: var(--sector-medical); color: #fff; border-color: var(--sector-medical); }
+.slot-option-med.disabled { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; background: var(--bg-muted); }
+
+/* No-Show Warning */
+.no-show-warning {
+  background: linear-gradient(135deg, #FEF2F2, #FEE2E2);
+  border: 1.5px solid rgba(225, 29, 72, 0.3);
+  border-radius: var(--radius-sm); padding: 12px 14px; margin: 12px 0;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.no-show-warning h4 { font-size: 12.5px; font-weight: 900; color: var(--color-danger); margin-bottom: 4px; }
+.no-show-warning p { font-size: 11px; color: #991B1B; font-weight: 700; line-height: 1.6; }
+
+/* Queue Live */
+.queue-live-card {
+  background: linear-gradient(135deg, #064E3B, var(--sector-medical) 55%, #10B981);
+  color: #fff; border-radius: var(--radius-md); padding: 20px;
+  position: relative; overflow: hidden;
+}
+.queue-live-card::before {
+  content: ''; position: absolute; top: -30%; right: -20%;
+  width: 240px; height: 240px;
+  background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
+  border-radius: 50%; pointer-events: none;
+}
+.queue-position-num { font-size: 64px; font-weight: 900; line-height: 1; letter-spacing: -3px; }
+
+/* Insurance Toggle */
+.ins-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); margin-bottom: 6px; background: #fff;
+  transition: all 0.15s ease;
+}
+.ins-toggle.active { background: var(--sector-medical-soft); border-color: var(--sector-medical-border); }
+.ins-toggle-info { display: flex; align-items: center; gap: 10px; flex: 1; }
+.ins-toggle-icon {
+  width: 32px; height: 32px; border-radius: var(--radius-xs);
+  background: var(--bg-muted); color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.ins-toggle.active .ins-toggle-icon { background: var(--sector-medical-soft); color: var(--sector-medical); }
+.ins-toggle-name { font-size: 12.5px; font-weight: 900; color: var(--text-primary); }
+.switch-toggle {
+  position: relative; width: 44px; height: 24px; flex-shrink: 0;
+}
+.switch-toggle input { display: none; }
+.switch-toggle span {
+  position: absolute; inset: 0; background: var(--border-strong);
+  border-radius: var(--radius-full); cursor: pointer; transition: 0.3s;
+}
+.switch-toggle span::before {
+  content: ''; position: absolute; height: 18px; width: 18px;
+  left: 3px; bottom: 3px; background: #fff;
+  border-radius: 50%; transition: 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.switch-toggle input:checked + span { background: var(--sector-medical); }
+.switch-toggle input:checked + span::before { transform: translateX(20px); }
+
+/* Clinic Stats */
+.clinic-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;
+}
+@media (max-width: 500px) { .clinic-stats { grid-template-columns: repeat(2, 1fr); } }
+.clinic-stat {
+  background: var(--bg-card); border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 12px 10px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.clinic-stat::before { content: ''; position: absolute; top: 0; right: 0; width: 3px; height: 100%; background: var(--sector-medical); }
+.clinic-stat.amber::before { background: var(--sector-grocery); }
+.clinic-stat.sky::before { background: var(--sector-cars); }
+.clinic-stat.gold::before { background: var(--sector-gold); }
+.clinic-stat-value { font-size: 22px; font-weight: 900; line-height: 1.1; color: var(--text-primary); }
+.clinic-stat-label { font-size: 10px; color: var(--text-muted); font-weight: 800; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+
+/* Queue card for clinic */
+.queue-card-clinic {
+  background: var(--bg-card); border: 1px solid var(--border-default);
+  border-radius: var(--radius-md); padding: 12px; margin-bottom: 8px;
+  border-right: 4px solid var(--border-default);
+}
+.queue-card-clinic.waiting { border-right-color: var(--sector-cars); }
+.queue-card-clinic.next { border-right-color: var(--sector-grocery); background: linear-gradient(135deg, #FFF7ED, #FED7AA); }
+.queue-card-clinic.completed { border-right-color: var(--sector-medical); opacity: 0.75; }
+.queue-card-clinic.no-show { border-right-color: var(--color-danger); opacity: 0.6; }
+
+/* Review Card */
+.review-card-med {
+  background: #fff; border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm); padding: 12px; margin-bottom: 8px;
+}
+.review-reply {
+  background: var(--sector-medical-soft); border-right: 3px solid var(--sector-medical);
+  padding: 8px 10px; border-radius: var(--radius-xs); margin-top: 8px;
+  font-size: 11px; font-weight: 700;
+}
+</style>
+
+<script>
+(function WASLA_PART_5_MEDICAL() {
+  'use strict';
+
+  if (!window.WaslaCore || !window.Auth || !window.Router) {
+    console.error('❌ PART 5 requires PART 2, 3, 4');
+    return;
+  }
+
+  const { Utils, UI, Store, EventLog } = window.WaslaCore;
+
+  console.log('%c🏥 [PART 5] تحميل القطاع الطبي...', 'color:#059669;font-weight:900');
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 1: HELPERS
+  // ══════════════════════════════════════════════════════════════
+  function getCurrentDoctor() {
+    const user = window.Auth.getCurrentUser();
+    if (!user) return null;
+    const db = Store.load();
+    return (db.doctors || []).find(d => d.userId === user.id) || null;
+  }
+
+  function getInsuranceName(insId) {
+    const db = Store.load();
+    const ins = (db.insuranceCompanies || []).find(i => i.id === insId);
+    return ins ? ins.name : insId;
+  }
+
+  function computeDeposit(user, amount, sector = 'medical') {
+    if (!user) return 0;
+    const noShows = user.noShowCount || 0;
+    const successfulOrders = user.successfulOrders || 0;
+
+    // No-show rule: 2+ no-shows = deposit always required
+    if (noShows >= 2) return Math.round(amount * 0.25);
+
+    // Trusted user (3+ orders) = no deposit
+    if (successfulOrders >= 3) return 0;
+
+    // Medical rules: first order free, second order 25%
+    if (sector === 'medical') {
+      return successfulOrders === 0 ? 0 : Math.round(amount * 0.25);
+    }
+    return 0;
+  }
+
+  function generateSlots(doctor, dateISO) {
+    if (!doctor || !doctor.schedule) return [];
+    const dayKey = Utils.dayKey(dateISO);
+    const daySchedule = doctor.schedule[dayKey];
+    if (!daySchedule || !daySchedule.active) return [];
+
+    const startMin = Utils.timeToMin(daySchedule.start);
+    const endMin = Utils.timeToMin(daySchedule.end);
+    const duration = daySchedule.duration || 20;
+    if (endMin <= startMin) return [];
+
+    const db = Store.load();
+    const bookedSlots = (db.appointments || [])
+      .filter(a => a.doctorId === doctor.id && a.date === dateISO && a.status !== 'canceled')
+      .map(a => a.slot);
+
+    const slots = [];
+    for (let t = startMin; t + duration <= endMin; t += duration) {
+      const h = Math.floor(t / 60);
+      const m = t % 60;
+      const slot = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      slots.push({ time: slot, booked: bookedSlots.includes(slot) });
+    }
+    return slots;
+  }
+
+  function getTodayApptsForDoctor(doctorId) {
+    const db = Store.load();
+    const today = Utils.today();
+    return (db.appointments || [])
+      .filter(a => a.doctorId === doctorId && a.date === today && !['canceled'].includes(a.status))
+      .sort((a, b) => Utils.timeToMin(a.slot) - Utils.timeToMin(b.time));
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 2: MEDICAL SECTOR VIEW (Doctor List)
+  // ══════════════════════════════════════════════════════════════
+  let medicalFilters = { search: '', specialty: '', insurance: '', payment: '' };
+
+  window.Router.register('medical', (el) => {
+    const db = Store.load();
+    const doctors = (db.doctors || []).filter(d => d.status !== 'hidden');
+    const specs = [...new Set(doctors.map(d => d.spec))].filter(Boolean);
+    const insurances = db.insuranceCompanies || [];
+
+    el.innerHTML = `
+      <div class="sector-hero" data-sector="medical">
+        <span class="sector-hero-badge"><i class="fa-solid fa-stethoscope"></i> القطاع الطبي</span>
+        <h1>صحتك أولوية — احجز مع نخبة الأطباء</h1>
+        <p>احجز مع استشاريي ${db.settings.cityName}، ادفع عربون مؤكد، وتابع دورك لحظة بلحظة</p>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title"><i class="fa-solid fa-magnifying-glass"></i> ابحث عن طبيب</h3>
+        <div class="search-input-wrapper" style="margin-bottom:12px;">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="med-search" class="input" placeholder="ابحث باسم الطبيب أو التخصص..." value="${Utils.escape(medicalFilters.search)}" oninput="MedicalView._onSearch(this.value)">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div>
+            <label class="label">التخصص</label>
+            <select id="med-spec" class="input" onchange="MedicalView._onSpec(this.value)">
+              <option value="">كل التخصصات</option>
+              ${specs.map(s => `<option value="${Utils.escape(s)}" ${medicalFilters.specialty === s ? 'selected' : ''}>${Utils.escape(s)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="label">التأمين</label>
+            <select id="med-ins" class="input" onchange="MedicalView._onInsurance(this.value)">
+              <option value="">كل شركات التأمين</option>
+              ${insurances.map(i => `<option value="${i.id}" ${medicalFilters.insurance === i.id ? 'selected' : ''}>${Utils.escape(i.name)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="label">الدفع</label>
+            <select id="med-pay" class="input" onchange="MedicalView._onPay(this.value)">
+              <option value="">الكل</option>
+              <option value="cash" ${medicalFilters.payment === 'cash' ? 'selected' : ''}>كاش فقط</option>
+              <option value="insurance" ${medicalFilters.payment === 'insurance' ? 'selected' : ''}>يقبل تأمين</option>
+            </select>
+          </div>
+        </div>
+        <div class="chip-row">
+          <button class="chip active" onclick="MedicalView._resetFilters()"><i class="fa-solid fa-rotate-right"></i> إعادة تعيين</button>
+        </div>
+      </div>
+
+      <div id="med-doctors-list"></div>
+
+      <div class="card" style="margin-top:16px;background:var(--sector-cars-soft);border-color:var(--sector-cars-border);">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <i class="fa-solid fa-info-circle" style="color:var(--sector-cars);font-size:18px;flex-shrink:0;margin-top:2px;"></i>
+          <div>
+            <div style="font-size:12.5px;font-weight:900;color:var(--text-primary);margin-bottom:4px;">ملاحظة عن التأمين</div>
+            <p style="font-size:11px;color:var(--text-secondary);font-weight:700;line-height:1.6;">
+              المعلومات المعروضة عن شركات التأمين مقدمة من الطبيب. يُرجى التأكد من شركة التأمين مباشرة قبل الحجز لمعرفة نسبة التغطية.
+            </p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    MedicalView._renderDoctors();
+  });
+
+  const MedicalView = {
+    _onSearch(v) { medicalFilters.search = v.toLowerCase(); this._renderDoctors(); },
+    _onSpec(v) { medicalFilters.specialty = v; this._renderDoctors(); },
+    _onInsurance(v) { medicalFilters.insurance = v; this._renderDoctors(); },
+    _onPay(v) { medicalFilters.payment = v; this._renderDoctors(); },
+    _resetFilters() {
+      medicalFilters = { search: '', specialty: '', insurance: '', payment: '' };
+      window.Router.go('medical');
+    },
+    _getFiltered() {
+      const db = Store.load();
+      let docs = (db.doctors || []).filter(d => d.status !== 'hidden');
+      if (medicalFilters.search) {
+        const q = medicalFilters.search;
+        docs = docs.filter(d =>
+          (d.name || '').toLowerCase().includes(q) ||
+          (d.spec || '').toLowerCase().includes(q) ||
+          (d.area || '').toLowerCase().includes(q)
+        );
+      }
+      if (medicalFilters.specialty) docs = docs.filter(d => d.spec === medicalFilters.specialty);
+      if (medicalFilters.insurance) docs = docs.filter(d => (d.acceptedInsurances || []).includes(medicalFilters.insurance));
+      if (medicalFilters.payment === 'insurance') docs = docs.filter(d => (d.acceptedInsurances || []).length > 0);
+      if (medicalFilters.payment === 'cash') docs = docs.filter(d => (d.acceptedInsurances || []).length === 0 || d.payments?.includes('cash'));
+      return docs;
+    },
+    _renderDoctors() {
+      const container = Utils.$('#med-doctors-list');
+      if (!container) return;
+      const docs = this._getFiltered();
+
+      if (docs.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-user-doctor empty-state-icon"></i><p class="empty-state-title">لا يوجد أطباء مطابقون</p><p class="empty-state-desc">جرّب تغيير معايير البحث</p></div>`;
+        return;
+      }
+
+      container.innerHTML = docs.map(d => this._renderCard(d)).join('');
+    },
+    _renderCard(doc) {
+      const todayISO = Utils.today();
+      const slots = generateSlots(doc, todayISO);
+      const availableToday = slots.filter(s => !s.booked).length;
+      const insList = doc.acceptedInsurances || [];
+      const insToShow = insList.slice(0, 2);
+      const moreCount = insList.length - 2;
+
+      return `
+        <div class="doctor-card-med" onclick="MedicalView._openProfile('${doc.id}')">
+          <div class="doctor-avatar-med ${doc.verified ? 'verified' : ''}">
+            <i class="fa-solid fa-user-doctor"></i>
+          </div>
+          <div class="doctor-info-med">
+            <div class="doctor-name-med">${Utils.escape(doc.name)}</div>
+            <div class="doctor-spec-med">${Utils.escape(doc.spec)}</div>
+            <div class="doctor-meta-med">
+              <i class="fa-solid fa-location-dot"></i> ${Utils.escape(doc.area)}
+              <span style="color:var(--text-disabled);">·</span>
+              <i class="fa-solid fa-star" style="color:#F59E0B;"></i> ${doc.rating || 0} (${doc.reviewsCount || 0})
+            </div>
+            ${insList.length > 0 ? `
+              <div class="insurance-badges-row">
+                ${insToShow.map(id => `<span class="ins-badge"><i class="fa-solid fa-shield-halved"></i> ${Utils.escape(getInsuranceName(id))}</span>`).join('')}
+                ${moreCount > 0 ? `<span class="ins-badge more">+${moreCount} أخرى</span>` : ''}
+              </div>
+            ` : `<div class="insurance-badges-row"><span class="ins-badge more">كاش فقط</span></div>`}
+            ${availableToday > 0 ? `<div class="live-viewers-badge" style="margin-top:6px;"><span class="pulse"></span> ${availableToday} موعد متاح اليوم</div>` : ''}
+          </div>
+          <div class="doctor-price-med">
+            <div>
+              <div class="price-old">${Utils.money(doc.price)}</div>
+              <div class="price-new">${doc.price} <span>ج.م</span></div>
+            </div>
+            <button class="doctor-book-btn-med" onclick="event.stopPropagation(); MedicalView._openBooking('${doc.id}')">
+              <i class="fa-solid fa-calendar-plus"></i> احجز
+            </button>
+          </div>
+        </div>
+      `;
+    },
+    _openProfile(docId) { window.Router.go('doctor-profile', { doctorId: docId }); },
+    _openBooking(docId) {
+      const user = window.Auth.getCurrentUser();
+      if (!user) { UI.toast('سجل دخول أولاً', 'warning'); window.AuthUI.open('login'); return; }
+      const db = Store.load();
+      const doc = (db.doctors || []).find(d => d.id === docId);
+      if (!doc) return;
+      window.BookingFlow.open(doc);
+    }
+  };
+
+  window.MedicalView = MedicalView;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 3: DOCTOR PROFILE VIEW
+  // ══════════════════════════════════════════════════════════════
+  window.Router.register('doctor-profile', (el, params) => {
+    const db = Store.load();
+    const doc = (db.doctors || []).find(d => d.id === params.doctorId);
+
+    if (!doc) {
+      el.innerHTML = `<div class="empty-state"><p class="empty-state-title">الطبيب غير موجود</p><button class="btn btn-primary" style="margin-top:16px;" onclick="Router.go('medical')">العودة</button></div>`;
+      return;
+    }
+
+    const reviews = (db.reviews || []).filter(r => r.doctorId === doc.id).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    const insList = doc.acceptedInsurances || [];
+    const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+
+    el.innerHTML = `
+      <button class="btn btn-ghost btn-sm" onclick="Router.go('medical')" style="margin-bottom:14px;">
+        <i class="fa-solid fa-arrow-right"></i> العودة للأطباء
+      </button>
+
+      <div class="doctor-profile-hero">
+        <div style="display:flex;gap:14px;align-items:flex-start;position:relative;">
+          <div class="doctor-profile-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:19px;font-weight:900;margin-bottom:4px;">${Utils.escape(doc.name)} ${doc.verified ? '<i class="fa-solid fa-circle-check" style="font-size:13px;color:#34D399;"></i>' : ''}</div>
+            <div style="font-size:13px;font-weight:900;color:#34D399;margin-bottom:6px;">${Utils.escape(doc.spec)}</div>
+            <div style="font-size:11.5px;opacity:0.9;font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${Utils.escape(doc.area)}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;position:relative;">
+          <span class="sector-hero-badge" style="margin:0;"><i class="fa-solid fa-star" style="color:#FBBF24;"></i> ${doc.rating || 0} · ${doc.reviewsCount || 0} تقييم</span>
+          <span class="sector-hero-badge" style="margin:0;"><i class="fa-solid fa-clock"></i> ${doc.avgTime || 20} دقيقة</span>
+          <span class="sector-hero-badge" style="margin:0;"><i class="fa-solid fa-money-bill"></i> ${doc.price} ج.م</span>
+        </div>
+        ${doc.bio ? `<p style="font-size:12px;opacity:0.9;font-weight:700;line-height:1.7;margin-top:14px;position:relative;">${Utils.escape(doc.bio)}</p>` : ''}
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <button class="btn btn-primary btn-lg" onclick="MedicalView._openBooking('${doc.id}')"><i class="fa-solid fa-calendar-plus"></i> احجز الآن</button>
+        <button class="btn btn-dark btn-lg" onclick="UI.toast('سيتم تفعيل الفيديو في PART 6','info')" style="opacity:0.6;"><i class="fa-solid fa-video"></i> فيديو (قريبًا)</button>
+      </div>
+
+      ${insList.length > 0 ? `
+        <h2 class="section-title"><i class="fa-solid fa-shield-halved"></i> التأمين المقبول (${insList.length})</h2>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="chip-row">
+            ${insList.map(id => `<span class="ins-badge" style="padding:6px 12px;font-size:11px;"><i class="fa-solid fa-check-circle"></i> ${Utils.escape(getInsuranceName(id))}</span>`).join('')}
+          </div>
+          <div style="margin-top:10px;padding:10px 12px;background:#FFF7ED;border:1px solid #FDBA74;border-radius:var(--radius-sm);font-size:11px;color:#7C2D12;font-weight:800;line-height:1.6;">
+            <i class="fa-solid fa-info-circle"></i> المعلومات مقدمة من الطبيب. يُرجى التأكد من شركة التأمين مباشرة قبل الحجز لمعرفة نسبة التغطية الفعلية.
+          </div>
+        </div>
+      ` : ''}
+
+      <h2 class="section-title"><i class="fa-solid fa-calendar-week"></i> جدول العمل</h2>
+      <div class="card" style="margin-bottom:16px;">
+        ${days.map(day => {
+          const s = (doc.schedule || {})[day] || { active: false };
+          return `
+            <div class="schedule-row-med ${s.active ? 'active' : ''}">
+              <div class="schedule-day-med">${Utils.dayArabic(day)}</div>
+              <div style="flex:1;font-family:monospace;font-size:11.5px;font-weight:900;">${s.active ? `${s.start} — ${s.end}` : 'مغلق'}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      ${(doc.services || []).length > 0 ? `
+        <h2 class="section-title"><i class="fa-solid fa-stethoscope"></i> الخدمات المتاحة</h2>
+        <div class="card" style="margin-bottom:16px;">
+          ${doc.services.map(sv => `
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border-default);border-radius:var(--radius-sm);margin-bottom:6px;background:#fff;">
+              <div style="width:36px;height:36px;border-radius:var(--radius-xs);background:var(--sector-cars-soft);color:var(--sector-cars);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;"><i class="fa-solid ${sv.icon || 'fa-stethoscope'}"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:12px;font-weight:900;">${Utils.escape(sv.name)}</div>
+                <div style="font-size:10.5px;color:var(--text-muted);font-weight:700;">${sv.duration || 15} دقيقة</div>
+              </div>
+              <div style="font-size:13px;font-weight:900;color:${sv.price === 0 ? 'var(--text-muted)' : 'var(--sector-medical)'};">${sv.price === 0 ? 'ضمن الكشف' : Utils.money(sv.price)}</div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      <h2 class="section-title"><i class="fa-solid fa-star"></i> التقييمات (${reviews.length})</h2>
+      <div class="card">
+        ${reviews.length === 0 ? `<div class="empty-state" style="padding:24px 12px;"><p class="empty-state-desc">لا توجد تقييمات بعد</p></div>` : `
+          <div style="display:flex;gap:16px;margin-bottom:16px;align-items:center;flex-wrap:wrap;">
+            <div style="text-align:center;">
+              <div style="font-size:42px;font-weight:900;color:#F59E0B;line-height:1;">${doc.rating || 0}</div>
+              <div style="color:#F59E0B;font-size:14px;margin-top:4px;">${'★'.repeat(Math.floor(doc.rating || 0))}${'☆'.repeat(5 - Math.floor(doc.rating || 0))}</div>
+              <div style="font-size:10px;color:var(--text-muted);font-weight:900;margin-top:4px;">${doc.reviewsCount || 0} تقييم</div>
+            </div>
+          </div>
+          ${reviews.slice(0, 5).map(r => `
+            <div class="review-card-med">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--sector-cars),#0EA5E9);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;">${Utils.escape((r.patientName || '?').charAt(0))}</div>
+                  <div>
+                    <div style="font-size:12px;font-weight:900;">${Utils.escape(r.patientName || 'مريض')}</div>
+                    <div style="font-size:10px;color:var(--text-muted);font-weight:700;">${Utils.timeAgo(r.createdAt || Date.now())}</div>
+                  </div>
+                </div>
+                <div style="color:#F59E0B;font-size:12px;">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+              </div>
+              <p style="font-size:12px;color:var(--text-secondary);font-weight:700;line-height:1.6;margin:0;">${Utils.escape(r.comment || '')}</p>
+              ${r.reply ? `<div class="review-reply"><div style="font-size:10.5px;font-weight:900;color:var(--sector-medical);margin-bottom:2px;">رد الطبيب:</div><div style="color:var(--text-secondary);">${Utils.escape(r.reply)}</div></div>` : ''}
+            </div>
+          `).join('')}
+        `}
+      </div>
+    `;
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 4: BOOKING FLOW (with No-Show Prevention + Insurance)
+  // ══════════════════════════════════════════════════════════════
+  const BookingFlow = {
+    state: { doctor: null, date: null, slot: null, paymentMethod: 'cash', selectedInsurance: null, forWhom: 'self' },
+
+    open(doctor) {
+      this.state = { doctor, date: Utils.today(), slot: null, paymentMethod: 'cash', selectedInsurance: null, forWhom: 'self' };
+      this._render();
+      UI.modal('modal-booking', { open: true });
+    },
+
+    _render() {
+      const body = Utils.$('#modal-booking-body');
+      if (!body) return;
+
+      const { doctor, date, slot, paymentMethod, selectedInsurance, forWhom } = this.state;
+      const slots = generateSlots(doctor, date);
+      const availableSlots = slots.filter(s => !s.booked);
+
+      const user = window.Auth.getCurrentUser();
+      const db = Store.load();
+      const familyMembers = (db.familyMembers || []).filter(f => f.ownerId === user.id);
+      const acceptedIns = doctor.acceptedInsurances || [];
+      const noShows = user.noShowCount || 0;
+      const deposit = computeDeposit(user, doctor.price, 'medical');
+      const hasNoShowWarning = noShows >= 2;
+
+      body.innerHTML = `
+        <button class="modal-close" onclick="UI.modal('modal-booking', { open: false })"><i class="fa-solid fa-xmark"></i></button>
+
+        <h3 style="font-size:17px;font-weight:900;margin-bottom:4px;">${Utils.escape(doctor.name)}</h3>
+        <p style="font-size:11.5px;color:var(--text-muted);font-weight:700;margin-bottom:14px;">${Utils.escape(doctor.spec)} · ${Utils.escape(doctor.area)} · ${doctor.avgTime || 20} دقيقة</p>
+
+        ${hasNoShowWarning ? `
+          <div class="no-show-warning">
+            <i class="fa-solid fa-triangle-exclamation" style="color:var(--color-danger);font-size:20px;flex-shrink:0;margin-top:2px;"></i>
+            <div>
+              <h4>⚠️ تنبيه: لديك ${noShows} غياب سابق</h4>
+              <p>بسبب عدم حضورك السابق، سيتم فرض عربون ${Utils.money(deposit)} على هذا الحجز. يُرجى الالتزام أو إلغاء الحجز قبل 4 ساعات على الأقل.</p>
+            </div>
+          </div>
+        ` : ''}
+
+        ${familyMembers.length > 0 ? `
+          <label class="label">لمن الحجز؟</label>
+          <select id="booking-for" class="input" style="margin-bottom:12px;" onchange="BookingFlow._onForWhom(this.value)">
+            <option value="self" ${forWhom === 'self' ? 'selected' : ''}>${Utils.escape(user.name)} (أنا)</option>
+            ${familyMembers.map(f => `<option value="${f.id}" ${forWhom === f.id ? 'selected' : ''}>${Utils.escape(f.name)} — ${Utils.escape(f.relation)}</option>`).join('')}
+          </select>
+        ` : ''}
+
+        <label class="label">التاريخ</label>
+        <input type="date" id="booking-date" class="input" value="${date}" min="${Utils.today()}" style="margin-bottom:12px;" onchange="BookingFlow._onDate(this.value)">
+
+        <label class="label">الموعد المتاح ${availableSlots.length > 0 ? `(${availableSlots.length} متاح)` : ''}</label>
+        <div class="slot-picker-med">
+          ${slots.length === 0 ? `<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-size:12px;padding:16px;font-weight:700;"><i class="fa-solid fa-calendar-xmark" style="font-size:24px;display:block;margin-bottom:8px;color:var(--border-strong);"></i>لا توجد مواعيد — جرّب تاريخاً آخر</div>` : slots.map(s => `<button class="slot-option-med ${s.booked ? 'disabled' : ''} ${slot === s.time ? 'selected' : ''}" ${s.booked ? 'disabled' : ''} onclick="BookingFlow._onSlot('${s.time}')">${s.time}</button>`).join('')}
+        </div>
+
+        <label class="label">طريقة الدفع</label>
+        <button class="payment-option ${paymentMethod === 'cash' ? 'selected' : ''}" onclick="BookingFlow._onPayment('cash')">
+          <div class="payment-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+          <div class="payment-info">
+            <div class="payment-name">كاش في العيادة</div>
+            <div class="payment-desc">تدفع عند الحضور</div>
+          </div>
+        </button>
+
+        ${acceptedIns.length > 0 ? `
+          <button class="payment-option ${paymentMethod === 'insurance' ? 'selected' : ''}" onclick="BookingFlow._onPayment('insurance')">
+            <div class="payment-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="payment-info">
+              <div class="payment-name">تأمين طبي</div>
+              <div class="payment-desc">يُخصم من التأمين (حسب تغطية شركتك)</div>
+            </div>
+          </button>
+          ${paymentMethod === 'insurance' ? `
+            <div style="padding:0 4px;margin-bottom:10px;">
+              <label class="label">اختر شركة التأمين</label>
+              <select class="input" style="margin-bottom:6px;" onchange="BookingFlow._onInsurance(this.value)">
+                <option value="">— اختر —</option>
+                ${acceptedIns.map(id => `<option value="${id}" ${selectedInsurance === id ? 'selected' : ''}>${Utils.escape(getInsuranceName(id))}</option>`).join('')}
+              </select>
+              <div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:var(--radius-sm);padding:8px 10px;font-size:10.5px;color:#7C2D12;font-weight:800;line-height:1.6;">
+                <i class="fa-solid fa-info-circle"></i> نسبة التغطية تحددها شركة التأمين. يُرجى التأكد قبل الحجز.
+              </div>
+            </div>
+          ` : ''}
+        ` : ''}
+
+        <div style="background:var(--bg-muted);border-radius:var(--radius-sm);padding:14px;margin:14px 0;text-align:center;">
+          <div style="font-size:11px;color:var(--text-muted);font-weight:800;">الإجمالي</div>
+          <div style="font-size:26px;font-weight:900;color:var(--sector-medical);">${Utils.money(doctor.price)}</div>
+          ${deposit > 0 ? `<div style="font-size:10.5px;color:var(--sector-gold);font-weight:800;margin-top:6px;">عربون مطلوب: ${Utils.money(deposit)}</div>` : `<div style="font-size:10.5px;color:var(--text-muted);font-weight:800;margin-top:6px;">لا يوجد عربون — تدفع بعد الزيارة</div>`}
+        </div>
+
+        ${deposit > 0 ? `
+          <div class="deposit-notice">
+            <h4><i class="fa-solid fa-shield-halved"></i> عربون جدية ${Utils.money(deposit)}</h4>
+            <p>يُسترد كاملًا عند الإلغاء قبل 12 ساعة من الموعد. بعد ذلك يُحتفظ بالعربون كتعويض عن الوقت الضائع.</p>
+          </div>
+        ` : ''}
+
+        <label style="display:flex;align-items:flex-start;gap:8px;font-size:11px;font-weight:800;color:#475569;margin:12px 0;cursor:pointer;">
+          <input type="checkbox" id="bk-agree" style="margin-top:2px;accent-color:var(--sector-medical);" />
+          <span>أوافق على سياسة الإلغاء والاسترداد. أعلم أن عدم الحضور قد يؤثر على حسابي.</span>
+        </label>
+
+        <button class="btn btn-primary btn-block btn-lg" ${!slot ? 'disabled' : ''} onclick="BookingFlow.submit()">
+          <i class="fa-solid fa-calendar-check"></i> ${deposit > 0 ? `ادفع ${Utils.money(deposit)} واحجز` : 'تأكيد الحجز'}
+        </button>
+      `;
+    },
+
+    _onDate(v) { this.state.date = v; this.state.slot = null; this._render(); },
+    _onSlot(v) { this.state.slot = v; this._render(); },
+    _onPayment(m) { this.state.paymentMethod = m; this._render(); },
+    _onInsurance(i) { this.state.selectedInsurance = i || null; },
+    _onForWhom(v) { this.state.forWhom = v; },
+
+    async submit() {
+      const { doctor, date, slot, paymentMethod, selectedInsurance, forWhom } = this.state;
+      const user = window.Auth.getCurrentUser();
+
+      if (!slot) return UI.toast('اختر موعداً أولاً', 'error');
+      if (!Utils.$('#bk-agree').checked) return UI.toast('يجب الموافقة على سياسة الإلغاء', 'error');
+      if (paymentMethod === 'insurance' && !selectedInsurance) return UI.toast('اختر شركة التأمين', 'error');
+
+      const db = Store.load();
+      const conflict = (db.appointments || []).some(a => a.doctorId === doctor.id && a.date === date && a.slot === slot && a.status !== 'canceled');
+      if (conflict) return UI.toast('هذا الموعد محجوز بالفعل', 'error');
+
+      let patientName = user.name;
+      if (forWhom !== 'self') {
+        const fam = (db.familyMembers || []).find(f => f.id === forWhom);
+        if (fam) patientName = fam.name;
+      }
+
+      const deposit = computeDeposit(user, doctor.price, 'medical');
+      const queueNumber = (db.appointments || []).filter(a => a.doctorId === doctor.id && a.date === date && a.status !== 'canceled').length + 1;
+
+      const appointment = {
+        id: Utils.id('apt'),
+        patientId: user.id,
+        patientName,
+        forWhomId: forWhom,
+        doctorId: doctor.id,
+        doctorName: doctor.name,
+        doctorSpec: doctor.spec,
+        date, slot,
+        price: doctor.price,
+        deposit,
+        depositStatus: deposit > 0 ? 'held' : 'not_required',
+        paymentMethod,
+        insuranceId: paymentMethod === 'insurance' ? selectedInsurance : null,
+        status: 'waiting',
+        queueNumber,
+        ts: Date.now()
+      };
+
+      db.appointments.push(appointment);
+
+      // Update user stats
+      const userInDb = db.users.find(u => u.id === user.id);
+      if (userInDb) userInDb.successfulOrders = (userInDb.successfulOrders || 0) + 1;
+
+      // Award points
+      if (window.Gamification && window.Gamification.addPoints) {
+        window.Gamification.addPoints(user.id, 20, 'booking_created');
+      }
+
+      // Notification
+      db.notifications = db.notifications || [];
+      db.notifications.push({
+        id: Utils.id('notif'),
+        userId: user.id,
+        text: `✅ تم تأكيد حجزك مع ${doctor.name} — ${Utils.fmtDate(date)} الساعة ${slot}`,
+        read: false, ts: Date.now()
+      });
+
+      Store.save(db);
+
+      EventLog.log('appointment_created', {
+        actorId: user.id, targetId: doctor.id,
+        payload: { appointmentId: appointment.id, date, slot, price: doctor.price, deposit }
+      });
+
+      UI.modal('modal-booking', { open: false });
+      UI.toast(`✅ تم الحجز! دورك رقم ${queueNumber}`, 'success', 4000);
+
+      // Show WhatsApp reminder prompt
+      setTimeout(() => {
+        const msg = `📌 *تذكير موعد - منصة وصلة*\n\n👨‍⚕️ ${doctor.name}\n📅 ${Utils.fmtDate(date)}\n⏰ ${slot}\n🎫 دورك رقم ${queueNumber}\n📍 ${doctor.area}\n\n_للتواصل: 01068990089_`;
+        if (confirm('تحب نبعتلك تذكير على واتساب؟')) {
+          window.open(`https://wa.me/2${user.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+        window.Router.go('queue', { appointmentId: appointment.id });
+      }, 500);
+    }
+  };
+
+  window.BookingFlow = BookingFlow;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 5: QUEUE TRACKER
+  // ══════════════════════════════════════════════════════════════
+  window.Router.register('queue', (el, params) => {
+    const user = window.Auth.getCurrentUser();
+    if (!user) {
+      el.innerHTML = `<div class="empty-state"><p class="empty-state-title">سجل دخول</p><button class="btn btn-primary" style="margin-top:16px;" onclick="AuthUI.open('login')">دخول</button></div>`;
+      return;
+    }
+
+    const db = Store.load();
+    const appointmentId = params.appointmentId;
+    let appointment;
+
+    if (appointmentId) {
+      appointment = (db.appointments || []).find(a => a.id === appointmentId);
+    } else {
+      // Find latest active appointment
+      appointment = (db.appointments || [])
+        .filter(a => a.patientId === user.id && ['waiting', 'next'].includes(a.status))
+        .sort((a, b) => (b.ts || 0) - (a.ts || 0))[0];
+    }
+
+    if (!appointment) {
+      el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-calendar-xmark empty-state-icon"></i><p class="empty-state-title">لا يوجد حجز نشط</p><button class="btn btn-primary" style="margin-top:16px;" onclick="Router.go('medical')">احجز الآن</button></div>`;
+      return;
+    }
+
+    // Calculate queue position
+    const sameShift = (db.appointments || [])
+      .filter(a => a.doctorId === appointment.doctorId && a.date === appointment.date && !['canceled', 'completed'].includes(a.status))
+      .sort((a, b) => Utils.timeToMin(a.slot) - Utils.timeToMin(b.slot));
+
+    const position = sameShift.findIndex(a => a.id === appointment.id) + 1;
+    const ahead = position - 1;
+    const doc = (db.doctors || []).find(d => d.id === appointment.doctorId);
+    const etaMinutes = ahead * (doc?.avgTime || 20);
+    const isNext = appointment.status === 'next' || ahead === 0;
+
+    el.innerHTML = `
+      <h2 class="section-title"><i class="fa-solid fa-users-viewfinder"></i> تتبع الدور - مباشر</h2>
+
+      <div class="queue-live-card" style="margin-bottom:14px;">
+        <div style="position:relative;">
+          <div style="font-size:11px;font-weight:800;opacity:0.85;margin-bottom:4px;">دورك في طابور ${Utils.escape(appointment.doctorName)}</div>
+          <div style="display:flex;align-items:baseline;gap:8px;">
+            <div class="queue-position-num">${position}</div>
+            <div style="font-size:14px;font-weight:800;opacity:0.85;">/ ${sameShift.length}</div>
+          </div>
+          <div style="display:flex;gap:20px;margin-top:14px;font-size:11px;font-weight:800;">
+            <div>قدامك <strong style="font-size:16px;">${ahead}</strong></div>
+            <div>متوقع دورك <strong style="font-size:14px;">${Utils.fmtTime(Date.now() + etaMinutes * 60000)}</strong></div>
+          </div>
+          ${isNext ? `
+            <div style="margin-top:14px;background:rgba(255,255,255,0.25);border-radius:var(--radius-sm);padding:10px;text-align:center;font-size:13px;font-weight:900;">
+              🔔 حان دورك الآن — توجه للعيادة
+            </div>
+          ` : ahead <= 2 ? `
+            <div style="margin-top:14px;background:rgba(255,255,255,0.2);border-radius:var(--radius-sm);padding:10px;text-align:center;font-size:12px;font-weight:900;">
+              ⚡ اقترب دورك — يُنصح بالتوجه للعيادة
+            </div>
+          ` : ''}
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div>
+            <div style="font-size:13.5px;font-weight:900;">${Utils.escape(appointment.doctorName)}</div>
+            <div style="font-size:11px;color:var(--sector-medical);font-weight:900;margin-top:2px;">${Utils.escape(appointment.doctorSpec)}</div>
+            <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-top:4px;"><i class="fa-solid fa-calendar"></i> ${Utils.fmtDate(appointment.date)} · ${appointment.slot}</div>
+            <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-top:2px;"><i class="fa-solid fa-location-dot"></i> ${Utils.escape(doc?.area || '')}</div>
+          </div>
+          <span class="tag tag-medical">${appointment.status === 'next' ? 'دورك!' : 'انتظار'}</span>
+        </div>
+
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;">
+          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="QueueView.sendWhatsAppReminder('${appointment.id}')">
+            <i class="fa-brands fa-whatsapp" style="color:#25D366;"></i> تذكير واتساب
+          </button>
+          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="QueueView.cancelAppointment('${appointment.id}')">
+            <i class="fa-solid fa-xmark" style="color:var(--color-danger);"></i> إلغاء
+          </button>
+        </div>
+      </div>
+
+      <div class="card" style="background:var(--sector-medical-soft);border-color:var(--sector-medical-border);">
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <i class="fa-solid fa-lightbulb" style="color:var(--sector-medical);font-size:18px;flex-shrink:0;margin-top:2px;"></i>
+          <div>
+            <div style="font-size:12px;font-weight:900;color:var(--sector-medical);margin-bottom:4px;">نصيحة لتجربة أفضل</div>
+            <p style="font-size:11px;color:var(--text-secondary);font-weight:700;line-height:1.6;margin:0;">
+              ${ahead <= 2 ? 'اقترب دورك! توجه للعيادة الآن لتجنب التأخير.' : `ما زال أمامك ${ahead} حالات. يمكنك البقاء في المنزل ومتابعة الطابور هنا.`}
+            </p>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  const QueueView = {
+    sendWhatsAppReminder(appointmentId) {
+      const db = Store.load();
+      const appt = (db.appointments || []).find(a => a.id === appointmentId);
+      if (!appt) return;
+
+      const sameShift = (db.appointments || [])
+        .filter(a => a.doctorId === appt.doctorId && a.date === appt.date && !['canceled', 'completed'].includes(a.status))
+        .sort((a, b) => Utils.timeToMin(a.slot) - Utils.timeToMin(b.slot));
+      const position = sameShift.findIndex(a => a.id === appointmentId) + 1;
+      const ahead = position - 1;
+
+      const msg = `🔔 *منصة وصلة - تذكير الموعد*\n\n👨‍⚕️ ${appt.doctorName}\n📅 ${Utils.fmtDate(appt.date)}\n⏰ ${appt.slot}\n📍 دورك رقم ${position} (قدامك ${ahead} حالة)\n\n_توجه للعيادة في الوقت المناسب_`;
+      const user = window.Auth.getCurrentUser();
+      window.open(`https://wa.me/2${user.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+      UI.toast('تم تجهيز التذكير على واتساب');
+    },
+    async cancelAppointment(appointmentId) {
+      const ok = await UI.confirm(
+        'سيتم تطبيق سياسة الإلغاء. الإلغاء قبل 12 ساعة = استرداد كامل. بعد ذلك = خصم من العربون.',
+        { title: 'تأكيد الإلغاء', confirmText: 'نعم، إلغاء', cancelText: 'رجوع', danger: true }
+      );
+      if (!ok) return;
+
+      const db = Store.load();
+      const appt = (db.appointments || []).find(a => a.id === appointmentId);
+      if (!appt) return;
+
+      const hoursToAppt = (new Date(`${appt.date}T${appt.slot.split(':')[0]}:${appt.slot.split(':')[1]}`).getTime() - Date.now()) / 3600000;
+      let refund = 0;
+      if (hoursToAppt > 12) refund = appt.deposit;
+      else if (hoursToAppt > 4) refund = appt.deposit * 0.5;
+
+      appt.status = 'canceled';
+      appt.refundAmount = refund;
+      appt.depositStatus = refund === appt.deposit ? 'refunded' : refund > 0 ? 'partial_refunded' : 'forfeited';
+      appt.canceledAt = Date.now();
+
+      Store.save(db);
+      EventLog.log('appointment_canceled', { actorId: appt.patientId, targetId: appointmentId, payload: { refund, hoursToAppt } });
+
+      UI.toast(`تم الإلغاء — مُسترد ${Utils.money(refund)}`, 'info');
+      window.Router.go('orders');
+    }
+  };
+
+  window.QueueView = QueueView;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 6: DOCTOR'S CLINIC VIEW
+  // ══════════════════════════════════════════════════════════════
+  window.Router.register('clinic', (el) => {
+    const user = window.Auth.getCurrentUser();
+    if (!user || !(user.contexts || []).includes('doctor')) {
+      el.innerHTML = `<div class="empty-state"><p class="empty-state-title">غير مصرح</p><p class="empty-state-desc">هذه الصفحة للأطباء فقط</p></div>`;
+      return;
+    }
+
+    const doctor = getCurrentDoctor();
+    if (!doctor) {
+      el.innerHTML = `<div class="empty-state"><p class="empty-state-title">ملف الطبيب غير موجود</p><p class="empty-state-desc">تواصل مع الإدارة</p></div>`;
+      return;
+    }
+
+    const db = Store.load();
+    const todayAppts = getTodayApptsForDoctor(doctor.id);
+    const waiting = todayAppts.filter(a => a.status === 'waiting');
+    const current = todayAppts.find(a => a.status === 'next');
+    const completed = todayAppts.filter(a => a.status === 'completed');
+    const noShow = todayAppts.filter(a => a.status === 'no-show');
+
+    el.innerHTML = `
+      <div class="sector-hero" data-sector="medical">
+        <span class="sector-hero-badge"><i class="fa-solid fa-user-doctor"></i> عيادتي</span>
+        <h1>${Utils.escape(doctor.name)}</h1>
+        <p>${Utils.escape(doctor.spec)} · ${Utils.escape(doctor.area)}</p>
+      </div>
+
+      <div class="clinic-stats">
+        <div class="clinic-stat">
+          <div class="clinic-stat-value">${todayAppts.length}</div>
+          <div class="clinic-stat-label">إجمالي اليوم</div>
+        </div>
+        <div class="clinic-stat sky">
+          <div class="clinic-stat-value">${waiting.length}</div>
+          <div class="clinic-stat-label">في الانتظار</div>
+        </div>
+        <div class="clinic-stat amber">
+          <div class="clinic-stat-value">${current ? 1 : 0}</div>
+          <div class="clinic-stat-label">عند الطبيب</div>
+        </div>
+        <div class="clinic-stat gold">
+          <div class="clinic-stat-value">${completed.length}</div>
+          <div class="clinic-stat-label">مكتمل</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        <button class="btn btn-primary" onclick="ClinicView.manageInsurances()">
+          <i class="fa-solid fa-shield-halved"></i> إدارة التأمينات
+        </button>
+        <button class="btn btn-ghost" onclick="ClinicView.manageSchedule()">
+          <i class="fa-solid fa-calendar-week"></i> إدارة الجدول
+        </button>
+      </div>
+
+      ${current ? `
+        <h2 class="section-title"><i class="fa-solid fa-bullhorn" style="color:var(--sector-grocery);"></i> المريض الحالي</h2>
+        ${ClinicView._renderQueueCard(current, true)}
+      ` : waiting.length > 0 ? `
+        <button class="btn btn-primary btn-block btn-lg" onclick="ClinicView.callNext('${doctor.id}')" style="margin-bottom:14px;">
+          <i class="fa-solid fa-bullhorn"></i> استدعاء المريض التالي
+        </button>
+      ` : `
+        <div class="card" style="text-align:center;padding:24px;">
+          <i class="fa-solid fa-coffee" style="font-size:32px;color:var(--border-strong);margin-bottom:8px;"></i>
+          <p style="font-size:13px;font-weight:900;color:var(--text-primary);">لا يوجد مرضى الآن</p>
+          <p style="font-size:11px;color:var(--text-muted);font-weight:700;margin-top:4px;">استمتع بالاستراحة</p>
+        </div>
+      `}
+
+      ${waiting.length > 0 ? `
+        <h2 class="section-title" style="margin-top:16px;"><i class="fa-solid fa-users" style="color:var(--sector-cars);"></i> قائمة الانتظار (${waiting.length})</h2>
+        ${waiting.map(a => ClinicView._renderQueueCard(a, false)).join('')}
+      ` : ''}
+
+      ${completed.length > 0 ? `
+        <h2 class="section-title" style="margin-top:16px;"><i class="fa-solid fa-check-circle" style="color:var(--sector-medical);"></i> مكتملون (${completed.length})</h2>
+        ${completed.map(a => ClinicView._renderQueueCard(a, false)).join('')}
+      ` : ''}
+
+      ${noShow.length > 0 ? `
+        <h2 class="section-title" style="margin-top:16px;"><i class="fa-solid fa-user-slash" style="color:var(--color-danger);"></i> لم يحضروا (${noShow.length})</h2>
+        ${noShow.map(a => ClinicView._renderQueueCard(a, false)).join('')}
+      ` : ''}
+    `;
+  });
+
+  const ClinicView = {
+    _renderQueueCard(appt, isCurrent) {
+      const cls = appt.status === 'waiting' ? 'waiting' : appt.status === 'next' ? 'next' : appt.status === 'completed' ? 'completed' : 'no-show';
+      const labels = { waiting: 'في الانتظار', next: 'الآن', completed: 'مكتمل', 'no-show': 'لم يحضر' };
+      return `
+        <div class="queue-card-clinic ${cls}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:36px;height:36px;border-radius:var(--radius-xs);background:var(--bg-muted);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;">#${appt.queueNumber}</div>
+              <div>
+                <div style="font-size:13px;font-weight:900;">${Utils.escape(appt.patientName)}</div>
+                <div style="font-size:11px;color:var(--text-muted);font-weight:700;"><i class="fa-solid fa-clock"></i> ${appt.slot}</div>
+              </div>
+            </div>
+            <span class="tag ${appt.status === 'next' ? 'tag-gold' : appt.status === 'completed' ? 'tag-medical' : appt.status === 'no-show' ? 'tag-danger' : 'tag-cars'}">${labels[appt.status] || appt.status}</span>
+          </div>
+          ${appt.status === 'waiting' ? `
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm" style="flex:1;" onclick="ClinicView.callPatient('${appt.id}')"><i class="fa-solid fa-bullhorn"></i> استدعاء</button>
+              <button class="btn btn-ghost btn-sm" style="flex:1;color:var(--color-danger);" onclick="ClinicView.markNoShow('${appt.id}')"><i class="fa-solid fa-user-slash"></i> لم يحضر</button>
+            </div>
+          ` : appt.status === 'next' ? `
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm" style="flex:1;" onclick="ClinicView.markComplete('${appt.id}')"><i class="fa-solid fa-check"></i> إتمام</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    },
+
+    callNext(doctorId) {
+      const appts = getTodayApptsForDoctor(doctorId).filter(a => a.status === 'waiting');
+      if (appts.length === 0) return UI.toast('لا يوجد مرضى', 'info');
+      this.callPatient(appts[0].id);
+    },
+
+    callPatient(apptId) {
+      const db = Store.load();
+      const appt = (db.appointments || []).find(a => a.id === apptId);
+      if (!appt) return;
+
+      // Unset any current next
+      db.appointments.forEach(a => {
+        if (a.doctorId === appt.doctorId && a.date === appt.date && a.status === 'next') {
+          a.status = 'waiting';
+        }
+      });
+
+      appt.status = 'next';
+      db.notifications = db.notifications || [];
+      db.notifications.push({
+        id: Utils.id('notif'), userId: appt.patientId,
+        text: `🔔 دورك الآن عند ${appt.doctorName} — توجه للعيادة`,
+        read: false, ts: Date.now()
+      });
+      Store.save(db);
+
+      EventLog.log('patient_called', { actorId: appt.doctorId, targetId: appt.patientId, payload: { appointmentId: appt.id } });
+      UI.toast('تم استدعاء المريض ✓');
+      window.Router.go('clinic');
+    },
+
+    markNoShow(apptId) {
+      UI.confirm('تأكيد أن المريض لم يحضر؟', {
+        title: 'تسجيل غياب',
+        confirmText: 'نعم، لم يحضر',
+        cancelText: 'إلغاء',
+        danger: true
+      }).then(ok => {
+        if (!ok) return;
+        const db = Store.load();
+        const appt = (db.appointments || []).find(a => a.id === apptId);
+        if (!appt) return;
+        appt.status = 'no-show';
+        appt.noShowAt = Date.now();
+
+        // Increment patient's no-show count
+        const patient = db.users.find(u => u.id === appt.patientId);
+        if (patient) {
+          patient.noShowCount = (patient.noShowCount || 0) + 1;
+          if (patient.noShowCount >= 3) {
+            patient.status = 'suspended';
+            patient.suspendedUntil = Date.now() + 30 * 86400000;
+            db.notifications = db.notifications || [];
+            db.notifications.push({
+              id: Utils.id('notif'), userId: patient.id,
+              text: `⚠️ تم تعليق حسابك 30 يوم بسبب 3 غيابات متكررة`,
+              read: false, ts: Date.now()
+            });
+          }
+        }
+
+        Store.save(db);
+        EventLog.log('patient_no_show', { actorId: appt.doctorId, targetId: appt.patientId, payload: { appointmentId: appt.id } });
+        UI.toast('تم تسجيل الغياب', 'info');
+        window.Router.go('clinic');
+      });
+    },
+
+    markComplete(apptId) {
+      const db = Store.load();
+      const appt = (db.appointments || []).find(a => a.id === apptId);
+      if (!appt) return;
+      appt.status = 'completed';
+      appt.completedAt = Date.now();
+      Store.save(db);
+
+      // Award points to patient
+      if (window.Gamification && window.Gamification.addPoints) {
+        window.Gamification.addPoints(appt.patientId, 50, 'visit_completed');
+      }
+
+      EventLog.log('appointment_completed', { actorId: appt.doctorId, targetId: appt.patientId, payload: { appointmentId: appt.id } });
+      UI.toast('تم إتمام الزيارة ✓ (+50 نقطة للمريض)');
+      window.Router.go('clinic');
+    },
+
+    manageInsurances() {
+      const doctor = getCurrentDoctor();
+      if (!doctor) return;
+      const db = Store.load();
+      const allInsurances = db.insuranceCompanies || [];
+      const accepted = doctor.acceptedInsurances || [];
+
+      const body = Utils.$('#modal-generic-body');
+      body.innerHTML = `
+        <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
+        <h3 style="font-size:16px;font-weight:900;margin-bottom:6px;"><i class="fa-solid fa-shield-halved" style="color:var(--sector-medical);"></i> إدارة شركات التأمين</h3>
+        <p style="font-size:11.5px;color:var(--text-muted);font-weight:700;margin-bottom:16px;">اختر الشركات التي تتعامل معها. ستظهر للمرضى عند البحث.</p>
+
+        <div id="ins-list-manage">
+          ${allInsurances.map(ins => `
+            <div class="ins-toggle ${accepted.includes(ins.id) ? 'active' : ''}">
+              <div class="ins-toggle-info">
+                <div class="ins-toggle-icon"><i class="fa-solid ${ins.logo || 'fa-shield'}"></i></div>
+                <div class="ins-toggle-name">${Utils.escape(ins.name)}</div>
+              </div>
+              <label class="switch-toggle">
+                <input type="checkbox" ${accepted.includes(ins.id) ? 'checked' : ''} onchange="ClinicView.toggleInsurance('${ins.id}', this.checked)">
+                <span></span>
+              </label>
+            </div>
+          `).join('')}
+        </div>
+
+        <button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="UI.modal('modal-generic', { open: false }); UI.toast('تم حفظ التأمينات ✓')">
+          <i class="fa-solid fa-check"></i> تم
+        </button>
+      `;
+      UI.modal('modal-generic', { open: true });
+    },
+
+    toggleInsurance(insId, checked) {
+      const doctor = getCurrentDoctor();
+      if (!doctor) return;
+      const db = Store.load();
+      const d = db.doctors.find(x => x.id === doctor.id);
+      if (!d) return;
+
+      d.acceptedInsurances = d.acceptedInsurances || [];
+      if (checked) {
+        if (!d.acceptedInsurances.includes(insId)) d.acceptedInsurances.push(insId);
+      } else {
+        d.acceptedInsurances = d.acceptedInsurances.filter(x => x !== insId);
+      }
+
+      Store.save(db);
+      EventLog.log('doctor_insurance_toggled', { actorId: d.userId, targetId: d.id, payload: { insId, checked } });
+
+      // Update UI
+      const toggle = event.target.closest('.ins-toggle');
+      if (toggle) toggle.classList.toggle('active', checked);
+
+      UI.toast(checked ? '✅ تم إضافة الشركة' : '🗑️ تم إزالة الشركة', 'info', 1500);
+    },
+
+    manageSchedule() {
+      const doctor = getCurrentDoctor();
+      if (!doctor) return;
+      const db = Store.load();
+      const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+
+      const body = Utils.$('#modal-generic-body');
+      body.innerHTML = `
+        <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
+        <h3 style="font-size:16px;font-weight:900;margin-bottom:16px;"><i class="fa-solid fa-calendar-week" style="color:var(--sector-medical);"></i> إدارة الجدول</h3>
+
+        <div id="schedule-manage">
+          ${days.map(day => {
+            const s = (doctor.schedule || {})[day] || { active: false };
+            return `
+              <div style="background:var(--bg-muted);border-radius:var(--radius-sm);padding:10px;margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <span style="font-size:12.5px;font-weight:900;">${Utils.dayArabic(day)}</span>
+                  <label class="switch-toggle">
+                    <input type="checkbox" ${s.active ? 'checked' : ''} onchange="ClinicView.toggleDay('${day}', this.checked)">
+                    <span></span>
+                  </label>
+                </div>
+                ${s.active ? `
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <input type="time" value="${s.start || '17:00'}" class="input" style="font-size:11px;" onchange="ClinicView.updateTime('${day}', 'start', this.value)">
+                    <input type="time" value="${s.end || '21:00'}" class="input" style="font-size:11px;" onchange="ClinicView.updateTime('${day}', 'end', this.value)">
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="UI.modal('modal-generic', { open: false })">
+          <i class="fa-solid fa-check"></i> حفظ
+        </button>
+      `;
+      UI.modal('modal-generic', { open: true });
+    },
+
+    toggleDay(day, active) {
+      const doctor = getCurrentDoctor();
+      if (!doctor) return;
+      const db = Store.load();
+      const d = db.doctors.find(x => x.id === doctor.id);
+      if (!d) return;
+      d.schedule = d.schedule || {};
+      d.schedule[day] = active ? { active: true, start: '17:00', end: '21:00', duration: 20 } : { active: false };
+      Store.save(db);
+      UI.toast(active ? 'تم التفعيل' : 'تم الإغلاق', 'info', 1500);
+    },
+
+    updateTime(day, field, value) {
+      const doctor = getCurrentDoctor();
+      if (!doctor) return;
+      const db = Store.load();
+      const d = db.doctors.find(x => x.id === doctor.id);
+      if (!d || !d.schedule[day]) return;
+      d.schedule[day][field] = value;
+      Store.save(db);
+    }
+  };
+
+  window.ClinicView = ClinicView;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 7: SCHEMA EXTENSION (No-Show counters)
+  // ══════════════════════════════════════════════════════════════
+  function extendSchemaForNoShow() {
+    const db = Store.load();
+    if (!db) return;
+    let changed = false;
+
+    db.users.forEach(u => {
+      if (u.noShowCount === undefined) { u.noShowCount = 0; changed = true; }
+    });
+
+    if (changed) {
+      Store.save(db);
+      EventLog.log('schema_extended_no_show', { ts: Date.now() });
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 8: SOCIAL PROOF OBSERVER (extends existing)
+  // ══════════════════════════════════════════════════════════════
+  const proofObserver = new MutationObserver(() => {
+    Utils.$$('.doctor-card-med').forEach(card => {
+      if (!card.querySelector('.doctor-social-proof')) {
+        const name = card.querySelector('.doctor-name-med')?.textContent.trim() || 'doc';
+        let hash = 0; const str = String(name);
+        for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        const viewers = 5 + (Math.abs(hash) % 15);
+
+        const info = card.querySelector('.doctor-info-med');
+        if (info) {
+          const el = document.createElement('div');
+          el.className = 'live-viewers-badge doctor-social-proof';
+          el.style.cssText = 'margin-top:6px;';
+          el.innerHTML = `<span class="pulse"></span> ${viewers} يتصفحون العيادة الآن`;
+          info.appendChild(el);
+        }
+      }
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 9: BOOT
+  // ══════════════════════════════════════════════════════════════
+  function boot() {
+    extendSchemaForNoShow();
+    proofObserver.observe(document.body, { childList: true, subtree: true });
+
+    // Re-render current view if it's medical
+    if (window.Router.current === 'medical') window.Router.go('medical');
+
+    console.log('%c🏥 [PART 5] MEDICAL SECTOR READY', 'background:#059669;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
+  }
+
+  setTimeout(boot, 500);
+
+})();
+</script>
 </body>
 </html>
