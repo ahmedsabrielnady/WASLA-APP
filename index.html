@@ -2231,7 +2231,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 })();
 </script>
   <!-- ═════════════════════════════════════════════════════════════
-     PART 4/15: WASLA LIVE + AUCTION ENGINES (THE BOMBS)
+     PART 4/15: WASLA LIVE + AUCTION ENGINES (THE BOMBS) - FIXED
      - Live Deals Feed (Flash sales, live status)
      - Auction Engine (Gamified bidding, timers, wallet integration)
 ═════════════════════════════════════════════════════════════ -->
@@ -2310,24 +2310,18 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 }
 .bid-btn:active { transform: scale(0.98); }
 .bid-btn:disabled { background: var(--text-disabled); box-shadow: none; cursor: not-allowed; }
-
-.auction-winner-badge {
-  background: #ECFDF5; color: #059669; padding: 10px;
-  border-radius: 8px; text-align: center;
-  font-size: 12px; font-weight: 900; border: 1px solid #A7F3D0;
-}
 </style>
 
 <script>
-(function WASLA_PART_4_BOMBS() {
+(function WASLA_PART_4_BOMBS_FIXED() {
   'use strict';
 
-  if (!window.WaslaCore || !window.Auth) {
+  if (!window.WaslaCore || !window.Auth || !window.Router) {
     console.error('❌ PART 4 requires PART 2 & 3');
     return;
   }
 
-  const { Utils, UI, Store, EventLog, Gamification } = window.WaslaCore;
+  const { Utils, UI, Store, EventLog } = window.WaslaCore;
 
   // ══════════════════════════════════════════════════════════════
   // SECTION 1: DATABASE EXTENSION
@@ -2365,7 +2359,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   // ══════════════════════════════════════════════════════════════
   // SECTION 2: LIVE VIEW
   // ══════════════════════════════════════════════════════════════
-  Router.register('live', (el) => {
+  window.Router.register('live', (el) => {
     const db = Store.load();
     const deals = db.liveDeals || [];
 
@@ -2402,8 +2396,8 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   // ══════════════════════════════════════════════════════════════
   // SECTION 3: AUCTION VIEW
   // ══════════════════════════════════════════════════════════════
-  Router.register('auction', (el) => {
-    const user = Auth.getCurrentUser();
+  window.Router.register('auction', (el) => {
+    const user = window.Auth.getCurrentUser();
     const db = Store.load();
     const auctions = (db.auctions || []).filter(a => a.status === 'active');
 
@@ -2435,9 +2429,8 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       <div id="auction-list">
         ${auctions.length === 0 ? `<div class="empty-state"><p class="empty-state-desc">لا يوجد مزادات حالياً.. عود قريباً</p></div>` : auctions.map(a => renderAuctionCard(a, user)).join('')}
       </div>
-    `);
+    `;
 
-    // Start Timer for countdowns
     startAuctionTimers();
   });
 
@@ -2483,10 +2476,10 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   // ══════════════════════════════════════════════════════════════
   // SECTION 4: AUCTION ENGINE LOGIC
   // ══════════════════════════════════════════════════════════════
-  const AuctionEngine = {
+  window.AuctionEngine = {
     bid(auctionId, amount) {
-      const user = Auth.getCurrentUser();
-      if (!user) return AuthUI.open();
+      const user = window.Auth.getCurrentUser();
+      if (!user) return window.AuthUI.open();
 
       const db = Store.load();
       const auction = db.auctions.find(a => a.id === auctionId);
@@ -2494,12 +2487,10 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
       const newPrice = auction.currentPrice + amount;
 
-      // Check wallet
       if ((user.wallet || 0) < newPrice) {
         return UI.toast('رصيدك غير كافي! اشحن محفظتك عشان تشارك.', 'error');
       }
 
-      // Update Auction
       auction.currentPrice = newPrice;
       auction.highestBidder = user.id;
       
@@ -2513,14 +2504,12 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
       UI.toast(`مزايدتك نجحت! أنت الأعلى الآن بـ ${Utils.money(newPrice)}`, 'success');
       
-      // Re-render to show winning state
-      Router.go('auction');
+      window.Router.go('auction');
     },
 
     processExpired() {
       const db = Store.load();
       let changed = false;
-      let winners = [];
 
       (db.auctions || []).forEach(a => {
         if (a.status === 'active' && a.endsAt <= Date.now()) {
@@ -2528,12 +2517,10 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
           changed = true;
           
           if (a.highestBidder) {
-            // Deduct money from winner
             const winner = db.users.find(u => u.id === a.highestBidder);
             if (winner && (winner.wallet || 0) >= a.currentPrice) {
               winner.wallet -= a.currentPrice;
               
-              // Add notification
               db.notifications = db.notifications || [];
               db.notifications.push({
                 id: Utils.id('notif'),
@@ -2541,13 +2528,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
                 text: `🎉 مبروك! لقد فزت في المزاد: ${a.title} بـ ${Utils.money(a.currentPrice)}`,
                 read: false, ts: Date.now()
               });
-
-              // Gamification points
-              setTimeout(() => {
-                Gamification.addPoints(winner.id, 20, 'auction_win');
-              }, 100);
-
-              winners.push(a);
             }
           }
         }
@@ -2555,17 +2535,13 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
       if (changed) {
         Store.save(db);
-        // If current view is auction, re-render
-        const el = Utils.$('#view-auction');
-        if (el) Router.go('auction');
+        if (Utils.$('#view-auction')) window.Router.go('auction');
       }
     }
   };
 
-  window.AuctionEngine = AuctionEngine;
-
   // ══════════════════════════════════════════════════════════════
-  // SECTION 5: TIMERS & AUTO-PROCESSING
+  // SECTION 5: TIMERS
   // ══════════════════════════════════════════════════════════════
   let auctionTimerInterval = null;
 
@@ -2593,24 +2569,24 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
         if (timeLeft === 0) {
           card.style.opacity = '0.5';
-          card.querySelector('.bid-btn').disabled = true;
+          const btn = card.querySelector('.bid-btn');
+          if (btn) btn.disabled = true;
         }
       });
       
-      // Periodically check for expired auctions globally
-      if (Math.random() < 0.2) AuctionEngine.processExpired();
+      if (Math.random() < 0.2) window.AuctionEngine.processExpired();
     }, 1000);
   }
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION 6: UI INTEGRATION (Header & Home)
+  // SECTION 6: UI INTEGRATION (Home & Header) - FIXED
   // ══════════════════════════════════════════════════════════════
-  const originalRenderHome = Router.registry['home'];
   
-  Router.register('home', (el) => {
-    originalRenderHome.call(Router, el);
+  // 1. Override Home to inject bombs
+  const originalRenderHome = window.Router.registry['home'];
+  window.Router.register('home', (el) => {
+    originalRenderHome.call(window.Router, el);
 
-    // Inject Live & Auction sections dynamically into the Home view
     const db = Store.load();
     const liveCount = (db.liveDeals || []).length;
     const activeAuctions = (db.auctions || []).filter(a => a.status === 'active').length;
@@ -2641,40 +2617,46 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     }
   });
 
-  // Add icons in Header for quick access
-  const originalRenderHeader = window.WaslaRender.header;
-  window.WaslaRender.header = function() {
-    originalRenderHeader.call(window.WaslaRender);
+  // 2. Header Injection via MutationObserver (Fixes Login/Logout issue)
+  const observer = new MutationObserver(() => {
     const headerActions = Utils.$('#header-actions');
-    if (headerActions && Auth.getCurrentUser()) {
-      // Add a "Live" icon next to notifications
+    if (headerActions && window.Auth.getCurrentUser() && !headerActions.querySelector('.live-btn')) {
       const liveBtn = document.createElement('button');
-      liveBtn.className = 'icon-btn';
+      liveBtn.className = 'icon-btn live-btn';
       liveBtn.innerHTML = `<i class="fa-solid fa-satellite-dish" style="color:#F87171;"></i>`;
-      liveBtn.onclick = () => Router.go('live');
+      liveBtn.onclick = () => window.Router.go('live');
       liveBtn.title = "وصلة لايف";
       
       const notifBtn = headerActions.querySelector('.icon-btn');
       if (notifBtn) headerActions.insertBefore(liveBtn, notifBtn);
+      else headerActions.appendChild(liveBtn);
     }
-  };
+  });
+
+  // Start observing header after a short delay to let PART 3 render it first
+  setTimeout(() => {
+    const targetNode = Utils.$('#header-actions');
+    if (targetNode) {
+      observer.observe(targetNode, { childList: true });
+    }
+  }, 500);
 
   // ══════════════════════════════════════════════════════════════
   // SECTION 7: BOOT
   // ══════════════════════════════════════════════════════════════
   function boot() {
     extendSchema();
-    // Ensure the header updates with the live icon
-    window.WaslaRender.header();
     
+    // Force re-render of home to show bombs immediately on load
+    if (window.Router && window.Router.current === 'home') {
+      window.Router.go('home');
+    }
+
     console.log('%c💣 [PART 4] LIVE & AUCTION ENGINES READY', 'background:#EF4444;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 300));
-  } else {
-    setTimeout(boot, 300);
-  }
+  // Run after PART 3 has finished its initial render (200ms)
+  setTimeout(boot, 400);
 
 })();
 </script>
