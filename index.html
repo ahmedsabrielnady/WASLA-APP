@@ -2027,8 +2027,8 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   setTimeout(boot, 400);
 })();
 </script>
-   <!-- ═════════════════════════════════════════════════════════════
-     PART 5/15: MEDICAL SECTOR (Full)
+ <!-- ═════════════════════════════════════════════════════════════
+     PART 5/15: MEDICAL SECTOR (Full) - FIXED
 ═════════════════════════════════════════════════════════════ -->
 <style>
 /* Medical Sector Styles */
@@ -2234,6 +2234,17 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
   const { Utils, UI, Store, EventLog } = window.WaslaCore;
 
+  // 🚨 PATCH: إضافة الدوال الناقصة من PART 2 (حل مشكلة تعذر تحميل الصفحة)
+  if (!Utils.dayKey) {
+    Utils.dayKey = (iso) => ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][new Date(iso).getDay()];
+  }
+  if (!Utils.dayArabic) {
+    Utils.dayArabic = (k) => ({
+      sunday: 'الأحد', monday: 'الاثنين', tuesday: 'الثلاثاء',
+      wednesday: 'الأربعاء', thursday: 'الخميس', friday: 'الجمعة', saturday: 'السبت'
+    }[k] || '');
+  }
+
   console.log('%c🏥 [PART 5] تحميل القطاع الطبي...', 'color:#059669;font-weight:900');
 
   // ══════════════════════════════════════════════════════════════
@@ -2301,7 +2312,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     const today = Utils.today();
     return (db.appointments || [])
       .filter(a => a.doctorId === doctorId && a.date === today && !['canceled'].includes(a.status))
-      .sort((a, b) => Utils.timeToMin(a.slot) - Utils.timeToMin(b.time));
+      .sort((a, b) => Utils.timeToMin(a.slot) - Utils.timeToMin(b.slot)); // FIX: a.slot instead of a.time
   }
 
   // ══════════════════════════════════════════════════════════════
