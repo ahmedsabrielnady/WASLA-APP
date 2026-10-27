@@ -3335,5 +3335,655 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
 })();
 </script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 5.2/15: SMART REMINDER ENGINE
+     - Day reminder, 3-cases-ahead, and your-turn alerts
+     - Browser notifications + in-app + sound
+     - Persistent flags (no duplicates)
+     - Multi-tab sync
+═════════════════════════════════════════════════════════════ -->
+<style>
+.notif-item.urgent {
+  background: #FEF2F2;
+  border-right-color: var(--color-danger);
+  animation: pulse-urgent 2s infinite;
+}
+.notif-item.high {
+  background: #FFF7ED;
+  border-right-color: var(--sector-grocery);
+}
+@keyframes pulse-urgent {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(225, 29, 72, 0); }
+}
+
+.notif-action-btn {
+  background: var(--sector-medical);
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+.notif-action-btn.wa {
+  background: #25D366;
+}
+.notif-priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 99px;
+  margin-right: 6px;
+}
+.notif-priority-badge.urgent { background: var(--color-danger); color: #fff; }
+.notif-priority-badge.high { background: var(--sector-grocery); color: #fff; }
+.notif-priority-badge.normal { background: var(--bg-muted); color: var(--text-muted); border: 1px solid var(--border-default); }
+</style>
+
+<script>
+(function WASLA_PART_5_2_REMINDERS() {
+  'use strict';
+
+  if (!window.WaslaCore || !window.Auth) {
+    console.error('❌ PART 5.2 requires PART 2, 3, 5');
+    return;
+  }
+
+  const { Utils, UI, Store, EventLog } = window.WaslaCore;
+
+  console.log('%c🔔 [PART 5.2] Smart Reminder Engine...', 'color:#0284C7;font-weight:900');
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 1: PERSISTENT FLAGS (prevent duplicate notifications)
+  // ══════════════════════════════════════════════════════════════
+  const ReminderFlags = {
+    KEY: 'wasla_reminder_flags_v1',
+    load() {
+      try { return JSON.parse(localStorage.getItem(this.KEY) || '{}'); }
+      catch (_) { return {}; }
+    },
+    save(flags) {
+      try { localStorage.setItem(this.KEY, JSON.stringify(flags)); }
+      catch (_) {}
+    },
+    getFlag(apptId, type) {
+      const flags = this.load();
+      return flags[apptId]?.[type] || false;
+    },
+    setFlag(apptId, type) {
+      const flags = this.load();
+      if (!flags[apptId]) flags[apptId] = {};
+      flags[apptId][type] = true;
+      this.save(flags);
+    },
+    cleanup() {
+      const db = Store.load();
+      const today = Utils.today();
+      const flags = this.load();
+      let changed = false;
+      Object.keys(flags).forEach(apptId => {
+        const appt = (db.appointments || []).find(a => a.id === apptId);
+        if (!appt || appt.date < today) {
+          delete flags[apptId];
+          changed = true;
+        }
+      });
+      if (changed) this.save(flags);
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 2: SOUND ENGINE (Web Audio API, no files needed)
+  // ══════════════════════════════════════════════════════════════
+  const SoundEngine = {
+    ctx: null,
+    init() {
+      if (this.ctx) return;
+      try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) {}
+    },
+    play(type = 'normal') {
+      if (!this.ctx) this.init();
+      if (!this.ctx) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+
+      const sequences = {
+        normal: [{ f: 600, d: 0.12 }, { f: 800, d: 0.12 }],
+        high:   [{ f: 700, d: 0.12 }, { f: 900, d: 0.12 }, { f: 1100, d: 0.18 }],
+        urgent: [{ f: 880, d: 0.12 }, { f: 660, d: 0.12 }, { f: 880, d: 0.12 }, { f: 660, d: 0.12 }, { f: 1100, d: 0.25 }]
+      };
+      const seq = sequences[type] || sequences.normal;
+
+      let t = this.ctx.currentTime;
+      seq.forEach(({ f, d }) => {
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.type = type === 'urgent' ? 'square' : 'sine';
+          osc.frequency.setValueAtTime(f, t);
+          gain.gain.setValueAtTime(0.15, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + d);
+          osc.start(t);
+          osc.stop(t + d);
+          t += d + 0.04;
+        } catch (_) {}
+      });
+    }
+  };
+
+  // Init sound on first user gesture (browser autoplay policy)
+  ['click', 'touchstart', 'keydown'].forEach(evt => {
+    document.body.addEventListener(evt, () => SoundEngine.init(), { once: true });
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 3: BROWSER NOTIFICATIONS
+  // ══════════════════════════════════════════════════════════════
+  const BrowserNotifier = {
+    supported() {
+      return 'Notification' in window;
+    },
+    granted() {
+      return this.supported() && Notification.permission === 'granted';
+    },
+    async requestPermission() {
+      if (!this.supported()) return false;
+      if (Notification.permission === 'granted') return true;
+      if (Notification.permission === 'denied') return false;
+      try {
+        const result = await Notification.requestPermission();
+        return result === 'granted';
+      } catch (_) {
+        return false;
+      }
+    },
+    send(title, body, options = {}) {
+      if (!this.granted()) return null;
+      try {
+        const notif = new Notification(title, {
+          body,
+          icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%23059669"/><text x="50" y="50" font-size="60" text-anchor="middle" dominant-baseline="central" fill="white">🔔</text></svg>',
+          badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%23059669"/></svg>',
+          tag: options.tag || 'wasla-reminder',
+          requireInteraction: options.requireInteraction || false,
+          silent: options.silent || false,
+          ...options
+        });
+        notif.onclick = () => {
+          window.focus();
+          if (options.onClick) options.onClick();
+          notif.close();
+        };
+        return notif;
+      } catch (_) {
+        return null;
+      }
+    }
+  };
+
+  window.WaslaBrowserNotifier = BrowserNotifier;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 4: ENHANCED NOTIFICATION MANAGER
+  // ══════════════════════════════════════════════════════════════
+  const NotificationManager = {
+    push({ userId, text, type = 'info', priority = 'normal', appointmentId = null, meta = {} }) {
+      const db = Store.load();
+      db.notifications = db.notifications || [];
+
+      // Prevent duplicate unread notifications of same type for same appointment
+      if (appointmentId && type) {
+        const existing = db.notifications.find(n =>
+          n.userId === userId &&
+          n.type === type &&
+          n.appointmentId === appointmentId &&
+          !n.read
+        );
+        if (existing) return existing;
+      }
+
+      const notif = {
+        id: Utils.id('notif'),
+        userId,
+        text,
+        type,
+        priority,
+        appointmentId,
+        read: false,
+        ts: Date.now(),
+        meta
+      };
+      db.notifications.unshift(notif);
+      Store.save(db);
+
+      // Trigger UI refresh
+      if (window.WaslaRender && typeof window.WaslaRender.header === 'function') {
+        window.WaslaRender.header();
+      }
+
+      // Play sound
+      SoundEngine.play(priority);
+
+      // Event log
+      EventLog.log('notification_sent', {
+        actorId: userId,
+        payload: { type, priority, appointmentId }
+      });
+
+      return notif;
+    }
+  };
+
+  window.WaslaNotificationManager = NotificationManager;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 5: REMINDER ENGINE (Core Logic)
+  // ══════════════════════════════════════════════════════════════
+  const ReminderEngine = {
+    intervalId: null,
+    POLL_INTERVAL: 30000, // 30 seconds
+    _permissionRequested: false,
+
+    async check() {
+      const user = window.Auth.getCurrentUser();
+      if (!user) return;
+
+      // Request browser notification permission on first check
+      if (!this._permissionRequested) {
+        this._permissionRequested = true;
+        if (BrowserNotifier.supported() && Notification.permission === 'default') {
+          await BrowserNotifier.requestPermission();
+        }
+      }
+
+      const db = Store.load();
+      const today = Utils.today();
+
+      // Active appointments today
+      const myTodayAppts = (db.appointments || []).filter(a =>
+        a.patientId === user.id &&
+        a.date === today &&
+        !['canceled', 'completed', 'no-show'].includes(a.status)
+      );
+
+      myTodayAppts.forEach(appt => {
+        // 1. Day Reminder (once per appointment)
+        if (!ReminderFlags.getFlag(appt.id, 'dayReminder')) {
+          this._sendDayReminder(user, appt);
+          ReminderFlags.setFlag(appt.id, 'dayReminder');
+        }
+
+        // 2. Three Ahead (once per appointment)
+        if (appt.status === 'waiting' && !ReminderFlags.getFlag(appt.id, 'threeAhead')) {
+          const q = this._queueInfo(appt);
+          if (q && q.ahead === 3) {
+            this._sendThreeAhead(user, appt, q);
+            ReminderFlags.setFlag(appt.id, 'threeAhead');
+          }
+        }
+
+        // 3. Your Turn (once per appointment)
+        if (appt.status === 'next' && !ReminderFlags.getFlag(appt.id, 'yourTurn')) {
+          this._sendYourTurn(user, appt);
+          ReminderFlags.setFlag(appt.id, 'yourTurn');
+        }
+      });
+
+      // Cleanup old flags
+      ReminderFlags.cleanup();
+    },
+
+    _queueInfo(appt) {
+      const db = Store.load();
+      const sameShift = (db.appointments || [])
+        .filter(a =>
+          a.doctorId === appt.doctorId &&
+          a.date === appt.date &&
+          !['canceled', 'completed', 'no-show'].includes(a.status)
+        )
+        .sort((a, b) => Utils.timeToMin(a.slot) - Utils.timeToMin(b.slot));
+
+      const idx = sameShift.findIndex(a => a.id === appt.id);
+      if (idx < 0) return null;
+      return { position: idx + 1, ahead: idx, total: sameShift.length };
+    },
+
+    _sendDayReminder(user, appt) {
+      const doc = (Store.load().doctors || []).find(d => d.id === appt.doctorId);
+      const text = `📅 تذكير: لديك موعد اليوم مع ${appt.doctorName} الساعة ${appt.slot}`;
+
+      NotificationManager.push({
+        userId: user.id,
+        text,
+        type: 'day_reminder',
+        priority: 'high',
+        appointmentId: appt.id,
+        meta: { slot: appt.slot, doctorName: appt.doctorName, area: doc?.area }
+      });
+
+      BrowserNotifier.send('📅 موعدك اليوم', `${appt.doctorName} - الساعة ${appt.slot}`, {
+        tag: `day-${appt.id}`,
+        onClick: () => window.Router.go('queue', { appointmentId: appt.id })
+      });
+
+      UI.toast(text, 'info', 5000);
+    },
+
+    _sendThreeAhead(user, appt, queue) {
+      const text = `⏰ تنبيه: فاضل 3 حالات قبل دورك في عيادة ${appt.doctorName}`;
+
+      NotificationManager.push({
+        userId: user.id,
+        text,
+        type: 'three_ahead',
+        priority: 'high',
+        appointmentId: appt.id,
+        meta: { ahead: queue.ahead, position: queue.position }
+      });
+
+      BrowserNotifier.send('⏰ اقترب دورك', `فاضل 3 حالات في عيادة ${appt.doctorName}. استعد للتوجه.`, {
+        tag: `three-${appt.id}`,
+        requireInteraction: true,
+        onClick: () => window.Router.go('queue', { appointmentId: appt.id })
+      });
+
+      UI.toast(text, 'warning', 6000);
+    },
+
+    _sendYourTurn(user, appt) {
+      const text = `🔔 حان دورك الآن! توجه إلى عيادة ${appt.doctorName}`;
+
+      NotificationManager.push({
+        userId: user.id,
+        text,
+        type: 'your_turn',
+        priority: 'urgent',
+        appointmentId: appt.id,
+        meta: { slot: appt.slot }
+      });
+
+      BrowserNotifier.send('🔔 حان دورك الآن!', `توجه الآن إلى عيادة ${appt.doctorName}`, {
+        tag: `turn-${appt.id}`,
+        requireInteraction: true,
+        onClick: () => window.Router.go('queue', { appointmentId: appt.id })
+      });
+
+      UI.toast(text, 'success', 8000);
+    },
+
+    start() {
+      if (this.intervalId) return;
+      // Initial check after login
+      setTimeout(() => this.check(), 1500);
+      // Periodic check
+      this.intervalId = setInterval(() => {
+        if (!document.hidden) this.check();
+      }, this.POLL_INTERVAL);
+      // Re-check when tab becomes visible
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) this.check();
+      });
+      console.log('%c🔔 Reminder Engine: Started (30s polling)', 'color:#0284C7;font-weight:900');
+    },
+
+    stop() {
+      if (this.intervalId) {
+        clearInterval(this.intervalId);
+        this.intervalId = null;
+      }
+    },
+
+    // Force re-check (called after actions)
+    trigger() {
+      setTimeout(() => this.check(), 500);
+    }
+  };
+
+  window.WaslaReminderEngine = ReminderEngine;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 6: PATCH NotificationsPanel (enhanced UI)
+  // ══════════════════════════════════════════════════════════════
+  function patchNotificationsPanel() {
+    if (!window.NotificationsPanel) return;
+
+    window.NotificationsPanel.open = function() {
+      const user = window.Auth.getCurrentUser();
+      if (!user) return;
+
+      const db = Store.load();
+      const notifs = (db.notifications || [])
+        .filter(n => n.userId === user.id)
+        .sort((a, b) => (b.ts || 0) - (a.ts || 0))
+        .slice(0, 40);
+
+      const priorityIcons = {
+        urgent: 'fa-circle-exclamation',
+        high: 'fa-bell',
+        normal: 'fa-circle-info'
+      };
+      const priorityLabels = {
+        urgent: 'عاجل',
+        high: 'مهم',
+        normal: 'عادي'
+      };
+      const typeIcons = {
+        day_reminder: 'fa-calendar-day',
+        three_ahead: 'fa-hourglass-half',
+        your_turn: 'fa-bullhorn'
+      };
+
+      const body = Utils.$('#modal-generic-body');
+      body.innerHTML = `
+        <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 style="font-size:16px;font-weight:900;margin-bottom:6px;">
+          <i class="fa-solid fa-bell" style="color:var(--sector-medical);"></i> الإشعارات
+        </h3>
+        <p style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:16px;">
+          ${notifs.filter(n => !n.read).length} غير مقروء · ${notifs.length} إجمالي
+        </p>
+
+        ${notifs.length === 0 ? `
+          <div class="empty-state" style="padding:32px 16px;">
+            <i class="fa-solid fa-bell-slash empty-state-icon"></i>
+            <p class="empty-state-desc">لا توجد إشعارات</p>
+          </div>
+        ` : notifs.map(n => {
+          const priority = n.priority || 'normal';
+          const type = n.type || 'info';
+          const appt = n.appointmentId ? (db.appointments || []).find(a => a.id === n.appointmentId) : null;
+
+          return `
+            <div class="notif-item ${!n.read ? 'unread' : ''} ${priority}" data-notif-id="${n.id}">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                <div style="flex:1;">
+                  <div class="notif-time">
+                    <i class="fa-solid ${typeIcons[type] || 'fa-bell'}"></i>
+                    ${Utils.timeAgo(n.ts)}
+                    <span class="notif-priority-badge ${priority}">
+                      <i class="fa-solid ${priorityIcons[priority]}"></i>
+                      ${priorityLabels[priority]}
+                    </span>
+                  </div>
+                  <div class="notif-text">${Utils.escape(n.text)}</div>
+                  ${appt && ['day_reminder', 'three_ahead', 'your_turn'].includes(type) ? `
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
+                      <button class="notif-action-btn" onclick="WaslaReminderActions.viewQueue('${n.id}', '${appt.id}')">
+                        <i class="fa-solid fa-users-viewfinder"></i> تتبع الدور
+                      </button>
+                      <button class="notif-action-btn wa" onclick="WaslaReminderActions.whatsapp('${appt.id}')">
+                        <i class="fa-brands fa-whatsapp"></i> تذكير واتساب
+                      </button>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      `;
+
+      UI.modal('modal-generic', { open: true });
+
+      // Mark all as read
+      const freshDb = Store.load();
+      freshDb.notifications = (freshDb.notifications || []).map(n =>
+        n.userId === user.id ? { ...n, read: true } : n
+      );
+      Store.save(freshDb);
+
+      // Refresh header badge
+      if (window.WaslaRender && typeof window.WaslaRender.header === 'function') {
+        window.WaslaRender.header();
+      }
+    };
+  }
+
+  window.WaslaReminderActions = {
+    viewQueue(notifId, appointmentId) {
+      UI.modal('modal-generic', { open: false });
+      window.Router.go('queue', { appointmentId });
+    },
+    whatsapp(appointmentId) {
+      const user = window.Auth.getCurrentUser();
+      const db = Store.load();
+      const appt = (db.appointments || []).find(a => a.id === appointmentId);
+      if (!appt || !user) return;
+
+      const sameShift = (db.appointments || [])
+        .filter(a =>
+          a.doctorId === appt.doctorId &&
+          a.date === appt.date &&
+          !['canceled', 'completed', 'no-show'].includes(a.status)
+        )
+        .sort((a, b) => Utils.timeToMin(a.slot) - Utils.timeToMin(b.slot));
+
+      const position = sameShift.findIndex(a => a.id === appointmentId) + 1;
+      const ahead = position - 1;
+      const doc = (db.doctors || []).find(d => d.id === appt.doctorId);
+
+      const msg = `🔔 *منصة وصلة - تذكير موعد*\n\n👨‍⚕️ ${appt.doctorName}\n🏥 ${doc?.area || ''}\n📅 ${Utils.fmtDate(appt.date)}\n⏰ ${appt.slot}\n📍 دورك رقم ${position} (قدامك ${ahead} حالة)\n\n_يرجى التوجه للعيادة في الوقت المناسب._\n_للاستفسار: 01068990089_`;
+
+      window.open(`https://wa.me/2${user.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+      UI.toast('تم تجهيز التذكير على واتساب');
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 7: TEST TOOL (for quick verification)
+  // ══════════════════════════════════════════════════════════════
+  window.WaslaTestReminder = function(type = 'day') {
+    const user = window.Auth.getCurrentUser();
+    if (!user) return UI.toast('سجل دخول أولاً', 'error');
+
+    const db = Store.load();
+    const today = Utils.today();
+    const myAppts = (db.appointments || []).filter(a =>
+      a.patientId === user.id && a.date === today && !['canceled', 'completed', 'no-show'].includes(a.status)
+    );
+
+    if (myAppts.length === 0) {
+      return UI.toast('لا يوجد حجز نشط اليوم — احجز أولاً', 'error');
+    }
+
+    const appt = myAppts[0];
+
+    if (type === 'day') {
+      ReminderFlags.setFlag(appt.id, 'dayReminder');
+      ReminderEngine._sendDayReminder(user, appt);
+    } else if (type === 'three') {
+      ReminderFlags.setFlag(appt.id, 'threeAhead');
+      ReminderEngine._sendThreeAhead(user, appt, { ahead: 3, position: 4, total: 10 });
+    } else if (type === 'turn') {
+      ReminderFlags.setFlag(appt.id, 'yourTurn');
+      ReminderEngine._sendYourTurn(user, appt);
+    } else {
+      UI.toast('نوع غير معروف: day | three | turn', 'error');
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 8: AUTO-TRIGGER (re-check after state changes)
+  // ══════════════════════════════════════════════════════════════
+  function setupTriggers() {
+    // Re-check when data changes from another tab
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'wasla_v5_db') {
+        ReminderEngine.trigger();
+      }
+    });
+
+    // Re-check after certain actions (poll every 5s for changes in same tab)
+    setInterval(() => {
+      if (document.hidden) return;
+      const user = window.Auth.getCurrentUser();
+      if (!user) return;
+
+      // Check if any of user's appointments changed status
+      const db = Store.load();
+      const today = Utils.today();
+      const myAppts = (db.appointments || []).filter(a =>
+        a.patientId === user.id && a.date === today
+      );
+
+      const hasNext = myAppts.some(a => a.status === 'next');
+      const hasThreeAhead = myAppts.some(a => {
+        if (a.status !== 'waiting') return false;
+        const q = ReminderEngine._queueInfo(a);
+        return q && q.ahead === 3;
+      });
+
+      if (hasNext || hasThreeAhead) {
+        ReminderEngine.trigger();
+      }
+    }, 5000);
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 9: BOOT
+  // ══════════════════════════════════════════════════════════════
+  function boot() {
+    try {
+      patchNotificationsPanel();
+
+      // Start Reminder Engine
+      ReminderEngine.start();
+      setupTriggers();
+
+      // Log
+      EventLog.log('patch_5_2_applied', {
+        features: ['day_reminder', 'three_ahead', 'your_turn', 'browser_notifications', 'sound_engine'],
+        ts: Date.now()
+      });
+
+      console.log('%c🔔 [PART 5.2] Smart Reminder Engine READY', 'background:#0284C7;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
+      console.log('%c📅 Day reminder: يعمل', 'color:#059669;font-weight:900');
+      console.log('%c⏰ 3-cases-ahead: يعمل', 'color:#059669;font-weight:900');
+      console.log('%c🔔 Your turn: يعمل (urgent)', 'color:#059669;font-weight:900');
+      console.log('%c🧪 للاختبار السريع: WaslaTestReminder("day" | "three" | "turn")', 'color:#7C3AED;font-weight:900');
+
+    } catch (e) {
+      console.error('[PART 5.2] Failed:', e);
+    }
+  }
+
+  // Run after PART 5.1 patches apply
+  setTimeout(boot, 1200);
+
+})();
+</script>
 </body>
 </html>
