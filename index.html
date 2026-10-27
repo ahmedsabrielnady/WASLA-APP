@@ -5632,5 +5632,1301 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   
 })();
 </script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 7/15: COMMUNICATION & EXTENDED FEATURES
+     - Prescription PDF generator (jsPDF + QR code for pharmacy)
+     - Embedded Video Consultation (Jitsi Meet External API)
+     - SMS/WhatsApp Business gateway (mock-ready, pluggable)
+     - Payment tracking (cash/card/wallet)
+     - Emergency / Urgent Care flow
+     - i18n AR/EN switcher (instant, RTL-aware)
+═════════════════════════════════════════════════════════════ -->
+<style>
+/* ── Video consultation overlay ── */
+.video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  animation: fade-in 0.2s ease;
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.video-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #7C3AED, #5B21B6);
+  color: #fff;
+  font-weight: 900;
+  font-size: 13px;
+}
+.video-header small { font-size: 10.5px; opacity: 0.85; display: block; }
+.video-frame-container {
+  flex: 1;
+  position: relative;
+  background: #111;
+}
+.video-frame-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+.video-controls {
+  padding: 10px 14px;
+  background: #1F2937;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.video-ctrl-btn {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 99px;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.video-ctrl-btn:hover { background: rgba(255,255,255,0.2); }
+.video-ctrl-btn.danger { background: #DC2626; }
+.video-ctrl-btn.danger:hover { background: #B91C1C; }
+
+/* ── Payment badge ── */
+.pay-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 9.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.pay-badge.paid    { background: #D1FAE5; color: #059669; }
+.pay-badge.unpaid  { background: #FEE2E2; color: #DC2626; }
+.pay-badge.partial { background: #FEF3C7; color: #D97706; }
+
+/* ── Emergency banner ── */
+.emergency-banner {
+  background: linear-gradient(135deg, #DC2626, #991B1B);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: pulse-emergency 1.5s infinite;
+  cursor: pointer;
+}
+@keyframes pulse-emergency {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
+  50% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+}
+.emergency-banner i { font-size: 22px; }
+.emergency-banner strong { font-size: 13px; display: block; }
+.emergency-banner small { font-size: 10.5px; opacity: 0.9; }
+
+/* ── Language switcher ── */
+.lang-switch {
+  display: inline-flex;
+  background: var(--bg-muted);
+  border-radius: 99px;
+  padding: 3px;
+  gap: 2px;
+}
+.lang-switch button {
+  padding: 5px 11px;
+  border: none;
+  border-radius: 99px;
+  background: transparent;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.lang-switch button.active {
+  background: var(--sector-medical);
+  color: #fff;
+}
+
+/* ── i18n reverse direction ── */
+[dir="ltr"] .notif-item { border-right: none; border-left: 3px solid var(--sector-medical); }
+
+/* ── Prescription download card ── */
+.rx-download-card {
+  background: linear-gradient(135deg, #F0FDF4, #DCFCE7);
+  border: 1px solid #86EFAC;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rx-download-card .rx-dl-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: #059669;
+  color: #fff;
+  display: grid; place-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.rx-download-card .rx-dl-info { flex: 1; }
+.rx-download-card .rx-dl-info strong { display: block; font-size: 12.5px; font-weight: 900; color: #065F46; }
+.rx-download-card .rx-dl-info small { font-size: 10.5px; color: #047857; font-weight: 700; }
+.rx-dl-btn {
+  background: #059669;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 11px;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.rx-dl-btn:hover { background: #047857; }
+</style>
+
+<script>
+(function WASLA_PART_7_COMMS() {
+  'use strict';
+
+  if (!window.WaslaCore || !window.Auth) {
+    console.error('❌ PART 7 requires PART 2, 3');
+    return;
+  }
+
+  const { Utils, UI, Store, EventLog } = window.WaslaCore;
+
+  console.log('%c📡 [PART 7] Comms & Extended Features loading...', 'color:#0891B2;font-weight:900');
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 1: SCHEMA
+  // ══════════════════════════════════════════════════════════════
+  function ensureSchema(db) {
+    db.payments       = db.payments || [];
+    db.messageLog     = db.messageLog || [];
+    db.emergencyQueue = db.emergencyQueue || [];
+    db.settings       = db.settings || {};
+    if (!db.settings.lang) db.settings.lang = 'ar';
+    return db;
+  }
+  (function () { Store.save(ensureSchema(Store.load())); })();
+
+  const H = {
+    appt:    (id) => (Store.load().appointments || []).find(a => a.id === id),
+    patient: (id) => (Store.load().users || []).find(u => u.id === id),
+    doctor:  (id) => (Store.load().doctors || []).find(d => d.id === id),
+    record:  (apptId) => (Store.load().medicalRecords || []).find(r => r.appointmentId === apptId)
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 2: LAZY CDN LOADER (jsPDF, QRCode, Jitsi)
+  // ══════════════════════════════════════════════════════════════
+  const Loader = {
+    cache: {},
+    loadScript(url) {
+      if (this.cache[url]) return this.cache[url];
+      this.cache[url] = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = url;
+        s.async = true;
+        s.onload = () => resolve(true);
+        s.onerror = () => { delete this.cache[url]; reject(new Error('Failed: ' + url)); };
+        document.head.appendChild(s);
+      });
+      return this.cache[url];
+    },
+    async jsPDF() {
+      if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
+      await this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+      return window.jspdf?.jsPDF || null;
+    },
+    async qrcode() {
+      if (window.QRCode) return window.QRCode;
+      await this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js');
+      return window.QRCode || null;
+    },
+    async jitsiApi() {
+      if (window.JitsiMeetExternalAPI) return window.JitsiMeetExternalAPI;
+      await this.loadScript('https://meet.jit.si/external_api.js');
+      return window.JitsiMeetExternalAPI || null;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 3: PDF PRESCRIPTION GENERATOR (jsPDF + QR)
+  // ══════════════════════════════════════════════════════════════
+  const PDFPrescription = {
+    async generate(appointmentId) {
+      UI.toast('⏳ جاري تجهيز الروشتة...', 'info', 2000);
+      try {
+        const jsPDF = await Loader.jsPDF();
+        if (!jsPDF) throw new Error('jsPDF load failed');
+
+        const appt = H.appt(appointmentId);
+        if (!appt) throw new Error('موعد غير موجود');
+        const record = H.record(appointmentId);
+        if (!record) throw new Error('لا يوجد روشتة مسجلة');
+        const patient = H.patient(appt.patientId) || {};
+        const doctor = H.doctor(appt.doctorId) || { name: appt.doctorName, specialty: '' };
+
+        // ---- Build PDF (A5 size = 148x210 mm) ----
+        const doc = new jsPDF({ unit: 'mm', format: 'a5', orientation: 'portrait' });
+        const W = 148;
+        const margin = 10;
+
+        // Header gradient bar
+        doc.setFillColor(5, 150, 105);
+        doc.rect(0, 0, W, 22, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('WASLA  |  وصلة', W / 2, 10, { align: 'center' });
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Medical Prescription / روشتة طبية', W / 2, 16, { align: 'center' });
+
+        // Doctor block
+        doc.setTextColor(20, 20, 20);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Dr. ' + (doctor.name || ''), margin, 32);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(90, 90, 90);
+        if (doctor.specialty) doc.text(doctor.specialty, margin, 37);
+        if (doctor.area) doc.text(doctor.area, margin, 41);
+
+        // QR code (pharmacy verification)
+        try {
+          const QRCodeLib = await Loader.qrcode();
+          if (QRCodeLib) {
+            const qrData = `WASLA-RX|${appt.id}|${record.id}|${Date.now()}`;
+            const holder = document.createElement('div');
+            holder.style.cssText = 'position:absolute;left:-9999px;';
+            new QRCodeLib(holder, { text: qrData, width: 128, height: 128 });
+            await new Promise(r => setTimeout(r, 200));
+            const canvas = holder.querySelector('canvas');
+            if (canvas) {
+              const imgData = canvas.toDataURL('image/png');
+              doc.addImage(imgData, 'PNG', W - margin - 20, 28, 20, 20);
+            }
+          }
+        } catch (e) { console.warn('QR skipped', e); }
+
+        // Patient box
+        doc.setDrawColor(200, 200, 200);
+        doc.setFillColor(240, 253, 244);
+        doc.roundedRect(margin, 48, W - margin * 2, 16, 2, 2, 'FD');
+        doc.setTextColor(5, 150, 105);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PATIENT / المريض', margin + 2, 53);
+        doc.setTextColor(20, 20, 20);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text((patient.name || appt.patientName || '—'), margin + 2, 59);
+
+        doc.setFontSize(8);
+        doc.setTextColor(90, 90, 90);
+        doc.text('Date: ' + Utils.fmtDate(Utils.today()), W - margin - 2, 53, { align: 'right' });
+        if (patient.age) doc.text('Age: ' + patient.age, W - margin - 2, 59, { align: 'right' });
+
+        // Diagnosis
+        let y = 72;
+        if (record.diagnosis) {
+          doc.setTextColor(5, 150, 105);
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'bold');
+          doc.text('DIAGNOSIS / التشخيص', margin, y);
+          doc.setTextColor(20, 20, 20);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          const diagLines = doc.splitTextToSize(record.diagnosis, W - margin * 2);
+          doc.text(diagLines, margin, y + 5);
+          y += 5 + diagLines.length * 5 + 4;
+        }
+
+        // Prescription
+        doc.setTextColor(5, 150, 105);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Rx / الأدوية', margin, y);
+        y += 6;
+
+        doc.setTextColor(20, 20, 20);
+        doc.setFont('helvetica', 'normal');
+        (record.prescription || []).forEach((item, i) => {
+          if (y > 175) { doc.addPage(); y = 15; }
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(11);
+          doc.text(`${i + 1}. ${item.drug || '—'}`, margin, y);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(90, 90, 90);
+          const detail = [
+            item.dose ? `Dose: ${item.dose}` : '',
+            item.freq ? `Freq: ${item.freq}` : '',
+            item.dur  ? `Duration: ${item.dur}` : ''
+          ].filter(Boolean).join('  •  ');
+          if (detail) doc.text(detail, margin + 4, y + 5);
+          doc.setTextColor(20, 20, 20);
+          y += 12;
+        });
+
+        // Follow-up
+        if (record.followUp) {
+          if (y > 175) { doc.addPage(); y = 15; }
+          doc.setFillColor(254, 243, 199);
+          doc.roundedRect(margin, y, W - margin * 2, 8, 2, 2, 'F');
+          doc.setFontSize(9);
+          doc.setTextColor(146, 64, 14);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Follow-up / المتابعة: ' + Utils.fmtDate(record.followUp), margin + 2, y + 5.5);
+          y += 12;
+        }
+
+        // Signature line
+        const sigY = Math.max(y + 6, 185);
+        if (sigY > 195) { doc.addPage(); }
+        doc.setDrawColor(150, 150, 150);
+        doc.line(W - margin - 35, sigY, W - margin, sigY);
+        doc.setFontSize(8);
+        doc.setTextColor(90, 90, 90);
+        doc.text('Signature / التوقيع', W - margin - 17, sigY + 4, { align: 'center' });
+
+        // Footer
+        doc.setFillColor(5, 150, 105);
+        doc.rect(0, 200, W, 10, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Wasla Medical Platform  •  01068990089  •  wasla.app', W / 2, 206, { align: 'center' });
+
+        // ---- Save & log ----
+        const fname = `Wasla-Rx-${appt.id.slice(-6)}-${Utils.today()}.pdf`;
+        doc.save(fname);
+
+        // Payment auto-create (pending)
+        Payments.ensureFor(appointmentId);
+
+        // Audit
+        const user = window.Auth.getCurrentUser();
+        (window.Audit || { log: () => {} }).log?.('download_rx_pdf', {
+          actorId: user?.id,
+          patientId: appt.patientId,
+          appointmentId,
+          meta: { filename: fname }
+        });
+
+        UI.toast('✅ تم تحميل الروشتة PDF', 'success');
+        EventLog.log('rx_pdf_generated', {
+          actorId: user?.id,
+          payload: { appointmentId, filename: fname }
+        });
+        return true;
+      } catch (e) {
+        console.error('[PDF] error:', e);
+        UI.toast('❌ فشل توليد PDF: ' + e.message, 'error', 5000);
+        return false;
+      }
+    }
+  };
+
+  window.WaslaPrescriptionPDF = PDFPrescription;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 4: VIDEO CONSULTATION (Jitsi External API)
+  // ══════════════════════════════════════════════════════════════
+  const VideoConsultation = {
+    api: null,
+    overlay: null,
+
+    async start(appointmentId) {
+      const user = window.Auth.getCurrentUser();
+      if (!user) return UI.toast('سجل دخول أولاً', 'error');
+
+      const appt = H.appt(appointmentId);
+      if (!appt) return UI.toast('الموعد غير موجود', 'error');
+
+      const isDoctor = user.role === 'doctor' &&
+        (appt.doctorId === user.doctorId || appt.doctorId === user.id);
+      const isPatient = user.role === 'patient' && appt.patientId === user.id;
+      if (!isDoctor && !isPatient) return UI.toast('غير مصرح لك', 'error');
+
+      // Persistent room per appointment
+      const db = Store.load();
+      const idx = db.appointments.findIndex(a => a.id === appointmentId);
+      if (idx < 0) return;
+      if (!db.appointments[idx].videoRoom) {
+        db.appointments[idx].videoRoom = `WaslaRoom${appointmentId.slice(-8)}${Math.random().toString(36).slice(2, 5)}`;
+        Store.save(db);
+      }
+      const room = db.appointments[idx].videoRoom;
+
+      // ---- Build overlay ----
+      this.close();
+      const overlay = document.createElement('div');
+      overlay.className = 'video-overlay';
+      overlay.innerHTML = `
+        <div class="video-header">
+          <div>
+            <div>🎥 استشارة فيديو</div>
+            <small>${Utils.escape(appt.doctorName)} — ${Utils.fmtDate(appt.date)} ${appt.slot}</small>
+          </div>
+          <button class="video-ctrl-btn danger" id="video-close">
+            <i class="fa-solid fa-xmark"></i> خروج
+          </button>
+        </div>
+        <div class="video-frame-container" id="jitsi-container"></div>
+        <div class="video-controls">
+          ${isDoctor ? `
+            <button class="video-ctrl-btn" id="video-share-wa">
+              <i class="fa-brands fa-whatsapp"></i> إرسال الرابط للمريض
+            </button>
+          ` : ''}
+          <button class="video-ctrl-btn" id="video-copy">
+            <i class="fa-solid fa-link"></i> نسخ الرابط
+          </button>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      this.overlay = overlay;
+
+      // ---- Load Jitsi External API ----
+      try {
+        const JitsiMeetExternalAPI = await Loader.jitsiApi();
+        if (!JitsiMeetExternalAPI) throw new Error('Jitsi API غير متاح');
+
+        this.api = new JitsiMeetExternalAPI('meet.jit.si', {
+          roomName: room,
+          parentNode: document.getElementById('jitsi-container'),
+          width: '100%',
+          height: '100%',
+          userInfo: {
+            displayName: user.name || (isDoctor ? 'Doctor' : 'Patient'),
+            email: user.email || ''
+          },
+          configOverwrite: {
+            startWithAudioMuted: false,
+            startWithVideoMuted: false,
+            prejoinPageEnabled: false,
+            disableDeepLinking: true
+          },
+          interfaceConfigOverwrite: {
+            SHOW_JITSI_WATERMARK: false,
+            SHOW_WATERMARK_FOR_GUESTS: false,
+            DEFAULT_BACKGROUND: '#000000',
+            TOOLBAR_BUTTONS: ['microphone', 'camera', 'chat', 'raisehand', 'tileview', 'settings', 'hangup']
+          }
+        });
+
+        // Track leave
+        this.api.addEventListener('videoConferenceLeft', () => this.close());
+
+        // Audit
+        (window.Audit || { log: () => {} }).log?.('video_consult_join', {
+          actorId: user.id, patientId: appt.patientId, appointmentId,
+          meta: { room, role: user.role }
+        });
+
+        // Mark as in-progress
+        if (isDoctor) {
+          const fresh = Store.load();
+          const i = fresh.appointments.findIndex(a => a.id === appointmentId);
+          if (i >= 0 && !['completed', 'canceled'].includes(fresh.appointments[i].status)) {
+            fresh.appointments[i].status = 'in-progress';
+            Store.save(fresh);
+          }
+        }
+
+        UI.toast('🎥 تم الاتصال بغرفة الفيديو');
+
+      } catch (e) {
+        console.error('[Video]', e);
+        UI.toast('❌ فشل تشغيل الفيديو: ' + e.message, 'error', 5000);
+        this.close();
+        return;
+      }
+
+      // ---- Bind controls ----
+      const url = `https://meet.jit.si/${room}`;
+      document.getElementById('video-close').onclick = () => this.close();
+      document.getElementById('video-copy').onclick = () => {
+        navigator.clipboard.writeText(url).then(() => UI.toast('📋 تم نسخ الرابط'));
+      };
+      const waBtn = document.getElementById('video-share-wa');
+      if (waBtn) {
+        waBtn.onclick = () => {
+          const patient = H.patient(appt.patientId);
+          if (!patient?.phone) return UI.toast('لا يوجد رقم للمريض', 'error');
+          Messaging.whatsapp(patient.phone,
+            `📹 *منصة وصلة - استشارة فيديو*\n\nد. ${Utils.escape(user.name || '')} يدعوك لجلسة فيديو الآن.\n\n🔗 ${url}\n\n_اضغط الرابط للانضمام._`,
+            { kind: 'video_invite', appointmentId });
+        };
+      }
+    },
+
+    close() {
+      if (this.api) {
+        try { this.api.dispose(); } catch (_) {}
+        this.api = null;
+      }
+      if (this.overlay?.parentNode) {
+        this.overlay.parentNode.removeChild(this.overlay);
+      }
+      this.overlay = null;
+    }
+  };
+
+  // Replace old WaslaVideo with new one
+  window.WaslaVideo = {
+    start: (appointmentId) => VideoConsultation.start(appointmentId),
+    close: () => VideoConsultation.close()
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 5: MESSAGING GATEWAY (SMS + WhatsApp, mock-ready)
+  // ══════════════════════════════════════════════════════════════
+  const Messaging = {
+    _mode: 'mock',  // 'mock' | 'twilio' | 'meta' | 'vonage'
+
+    _log({ kind, channel, to, body, appointmentId, status = 'sent', error = null }) {
+      const db = Store.load();
+      db.messageLog = db.messageLog || [];
+      const entry = {
+        id: Utils.id('msg'),
+        kind, channel, to,
+        body: String(body || '').slice(0, 500),
+        appointmentId: appointmentId || null,
+        status, error,
+        ts: Date.now(),
+        senderId: window.Auth.getCurrentUser()?.id || null
+      };
+      db.messageLog.unshift(entry);
+      if (db.messageLog.length > 500) db.messageLog.length = 500;
+      Store.save(db);
+      EventLog.log('message_' + status, { payload: { kind, channel, to } });
+      return entry;
+    },
+
+    async sms(phone, body, opts = {}) {
+      const to = String(phone || '').replace(/\D/g, '');
+      if (!to) throw new Error('رقم غير صالح');
+      if (this._mode === 'mock') {
+        console.log('%c📱 [SMS MOCK] → ' + to, 'color:#0891B2;font-weight:900', '\n' + body);
+        UI.toast('📱 SMS (محاكاة): ' + body.slice(0, 40) + '...', 'info', 4000);
+        return this._log({ kind: opts.kind || 'sms', channel: 'sms', to, body,
+                            appointmentId: opts.appointmentId });
+      }
+      // Production implementation stub:
+      // await fetch('/api/sms', { method: 'POST', body: JSON.stringify({ to, body }) });
+      return this._log({ kind: opts.kind || 'sms', channel: 'sms', to, body,
+                          appointmentId: opts.appointmentId });
+    },
+
+    async whatsapp(phone, body, opts = {}) {
+      const to = String(phone || '').replace(/\D/g, '');
+      if (!to) throw new Error('رقم غير صالح');
+      if (this._mode === 'mock') {
+        // Open wa.me link (works as actual fallback)
+        const intl = to.startsWith('0') ? '2' + to : to;
+        window.open(`https://wa.me/${intl}?text=${encodeURIComponent(body)}`, '_blank');
+        this._log({ kind: opts.kind || 'whatsapp', channel: 'whatsapp', to, body,
+                    appointmentId: opts.appointmentId });
+        return;
+      }
+      // Production: WhatsApp Business API via server
+    },
+
+    configure(mode, creds = {}) {
+      this._mode = mode;
+      this._creds = creds;
+      UI.toast(`📡 Messaging mode: ${mode}`, 'info');
+    }
+  };
+
+  window.WaslaMessaging = Messaging;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 6: PAYMENTS TRACKER
+  // ══════════════════════════════════════════════════════════════
+  const Payments = {
+    ensureFor(appointmentId) {
+      const db = Store.load();
+      const appt = (db.appointments || []).find(a => a.id === appointmentId);
+      if (!appt) return null;
+      const existing = (db.payments || []).find(p => p.appointmentId === appointmentId);
+      if (existing) return existing;
+
+      const doctor = H.doctor(appt.doctorId);
+      const amount = doctor?.fee || 150;
+      const payment = {
+        id: Utils.id('pay'),
+        appointmentId,
+        patientId: appt.patientId,
+        doctorId: appt.doctorId,
+        amount,
+        paid: 0,
+        method: null,
+        status: 'unpaid',   // unpaid | partial | paid
+        history: [],
+        createdAt: Date.now()
+      };
+      db.payments.push(payment);
+      Store.save(db);
+      return payment;
+    },
+
+    setStatus(appointmentId, { amount, method, note }, actorId) {
+      const db = Store.load();
+      let pay = (db.payments || []).find(p => p.appointmentId === appointmentId);
+      if (!pay) {
+        const ensured = this.ensureFor(appointmentId);
+        if (!ensured) return null;
+        // re-read
+        const fresh = Store.load();
+        pay = fresh.payments.find(p => p.appointmentId === appointmentId);
+        Object.assign(pay, ensured);
+      }
+      const oldPaid = pay.paid;
+      pay.paid = Math.max(0, Math.min(pay.amount, Number(amount) || 0));
+      pay.method = method || pay.method;
+      pay.status = pay.paid === 0 ? 'unpaid'
+                 : pay.paid >= pay.amount ? 'paid'
+                 : 'partial';
+      pay.history.push({
+        ts: Date.now(), from: oldPaid, to: pay.paid, method, note: note || '',
+        actorId: actorId || null
+      });
+      Store.save(db);
+      EventLog.log('payment_updated', {
+        actorId, payload: { appointmentId, amount: pay.paid, status: pay.status }
+      });
+      return pay;
+    },
+
+    forAppointment(appointmentId) {
+      return (Store.load().payments || []).find(p => p.appointmentId === appointmentId);
+    },
+
+    revenueFor(doctorId, dates) {
+      const db = Store.load();
+      const appts = (db.appointments || []).filter(a =>
+        a.doctorId === doctorId && (!dates || dates.includes(a.date)));
+      const pays = (db.payments || []).filter(p =>
+        appts.some(a => a.id === p.appointmentId));
+      return pays.reduce((s, p) => s + (p.paid || 0), 0);
+    }
+  };
+
+  window.WaslaPayments = Payments;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 7: EMERGENCY / URGENT FLOW
+  // ══════════════════════════════════════════════════════════════
+  const Emergency = {
+    trigger(patientId, reason = 'حالة طارئة') {
+      const user = window.Auth.getCurrentUser();
+      if (!user) return UI.toast('سجل دخول أولاً', 'error');
+      if (user.role !== 'patient' && user.role !== 'doctor') {
+        return UI.toast('غير مصرح', 'error');
+      }
+      const db = Store.load();
+      db.emergencyQueue = db.emergencyQueue || [];
+      const entry = {
+        id: Utils.id('emg'),
+        patientId: user.role === 'patient' ? user.id : patientId,
+        patientName: user.name,
+        reason,
+        status: 'pending',  // pending | assigned | resolved
+        triggeredBy: user.id,
+        ts: Date.now()
+      };
+      db.emergencyQueue.unshift(entry);
+      Store.save(db);
+
+      // Notify all doctors
+      const doctors = (db.doctors || []);
+      const admin = window.WaslaNotificationManager;
+      if (admin?.push) {
+        doctors.forEach(doc => {
+          admin.push({
+            userId: doc.userId || doc.id,
+            text: `🚨 حالة طارئة: ${user.name} — ${reason}`,
+            type: 'emergency',
+            priority: 'urgent',
+            meta: { emergencyId: entry.id }
+          });
+        });
+      }
+
+      // Browser notification
+      window.WaslaBrowserNotifier?.send('🚨 حالة طارئة',
+        `${user.name} — ${reason}. توجه فوراً.`, { requireInteraction: true });
+
+      EventLog.log('emergency_triggered', {
+        actorId: user.id, payload: { emergencyId: entry.id, reason }
+      });
+
+      UI.toast('🚨 تم إرسال نداء طارئ لجميع الأطباء', 'warning', 6000);
+      return entry;
+    },
+
+    list() {
+      return (Store.load().emergencyQueue || [])
+        .filter(e => e.status !== 'resolved')
+        .sort((a, b) => b.ts - a.ts);
+    },
+
+    resolve(id, doctorId) {
+      const db = Store.load();
+      const idx = (db.emergencyQueue || []).findIndex(e => e.id === id);
+      if (idx < 0) return false;
+      db.emergencyQueue[idx].status = 'resolved';
+      db.emergencyQueue[idx].resolvedBy = doctorId;
+      db.emergencyQueue[idx].resolvedAt = Date.now();
+      Store.save(db);
+      UI.toast('✅ تم حل الحالة الطارئة');
+      return true;
+    }
+  };
+
+  window.WaslaEmergency = Emergency;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 8: i18n (AR/EN switcher)
+  // ══════════════════════════════════════════════════════════════
+  const i18n = {
+    dict: {
+      ar: {
+        'nav.home': 'الرئيسية',
+        'nav.queue': 'الطابور',
+        'nav.profile': 'حسابي',
+        'nav.notifications': 'الإشعارات',
+        'btn.login': 'دخول',
+        'btn.logout': 'خروج',
+        'btn.book': 'احجز',
+        'btn.emergency': 'طوارئ',
+        'btn.download_rx': 'تحميل الروشتة',
+        'btn.pay': 'دفع',
+        'msg.welcome': 'أهلاً بك في وصلة',
+        'msg.no_data': 'لا توجد بيانات'
+      },
+      en: {
+        'nav.home': 'Home',
+        'nav.queue': 'Queue',
+        'nav.profile': 'Profile',
+        'nav.notifications': 'Notifications',
+        'btn.login': 'Login',
+        'btn.logout': 'Logout',
+        'btn.book': 'Book',
+        'btn.emergency': 'Emergency',
+        'btn.download_rx': 'Download Rx',
+        'btn.pay': 'Pay',
+        'msg.welcome': 'Welcome to Wasla',
+        'msg.no_data': 'No data'
+      }
+    },
+    current() {
+      const db = Store.load();
+      return db.settings?.lang || 'ar';
+    },
+    t(key) {
+      const lang = this.current();
+      return this.dict[lang]?.[key] || this.dict.ar[key] || key;
+    },
+    set(lang) {
+      if (!['ar', 'en'].includes(lang)) return;
+      const db = Store.load();
+      db.settings = db.settings || {};
+      db.settings.lang = lang;
+      Store.save(db);
+      this.apply();
+      EventLog.log('lang_changed', { payload: { lang } });
+      UI.toast(lang === 'ar' ? '🇪🇬 تم التبديل للعربية' : '🇬🇧 Switched to English');
+    },
+    apply() {
+      const lang = this.current();
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      // Re-render if available
+      if (window.WaslaRender?.header) window.WaslaRender.header();
+      if (window.WaslaRender?.page) {
+        const route = window.Router?.current?.();
+        if (route) window.WaslaRender.page(route.name, route.params);
+      }
+    },
+    toggle() {
+      this.set(this.current() === 'ar' ? 'en' : 'ar');
+    },
+    injectSwitcher() {
+      // Add lang switch to header if not exists
+      if (document.getElementById('wasla-lang-switch')) return;
+      const header = document.querySelector('.app-header, header, #app-header');
+      if (!header) return;
+      const div = document.createElement('div');
+      div.id = 'wasla-lang-switch';
+      div.className = 'lang-switch';
+      div.style.cssText = 'margin-inline-start:8px;';
+      div.innerHTML = `
+        <button data-lang="ar" class="${this.current() === 'ar' ? 'active' : ''}">ع</button>
+        <button data-lang="en" class="${this.current() === 'en' ? 'active' : ''}">EN</button>
+      `;
+      div.querySelectorAll('button').forEach(b => {
+        b.onclick = (e) => {
+          e.preventDefault();
+          this.set(b.dataset.lang);
+          div.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+        };
+      });
+      header.appendChild(div);
+    }
+  };
+
+  window.WaslaI18n = i18n;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 9: PATCH NotificationsPanel (add PDF + pay buttons)
+  // ══════════════════════════════════════════════════════════════
+  function patchNotifActions() {
+    // Extend WaslaReminderActions to add PDF download
+    const prev = window.WaslaReminderActions || {};
+    window.WaslaReminderActions = {
+      ...prev,
+      downloadRx(appointmentId) {
+        PDFPrescription.generate(appointmentId);
+      },
+      payFor(appointmentId) {
+        const pay = Payments.ensureFor(appointmentId);
+        const doctor = H.doctor(pay.doctorId);
+        const amount = prompt(`المبلغ المطلوب: ${pay.amount} ج.م\nأدخل المبلغ المدفوع:`, String(pay.amount - pay.paid));
+        if (amount === null) return;
+        const method = prompt('طريقة الدفع: cash / card / wallet', 'cash');
+        if (method === null) return;
+        const user = window.Auth.getCurrentUser();
+        Payments.setStatus(appointmentId, { amount: Number(amount), method }, user?.id);
+        UI.toast('💳 تم تسجيل الدفعة');
+      }
+    };
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 10: PATIENT PORTAL — My Prescriptions
+  // ══════════════════════════════════════════════════════════════
+  const PatientPrescriptions = {
+    render() {
+      const user = window.Auth.getCurrentUser();
+      if (!user || user.role !== 'patient') return UI.toast('هذا للمرضى فقط', 'error');
+
+      const db = Store.load();
+      const records = (db.medicalRecords || [])
+        .filter(r => r.patientId === user.id)
+        .sort((a, b) => (b.ts || 0) - (a.ts || 0));
+
+      const container = Utils.$('#page-container') || Utils.$('#app-main') || document.body;
+      container.innerHTML = `
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div>
+            <h1 style="font-size:18px;font-weight:900;">
+              <i class="fa-solid fa-file-prescription" style="color:var(--sector-medical);"></i>
+              روشتاتي
+            </h1>
+            <p style="font-size:11px;color:var(--text-muted);font-weight:700;">
+              ${records.length} روشتة محفوظة
+            </p>
+          </div>
+        </div>
+
+        ${records.length === 0 ? `
+          <div class="empty-state" style="padding:40px 16px;text-align:center;">
+            <i class="fa-solid fa-file-slash" style="font-size:38px;color:var(--text-muted);opacity:0.4;"></i>
+            <p style="margin-top:10px;font-weight:800;color:var(--text-muted);">لا يوجد روشتات بعد</p>
+          </div>
+        ` : records.map(r => {
+          const appt = H.appt(r.appointmentId);
+          const doc = H.doctor(r.doctorId);
+          const pay = Payments.forAppointment(r.appointmentId);
+          return `
+            <div class="rx-download-card">
+              <div class="rx-dl-icon"><i class="fa-solid fa-prescription"></i></div>
+              <div class="rx-dl-info">
+                <strong>${Utils.escape(doc?.name || appt?.doctorName || 'طبيب')}</strong>
+                <small>${Utils.fmtDate(r.date)} · ${(r.prescription || []).length} دواء</small>
+                <div style="margin-top:4px;">
+                  ${pay ? `<span class="pay-badge ${pay.status}">${pay.status === 'paid' ? '✅ مدفوع' : pay.status === 'partial' ? '⚠️ جزئي' : '❌ غير مدفوع'}</span>` : ''}
+                </div>
+              </div>
+              <button class="rx-dl-btn" onclick="WaslaPrescriptionPDF.generate('${r.appointmentId}')">
+                <i class="fa-solid fa-download"></i> PDF
+              </button>
+            </div>
+          `;
+        }).join('')}
+      `;
+    }
+  };
+
+  window.WaslaPatientPrescriptions = PatientPrescriptions;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 11: ENHANCE Consultation Modal (add PDF + Pay buttons)
+  // ══════════════════════════════════════════════════════════════
+  function enhanceConsultation() {
+    const orig = window.WaslaConsultation;
+    if (!orig || orig._enhanced) return;
+    const origOpen = orig.open.bind(orig);
+    orig.open = function (appointmentId) {
+      origOpen(appointmentId);
+      // Inject PDF + Pay buttons after modal renders
+      setTimeout(() => {
+        const actions = document.querySelector('#emr-save')?.parentNode;
+        if (!actions || actions.querySelector('#emr-pdf')) return;
+        const pdfBtn = document.createElement('button');
+        pdfBtn.id = 'emr-pdf';
+        pdfBtn.className = 'video-btn';
+        pdfBtn.style.cssText = 'background:linear-gradient(135deg,#DC2626,#991B1B);';
+        pdfBtn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> PDF';
+        pdfBtn.onclick = () => {
+          // Save first
+          const data = window.WaslaConsultation._collect?.();
+          if (data) {
+            try {
+              const user = window.Auth.getCurrentUser();
+              window.WaslaCore?.Store && window.Auth;
+              // Persist silently
+              const saveBtn = document.querySelector('#emr-save');
+              saveBtn?.click();
+              setTimeout(() => PDFPrescription.generate(appointmentId), 300);
+            } catch (_) { PDFPrescription.generate(appointmentId); }
+          } else {
+            PDFPrescription.generate(appointmentId);
+          }
+        };
+        const payBtn = document.createElement('button');
+        payBtn.id = 'emr-pay';
+        payBtn.className = 'video-btn';
+        payBtn.style.cssText = 'background:linear-gradient(135deg,#D97706,#B45309);';
+        payBtn.innerHTML = '<i class="fa-solid fa-money-bill"></i> دفع';
+        payBtn.onclick = () => window.WaslaReminderActions.payFor(appointmentId);
+        actions.appendChild(pdfBtn);
+        actions.appendChild(payBtn);
+      }, 200);
+    };
+    orig._enhanced = true;
+    console.log('%c💉 Consultation enhanced (PDF + Pay)', 'color:#DC2626;font-weight:900');
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 12: ROUTES
+  // ══════════════════════════════════════════════════════════════
+  function registerRoutes() {
+    const Router = window.Router || window.WaslaRouter;
+    if (Router && typeof Router.register === 'function') {
+      try { Router.register('my-prescriptions', () => PatientPrescriptions.render()); } catch (_) {}
+    }
+    // Patch renderer
+    if (window.WaslaRender) {
+      const prev = window.WaslaRender.page;
+      window.WaslaRender.page = function (route, params) {
+        if (route === 'my-prescriptions') return PatientPrescriptions.render();
+        return prev?.call(this, route, params);
+      };
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 13: EMERGENCY BANNER (on patient home)
+  // ══════════════════════════════════════════════════════════════
+  function injectEmergencyBanner() {
+    const user = window.Auth.getCurrentUser();
+    if (!user) return;
+    const container = Utils.$('#page-container') || Utils.$('#app-main');
+    if (!container || document.getElementById('wasla-emg-banner')) return;
+
+    if (user.role === 'patient') {
+      const banner = document.createElement('div');
+      banner.id = 'wasla-emg-banner';
+      banner.className = 'emergency-banner';
+      banner.innerHTML = `
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div style="flex:1;">
+          <strong>حالة طارئة؟</strong>
+          <small>اضغط هنا لطلب مساعدة فورية من جميع الأطباء</small>
+        </div>
+        <i class="fa-solid fa-chevron-left"></i>
+      `;
+      banner.onclick = () => {
+        const reason = prompt('وصف الحالة الطارئة:', 'ألم شديد في الصدر');
+        if (reason === null) return;
+        Emergency.trigger(user.id, reason);
+      };
+      container.prepend(banner);
+    }
+
+    // For doctors: show pending emergencies
+    if (user.role === 'doctor') {
+      const pending = Emergency.list();
+      if (pending.length === 0) return;
+      const banner = document.createElement('div');
+      banner.id = 'wasla-emg-banner';
+      banner.className = 'emergency-banner';
+      banner.innerHTML = `
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div style="flex:1;">
+          <strong>${pending.length} حالة طارئة بانتظارك</strong>
+          <small>آخر حالة: ${Utils.escape(pending[0].patientName)} — ${Utils.escape(pending[0].reason)}</small>
+        </div>
+        <i class="fa-solid fa-chevron-left"></i>
+      `;
+      banner.onclick = () => {
+        const first = pending[0];
+        if (confirm(`حل حالة ${first.patientName}؟\n${first.reason}`)) {
+          Emergency.resolve(first.id, user.id);
+          banner.remove();
+        }
+      };
+      container.prepend(banner);
+    }
+  }
+
+  // Watch for route changes to re-inject
+  const _injectInterval = setInterval(() => {
+    injectEmergencyBanner();
+    i18n.injectSwitcher();
+  }, 2500);
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 14: TEST TOOLS
+  // ══════════════════════════════════════════════════════════════
+  window.WaslaTest7 = async function (type = 'pdf') {
+    const user = window.Auth.getCurrentUser();
+    if (!user) return UI.toast('سجل دخول أولاً', 'error');
+
+    const db = Store.load();
+    const myAppt = (db.appointments || []).find(a =>
+      user.role === 'doctor'
+        ? (a.doctorId === user.doctorId || a.doctorId === user.id)
+        : a.patientId === user.id
+    );
+
+    if (!myAppt && type !== 'emergency' && type !== 'lang') {
+      return UI.toast('لا يوجد موعد — أنشئ واحد أولاً', 'error');
+    }
+
+    if (type === 'pdf')      return PDFPrescription.generate(myAppt.id);
+    if (type === 'video')    return VideoConsultation.start(myAppt.id);
+    if (type === 'sms')      return Messaging.sms(user.phone || '01000000000', '🧪 رسالة اختبار من وصلة');
+    if (type === 'wa')       return Messaging.whatsapp(user.phone || '01000000000', '🧪 رسالة اختبار من وصلة');
+    if (type === 'pay') {
+      Payments.setStatus(myAppt.id, { amount: 100, method: 'cash' }, user.id);
+      return UI.toast('💳 تم تسجيل 100 ج.م');
+    }
+    if (type === 'emergency') return Emergency.trigger(user.id, 'اختبار حالة طارئة');
+    if (type === 'lang')      return i18n.toggle();
+    if (type === 'prescriptions') return PatientPrescriptions.render();
+
+    UI.toast('الأنواع: pdf | video | sms | wa | pay | emergency | lang | prescriptions', 'error');
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 15: BOOT
+  // ══════════════════════════════════════════════════════════════
+  function boot() {
+    try {
+      patchNotifActions();
+      enhanceConsultation();
+      registerRoutes();
+      i18n.apply();
+
+      // Auto-create payments for today's completed appointments
+      const db = Store.load();
+      (db.appointments || [])
+        .filter(a => a.status === 'completed' && a.date === Utils.today())
+        .forEach(a => Payments.ensureFor(a.id));
+
+      EventLog.log('patch_7_applied', {
+        features: ['pdf_rx', 'video_jitsi_api', 'messaging_mock', 'payments',
+                   'emergency', 'i18n'],
+        ts: Date.now()
+      });
+
+      console.log('%c📡 [PART 7] Comms & Extended Features READY',
+        'background:#0891B2;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
+      console.log('%c📄 Prescription PDF: يعمل (jsPDF + QR)', 'color:#059669;font-weight:900');
+      console.log('%c🎥 Video (Jitsi API): يعمل (embedded)', 'color:#059669;font-weight:900');
+      console.log('%c📱 SMS/WhatsApp: mock جاهز — للتفعيل: WaslaMessaging.configure("twilio")', 'color:#D97706;font-weight:900');
+      console.log('%c💳 Payments: يعمل', 'color:#059669;font-weight:900');
+      console.log('%c🚨 Emergency: يعمل', 'color:#DC2626;font-weight:900');
+      console.log('%c🌐 i18n: AR/EN جاهز — للتبديل: WaslaI18n.toggle()', 'color:#7C3AED;font-weight:900');
+      console.log('%c🧪 اختبر: WaslaTest7("pdf" | "video" | "sms" | "wa" | "pay" | "emergency" | "lang" | "prescriptions")',
+        'color:#0284C7;font-weight:900');
+
+    } catch (e) {
+      console.error('[PART 7] Failed:', e);
+    }
+  }
+
+  setTimeout(boot, 1600);
+
+})();
+</script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 7.1: UX HOTFIX (Floating Panel + Modal Scroll + Close Btn)
+═════════════════════════════════════════════════════════════ -->
+<style>
+  /* 1. إخفاء لوحة أدوات الطبيب العائمة لما أي مودال يفتح */
+  body.modal-open #wasla-doctor-panel {
+    display: none !important;
+  }
+
+  /* 2. منع الصفحة اللي ورا من التحرك */
+  body.modal-open {
+    overflow: hidden !important;
+    touch-action: none; /* يمنع السكرول في الموبايل */
+  }
+
+  /* 3. السماح بالسكرول جوه المودال بس */
+  body.modal-open #modal-generic-body,
+  body.modal-open .modal-content,
+  body.modal-open .emr-modal {
+    touch-action: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 4. تأكيد إن زر × فوق كل حاجة */
+  .modal-close {
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+  }
+</style>
+
+<script>
+(function WASLA_PART_7_1_UX_FIXES() {
+  'use strict';
+
+  // ══════════════════════════════════════════════════════════════
+  // 1. PATCH UI.MODAL (Background Scroll + Modal Open Class)
+  // ══════════════════════════════════════════════════════════════
+  function patchUIModal() {
+    if (!window.WaslaCore?.UI?.modal) return;
+
+    const originalModal = window.WaslaCore.UI.modal;
+    
+    window.WaslaCore.UI.modal = function(id, options = {}) {
+      // استدعاء الدالة الأصلية
+      originalModal.call(this, id, options);
+
+      // التحقق لو المودال بقى مفتوح أو مقفول
+      const isOpen = options.open === true;
+      
+      if (isOpen) {
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+      } else {
+        // نتأكد الأول إن مفيش مودال تاني لسه مفتوح
+        setTimeout(() => {
+          const openModals = document.querySelectorAll('.modal.show, .modal.active, .modal[style*="display: flex"], .modal[style*="display: block"]');
+          if (openModals.length === 0) {
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+          }
+        }, 50);
+      }
+    };
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // 2. FIX CLOSE BUTTON & BACKDROP CLICK
+  // ══════════════════════════════════════════════════════════════
+  function bindGlobalModalClosers() {
+    // Global click listener
+    document.addEventListener('click', function(e) {
+      // أ) لو داس على زر الإغلاق (×)
+      if (e.target.closest('.modal-close')) {
+        e.preventDefault();
+        e.stopPropagation();
+        const modalId = e.target.closest('.modal').id || 'modal-generic';
+        if (window.WaslaCore?.UI?.modal) {
+          window.WaslaCore.UI.modal(modalId, { open: false });
+        }
+        // Fallback: إخفاء مباشر لو الدالة الأصلية فيها مشكلة
+        const modalEl = document.getElementById(modalId);
+        if (modalEl) modalEl.style.display = 'none';
+      }
+      
+      // ب) لو داس بره المودال (على الخلفية السوداء)
+      if (e.target.classList.contains('modal-backdrop') || e.target.classList.contains('modal')) {
+        const modalId = e.target.id || 'modal-generic';
+        if (window.WaslaCore?.UI?.modal) {
+          window.WaslaCore.UI.modal(modalId, { open: false });
+        }
+      }
+    }, true); // useCapture = true عشان يلقط الكليك بدري
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // 3. OBSERVER (عشان لو مودال فتح بطريقة تانية، يخفي اللوحة)
+  // ══════════════════════════════════════════════════════════════
+  function setupMutationObserver() {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'style' || mutation.attributeName === 'class') {
+          const el = mutation.target;
+          if (el.id === 'modal-generic' || el.classList.contains('modal')) {
+            const isVisible = window.getComputedStyle(el).display !== 'none' && 
+                              window.getComputedStyle(el).visibility !== 'hidden';
+            
+            if (isVisible) {
+              document.body.classList.add('modal-open');
+              document.body.style.overflow = 'hidden';
+            } else {
+              document.body.classList.remove('modal-open');
+              document.body.style.overflow = '';
+            }
+          }
+        }
+      });
+    });
+
+    // نراقب كل المودالز
+    setTimeout(() => {
+      document.querySelectorAll('.modal, #modal-generic').forEach(modal => {
+        observer.observe(modal, { attributes: true, attributeFilter: ['style', 'class'] });
+      });
+    }, 1000);
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // BOOT
+  // ══════════════════════════════════════════════════════════════
+  setTimeout(() => {
+    patchUIModal();
+    bindGlobalModalClosers();
+    setupMutationObserver();
+    console.log('%c🛠️ [PART 7.1] UX Fixes Applied (Modal Scroll + Close + Panel Hide)', 'color:#059669;font-weight:900');
+  }, 1800);
+
+})();
+</script>
 </body>
 </html>
