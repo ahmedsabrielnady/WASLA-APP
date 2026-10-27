@@ -3985,5 +3985,1513 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
 })();
 </script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 6/15: DOCTOR PORTAL — EMR + PRESCRIPTIONS + AUDIT + VIDEO
+     - Complete EMR (Medical Records) with vitals + diagnosis
+     - Prescription builder with drug templates
+     - Medical Audit Trail (who viewed/edited what, when)
+     - My Patients (full history per patient)
+     - Block patient from booking
+     - Clinic statistics (revenue, attendance, no-shows)
+     - Jitsi video consultation (no backend needed)
+═════════════════════════════════════════════════════════════ -->
+<style>
+/* ── EMR Modal ── */
+.emr-modal .modal-body { max-height: 82vh; overflow-y: auto; }
+.emr-section {
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: var(--bg-surface);
+}
+.emr-section-title {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--sector-medical);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.emr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.emr-grid.three { grid-template-columns: repeat(3, 1fr); }
+.emr-field label {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 3px;
+}
+.emr-field input,
+.emr-field select,
+.emr-field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid var(--border-default);
+  border-radius: 7px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+.emr-field textarea { resize: vertical; min-height: 56px; }
+.emr-field input:focus,
+.emr-field select:focus,
+.emr-field textarea:focus {
+  outline: none;
+  border-color: var(--sector-medical);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+}
+
+/* ── Prescription builder ── */
+.rx-list { display: flex; flex-direction: column; gap: 8px; }
+.rx-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 28px;
+  gap: 6px;
+  align-items: center;
+  background: var(--bg-muted);
+  padding: 8px;
+  border-radius: 8px;
+  animation: rx-in 0.2s ease;
+}
+@keyframes rx-in { from { opacity: 0; transform: translateY(-4px); } }
+.rx-row input {
+  padding: 6px 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border: 1px solid var(--border-default);
+  border-radius: 5px;
+  font-family: inherit;
+  width: 100%;
+}
+.rx-remove {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  background: var(--color-danger);
+  color: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  display: grid;
+  place-items: center;
+}
+.rx-remove:hover { opacity: 0.8; }
+.rx-add-btn {
+  width: 100%;
+  padding: 9px;
+  margin-top: 8px;
+  border: 2px dashed var(--border-default);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sector-medical);
+  font-weight: 900;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.rx-add-btn:hover { border-color: var(--sector-medical); background: rgba(5, 150, 105, 0.05); }
+
+/* ── Vitals chips ── */
+.vitals-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.vital-chip {
+  padding: 4px 9px;
+  background: var(--bg-muted);
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+}
+.vital-chip.warn { background: #FEF3C7; color: #92400E; border-color: #FCD34D; }
+.vital-chip.danger { background: #FEE2E2; color: #991B1B; border-color: #FCA5A5; }
+
+/* ── My Patients cards ── */
+.patient-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.patient-card:hover {
+  border-color: var(--sector-medical);
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.08);
+}
+.patient-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.patient-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sector-medical), #059669);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.patient-card-info { flex: 1; }
+.patient-card-info strong { font-size: 13px; font-weight: 900; color: var(--text-primary); }
+.patient-card-info small { font-size: 10.5px; color: var(--text-muted); font-weight: 700; display: block; }
+.visit-badge {
+  background: var(--sector-medical);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-size: 9.5px;
+  font-weight: 900;
+}
+
+/* ── Stats grid ── */
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+.stat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stat-card .stat-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.stat-card.blue .stat-icon { background: #DBEAFE; color: #1D4ED8; }
+.stat-card.green .stat-icon { background: #D1FAE5; color: #059669; }
+.stat-card.orange .stat-icon { background: #FEF3C7; color: #D97706; }
+.stat-card.red .stat-icon { background: #FEE2E2; color: #DC2626; }
+.stat-card .stat-value {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.stat-card .stat-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+/* ── Visit history timeline ── */
+.visit-timeline { position: relative; padding-right: 16px; }
+.visit-timeline::before {
+  content: '';
+  position: absolute;
+  right: 5px;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  background: var(--border-default);
+}
+.visit-item {
+  position: relative;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: var(--bg-muted);
+  border-radius: 8px;
+}
+.visit-item::before {
+  content: '';
+  position: absolute;
+  right: -16px;
+  top: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sector-medical);
+  border: 2px solid var(--bg-surface);
+}
+.visit-item-date {
+  font-size: 10.5px;
+  font-weight: 900;
+  color: var(--sector-medical);
+  margin-bottom: 5px;
+}
+.visit-item-diag {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.visit-item-rx {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* ── Print prescription ── */
+@media print {
+  body * { visibility: hidden; }
+  .rx-print, .rx-print * { visibility: visible; }
+  .rx-print {
+    position: absolute;
+    left: 0; top: 0; width: 100%;
+    background: #fff !important;
+    color: #000 !important;
+    padding: 30px !important;
+  }
+}
+.rx-print {
+  background: #fff;
+  color: #000;
+  padding: 24px;
+  border-radius: 8px;
+  font-family: 'Cairo', sans-serif;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.rx-print-header {
+  text-align: center;
+  border-bottom: 2px solid #059669;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+.rx-print-header h2 { font-size: 18px; margin: 0 0 4px; color: #059669; }
+.rx-print-header p { font-size: 11px; margin: 0; color: #666; }
+.rx-print-patient {
+  background: #F0FDF4;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.rx-print-patient strong { color: #059669; }
+.rx-print-meds { font-size: 13px; line-height: 1.9; }
+.rx-print-meds ol { margin: 0; padding-right: 20px; }
+.rx-print-meds li { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #ddd; }
+.rx-print-meds li strong { display: block; font-size: 13px; margin-bottom: 2px; }
+.rx-print-meds li small { font-size: 10.5px; color: #555; }
+.rx-print-footer {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #666;
+}
+.rx-signature {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 14px;
+  border-top: 1px dashed #999;
+  font-size: 11px;
+  color: #333;
+}
+
+/* ── Video call button ── */
+.video-btn {
+  background: linear-gradient(135deg, #7C3AED, #5B21B6);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.video-btn:hover { opacity: 0.9; }
+.video-btn.secondary {
+  background: var(--bg-muted);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+}
+.block-btn {
+  background: #FEE2E2;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
+  padding: 6px 11px;
+  border-radius: 7px;
+  font-size: 10.5px;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.block-btn:hover { background: #FECACA; }
+.unblock-btn {
+  background: #D1FAE5;
+  color: #059669;
+  border: 1px solid #6EE7B7;
+  padding: 6px 11px;
+  border-radius: 7px;
+  font-size: 10.5px;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ── Audit log row ── */
+.audit-row {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-default);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.audit-row strong { color: var(--text-primary); font-weight: 900; }
+.audit-row small { color: var(--text-muted); display: block; margin-top: 2px; }
+</style>
+
+<script>
+(function WASLA_PART_6_DOCTOR_PORTAL() {
+  'use strict';
+
+  if (!window.WaslaCore || !window.Auth) {
+    console.error('❌ PART 6 requires PART 2, 3');
+    return;
+  }
+
+  const { Utils, UI, Store, EventLog } = window.WaslaCore;
+
+  console.log('%c🩺 [PART 6] Doctor Portal (EMR + Rx + Audit + Video)...', 'color:#7C3AED;font-weight:900');
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 1: SCHEMA & HELPERS
+  // ══════════════════════════════════════════════════════════════
+  function ensureSchema(db) {
+    db.medicalRecords = db.medicalRecords || [];
+    db.blockedPatients = db.blockedPatients || [];
+    db.auditLog = db.auditLog || [];
+    db.drugTemplates = db.drugTemplates || null; // fallback to defaults
+    return db;
+  }
+
+  // Bootstrap on load
+  (function () {
+    const db = ensureSchema(Store.load());
+    Store.save(db);
+  })();
+
+  const Helpers = {
+    getDoctor(id) {
+      return (Store.load().doctors || []).find(d => d.id === id);
+    },
+    getPatient(id) {
+      return (Store.load().users || []).find(u => u.id === id);
+    },
+    getAppt(id) {
+      return (Store.load().appointments || []).find(a => a.id === id);
+    },
+    recordFor(apptId) {
+      return (Store.load().medicalRecords || []).find(r => r.appointmentId === apptId);
+    },
+    recordsForPatient(patientId) {
+      return (Store.load().medicalRecords || [])
+        .filter(r => r.patientId === patientId)
+        .sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    },
+    todayStr() { return Utils.today(); }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 2: AUDIT TRAIL (medical-grade, immutable log)
+  // ══════════════════════════════════════════════════════════════
+  const Audit = {
+    log(action, { actorId, patientId, recordId, appointmentId, meta = {} }) {
+      const db = Store.load();
+      db.auditLog = db.auditLog || [];
+      const entry = {
+        id: Utils.id('audit'),
+        action,               // e.g. 'view_record', 'create_record', 'update_record', 'print_rx', 'block_patient', 'video_call'
+        actorId,
+        patientId,
+        recordId,
+        appointmentId,
+        meta,
+        ts: Date.now(),
+        ua: (navigator.userAgent || '').slice(0, 120)
+      };
+      db.auditLog.unshift(entry);
+      // Cap at 1000 entries to prevent unbounded growth
+      if (db.auditLog.length > 1000) db.auditLog.length = 1000;
+      Store.save(db);
+
+      // Mirror to EventLog
+      EventLog.log(`audit.${action}`, { actorId, payload: meta });
+      return entry;
+    },
+    forPatient(patientId) {
+      return (Store.load().auditLog || []).filter(a => a.patientId === patientId);
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 3: PATIENT BLOCKING
+  // ══════════════════════════════════════════════════════════════
+  const Blocking = {
+    isBlocked(doctorId, patientId) {
+      return (Store.load().blockedPatients || [])
+        .some(b => b.doctorId === doctorId && b.patientId === patientId);
+    },
+    block(doctorId, patientId, reason, actorId) {
+      const db = Store.load();
+      db.blockedPatients = db.blockedPatients || [];
+      const existing = db.blockedPatients.find(b =>
+        b.doctorId === doctorId && b.patientId === patientId);
+      if (existing) return existing;
+      const entry = {
+        id: Utils.id('blk'),
+        doctorId, patientId, reason,
+        blockedBy: actorId,
+        ts: Date.now()
+      };
+      db.blockedPatients.push(entry);
+      Store.save(db);
+      Audit.log('block_patient', {
+        actorId, patientId, meta: { doctorId, reason }
+      });
+      return entry;
+    },
+    unblock(doctorId, patientId, actorId) {
+      const db = Store.load();
+      const before = (db.blockedPatients || []).length;
+      db.blockedPatients = (db.blockedPatients || [])
+        .filter(b => !(b.doctorId === doctorId && b.patientId === patientId));
+      Store.save(db);
+      Audit.log('unblock_patient', {
+        actorId, patientId, meta: { doctorId }
+      });
+      return before !== db.blockedPatients.length;
+    }
+  };
+
+  // Expose for booking flow
+  window.WaslaCanBook = function (doctorId, patientId) {
+    return !Blocking.isBlocked(doctorId, patientId);
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 4: DRUG TEMPLATES
+  // ══════════════════════════════════════════════════════════════
+  const DEFAULT_DRUG_TEMPLATES = [
+    { name: 'باراسيتامول',         strength: '500mg', dose: 'قرص',  freq: '3 مرات يومياً', dur: '5 أيام', notes: 'بعد الأكل' },
+    { name: 'أموكسيسيلين',        strength: '500mg', dose: 'كبسولة', freq: '3 مرات يومياً', dur: '7 أيام', notes: '' },
+    { name: 'أوجمنتين',           strength: '1g',    dose: 'قرص',  freq: 'كل 12 ساعة',   dur: '7 أيام', notes: '' },
+    { name: 'إيبوبروفين',          strength: '400mg', dose: 'قرص',  freq: 'عند اللزوم',   dur: '3 أيام', notes: 'بعد الأكل' },
+    { name: 'أوميبرازول',         strength: '20mg',  dose: 'كبسولة', freq: 'مرة يومياً',   dur: '14 يوم', notes: 'قبل الفطار' },
+    { name: 'ميتفورمين',          strength: '500mg', dose: 'قرص',  freq: 'مرتين يومياً', dur: '30 يوم', notes: 'بعد الأكل' },
+    { name: 'لوراتادين',           strength: '10mg',  dose: 'قرص',  freq: 'مرة يومياً',   dur: '7 أيام', notes: '' },
+    { name: 'فيتامين د 50000',    strength: 'IU',    dose: 'كبسولة', freq: 'مرة أسبوعياً', dur: '8 أسابيع', notes: '' },
+    { name: 'حديد + حمض فوليك',   strength: '',      dose: 'قرص',  freq: 'مرة يومياً',   dur: '30 يوم', notes: '' },
+    { name: 'شراب كحة',           strength: '100ml', dose: 'ملعقة', freq: '3 مرات يومياً', dur: '5 أيام', notes: '' }
+  ];
+
+  function getDrugTemplates() {
+    const db = Store.load();
+    return db.drugTemplates && db.drugTemplates.length
+      ? db.drugTemplates
+      : DEFAULT_DRUG_TEMPLATES;
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 5: EMR CORE (CRUD)
+  // ══════════════════════════════════════════════════════════════
+  const EMR = {
+    createOrUpdate(appointmentId, data, actorId) {
+      const db = Store.load();
+      db.medicalRecords = db.medicalRecords || [];
+      const appt = (db.appointments || []).find(a => a.id === appointmentId);
+      if (!appt) throw new Error('Appointment not found');
+
+      let record = db.medicalRecords.find(r => r.appointmentId === appointmentId);
+      const isNew = !record;
+
+      if (isNew) {
+        record = {
+          id: Utils.id('emr'),
+          appointmentId,
+          patientId: appt.patientId,
+          doctorId: appt.doctorId,
+          date: appt.date,
+          ts: Date.now()
+        };
+        db.medicalRecords.push(record);
+      }
+
+      // Merge data
+      Object.assign(record, {
+        chiefComplaint: data.chiefComplaint || '',
+        history: data.history || '',
+        examination: data.examination || '',
+        diagnosis: data.diagnosis || '',
+        notes: data.notes || '',
+        vitals: data.vitals || {},
+        prescription: data.prescription || [],
+        followUp: data.followUp || '',
+        updatedAt: Date.now(),
+        updatedBy: actorId
+      });
+
+      Store.save(db);
+
+      // Audit
+      Audit.log(isNew ? 'create_record' : 'update_record', {
+        actorId,
+        patientId: appt.patientId,
+        recordId: record.id,
+        appointmentId,
+        meta: { diagnosis: record.diagnosis, rxCount: record.prescription.length }
+      });
+
+      return record;
+    },
+
+    view(appointmentId, actorId) {
+      const record = Helpers.recordFor(appointmentId);
+      if (record) {
+        Audit.log('view_record', {
+          actorId,
+          patientId: record.patientId,
+          recordId: record.id,
+          appointmentId
+        });
+      }
+      return record;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 6: CONSULTATION MODAL (Main EMR UI)
+  // ══════════════════════════════════════════════════════════════
+  const ConsultationModal = {
+    open(appointmentId) {
+      const user = window.Auth.getCurrentUser();
+      if (!user || user.role !== 'doctor') {
+        return UI.toast('هذا للطبيب فقط', 'error');
+      }
+
+      const appt = Helpers.getAppt(appointmentId);
+      if (!appt) return UI.toast('الموعد غير موجود', 'error');
+      if (appt.doctorId !== user.doctorId && appt.doctorId !== user.id) {
+        return UI.toast('هذا ليس موعدك', 'error');
+      }
+
+      const existing = EMR.view(appointmentId, user.id) || {};
+      const patient = Helpers.getPatient(appt.patientId) || {};
+      const pastRecords = Helpers.recordsForPatient(appt.patientId)
+        .filter(r => r.appointmentId !== appointmentId)
+        .slice(0, 3);
+
+      const body = Utils.$('#modal-generic-body');
+      if (!body) return UI.toast('Modal container غير موجود', 'error');
+
+      body.innerHTML = this._render({
+        appt,
+        patient,
+        record: existing,
+        pastRecords,
+        user
+      });
+
+      UI.modal('modal-generic', { open: true });
+
+      // Bind prescription builder
+      this._bindRxBuilder();
+      this._bindSave(appointmentId, user.id);
+      this._bindPrint(appointmentId);
+
+      // Mark exam started
+      const db = Store.load();
+      const idx = db.appointments.findIndex(a => a.id === appointmentId);
+      if (idx >= 0 && db.appointments[idx].status !== 'in-progress') {
+        db.appointments[idx].status = 'in-progress';
+        Store.save(db);
+      }
+    },
+
+    _render({ appt, patient, record, pastRecords, user }) {
+      const rx = record.prescription || [];
+      const vitals = record.vitals || {};
+
+      return `
+        <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="emr-modal">
+          <h3 style="font-size:16px;font-weight:900;margin-bottom:4px;">
+            <i class="fa-solid fa-notes-medical" style="color:var(--sector-medical);"></i>
+            كشف — ${Utils.escape(appt.patientName || patient.name || 'مريض')}
+          </h3>
+          <p style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:14px;">
+            📅 ${Utils.fmtDate(appt.date)} · ⏰ ${appt.slot}
+            ${patient.age ? ` · 🎂 ${patient.age} سنة` : ''}
+            ${patient.gender ? ` · ${patient.gender === 'male' ? 'ذكر' : 'أنثى'}` : ''}
+          </p>
+
+          ${pastRecords.length > 0 ? `
+            <div class="emr-section" style="background:#F0FDF4;border-color:#86EFAC;">
+              <div class="emr-section-title" style="color:#059669;">
+                <i class="fa-solid fa-clock-rotate-left"></i> زيارات سابقة (${pastRecords.length})
+              </div>
+              <div style="font-size:10.5px;font-weight:700;color:var(--text-secondary);line-height:1.7;">
+                ${pastRecords.map(r => `
+                  <div style="padding:4px 0;border-bottom:1px dashed #D1FAE5;">
+                    <strong>${Utils.fmtDate(r.date)}</strong> — ${Utils.escape(r.diagnosis || 'بدون تشخيص')}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Vitals -->
+          <div class="emr-section">
+            <div class="emr-section-title">
+              <i class="fa-solid fa-heart-pulse"></i> العلامات الحيوية
+            </div>
+            <div class="emr-grid three">
+              <div class="emr-field">
+                <label>ضغط الدم</label>
+                <input id="emr-bp" placeholder="120/80" value="${Utils.escape(vitals.bp || '')}">
+              </div>
+              <div class="emr-field">
+                <label>الحرارة (°C)</label>
+                <input id="emr-temp" type="number" step="0.1" placeholder="37.0" value="${vitals.temp || ''}">
+              </div>
+              <div class="emr-field">
+                <label>النبض (bpm)</label>
+                <input id="emr-pulse" type="number" placeholder="72" value="${vitals.pulse || ''}">
+              </div>
+              <div class="emr-field">
+                <label>الوزن (kg)</label>
+                <input id="emr-weight" type="number" step="0.1" placeholder="70" value="${vitals.weight || ''}">
+              </div>
+              <div class="emr-field">
+                <label>الطول (cm)</label>
+                <input id="emr-height" type="number" placeholder="170" value="${vitals.height || ''}">
+              </div>
+              <div class="emr-field">
+                <label>السكر (mg/dL)</label>
+                <input id="emr-sugar" type="number" placeholder="90" value="${vitals.sugar || ''}">
+              </div>
+            </div>
+          </div>
+
+          <!-- Chief complaint + history -->
+          <div class="emr-section">
+            <div class="emr-section-title">
+              <i class="fa-solid fa-comment-medical"></i> الشكوى والتاريخ المرضي
+            </div>
+            <div class="emr-field" style="margin-bottom:8px;">
+              <label>الشكوى الرئيسية</label>
+              <textarea id="emr-complaint" placeholder="مثال: صداع متكرر من 3 أيام...">${Utils.escape(record.chiefComplaint || '')}</textarea>
+            </div>
+            <div class="emr-field">
+              <label>التاريخ المرضي / الحساسية</label>
+              <textarea id="emr-history" placeholder="حساسية من البنسلين، ضغط مرتفع...">${Utils.escape(record.history || '')}</textarea>
+            </div>
+          </div>
+
+          <!-- Examination -->
+          <div class="emr-section">
+            <div class="emr-section-title">
+              <i class="fa-solid fa-stethoscope"></i> الفحص الإكلينيكي
+            </div>
+            <div class="emr-field">
+              <textarea id="emr-exam" placeholder="نتائج الفحص العام والموضعي...">${Utils.escape(record.examination || '')}</textarea>
+            </div>
+          </div>
+
+          <!-- Diagnosis -->
+          <div class="emr-section">
+            <div class="emr-section-title">
+              <i class="fa-solid fa-diagnoses"></i> التشخيص
+            </div>
+            <div class="emr-field">
+              <textarea id="emr-diagnosis" placeholder="التشخيص النهائي..." style="min-height:44px;">${Utils.escape(record.diagnosis || '')}</textarea>
+            </div>
+          </div>
+
+          <!-- Prescription -->
+          <div class="emr-section">
+            <div class="emr-section-title">
+              <i class="fa-solid fa-prescription"></i> الروشتة
+            </div>
+            <div class="rx-list" id="rx-list">
+              ${rx.length === 0 ? '' : rx.map(item => this._rxRow(item)).join('')}
+            </div>
+            <button class="rx-add-btn" id="rx-add">
+              <i class="fa-solid fa-plus"></i> إضافة دواء
+            </button>
+          </div>
+
+          <!-- Notes -->
+          <div class="emr-section">
+            <div class="emr-section-title">
+              <i class="fa-solid fa-note-sticky"></i> ملاحظات + متابعة
+            </div>
+            <div class="emr-field" style="margin-bottom:8px;">
+              <label>ملاحظات للطبيب</label>
+              <textarea id="emr-notes" placeholder="ملاحظات داخلية...">${Utils.escape(record.notes || '')}</textarea>
+            </div>
+            <div class="emr-field">
+              <label>موعد المتابعة</label>
+              <input id="emr-followup" type="date" value="${record.followUp || ''}">
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+            <button id="emr-save" class="video-btn" style="flex:1;background:var(--sector-medical);justify-content:center;">
+              <i class="fa-solid fa-floppy-disk"></i> حفظ التشخيص
+            </button>
+            <button id="emr-print" class="video-btn secondary" style="flex:0 0 auto;">
+              <i class="fa-solid fa-print"></i> طباعة الروشتة
+            </button>
+            <button onclick="WaslaVideo.start('${appt.id}')" class="video-btn" style="background:linear-gradient(135deg,#7C3AED,#5B21B6);">
+              <i class="fa-solid fa-video"></i> فيديو
+            </button>
+          </div>
+
+          <div id="rx-print-area" style="display:none;margin-top:16px;"></div>
+        </div>
+      `;
+    },
+
+    _rxRow(item = {}) {
+      const drug = item.drug || '';
+      const dose = item.dose || '';
+      const freq = item.freq || '';
+      const dur = item.dur || '';
+      return `
+        <div class="rx-row">
+          <input class="rx-drug" placeholder="اسم الدواء" value="${Utils.escape(drug)}" list="rx-drug-list">
+          <input class="rx-dose" placeholder="الجرعة" value="${Utils.escape(dose)}">
+          <input class="rx-freq" placeholder="التكرار" value="${Utils.escape(freq)}">
+          <input class="rx-dur" placeholder="المدة" value="${Utils.escape(dur)}">
+          <button class="rx-remove" title="حذف">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      `;
+    },
+
+    _bindRxBuilder() {
+      const list = Utils.$('#rx-list');
+      const addBtn = Utils.$('#rx-add');
+      if (!list || !addBtn) return;
+
+      // Add datalist for autocomplete
+      const datalist = document.createElement('datalist');
+      datalist.id = 'rx-drug-list';
+      datalist.innerHTML = getDrugTemplates().map(t =>
+        `<option value="${Utils.escape(t.name)} ${t.strength || ''}"></option>`
+      ).join('');
+      document.body.appendChild(datalist);
+
+      const addRow = (item) => {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = this._rxRow(item);
+        const row = tmp.firstElementChild;
+        row.querySelector('.rx-remove').addEventListener('click', () => row.remove());
+        // Autocomplete: when drug name matches template, auto-fill
+        row.querySelector('.rx-drug').addEventListener('blur', (e) => {
+          const val = e.target.value.toLowerCase().trim();
+          if (!val) return;
+          const t = getDrugTemplates().find(x =>
+            (x.name + ' ' + (x.strength || '')).toLowerCase().includes(val) ||
+            val.includes(x.name.toLowerCase())
+          );
+          if (t) {
+            if (!row.querySelector('.rx-dose').value)  row.querySelector('.rx-dose').value  = t.dose || '';
+            if (!row.querySelector('.rx-freq').value)  row.querySelector('.rx-freq').value  = t.freq || '';
+            if (!row.querySelector('.rx-dur').value)   row.querySelector('.rx-dur').value   = t.dur  || '';
+          }
+        });
+        list.appendChild(row);
+      };
+
+      addBtn.addEventListener('click', () => addRow());
+
+      // Bind existing rows
+      list.querySelectorAll('.rx-row').forEach(row => {
+        row.querySelector('.rx-remove').addEventListener('click', () => row.remove());
+        row.querySelector('.rx-drug').addEventListener('blur', (e) => {
+          const val = e.target.value.toLowerCase().trim();
+          if (!val) return;
+          const t = getDrugTemplates().find(x =>
+            (x.name + ' ' + (x.strength || '')).toLowerCase().includes(val) ||
+            val.includes(x.name.toLowerCase())
+          );
+          if (t) {
+            if (!row.querySelector('.rx-dose').value)  row.querySelector('.rx-dose').value  = t.dose || '';
+            if (!row.querySelector('.rx-freq').value)  row.querySelector('.rx-freq').value  = t.freq || '';
+            if (!row.querySelector('.rx-dur').value)   row.querySelector('.rx-dur').value   = t.dur  || '';
+          }
+        });
+      });
+    },
+
+    _collect() {
+      const val = (id) => Utils.$('#' + id)?.value?.trim() || '';
+      const rxRows = Array.from(Utils.$('#rx-list')?.querySelectorAll('.rx-row') || []);
+      const prescription = rxRows.map(r => ({
+        drug: r.querySelector('.rx-drug').value.trim(),
+        dose: r.querySelector('.rx-dose').value.trim(),
+        freq: r.querySelector('.rx-freq').value.trim(),
+        dur:  r.querySelector('.rx-dur').value.trim()
+      })).filter(x => x.drug);
+
+      return {
+        vitals: {
+          bp: val('emr-bp'),
+          temp: val('emr-temp'),
+          pulse: val('emr-pulse'),
+          weight: val('emr-weight'),
+          height: val('emr-height'),
+          sugar: val('emr-sugar')
+        },
+        chiefComplaint: val('emr-complaint'),
+        history: val('emr-history'),
+        examination: val('emr-exam'),
+        diagnosis: val('emr-diagnosis'),
+        notes: val('emr-notes'),
+        followUp: val('emr-followup'),
+        prescription
+      };
+    },
+
+    _bindSave(appointmentId, userId) {
+      const btn = Utils.$('#emr-save');
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        try {
+          const data = this._collect();
+          if (!data.diagnosis && data.prescription.length === 0) {
+            return UI.toast('أضف تشخيص أو روشتة أولاً', 'warning');
+          }
+          EMR.createOrUpdate(appointmentId, data, userId);
+          UI.toast('✅ تم حفظ التشخيص والروشتة');
+          UI.modal('modal-generic', { open: false });
+          if (window.WaslaRender?.page) {
+            const route = window.Router?.current?.();
+            if (route) window.Router.go(route.name, route.params);
+          }
+        } catch (e) {
+          console.error(e);
+          UI.toast('حدث خطأ في الحفظ', 'error');
+        }
+      });
+    },
+
+    _bindPrint(appointmentId) {
+      const btn = Utils.$('#emr-print');
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        const data = this._collect();
+        if (data.prescription.length === 0) {
+          return UI.toast('لا توجد أدوية لطباعتها', 'warning');
+        }
+        PrescriptionPrinter.print(appointmentId, data);
+      });
+    }
+  };
+
+  window.WaslaConsultation = ConsultationModal;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 7: PRESCRIPTION PRINTER
+  // ══════════════════════════════════════════════════════════════
+  const PrescriptionPrinter = {
+    print(appointmentId, data) {
+      const user = window.Auth.getCurrentUser();
+      const appt = Helpers.getAppt(appointmentId);
+      const patient = Helpers.getPatient(appt.patientId) || {};
+      const doctor = Helpers.getDoctor(appt.doctorId) || { name: appt.doctorName };
+
+      const area = Utils.$('#rx-print-area');
+      if (!area) return;
+
+      const vitals = data.vitals || {};
+      const vitalStr = [
+        vitals.bp ? `ضغط: ${vitals.bp}` : '',
+        vitals.temp ? `حرارة: ${vitals.temp}°C` : '',
+        vitals.pulse ? `نبض: ${vitals.pulse}` : '',
+        vitals.sugar ? `سكر: ${vitals.sugar}` : ''
+      ].filter(Boolean).join(' · ');
+
+      area.innerHTML = `
+        <div class="rx-print">
+          <div class="rx-print-header">
+            <h2>${Utils.escape(doctor.name || 'عيادة')}</h2>
+            <p>${Utils.escape(doctor.specialty || 'عيادة عامة')} · ${Utils.escape(doctor.area || '')}</p>
+          </div>
+          <div class="rx-print-patient">
+            <div><strong>المريض:</strong> ${Utils.escape(patient.name || appt.patientName)}</div>
+            <div><strong>التاريخ:</strong> ${Utils.fmtDate(Utils.today())}</div>
+            ${patient.age ? `<div><strong>العمر:</strong> ${patient.age} سنة</div>` : ''}
+            ${vitalStr ? `<div><strong>العلامات:</strong> ${vitalStr}</div>` : ''}
+            ${data.diagnosis ? `<div><strong>التشخيص:</strong> ${Utils.escape(data.diagnosis)}</div>` : ''}
+          </div>
+          <div class="rx-print-meds">
+            <ol>
+              ${data.prescription.map(p => `
+                <li>
+                  <strong>${Utils.escape(p.drug)}</strong>
+                  <small>${Utils.escape(p.dose || '')}${p.freq ? ' — ' + Utils.escape(p.freq) : ''}${p.dur ? ' — لمدة ' + Utils.escape(p.dur) : ''}</small>
+                </li>
+              `).join('')}
+            </ol>
+          </div>
+          ${data.followUp ? `<div style="margin-top:14px;font-size:11px;background:#FEF3C7;padding:8px;border-radius:6px;"><strong>موعد المتابعة:</strong> ${Utils.fmtDate(data.followUp)}</div>` : ''}
+          <div class="rx-signature">
+            _______________________<br>
+            د. ${Utils.escape(doctor.name || '')}
+          </div>
+          <div class="rx-print-footer">
+            <span>منصة وصلة — Wasla</span>
+            <span>01068990089</span>
+          </div>
+        </div>
+      `;
+      area.style.display = 'block';
+
+      Audit.log('print_rx', {
+        actorId: user.id,
+        patientId: appt.patientId,
+        appointmentId,
+        meta: { rxCount: data.prescription.length }
+      });
+
+      // Trigger print
+      setTimeout(() => window.print(), 200);
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 8: MY PATIENTS PAGE
+  // ══════════════════════════════════════════════════════════════
+  const MyPatientsPage = {
+    render() {
+      const user = window.Auth.getCurrentUser();
+      if (!user || user.role !== 'doctor') {
+        return UI.toast('هذا للطبيب فقط', 'error');
+      }
+
+      const doctorId = user.doctorId || user.id;
+      const db = Store.load();
+
+      // Get unique patients who had appointments with this doctor
+      const appts = (db.appointments || []).filter(a => a.doctorId === doctorId);
+      const patientMap = new Map();
+      appts.forEach(a => {
+        const existing = patientMap.get(a.patientId);
+        if (!existing || a.date > existing.lastDate) {
+          patientMap.set(a.patientId, {
+            patientId: a.patientId,
+            patientName: a.patientName,
+            lastDate: a.date,
+            visits: (existing?.visits || 0) + 1
+          });
+        } else {
+          existing.visits = (existing.visits || 0) + 1;
+        }
+      });
+
+      const patients = Array.from(patientMap.values())
+        .sort((a, b) => (b.lastDate || '').localeCompare(a.lastDate || ''));
+
+      const container = Utils.$('#page-container') || Utils.$('#app-main') || document.body;
+
+      container.innerHTML = `
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div>
+            <h1 style="font-size:18px;font-weight:900;">
+              <i class="fa-solid fa-users" style="color:var(--sector-medical);"></i>
+              مرضاي
+            </h1>
+            <p style="font-size:11px;color:var(--text-muted);font-weight:700;">
+              ${patients.length} مريض إجمالي
+            </p>
+          </div>
+          <button onclick="WaslaRouter.back()" style="background:var(--bg-muted);border:none;border-radius:8px;padding:8px 12px;font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;">
+            <i class="fa-solid fa-arrow-right"></i> رجوع
+          </button>
+        </div>
+
+        <div style="margin-bottom:10px;">
+          <input type="search" id="pat-search" placeholder="🔍 ابحث بالاسم أو الرقم..." style="width:100%;padding:10px 12px;border:1px solid var(--border-default);border-radius:10px;font-family:inherit;font-weight:700;font-size:12px;">
+        </div>
+
+        <div id="pat-list">
+          ${patients.length === 0 ? `
+            <div class="empty-state" style="padding:40px 16px;text-align:center;">
+              <i class="fa-solid fa-users-slash" style="font-size:38px;color:var(--text-muted);opacity:0.4;"></i>
+              <p style="margin-top:10px;font-weight:800;color:var(--text-muted);">لا يوجد مرضى بعد</p>
+            </div>
+          ` : patients.map(p => this._renderCard(p, db)).join('')}
+        </div>
+      `;
+
+      // Search bind
+      const search = Utils.$('#pat-search');
+      if (search) {
+        search.addEventListener('input', (e) => {
+          const q = e.target.value.toLowerCase().trim();
+          document.querySelectorAll('.patient-card').forEach(card => {
+            const txt = card.textContent.toLowerCase();
+            card.style.display = (!q || txt.includes(q)) ? '' : 'none';
+          });
+        });
+      }
+    },
+
+    _renderCard(p, db) {
+      const patient = (db.users || []).find(u => u.id === p.patientId) || {};
+      const isBlocked = Blocking.isBlocked(
+        window.Auth.getCurrentUser().doctorId || window.Auth.getCurrentUser().id,
+        p.patientId
+      );
+      const initials = (p.patientName || patient.name || '؟').charAt(0);
+      return `
+        <div class="patient-card" data-patient-id="${p.patientId}">
+          <div class="patient-card-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="patient-avatar">${Utils.escape(initials)}</div>
+              <div class="patient-card-info">
+                <strong>${Utils.escape(p.patientName || patient.name || 'مريض')}</strong>
+                <small>
+                  ${patient.phone ? '📱 ' + Utils.escape(patient.phone) : ''}
+                  ${patient.age ? ' · ' + patient.age + ' سنة' : ''}
+                </small>
+                <small>آخر زيارة: ${Utils.fmtDate(p.lastDate)}</small>
+              </div>
+            </div>
+            <span class="visit-badge">${p.visits} ${p.visits === 1 ? 'زيارة' : 'زيارات'}</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+            <button class="video-btn secondary" onclick="WaslaPatients.openHistory('${p.patientId}')" style="font-size:10.5px;padding:6px 10px;">
+              <i class="fa-solid fa-clock-rotate-left"></i> السجل
+            </button>
+            ${isBlocked ? `
+              <button class="unblock-btn" onclick="WaslaPatients.unblock('${p.patientId}')">
+                <i class="fa-solid fa-unlock"></i> فك الحجب
+              </button>
+            ` : `
+              <button class="block-btn" onclick="WaslaPatients.block('${p.patientId}')">
+                <i class="fa-solid fa-ban"></i> حجب
+              </button>
+            `}
+          </div>
+        </div>
+      `;
+    }
+  };
+
+  window.WaslaPatients = {
+    openHistory(patientId) {
+      const user = window.Auth.getCurrentUser();
+      const db = Store.load();
+      const patient = (db.users || []).find(u => u.id === patientId) || {};
+      const records = Helpers.recordsForPatient(patientId);
+
+      // Audit view
+      Audit.log('view_patient_history', {
+        actorId: user.id,
+        patientId,
+        meta: { recordCount: records.length }
+      });
+
+      const body = Utils.$('#modal-generic-body');
+      body.innerHTML = `
+        <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 style="font-size:16px;font-weight:900;margin-bottom:4px;">
+          <i class="fa-solid fa-file-medical" style="color:var(--sector-medical);"></i>
+          السجل الطبي — ${Utils.escape(patient.name || 'مريض')}
+        </h3>
+        <p style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:16px;">
+          ${records.length} زيارة مسجلة
+          ${patient.phone ? ' · ' + Utils.escape(patient.phone) : ''}
+        </p>
+
+        ${records.length === 0 ? `
+          <div class="empty-state" style="padding:32px 16px;text-align:center;">
+            <i class="fa-solid fa-file-slash" style="font-size:38px;color:var(--text-muted);opacity:0.4;"></i>
+            <p style="margin-top:10px;font-weight:800;color:var(--text-muted);">لا يوجد سجل طبي بعد</p>
+          </div>
+        ` : `
+          <div class="visit-timeline">
+            ${records.map(r => `
+              <div class="visit-item">
+                <div class="visit-item-date">
+                  <i class="fa-solid fa-calendar"></i> ${Utils.fmtDate(r.date)}
+                </div>
+                <div class="visit-item-diag">
+                  ${r.diagnosis ? Utils.escape(r.diagnosis) : '<em style="color:var(--text-muted);">بدون تشخيص</em>'}
+                </div>
+                ${r.chiefComplaint ? `
+                  <div style="font-size:10.5px;color:var(--text-muted);font-weight:700;margin-bottom:4px;">
+                    💬 ${Utils.escape(r.chiefComplaint.slice(0, 80))}
+                  </div>
+                ` : ''}
+                ${(r.prescription || []).length > 0 ? `
+                  <div class="visit-item-rx">
+                    <strong>💊 الأدوية:</strong>
+                    ${r.prescription.map(p => `${Utils.escape(p.drug)}`).join(', ')}
+                  </div>
+                ` : ''}
+                ${r.vitals && Object.values(r.vitals).some(v => v) ? `
+                  <div class="vitals-chips">
+                    ${r.vitals.bp ? `<span class="vital-chip">ضغط: ${Utils.escape(r.vitals.bp)}</span>` : ''}
+                    ${r.vitals.temp ? `<span class="vital-chip ${parseFloat(r.vitals.temp) > 37.5 ? 'warn' : ''}">حرارة: ${Utils.escape(r.vitals.temp)}°C</span>` : ''}
+                    ${r.vitals.pulse ? `<span class="vital-chip ${parseInt(r.vitals.pulse) > 100 ? 'warn' : ''}">نبض: ${Utils.escape(r.vitals.pulse)}</span>` : ''}
+                  </div>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `}
+      `;
+      UI.modal('modal-generic', { open: true });
+    },
+
+    block(patientId) {
+      const user = window.Auth.getCurrentUser();
+      const doctorId = user.doctorId || user.id;
+      const reason = prompt('سبب الحجب؟ (اختياري)') || 'غير محدد';
+      if (!confirm('هل تريد حجب هذا المريض من الحجز معك؟')) return;
+      Blocking.block(doctorId, patientId, reason, user.id);
+      UI.toast('🚫 تم حجب المريض من الحجز');
+      MyPatientsPage.render();
+    },
+
+    unblock(patientId) {
+      const user = window.Auth.getCurrentUser();
+      const doctorId = user.doctorId || user.id;
+      if (!confirm('فك الحجب عن هذا المريض؟')) return;
+      Blocking.unblock(doctorId, patientId, user.id);
+      UI.toast('✅ تم فك الحجب');
+      MyPatientsPage.render();
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 9: CLINIC STATS
+  // ══════════════════════════════════════════════════════════════
+  const StatsPage = {
+    render() {
+      const user = window.Auth.getCurrentUser();
+      if (!user || user.role !== 'doctor') return UI.toast('هذا للطبيب فقط', 'error');
+
+      const doctorId = user.doctorId || user.id;
+      const db = Store.load();
+      const today = Utils.today();
+      const doctor = Helpers.getDoctor(doctorId) || {};
+
+      const todaysAppts = (db.appointments || []).filter(a =>
+        a.doctorId === doctorId && a.date === today);
+      const completed = todaysAppts.filter(a => a.status === 'completed');
+      const waiting = todaysAppts.filter(a => ['waiting', 'next', 'in-progress'].includes(a.status));
+      const noShow = todaysAppts.filter(a => a.status === 'no-show');
+
+      const fee = doctor.fee || 150;
+      const todayRevenue = completed.length * fee;
+
+      const weekDates = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        return d.toISOString().slice(0, 10);
+      });
+      const weekAppts = (db.appointments || []).filter(a =>
+        a.doctorId === doctorId && weekDates.includes(a.date) && a.status === 'completed');
+      const weekRevenue = weekAppts.length * fee;
+
+      const totalRecords = (db.medicalRecords || []).filter(r => r.doctorId === doctorId).length;
+
+      const container = Utils.$('#page-container') || Utils.$('#app-main') || document.body;
+      container.innerHTML = `
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div>
+            <h1 style="font-size:18px;font-weight:900;">
+              <i class="fa-solid fa-chart-line" style="color:var(--sector-medical);"></i>
+              إحصائيات العيادة
+            </h1>
+            <p style="font-size:11px;color:var(--text-muted);font-weight:700;">
+              ${Utils.fmtDate(today)}
+            </p>
+          </div>
+          <button onclick="WaslaRouter.back()" style="background:var(--bg-muted);border:none;border-radius:8px;padding:8px 12px;font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;">
+            <i class="fa-solid fa-arrow-right"></i> رجوع
+          </button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card blue">
+            <div class="stat-icon"><i class="fa-solid fa-calendar-day"></i></div>
+            <div class="stat-value">${todaysAppts.length}</div>
+            <div class="stat-label">مواعيد اليوم</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-icon"><i class="fa-solid fa-check"></i></div>
+            <div class="stat-value">${completed.length}</div>
+            <div class="stat-label">كشوف مكتملة</div>
+          </div>
+          <div class="stat-card orange">
+            <div class="stat-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div class="stat-value">${waiting.length}</div>
+            <div class="stat-label">في الانتظار</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-icon"><i class="fa-solid fa-user-slash"></i></div>
+            <div class="stat-value">${noShow.length}</div>
+            <div class="stat-label">لم يحضروا</div>
+          </div>
+        </div>
+
+        <div class="emr-section" style="background:linear-gradient(135deg,#F0FDF4,#DCFCE7);border-color:#86EFAC;">
+          <div class="emr-section-title" style="color:#059669;">
+            <i class="fa-solid fa-sack-dollar"></i> الإيرادات
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <div>
+              <div style="font-size:10.5px;font-weight:800;color:#065F46;">إيرادات اليوم</div>
+              <div style="font-size:24px;font-weight:900;color:#059669;">${todayRevenue} <span style="font-size:12px;">ج.م</span></div>
+            </div>
+            <div style="text-align:left;">
+              <div style="font-size:10.5px;font-weight:800;color:#065F46;">آخر 7 أيام</div>
+              <div style="font-size:18px;font-weight:900;color:#059669;">${weekRevenue} <span style="font-size:11px;">ج.م</span></div>
+            </div>
+          </div>
+          <p style="font-size:10px;color:#065F46;font-weight:700;margin-top:6px;">
+            💡 السعر: ${fee} ج.م / كشف · ${totalRecords} سجل طبي إجمالي
+          </p>
+        </div>
+
+        <div class="emr-section">
+          <div class="emr-section-title">
+            <i class="fa-solid fa-users"></i> آخر 7 أيام (تفصيل)
+          </div>
+          ${weekDates.map(d => {
+            const dayAppts = (db.appointments || []).filter(a => a.doctorId === doctorId && a.date === d);
+            const dayDone = dayAppts.filter(a => a.status === 'completed').length;
+            const dayAll = dayAppts.length;
+            const pct = dayAll === 0 ? 0 : Math.round((dayDone / dayAll) * 100);
+            const label = new Date(d).toLocaleDateString('ar-EG', { weekday: 'short', day: 'numeric' });
+            return `
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border-default);">
+                <span style="font-size:11px;font-weight:800;color:var(--text-secondary);">${label}</span>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-size:10.5px;font-weight:900;color:var(--text-primary);">${dayDone}/${dayAll}</span>
+                  <div style="width:80px;height:6px;background:var(--bg-muted);border-radius:99px;overflow:hidden;">
+                    <div style="width:${pct}%;height:100%;background:var(--sector-medical);"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <div class="emr-section">
+          <div class="emr-section-title">
+            <i class="fa-solid fa-shield-halved"></i> آخر العمليات (Audit Trail)
+          </div>
+          ${(db.auditLog || [])
+            .filter(a => a.actorId === user.id)
+            .slice(0, 6)
+            .map(a => `
+              <div class="audit-row">
+                <strong>${a.action}</strong>
+                <small>${new Date(a.ts).toLocaleString('ar-EG')}</small>
+              </div>
+            `).join('') || '<p style="font-size:11px;color:var(--text-muted);">لا يوجد سجل بعد</p>'}
+        </div>
+      `;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 10: JITSI VIDEO CONSULTATION
+  // ══════════════════════════════════════════════════════════════
+  window.WaslaVideo = {
+    start(appointmentId) {
+      const user = window.Auth.getCurrentUser();
+      const appt = Helpers.getAppt(appointmentId);
+      if (!appt) return UI.toast('الموعد غير موجود', 'error');
+
+      // Check if user is doctor or the patient
+      const isDoctor = user.role === 'doctor' &&
+        (appt.doctorId === user.doctorId || appt.doctorId === user.id);
+      const isPatient = user.role === 'patient' && appt.patientId === user.id;
+
+      if (!isDoctor && !isPatient) {
+        return UI.toast('غير مصرح لك', 'error');
+      }
+
+      // Generate room (persistent per appointment)
+      const db = Store.load();
+      const idx = db.appointments.findIndex(a => a.id === appointmentId);
+      if (idx < 0) return;
+
+      if (!db.appointments[idx].videoRoom) {
+        db.appointments[idx].videoRoom =
+          `Wasla-${appointmentId.slice(-8)}-${Math.random().toString(36).slice(2, 6)}`;
+        Store.save(db);
+      }
+      const room = db.appointments[idx].videoRoom;
+      const url = `https://meet.jit.si/${room}#config.startWithAudioMuted=true&config.prejoinPageEnabled=false`;
+
+      Audit.log('video_call_start', {
+        actorId: user.id,
+        patientId: appt.patientId,
+        appointmentId,
+        meta: { room, role: user.role }
+      });
+
+      // Doctor: open room + send WhatsApp
+      if (isDoctor) {
+        const patient = Helpers.getPatient(appt.patientId);
+        const msg = `📹 *منصة وصلة - استشارة فيديو*\n\nد. ${Utils.escape(user.name || '')} يدعوك لجلسة فيديو الآن.\n\n🔗 ${url}\n\n_اضغط الرابط للانضمام._`;
+        if (patient?.phone) {
+          const openWa = confirm('هل تريد إرسال رابط الفيديو للمريض على واتساب؟');
+          if (openWa) {
+            window.open(`https://wa.me/2${patient.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+          }
+        }
+        window.open(url, '_blank');
+        UI.toast('🎥 تم فتح غرفة الفيديو');
+      } else {
+        // Patient: open directly
+        window.open(url, '_blank');
+        UI.toast('🎥 جاري الدخول للفيديو...');
+      }
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 11: ROUTE REGISTRATION
+  // ══════════════════════════════════════════════════════════════
+  function registerRoutes() {
+    // Patch WaslaRender.page
+    if (window.WaslaRender) {
+      const original = window.WaslaRender.page;
+      window.WaslaRender.page = function (route, params) {
+        if (route === 'my-patients')  { MyPatientsPage.render(); return; }
+        if (route === 'clinic-stats') { StatsPage.render(); return; }
+        return original?.call(this, route, params);
+      };
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 12: BOOKING HOOK (blocking check)
+  // ══════════════════════════════════════════════════════════════
+  // If booking module exists, wrap it. Otherwise just expose WaslaCanBook.
+  function hookBooking() {
+    if (window.WaslaBooking && typeof window.WaslaBooking.create === 'function') {
+      const orig = window.WaslaBooking.create;
+      window.WaslaBooking.create = function (data) {
+        if (!window.WaslaCanBook(data.doctorId, data.patientId)) {
+          UI.toast('🚫 لا يمكنك الحجز — تم حجبك من هذا الطبيب', 'error', 5000);
+          return null;
+        }
+        return orig.call(this, data);
+      };
+      console.log('%c🚫 Booking hook active (blocking)', 'color:#DC2626;font-weight:900');
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 13: TEST TOOL
+  // ══════════════════════════════════════════════════════════════
+  window.WaslaTestEMR = function (type = 'open') {
+    const user = window.Auth.getCurrentUser();
+    if (!user) return UI.toast('سجل دخول أولاً', 'error');
+
+    if (type === 'open') {
+      const db = Store.load();
+      const myAppt = (db.appointments || []).find(a =>
+        a.doctorId === user.doctorId || a.doctorId === user.id
+      );
+      if (!myAppt) return UI.toast('لا يوجد موعد — احجز أولاً', 'error');
+      ConsultationModal.open(myAppt.id);
+    } else if (type === 'patients') {
+      window.Router?.go?.('my-patients');
+      if (!window.Router) MyPatientsPage.render();
+    } else if (type === 'stats') {
+      window.Router?.go?.('clinic-stats');
+      if (!window.Router) StatsPage.render();
+    } else if (type === 'video') {
+      const db = Store.load();
+      const myAppt = (db.appointments || []).find(a =>
+        (a.doctorId === user.doctorId || a.doctorId === user.id) && a.patientId
+      );
+      if (!myAppt) return UI.toast('لا يوجد موعد للفيديو', 'error');
+      window.WaslaVideo.start(myAppt.id);
+    } else if (type === 'block') {
+      const db = Store.load();
+      const myAppt = (db.appointments || []).find(a => a.doctorId === user.doctorId || a.doctorId === user.id);
+      if (!myAppt) return UI.toast('لا يوجد مريض لحجبه', 'error');
+      window.WaslaPatients.block(myAppt.patientId);
+    } else {
+      UI.toast('الأنواع: open | patients | stats | video | block', 'error');
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 14: BOOT
+  // ══════════════════════════════════════════════════════════════
+  function boot() {
+    try {
+      registerRoutes();
+      hookBooking();
+
+      EventLog.log('patch_6_applied', {
+        features: ['emr', 'prescriptions', 'audit_trail', 'my_patients',
+                   'patient_blocking', 'clinic_stats', 'jitsi_video'],
+        ts: Date.now()
+      });
+
+      console.log('%c🩺 [PART 6] Doctor Portal READY', 'background:#7C3AED;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
+      console.log('%c📋 EMR + Rx + Audit: يعمل', 'color:#059669;font-weight:900');
+      console.log('%c👥 My Patients + Blocking: يعمل', 'color:#059669;font-weight:900');
+      console.log('%c📊 Clinic Stats: يعمل', 'color:#059669;font-weight:900');
+      console.log('%c🎥 Jitsi Video: يعمل', 'color:#059669;font-weight:900');
+      console.log('%c🧪 للاختبار: WaslaTestEMR("open" | "patients" | "stats" | "video" | "block")', 'color:#0284C7;font-weight:900');
+
+    } catch (e) {
+      console.error('[PART 6] Failed:', e);
+    }
+  }
+
+  setTimeout(boot, 1400);
+
+})();
+</script>
 </body>
 </html>
