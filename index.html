@@ -2230,5 +2230,453 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
 })();
 </script>
+  <!-- ═════════════════════════════════════════════════════════════
+     PART 4/15: WASLA LIVE + AUCTION ENGINES (THE BOMBS)
+     - Live Deals Feed (Flash sales, live status)
+     - Auction Engine (Gamified bidding, timers, wallet integration)
+═════════════════════════════════════════════════════════════ -->
+<style>
+/* Live & Auction Styles */
+.live-indicator {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; background: #EF4444; color: #fff;
+  border-radius: var(--radius-full); font-size: 9px; font-weight: 900;
+  animation: pulse-red 1.5s infinite; margin-right: 6px;
+}
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.live-card {
+  background: linear-gradient(135deg, #1F2937, #111827);
+  border-radius: var(--radius-md); padding: 16px;
+  color: #fff; margin-bottom: 10px;
+  display: flex; gap: 12px; align-items: flex-start;
+  border-left: 4px solid #EF4444;
+  position: relative; overflow: hidden;
+}
+.live-card::after {
+  content: 'LIVE'; position: absolute; top: 8px; left: 8px;
+  background: #EF4444; color: #fff; font-size: 8px; font-weight: 900;
+  padding: 2px 6px; border-radius: 4px; letter-spacing: 1px;
+}
+.live-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: rgba(255,255,255,0.1); color: #F87171;
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+}
+.live-info { flex: 1; }
+.live-store { font-size: 14px; font-weight: 900; margin-bottom: 2px; }
+.live-deal { font-size: 12px; color: #D1D5DB; font-weight: 700; margin-bottom: 6px; line-height: 1.5; }
+.live-action { background: #EF4444; color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 10px; font-weight: 900; border: none; cursor: pointer; font-family: inherit; }
+
+.auction-card {
+  background: var(--bg-card); border: 2px solid var(--sector-gold);
+  border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px;
+  position: relative;
+}
+.auction-timer {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #FEF2F2; color: #DC2626; padding: 4px 8px;
+  border-radius: 6px; font-size: 11px; font-weight: 900;
+  position: absolute; top: 16px; left: 16px;
+}
+.auction-item { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; margin-top: 10px; }
+.auction-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  background: var(--sector-gold-soft); color: var(--sector-gold);
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+.auction-title { font-size: 16px; font-weight: 900; color: var(--text-primary); }
+.auction-desc { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-top: 2px; }
+
+.auction-bid-box {
+  background: var(--bg-muted); border-radius: 10px; padding: 12px;
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+}
+.auction-current-bid { font-size: 11px; color: var(--text-muted); font-weight: 800; }
+.auction-price { font-size: 20px; font-weight: 900; color: var(--sector-gold); line-height: 1.1; }
+.auction-winner { font-size: 10px; color: var(--sector-cars); font-weight: 800; margin-top: 4px; }
+
+.bid-btn {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: #fff; border: none; border-radius: 8px;
+  padding: 10px 16px; font-size: 13px; font-weight: 900;
+  cursor: pointer; font-family: inherit; width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+}
+.bid-btn:active { transform: scale(0.98); }
+.bid-btn:disabled { background: var(--text-disabled); box-shadow: none; cursor: not-allowed; }
+
+.auction-winner-badge {
+  background: #ECFDF5; color: #059669; padding: 10px;
+  border-radius: 8px; text-align: center;
+  font-size: 12px; font-weight: 900; border: 1px solid #A7F3D0;
+}
+</style>
+
+<script>
+(function WASLA_PART_4_BOMBS() {
+  'use strict';
+
+  if (!window.WaslaCore || !window.Auth) {
+    console.error('❌ PART 4 requires PART 2 & 3');
+    return;
+  }
+
+  const { Utils, UI, Store, EventLog, Gamification } = window.WaslaCore;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 1: DATABASE EXTENSION
+  // ══════════════════════════════════════════════════════════════
+  function extendSchema() {
+    const db = Store.load();
+    if (!db) return;
+    let changed = false;
+
+    if (!db.liveDeals) {
+      db.liveDeals = [
+        { id: 'l1', store: 'مخبز النور', text: 'خصم 50% على المعجنات (باقي 5 عروض)', icon: 'fa-bread-slice', time: 'الآن' },
+        { id: 'l2', store: 'د. سارة أحمد', text: 'عيادة الأطفال فاضية دلوقتي.. احجز فوراً!', icon: 'fa-baby', time: 'قبل 5 دقائق' },
+        { id: 'l3', store: 'سوبر ماركت الأمانة', text: 'زيت عافية 2 لتر بـ 180 جنيه بس (الكمية محدودة)', icon: 'fa-bottle-water', time: 'قبل 12 دقيقة' }
+      ];
+      changed = true;
+    }
+
+    if (!db.auctions) {
+      const now = Date.now();
+      db.auctions = [
+        { id: 'a1', title: 'كرتونة خضار مشكل (من طحانوب)', desc: 'طماطم، بطاطس، خيار، فلفل - طازج النهاردة', icon: 'fa-carrot', basePrice: 50, currentPrice: 50, highestBidder: null, endsAt: now + 15 * 60000, status: 'active' },
+        { id: 'a2', title: 'غسيل وتلميع VIP لسيارتك', desc: 'خدمة متكاملة في موقعك', icon: 'fa-car', basePrice: 100, currentPrice: 100, highestBidder: null, endsAt: now + 5 * 60000, status: 'active' },
+        { id: 'a3', title: 'موعد كشف باطنة فاضي (الغد)', desc: 'د. محمد الشريف - فرصة ذهبية', icon: 'fa-stethoscope', basePrice: 150, currentPrice: 150, highestBidder: null, endsAt: now + 25 * 60000, status: 'active' }
+      ];
+      changed = true;
+    }
+
+    if (changed) {
+      Store.save(db);
+      EventLog.log('schema_extended_live_auction', { ts: Date.now() });
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 2: LIVE VIEW
+  // ══════════════════════════════════════════════════════════════
+  Router.register('live', (el) => {
+    const db = Store.load();
+    const deals = db.liveDeals || [];
+
+    el.innerHTML = `
+      <div class="sector-hero" style="background: linear-gradient(120deg, #7F1D1D, #EF4444 55%, #F87171);">
+        <span class="sector-hero-badge"><i class="fa-solid fa-satellite-dish"></i> وصلة لايف</span>
+        <h1>رادار شبين القناطر</h1>
+        <p>كل العروض والفرص اللحظية في مكان واحد.. اللي يسبق يكسب</p>
+      </div>
+
+      <div class="flex justify-between items-center" style="margin-bottom:16px;">
+        <h2 class="section-title" style="margin:0;"><i class="fa-solid fa-bolt"></i> يحدث الآن</h2>
+        <span class="live-indicator"><i class="fa-solid fa-circle" style="font-size:6px;"></i> بث مباشر</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${deals.map(deal => `
+          <div class="live-card">
+            <div class="live-icon"><i class="fa-solid ${deal.icon}"></i></div>
+            <div class="live-info">
+              <div class="live-store">${Utils.escape(deal.store)}</div>
+              <div class="live-deal">${Utils.escape(deal.text)}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:9px;color:#9CA3AF;font-weight:800;">${deal.time}</span>
+                <button class="live-action" onclick="UI.toast('تم فتح العرض! توجه للمتجر/العيادة.')">احجز الآن</button>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 3: AUCTION VIEW
+  // ══════════════════════════════════════════════════════════════
+  Router.register('auction', (el) => {
+    const user = Auth.getCurrentUser();
+    const db = Store.load();
+    const auctions = (db.auctions || []).filter(a => a.status === 'active');
+
+    el.innerHTML = `
+      <div class="sector-hero" style="background: linear-gradient(120deg, #78350F, #D97706 55%, #F59E0B);">
+        <span class="sector-hero-badge"><i class="fa-solid fa-gavel"></i> وصلة مزاد</span>
+        <h1>مزاد الليل</h1>
+        <p>زايد على بضاعة الاستوك والمواعيد الفاضية.. مين هياخد اللقطة؟</p>
+      </div>
+
+      ${!user ? `
+        <div class="card text-center" style="border-color:var(--sector-gold);">
+          <p class="empty-state-desc">سجل دخول عشان تشارك في المزاد</p>
+          <button class="btn btn-primary" style="margin-top:12px;" onclick="AuthUI.open('login')">دخول</button>
+        </div>
+      ` : `
+        <div style="background:var(--bg-card); border:1px solid var(--border-default); border-radius:var(--radius-md); padding:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:10px; font-weight:900; color:var(--text-muted);">رصيدك الحالي</div>
+            <div style="font-size:18px; font-weight:900; color:var(--sector-gold);">${Utils.money(user.wallet || 0)}</div>
+          </div>
+          <div style="text-align:left;">
+            <div style="font-size:10px; font-weight:900; color:var(--text-muted);">نقاطك</div>
+            <div style="font-size:14px; font-weight:900; color:var(--sector-medical);">${user.points || 0} 🪙</div>
+          </div>
+        </div>
+      `}
+
+      <div id="auction-list">
+        ${auctions.length === 0 ? `<div class="empty-state"><p class="empty-state-desc">لا يوجد مزادات حالياً.. عود قريباً</p></div>` : auctions.map(a => renderAuctionCard(a, user)).join('')}
+      </div>
+    `);
+
+    // Start Timer for countdowns
+    startAuctionTimers();
+  });
+
+  function renderAuctionCard(a, user) {
+    const isWinning = a.highestBidder === (user ? user.id : null);
+    const timeLeft = Math.max(0, a.endsAt - Date.now());
+    const mins = Math.floor(timeLeft / 60000);
+    const secs = Math.floor((timeLeft % 60000) / 1000);
+    
+    return `
+      <div class="auction-card" data-auction-id="${a.id}">
+        <div class="auction-timer">
+          <i class="fa-solid fa-clock"></i> <span class="timer-text">${mins}:${String(secs).padStart(2, '0')}</span>
+        </div>
+        
+        <div class="auction-item">
+          <div class="auction-icon"><i class="fa-solid ${a.icon}"></i></div>
+          <div>
+            <div class="auction-title">${Utils.escape(a.title)}</div>
+            <div class="auction-desc">${Utils.escape(a.desc)}</div>
+          </div>
+        </div>
+
+        <div class="auction-bid-box">
+          <div>
+            <div class="auction-current-bid">أعلى مزايدة</div>
+            <div class="auction-price">${Utils.money(a.currentPrice)}</div>
+            ${isWinning ? `<div class="auction-winner">🎉 أنت الأعلى حالياً!</div>` : (a.highestBidder ? `<div class="auction-winner">شخص آخر في المقدمة</div>` : '')}
+          </div>
+          <div style="text-align:center;">
+            <button class="bid-btn" ${!user ? 'disabled' : ''} onclick="AuctionEngine.bid('${a.id}', 10)">
+              <i class="fa-solid fa-plus"></i> زايد بـ 10 ج.م
+            </button>
+            <button class="bid-btn" style="margin-top:6px;background:#fff;color:var(--sector-gold);border:1px solid var(--sector-gold);box-shadow:none;" ${!user ? 'disabled' : ''} onclick="AuctionEngine.bid('${a.id}', 50)">
+              زايد بـ 50 ج.م
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 4: AUCTION ENGINE LOGIC
+  // ══════════════════════════════════════════════════════════════
+  const AuctionEngine = {
+    bid(auctionId, amount) {
+      const user = Auth.getCurrentUser();
+      if (!user) return AuthUI.open();
+
+      const db = Store.load();
+      const auction = db.auctions.find(a => a.id === auctionId);
+      if (!auction || auction.status !== 'active') return UI.toast('المزاد انتهى', 'error');
+
+      const newPrice = auction.currentPrice + amount;
+
+      // Check wallet
+      if ((user.wallet || 0) < newPrice) {
+        return UI.toast('رصيدك غير كافي! اشحن محفظتك عشان تشارك.', 'error');
+      }
+
+      // Update Auction
+      auction.currentPrice = newPrice;
+      auction.highestBidder = user.id;
+      
+      Store.save(db);
+
+      EventLog.log('auction_bid', {
+        actorId: user.id,
+        targetId: auctionId,
+        payload: { amount, newPrice }
+      });
+
+      UI.toast(`مزايدتك نجحت! أنت الأعلى الآن بـ ${Utils.money(newPrice)}`, 'success');
+      
+      // Re-render to show winning state
+      Router.go('auction');
+    },
+
+    processExpired() {
+      const db = Store.load();
+      let changed = false;
+      let winners = [];
+
+      (db.auctions || []).forEach(a => {
+        if (a.status === 'active' && a.endsAt <= Date.now()) {
+          a.status = 'ended';
+          changed = true;
+          
+          if (a.highestBidder) {
+            // Deduct money from winner
+            const winner = db.users.find(u => u.id === a.highestBidder);
+            if (winner && (winner.wallet || 0) >= a.currentPrice) {
+              winner.wallet -= a.currentPrice;
+              
+              // Add notification
+              db.notifications = db.notifications || [];
+              db.notifications.push({
+                id: Utils.id('notif'),
+                userId: winner.id,
+                text: `🎉 مبروك! لقد فزت في المزاد: ${a.title} بـ ${Utils.money(a.currentPrice)}`,
+                read: false, ts: Date.now()
+              });
+
+              // Gamification points
+              setTimeout(() => {
+                Gamification.addPoints(winner.id, 20, 'auction_win');
+              }, 100);
+
+              winners.push(a);
+            }
+          }
+        }
+      });
+
+      if (changed) {
+        Store.save(db);
+        // If current view is auction, re-render
+        const el = Utils.$('#view-auction');
+        if (el) Router.go('auction');
+      }
+    }
+  };
+
+  window.AuctionEngine = AuctionEngine;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 5: TIMERS & AUTO-PROCESSING
+  // ══════════════════════════════════════════════════════════════
+  let auctionTimerInterval = null;
+
+  function startAuctionTimers() {
+    if (auctionTimerInterval) clearInterval(auctionTimerInterval);
+    
+    auctionTimerInterval = setInterval(() => {
+      const cards = Utils.$$('.auction-card');
+      if (cards.length === 0) return;
+
+      cards.forEach(card => {
+        const auctionId = card.getAttribute('data-auction-id');
+        const db = Store.load();
+        const auction = db.auctions.find(a => a.id === auctionId);
+        if (!auction) return;
+
+        const timeLeft = Math.max(0, auction.endsAt - Date.now());
+        const mins = Math.floor(timeLeft / 60000);
+        const secs = Math.floor((timeLeft % 60000) / 1000);
+        
+        const timerText = card.querySelector('.timer-text');
+        if (timerText) {
+          timerText.textContent = `${mins}:${String(secs).padStart(2, '0')}`;
+        }
+
+        if (timeLeft === 0) {
+          card.style.opacity = '0.5';
+          card.querySelector('.bid-btn').disabled = true;
+        }
+      });
+      
+      // Periodically check for expired auctions globally
+      if (Math.random() < 0.2) AuctionEngine.processExpired();
+    }, 1000);
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 6: UI INTEGRATION (Header & Home)
+  // ══════════════════════════════════════════════════════════════
+  const originalRenderHome = Router.registry['home'];
+  
+  Router.register('home', (el) => {
+    originalRenderHome.call(Router, el);
+
+    // Inject Live & Auction sections dynamically into the Home view
+    const db = Store.load();
+    const liveCount = (db.liveDeals || []).length;
+    const activeAuctions = (db.auctions || []).filter(a => a.status === 'active').length;
+
+    const bombsHTML = `
+      <h2 class="section-title" style="margin-top:20px;"><i class="fa-solid fa-bomb" style="color:#EF4444;"></i> مفاجآت وصلة</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        
+        <div class="sector-card" style="background:linear-gradient(135deg,#1F2937,#111827);color:#fff;border:none;position:relative;overflow:hidden;" onclick="Router.go('live')">
+          <div class="live-indicator" style="position:absolute;top:10px;right:10px;"><i class="fa-solid fa-circle" style="font-size:6px;"></i> بث</div>
+          <div class="sector-card-icon" style="background:rgba(239,68,68,0.2);color:#F87171;"><i class="fa-solid fa-satellite-dish"></i></div>
+          <h3 class="sector-card-title" style="color:#fff;">وصلة لايف</h3>
+          <p class="sector-card-desc" style="color:#D1D5DB;">${liveCount} عروض لحظية</p>
+        </div>
+
+        <div class="sector-card" style="background:linear-gradient(135deg,#78350F,#D97706);color:#fff;border:none;" onclick="Router.go('auction')">
+          <div class="sector-card-icon" style="background:rgba(255,255,255,0.2);color:#fff;"><i class="fa-solid fa-gavel"></i></div>
+          <h3 class="sector-card-title" style="color:#fff;">وصلة مزاد</h3>
+          <p class="sector-card-desc" style="color:#FEF3C7;">${activeAuctions} مزادات شغالة</p>
+        </div>
+
+      </div>
+    `;
+
+    const grid = el.querySelector('div[style*="grid-template-columns"]');
+    if (grid) {
+      grid.insertAdjacentHTML('afterend', bombsHTML);
+    }
+  });
+
+  // Add icons in Header for quick access
+  const originalRenderHeader = window.WaslaRender.header;
+  window.WaslaRender.header = function() {
+    originalRenderHeader.call(window.WaslaRender);
+    const headerActions = Utils.$('#header-actions');
+    if (headerActions && Auth.getCurrentUser()) {
+      // Add a "Live" icon next to notifications
+      const liveBtn = document.createElement('button');
+      liveBtn.className = 'icon-btn';
+      liveBtn.innerHTML = `<i class="fa-solid fa-satellite-dish" style="color:#F87171;"></i>`;
+      liveBtn.onclick = () => Router.go('live');
+      liveBtn.title = "وصلة لايف";
+      
+      const notifBtn = headerActions.querySelector('.icon-btn');
+      if (notifBtn) headerActions.insertBefore(liveBtn, notifBtn);
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 7: BOOT
+  // ══════════════════════════════════════════════════════════════
+  function boot() {
+    extendSchema();
+    // Ensure the header updates with the live icon
+    window.WaslaRender.header();
+    
+    console.log('%c💣 [PART 4] LIVE & AUCTION ENGINES READY', 'background:#EF4444;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 300));
+  } else {
+    setTimeout(boot, 300);
+  }
+
+})();
+</script>
 </body>
 </html>
