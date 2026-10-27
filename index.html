@@ -1444,7 +1444,8 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
 })();
 </script>
-  <!-- ═════════════════════════════════════════════════════════════
+
+</body><!-- ═════════════════════════════════════════════════════════════
      PART 3/15: AUTH + ROUTER + HEADER + CONTEXT SWITCHER + VIEWS
 ═════════════════════════════════════════════════════════════ -->
 <style>
@@ -1519,29 +1520,13 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     login(phone, password) {
       const db = Store.load();
       if (!db) return { ok: false, msg: 'قاعدة البيانات غير متاحة' };
-
       const user = db.users.find(u => u.phone === phone);
-      if (!user) {
-        EventLog.log('login_failed', { phone, reason: 'not_found' });
-        return { ok: false, msg: 'رقم الموبايل غير مسجل' };
-      }
-
-      if (user.status === 'suspended') {
-        return { ok: false, msg: 'الحساب موقوف — تواصل مع الإدارة' };
-      }
-
-      if (!Crypto.verify(password, user.passHash, user.salt)) {
-        EventLog.log('login_failed', { phone, reason: 'wrong_password', actorId: user.id });
-        return { ok: false, msg: 'كلمة السر غير صحيحة' };
-      }
-
-      const session = {
-        userId: user.id,
-        context: user.currentContext || (user.contexts && user.contexts[0]) || 'citizen',
-        loginAt: Date.now()
-      };
+      if (!user) { EventLog.log('login_failed', { phone, reason: 'not_found' }); return { ok: false, msg: 'رقم الموبايل غير مسجل' }; }
+      if (user.status === 'suspended') return { ok: false, msg: 'الحساب موقوف — تواصل مع الإدارة' };
+      if (!Crypto.verify(password, user.passHash, user.salt)) { EventLog.log('login_failed', { phone, reason: 'wrong_password', actorId: user.id }); return { ok: false, msg: 'كلمة السر غير صحيحة' }; }
+      
+      const session = { userId: user.id, context: user.currentContext || (user.contexts && user.contexts[0]) || 'citizen', loginAt: Date.now() };
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-
       EventLog.log('login_success', { actorId: user.id, phone, role: user.role, context: session.context });
       return { ok: true, user };
     },
@@ -1550,67 +1535,56 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       const db = Store.load();
       if (!db) return { ok: false, msg: 'قاعدة البيانات غير متاحة' };
       if (db.users.find(u => u.phone === phone)) return { ok: false, msg: 'الرقم مسجل بالفعل — سجل دخول' };
-
+      
       const { hash, salt } = Crypto.create(password);
-      const newUser = {
-        id: 'u-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-        phone, name: name.trim(), passHash: hash, salt,
-        role: 'patient', contexts: ['citizen'], currentContext: 'citizen',
-        wallet: 0, points: 0, waslaId: 'WASLA-' + Math.floor(10000 + Math.random() * 90000),
-        emr: { blood: 'غير محدد', allergies: [], chronic: [], vitals: [], currentMeds: [], pastMeds: [], labs: [], visitNotes: [] },
-        familyIds: [], successfulOrders: 0, cancellations: 0, status: 'active', createdAt: Date.now()
+      const newUser = { 
+        id: 'u-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), 
+        phone, name: name.trim(), passHash: hash, salt, 
+        role: 'patient', contexts: ['citizen'], currentContext: 'citizen', 
+        wallet: 0, points: 0, waslaId: 'WASLA-' + Math.floor(10000 + Math.random() * 90000), 
+        emr: { blood: 'غير محدد', allergies: [], chronic: [], vitals: [], currentMeds: [], pastMeds: [], labs: [], visitNotes: [] }, 
+        familyIds: [], successfulOrders: 0, cancellations: 0, status: 'active', createdAt: Date.now() 
       };
-
+      
       db.users.push(newUser);
       Store.save(db);
-
+      
       const session = { userId: newUser.id, context: 'citizen', loginAt: Date.now() };
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-
       EventLog.log('register', { actorId: newUser.id, phone, name, waslaId: newUser.waslaId });
       return { ok: true, user: newUser };
     },
 
-    logout() {
-      const session = this.getSession();
-      if (session) EventLog.log('logout', { actorId: session.userId });
-      sessionStorage.removeItem(SESSION_KEY);
+    logout() { 
+      const session = this.getSession(); 
+      if (session) EventLog.log('logout', { actorId: session.userId }); 
+      sessionStorage.removeItem(SESSION_KEY); 
     },
 
-    getSession() {
-      try {
-        const raw = sessionStorage.getItem(SESSION_KEY);
-        return raw ? JSON.parse(raw) : null;
-      } catch (_) { return null; }
+    getSession() { 
+      try { const raw = sessionStorage.getItem(SESSION_KEY); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } 
     },
 
-    getCurrentUser() {
-      const session = this.getSession();
-      if (!session) return null;
-      const db = Store.load();
-      if (!db) return null;
-      return db.users.find(u => u.id === session.userId) || null;
+    getCurrentUser() { 
+      const session = this.getSession(); 
+      if (!session) return null; 
+      const db = Store.load(); 
+      if (!db) return null; 
+      return db.users.find(u => u.id === session.userId) || null; 
     },
 
-    getCurrentContext() {
-      const session = this.getSession();
-      return session ? session.context : null;
+    getCurrentContext() { 
+      const session = this.getSession(); return session ? session.context : null; 
     },
 
     switchContext(newContext) {
-      const session = this.getSession();
-      if (!session) return false;
-      const user = this.getCurrentUser();
-      if (!user) return false;
+      const session = this.getSession(); if (!session) return false;
+      const user = this.getCurrentUser(); if (!user) return false;
       if (!(user.contexts || ['citizen']).includes(newContext)) return false;
-
-      session.context = newContext;
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-
-      const db = Store.load();
-      const u = db.users.find(x => x.id === user.id);
+      
+      session.context = newContext; sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      const db = Store.load(); const u = db.users.find(x => x.id === user.id);
       if (u) { u.currentContext = newContext; Store.save(db); }
-
       EventLog.log('context_switched', { actorId: user.id, context: newContext });
       return true;
     }
@@ -1650,8 +1624,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
           <i class="fa-solid fa-right-to-bracket"></i> دخول
         </button>
         <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:16px;font-weight:700;">
-          ليس لديك حساب؟
-          <a style="color:var(--sector-medical);font-weight:900;cursor:pointer;" onclick="AuthUI.open('register')">سجّل الآن</a>
+          ليس لديك حساب؟ <a style="color:var(--sector-medical);font-weight:900;cursor:pointer;" onclick="AuthUI.open('register')">سجّل الآن</a>
         </p>
         <div class="auth-demo-box">
           <strong>🔑 حسابات تجريبية:</strong><br>
@@ -1683,8 +1656,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
           <i class="fa-solid fa-user-plus"></i> إنشاء الحساب
         </button>
         <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:16px;font-weight:700;">
-          لديك حساب؟
-          <a style="color:var(--sector-medical);font-weight:900;cursor:pointer;" onclick="AuthUI.open('login')">دخول</a>
+          لديك حساب؟ <a style="color:var(--sector-medical);font-weight:900;cursor:pointer;" onclick="AuthUI.open('login')">دخول</a>
         </p>
       `;
     },
@@ -1692,55 +1664,37 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     async _submitLogin() {
       const phone = Utils.$('#login-phone').value.trim();
       const pass = Utils.$('#login-pass').value;
-
       if (!Utils.isValidPhone(phone)) return UI.toast('رقم موبايل غير صحيح (01xxxxxxxxx)', 'error');
       if (!pass) return UI.toast('أدخل كلمة السر', 'error');
-
-      UI.loading('جاري الدخول...');
-      await Utils.sleep(250);
-
-      const result = Auth.login(phone, pass);
-      UI.stopLoading();
-
+      UI.loading('جاري الدخول...'); await Utils.sleep(250);
+      const result = Auth.login(phone, pass); UI.stopLoading();
       if (result.ok) {
         UI.modal('modal-auth', { open: false });
         UI.toast(`مرحباً ${result.user.name.split(' ')[0]} 👋`);
         initApp();
-      } else {
-        UI.toast(result.msg, 'error');
-      }
+      } else UI.toast(result.msg, 'error');
     },
 
     async _submitRegister() {
       const name = Utils.$('#reg-name').value.trim();
       const phone = Utils.$('#reg-phone').value.trim();
       const pass = Utils.$('#reg-pass').value;
-
       if (!Utils.isValidName(name)) return UI.toast('أدخل الاسم الثلاثي كاملاً', 'error');
       if (!Utils.isValidPhone(phone)) return UI.toast('رقم موبايل غير صحيح', 'error');
       if (pass.length < 6) return UI.toast('كلمة السر 6 أحرف على الأقل', 'error');
-
-      UI.loading('جاري إنشاء الحساب...');
-      await Utils.sleep(250);
-
-      const result = Auth.register(name, phone, pass);
-      UI.stopLoading();
-
+      UI.loading('جاري إنشاء الحساب...'); await Utils.sleep(250);
+      const result = Auth.register(name, phone, pass); UI.stopLoading();
       if (result.ok) {
         UI.modal('modal-auth', { open: false });
         UI.toast(`مرحباً ${name.split(' ')[0]} 🎉 حسابك جاهز`);
         initApp();
-      } else {
-        UI.toast(result.msg, 'error');
-      }
+      } else UI.toast(result.msg, 'error');
     },
 
     async _confirmLogout() {
       const ok = await UI.confirm('هل تريد الخروج من وصلة؟', { title: 'تسجيل الخروج', confirmText: 'خروج', cancelText: 'إلغاء', danger: true });
       if (!ok) return;
-      Auth.logout();
-      UI.toast('تم تسجيل الخروج', 'info');
-      initApp();
+      Auth.logout(); UI.toast('تم تسجيل الخروج', 'info'); initApp();
     }
   };
 
@@ -1750,43 +1704,23 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   const Router = {
     registry: {},
     current: null,
-    _sectorViews: ['medical', 'grocery', 'cars', 'home-services'],
+    _sectorViews: ['medical', 'grocery', 'cars', 'home-services', 'live', 'auction'],
 
-    register(viewName, rendererFn) {
-      this.registry[viewName] = rendererFn;
-      return this;
-    },
+    register(viewName, rendererFn) { this.registry[viewName] = rendererFn; return this; },
 
     go(viewName, params) {
-      if (!this.registry[viewName]) {
-        console.warn(`[Router] View "${viewName}" not registered`);
-        this._renderNotFound(viewName);
-        return;
-      }
-
+      if (!this.registry[viewName]) { console.warn(`[Router] View "${viewName}" not registered`); this._renderNotFound(viewName); return; }
       this.current = viewName;
-      const container = Utils.$('#main-container');
-      if (!container) return;
-
+      const container = Utils.$('#main-container'); if (!container) return;
       container.innerHTML = '';
       const viewEl = document.createElement('div');
-      viewEl.id = 'view-' + viewName;
-      viewEl.className = 'view active';
+      viewEl.id = 'view-' + viewName; viewEl.className = 'view active';
       container.appendChild(viewEl);
-
-      try {
-        this.registry[viewName](viewEl, params || {});
-      } catch (err) {
-        console.error('[Router] Render error:', err);
-        viewEl.innerHTML = `
-          <div class="empty-state">
-            <i class="fa-solid fa-triangle-exclamation empty-state-icon" style="color:var(--color-danger);"></i>
-            <p class="empty-state-title">حدث خطأ</p>
-            <p class="empty-state-desc">تعذر تحميل الصفحة</p>
-          </div>
-        `;
+      try { this.registry[viewName](viewEl, params || {}); }
+      catch (err) { 
+        console.error('[Router] Render error:', err); 
+        viewEl.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation empty-state-icon" style="color:var(--color-danger);"></i><p class="empty-state-title">حدث خطأ</p><p class="empty-state-desc">تعذر تحميل الصفحة</p></div>`; 
       }
-
       this.updateActiveTab(viewName);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
@@ -1798,35 +1732,23 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     },
 
     _renderNotFound(viewName) {
-      const container = Utils.$('#main-container');
-      if (!container) return;
-      container.innerHTML = `
-        <div class="empty-state">
-          <i class="fa-solid fa-circle-question empty-state-icon"></i>
-          <p class="empty-state-title">صفحة غير موجودة</p>
-          <p class="empty-state-desc">${Utils.escape(viewName)}</p>
-          <button class="btn btn-primary" style="margin-top:16px;" onclick="Router.go('home')">الرئيسية</button>
-        </div>
-      `;
+      const container = Utils.$('#main-container'); if (!container) return;
+      container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-question empty-state-icon"></i><p class="empty-state-title">صفحة غير موجودة</p><p class="empty-state-desc">${Utils.escape(viewName)}</p><button class="btn btn-primary" style="margin-top:16px;" onclick="Router.go('home')">الرئيسية</button></div>`;
     }
   };
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION 4: RENDER HEADER
+  // SECTION 4: HEADER & NAVIGATION
   // ══════════════════════════════════════════════════════════════
   function renderHeader() {
-    const el = Utils.$('#header-actions');
-    if (!el) return;
-
+    const el = Utils.$('#header-actions'); if (!el) return;
     const user = Auth.getCurrentUser();
     if (!user) {
       el.innerHTML = `<button class="icon-btn" onclick="AuthUI.open('login')" title="دخول" style="width:auto;padding:0 14px;gap:6px;font-size:12px;font-weight:900;"><i class="fa-solid fa-right-to-bracket"></i><span>دخول</span></button>`;
       return;
     }
-
     const db = Store.load();
     const unread = (db.notifications || []).filter(n => n.userId === user.id && !n.read).length;
-
     el.innerHTML = `
       <button class="icon-btn" onclick="NotificationsPanel.open()" title="الإشعارات">
         <i class="fa-solid fa-bell"></i>
@@ -1842,39 +1764,28 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     `;
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 5: CONTEXT SWITCHER
-  // ══════════════════════════════════════════════════════════════
   const ContextSwitcher = {
     toggle() {
-      const user = Auth.getCurrentUser();
-      if (!user) return;
-      const contexts = user.contexts || ['citizen'];
-      if (contexts.length < 2) return;
+      const user = Auth.getCurrentUser(); if (!user) return;
+      const contexts = user.contexts || ['citizen']; if (contexts.length < 2) return;
       const current = Auth.getCurrentContext() || 'citizen';
       const other = contexts.find(c => c !== current);
       if (other) this.switchTo(other);
     },
-
     async switchTo(context) {
       const ok = Auth.switchContext(context);
       if (!ok) return UI.toast('لا يمكن التبديل لهذا الوضع', 'error');
-
       UI.toast('تم تبديل الوضع ✓', 'info');
       renderHeader(); renderContextSwitcher(); renderTabs();
-
       const defaultViews = { citizen: 'home', doctor: 'clinic', merchant: 'store', staff: 'reception', founder: 'founder' };
       Router.go(defaultViews[context] || 'home');
     }
   };
 
   function renderContextSwitcher() {
-    const switcher = Utils.$('#context-switcher');
-    if (!switcher) return;
-
+    const switcher = Utils.$('#context-switcher'); if (!switcher) return;
     const user = Auth.getCurrentUser();
     if (!user) return switcher.classList.remove('visible');
-
     const contexts = user.contexts || ['citizen'];
     if (contexts.length < 2) return switcher.classList.remove('visible');
 
@@ -1887,7 +1798,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       staff: { label: 'الاستقبال', icon: 'fa-headset', color: '#7C3AED' },
       founder: { label: 'الإدارة', icon: 'fa-crown', color: '#D97706' }
     };
-
     const curr = labels[current] || labels.citizen;
     const other = contexts.find(c => c !== current);
     const otherLabel = labels[other] || labels.citizen;
@@ -1903,21 +1813,13 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     if (btnEl) { btnEl.innerHTML = `<i class="fa-solid ${otherLabel.icon}"></i> <span>التبديل إلى ${otherLabel.label}</span>`; btnEl.onclick = () => ContextSwitcher.switchTo(other); }
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 6: RENDER TABS
-  // ══════════════════════════════════════════════════════════════
   function renderTabs() {
-    const tabsEl = Utils.$('#app-tabs');
-    if (!tabsEl) return;
-
+    const tabsEl = Utils.$('#app-tabs'); if (!tabsEl) return;
     const user = Auth.getCurrentUser();
     const context = Auth.getCurrentContext() || 'citizen';
 
     if (!user) {
-      tabsEl.innerHTML = `
-        <button class="app-tab active" data-tab="home" onclick="Router.go('home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
-        <button class="app-tab" data-tab="account" onclick="Router.go('account')"><i class="fa-solid fa-user"></i><span>حسابي</span></button>
-      `;
+      tabsEl.innerHTML = `<button class="app-tab active" data-tab="home" onclick="Router.go('home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button><button class="app-tab" data-tab="account" onclick="Router.go('account')"><i class="fa-solid fa-user"></i><span>حسابي</span></button>`;
       return;
     }
 
@@ -1930,38 +1832,21 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     };
 
     const tabs = tabsByContext[context] || tabsByContext.citizen;
-
-    tabsEl.innerHTML = tabs.map(t => `
-      <button class="app-tab" data-tab="${t.id}" onclick="Router.go('${t.id}')">
-        <i class="fa-solid ${t.icon}"></i><span>${t.label}</span>
-      </button>
-    `).join('');
+    tabsEl.innerHTML = tabs.map(t => `<button class="app-tab" data-tab="${t.id}" onclick="Router.go('${t.id}')"><i class="fa-solid ${t.icon}"></i><span>${t.label}</span></button>`).join('');
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 7: NOTIFICATIONS PANEL
-  // ══════════════════════════════════════════════════════════════
   const NotificationsPanel = {
     open() {
-      const user = Auth.getCurrentUser();
-      if (!user) return;
-
+      const user = Auth.getCurrentUser(); if (!user) return;
       const db = Store.load();
       const notifs = (db.notifications || []).filter(n => n.userId === user.id).sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 30);
-
       const body = Utils.$('#modal-generic-body');
       body.innerHTML = `
         <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
         <h3 style="font-size:16px;font-weight:900;margin-bottom:16px;"><i class="fa-solid fa-bell" style="color:var(--sector-medical);"></i> الإشعارات</h3>
-        ${notifs.length === 0 ? `<div class="empty-state" style="padding:32px 16px;"><i class="fa-solid fa-bell-slash empty-state-icon"></i><p class="empty-state-desc">لا توجد إشعارات</p></div>` : notifs.map(n => `
-          <div class="notif-item ${!n.read ? 'unread' : ''}">
-            <div class="notif-time">${Utils.timeAgo(n.ts)}</div>
-            <div class="notif-text">${Utils.escape(n.text)}</div>
-          </div>
-        `).join('')}
+        ${notifs.length === 0 ? `<div class="empty-state" style="padding:32px 16px;"><i class="fa-solid fa-bell-slash empty-state-icon"></i><p class="empty-state-desc">لا توجد إشعارات</p></div>` : notifs.map(n => `<div class="notif-item ${!n.read ? 'unread' : ''}"><div class="notif-time">${Utils.timeAgo(n.ts)}</div><div class="notif-text">${Utils.escape(n.text)}</div></div>`).join('')}
       `;
       UI.modal('modal-generic', { open: true });
-
       const freshDb = Store.load();
       freshDb.notifications = (freshDb.notifications || []).map(n => n.userId === user.id ? { ...n, read: true } : n);
       Store.save(freshDb);
@@ -1970,15 +1855,13 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   };
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION 8: HOME VIEW
+  // SECTION 5: VIEWS
   // ══════════════════════════════════════════════════════════════
   function _sectorCard(sector, title, desc, icon) {
     const sectorVar = sector === 'home-services' ? 'home' : sector;
     return `
       <div class="sector-card" onclick="Router.go('${sector}')">
-        <div class="sector-card-icon" style="background:var(--sector-${sectorVar}-soft);color:var(--sector-${sectorVar});border:1px solid var(--sector-${sectorVar}-border);">
-          <i class="fa-solid ${icon}"></i>
-        </div>
+        <div class="sector-card-icon" style="background:var(--sector-${sectorVar}-soft);color:var(--sector-${sectorVar});border:1px solid var(--sector-${sectorVar}-border);"><i class="fa-solid ${icon}"></i></div>
         <h3 class="sector-card-title">${title}</h3>
         <p class="sector-card-desc">${desc}</p>
       </div>
@@ -1996,7 +1879,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       const myOrders = (db.orders || []).filter(o => o.userId === user.id).slice(-3).reverse();
       const myAppts = (db.appointments || []).filter(a => a.patientId === user.id).slice(-3).reverse();
       const recent = [...myOrders.map(o => ({ ...o, _kind: 'order' })), ...myAppts.map(a => ({ ...a, _kind: 'appt' }))].sort((a, b) => (b.ts || b.createdAt || 0) - (a.ts || a.createdAt || 0)).slice(0, 3);
-
       if (recent.length > 0) {
         activitySection = `
           <h2 class="section-title" style="margin-top:20px;"><i class="fa-solid fa-clock-rotate-left"></i> نشاطك الأخير</h2>
@@ -2034,26 +1916,14 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     return `<div class="order-card medical" style="padding:10px;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:12.5px;font-weight:900;color:var(--text-primary);">${Utils.escape(item.doctorName || 'موعد')}</div><div style="font-size:10.5px;color:var(--text-muted);font-weight:700;margin-top:2px;">${item.slot || ''} • ${Utils.fmtDate(item.date)}</div></div><div style="font-size:13px;font-weight:900;color:var(--sector-medical);">${Utils.money(item.price || 0)}</div></div></div>`;
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 9: ORDERS VIEW
-  // ══════════════════════════════════════════════════════════════
   Router.register('orders', (el) => {
     const user = Auth.getCurrentUser();
-    if (!user) {
-      el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-lock empty-state-icon"></i><p class="empty-state-title">سجل دخول</p><p class="empty-state-desc">تحتاج تسجيل الدخول لعرض طلباتك</p><button class="btn btn-primary" style="margin-top:16px;" onclick="AuthUI.open('login')">دخول</button></div>`;
-      return;
-    }
-
+    if (!user) { el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-lock empty-state-icon"></i><p class="empty-state-title">سجل دخول</p><p class="empty-state-desc">تحتاج تسجيل الدخول لعرض طلباتك</p><button class="btn btn-primary" style="margin-top:16px;" onclick="AuthUI.open('login')">دخول</button></div>`; return; }
     const db = Store.load();
     const myOrders = (db.orders || []).filter(o => o.userId === user.id);
     const myAppts = (db.appointments || []).filter(a => a.patientId === user.id);
     const all = [...myOrders.map(o => ({ ...o, _kind: 'order' })), ...myAppts.map(a => ({ ...a, _kind: 'appt' }))].sort((a, b) => (b.ts || b.createdAt || 0) - (a.ts || a.createdAt || 0));
-
-    if (!all.length) {
-      el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-receipt empty-state-icon"></i><p class="empty-state-title">لا توجد طلبات بعد</p><p class="empty-state-desc">ابدأ بأول خدمة من الرئيسية</p><button class="btn btn-primary" style="margin-top:16px;" onclick="Router.go('home')"><i class="fa-solid fa-house"></i> تصفح الخدمات</button></div>`;
-      return;
-    }
-
+    if (!all.length) { el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-receipt empty-state-icon"></i><p class="empty-state-title">لا توجد طلبات بعد</p><p class="empty-state-desc">ابدأ بأول خدمة من الرئيسية</p><button class="btn btn-primary" style="margin-top:16px;" onclick="Router.go('home')"><i class="fa-solid fa-house"></i> تصفح الخدمات</button></div>`; return; }
     el.innerHTML = `<h2 class="section-title"><i class="fa-solid fa-receipt"></i> كل طلباتي (${all.length})</h2>${all.map(item => item._kind === 'order' ? _renderOrderCard(item) : _renderApptCard(item)).join('')}`;
   });
 
@@ -2061,45 +1931,16 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     const sectorClass = order.sector === 'grocery' ? 'grocery' : order.sector === 'cars' ? 'cars' : order.sector === 'home' ? 'home-services' : 'medical';
     const typeLabels = { grocery: 'سوبر ماركت', cars: 'سيارات', home: 'صيانة' };
     const statusLabels = { pending: 'بانتظار', preparing: 'قيد التجهيز', on_way: 'في الطريق', delivered: 'تم التوصيل', canceled: 'ملغي' };
-    return `
-      <div class="order-card ${sectorClass}">
-        <div class="order-header">
-          <div style="flex:1;min-width:0;">
-            <span class="tag tag-${sectorClass === 'home-services' ? 'home' : sectorClass}" style="margin-bottom:6px;"><i class="fa-solid fa-receipt"></i> ${typeLabels[order.sector] || 'طلب'}</span>
-            <div class="order-title">${Utils.escape(order.storeName || order.service || 'طلب')}</div>
-            <div class="order-meta">${Utils.timeAgo(order.ts || order.createdAt)}</div>
-          </div>
-          <div style="text-align:left;"><div class="order-amount">${Utils.money(order.total || order.price || 0)}</div><div style="font-size:10px;font-weight:900;color:var(--text-muted);margin-top:2px;">${statusLabels[order.status] || order.status}</div></div>
-        </div>
-      </div>
-    `;
+    return `<div class="order-card ${sectorClass}"><div class="order-header"><div style="flex:1;min-width:0;"><span class="tag tag-${sectorClass === 'home-services' ? 'home' : sectorClass}" style="margin-bottom:6px;"><i class="fa-solid fa-receipt"></i> ${typeLabels[order.sector] || 'طلب'}</span><div class="order-title">${Utils.escape(order.storeName || order.service || 'طلب')}</div><div class="order-meta">${Utils.timeAgo(order.ts || order.createdAt)}</div></div><div style="text-align:left;"><div class="order-amount">${Utils.money(order.total || order.price || 0)}</div><div style="font-size:10px;font-weight:900;color:var(--text-muted);margin-top:2px;">${statusLabels[order.status] || order.status}</div></div></div></div>`;
   }
 
   function _renderApptCard(appt) {
-    return `
-      <div class="order-card medical">
-        <div class="order-header">
-          <div style="flex:1;min-width:0;">
-            <span class="tag tag-medical" style="margin-bottom:6px;"><i class="fa-solid fa-stethoscope"></i> طبي</span>
-            <div class="order-title">${Utils.escape(appt.doctorName || 'موعد')}</div>
-            <div class="order-meta">${appt.slot || ''} • ${Utils.fmtDate(appt.date)}</div>
-          </div>
-          <div style="text-align:left;"><div class="order-amount">${Utils.money(appt.price || 0)}</div></div>
-        </div>
-      </div>
-    `;
+    return `<div class="order-card medical"><div class="order-header"><div style="flex:1;min-width:0;"><span class="tag tag-medical" style="margin-bottom:6px;"><i class="fa-solid fa-stethoscope"></i> طبي</span><div class="order-title">${Utils.escape(appt.doctorName || 'موعد')}</div><div class="order-meta">${appt.slot || ''} • ${Utils.fmtDate(appt.date)}</div></div><div style="text-align:left;"><div class="order-amount">${Utils.money(appt.price || 0)}</div></div></div></div>`;
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 10: ACCOUNT VIEW
-  // ══════════════════════════════════════════════════════════════
   Router.register('account', (el) => {
     const user = Auth.getCurrentUser();
-    if (!user) {
-      el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-lock empty-state-icon"></i><p class="empty-state-title">سجل دخول</p><p class="empty-state-desc">تحتاج تسجيل الدخول لعرض حسابك</p><button class="btn btn-primary" style="margin-top:16px;" onclick="AuthUI.open('login')">دخول</button></div>`;
-      return;
-    }
-
+    if (!user) { el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-lock empty-state-icon"></i><p class="empty-state-title">سجل دخول</p><p class="empty-state-desc">تحتاج تسجيل الدخول لعرض حسابك</p><button class="btn btn-primary" style="margin-top:16px;" onclick="AuthUI.open('login')">دخول</button></div>`; return; }
     const db = Store.load();
     const myOrders = (db.orders || []).filter(o => o.userId === user.id);
     const myAppts = (db.appointments || []).filter(a => a.patientId === user.id);
@@ -2121,37 +1962,16 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
           <div class="profile-stat"><div class="profile-stat-value">${user.points || 0}</div><div class="profile-stat-label">نقاط</div></div>
         </div>
       </div>
-
       <h2 class="section-title"><i class="fa-solid fa-gear"></i> إدارة الحساب</h2>
-
-      <div class="settings-item" onclick="Router.go('orders')">
-        <div class="settings-icon" style="background:var(--sector-medical-soft);color:var(--sector-medical);"><i class="fa-solid fa-receipt"></i></div>
-        <div style="flex:1;"><div class="settings-title">طلباتي</div><div class="settings-desc">عرض كل طلباتك السابقة</div></div>
-        <i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i>
-      </div>
-
+      <div class="settings-item" onclick="Router.go('orders')"><div class="settings-icon" style="background:var(--sector-medical-soft);color:var(--sector-medical);"><i class="fa-solid fa-receipt"></i></div><div style="flex:1;"><div class="settings-title">طلباتي</div><div class="settings-desc">عرض كل طلباتك السابقة</div></div><i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i></div>
       ${user.emr ? `<div class="settings-item" onclick="UI.toast('سيتم تفعيل الملف الطبي في PART 5','info')"><div class="settings-icon" style="background:var(--sector-cars-soft);color:var(--sector-cars);"><i class="fa-solid fa-file-medical"></i></div><div style="flex:1;"><div class="settings-title">ملفي الطبي</div><div class="settings-desc">القياسات، الروشتات، السجل الكامل</div></div><i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i></div>` : ''}
-
-      <div class="settings-item" onclick="UI.toast('سيتم تفعيل الإعدادات في PART 15','info')">
-        <div class="settings-icon" style="background:var(--sector-home-soft);color:var(--sector-home);"><i class="fa-solid fa-shield-halved"></i></div>
-        <div style="flex:1;"><div class="settings-title">الخصوصية والأمان</div><div class="settings-desc">كلمة السر، الأجهزة المتصلة</div></div>
-        <i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i>
-      </div>
-
-      <div class="settings-item" onclick="AuthUI._confirmLogout()" style="border-color:rgba(225,29,72,0.3);">
-        <div class="settings-icon" style="background:var(--color-danger-soft);color:var(--color-danger);"><i class="fa-solid fa-right-from-bracket"></i></div>
-        <div style="flex:1;"><div class="settings-title" style="color:var(--color-danger);">تسجيل الخروج</div><div class="settings-desc">الخروج الآمن من الحساب</div></div>
-        <i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i>
-      </div>
-      <p style="text-align:center;font-size:10.5px;color:var(--text-muted);font-weight:700;margin-top:24px;">وصلة v5.0.0 — PART 3/15</p>
+      <div class="settings-item" onclick="UI.toast('سيتم تفعيل الإعدادات في PART 15','info')"><div class="settings-icon" style="background:var(--sector-home-soft);color:var(--sector-home);"><i class="fa-solid fa-shield-halved"></i></div><div style="flex:1;"><div class="settings-title">الخصوصية والأمان</div><div class="settings-desc">كلمة السر، الأجهزة المتصلة</div></div><i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i></div>
+      <div class="settings-item" onclick="AuthUI._confirmLogout()" style="border-color:rgba(225,29,72,0.3);"><div class="settings-icon" style="background:var(--color-danger-soft);color:var(--color-danger);"><i class="fa-solid fa-right-from-bracket"></i></div><div style="flex:1;"><div class="settings-title" style="color:var(--color-danger);">تسجيل الخروج</div><div class="settings-desc">الخروج الآمن من الحساب</div></div><i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i></div>
     `;
   });
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 11: PLACEHOLDER VIEWS
-  // ══════════════════════════════════════════════════════════════
   const placeholders = [
-    { id: 'medical', title: 'القطاع الطبي', part: 'PART 4', sector: 'medical' },
+    { id: 'medical', title: 'القطاع الطبي', part: 'PART 5', sector: 'medical' },
     { id: 'grocery', title: 'سوبر ماركت', part: 'PART 7', sector: 'grocery' },
     { id: 'cars', title: 'خدمات السيارات', part: 'PART 8', sector: 'cars' },
     { id: 'home-services', title: 'الصيانة المنزلية', part: 'PART 8', sector: 'home' },
@@ -2172,40 +1992,24 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
           <h1>${p.title}</h1>
           <p>هذه الشاشة ستُبنى في ${p.part}</p>
         </div>
-        <div class="empty-state">
-          <i class="fa-solid fa-tools empty-state-icon"></i>
-          <p class="empty-state-title">${p.title}</p>
-          <p class="empty-state-desc">جاري تطوير هذه الشاشة — ${p.part}</p>
-          <button class="btn btn-ghost" style="margin-top:16px;" onclick="Router.go('home')"><i class="fa-solid fa-house"></i> العودة للرئيسية</button>
-        </div>
+        <div class="empty-state"><i class="fa-solid fa-tools empty-state-icon"></i><p class="empty-state-title">${p.title}</p><p class="empty-state-desc">جاري تطوير هذه الشاشة — ${p.part}</p><button class="btn btn-ghost" style="margin-top:16px;" onclick="Router.go('home')"><i class="fa-solid fa-house"></i> العودة للرئيسية</button></div>
       `;
     });
   });
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 12: INIT
-  // ══════════════════════════════════════════════════════════════
   function initApp() {
-    renderHeader();
-    renderContextSwitcher();
-    renderTabs();
-
+    renderHeader(); renderContextSwitcher(); renderTabs();
     const user = Auth.getCurrentUser();
     const context = Auth.getCurrentContext();
-
     if (!user) {
       Router.go('home');
       setTimeout(() => { if (!Auth.getCurrentUser()) AuthUI.open('login'); }, 500);
       return;
     }
-
     const defaultViews = { citizen: 'home', doctor: 'clinic', merchant: 'store', staff: 'reception', founder: 'founder' };
     Router.go(defaultViews[context] || 'home');
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 13: EXPOSE GLOBALS
-  // ══════════════════════════════════════════════════════════════
   window.Auth = Auth;
   window.AuthUI = AuthUI;
   window.Router = Router;
@@ -2214,26 +2018,13 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   window.WaslaRender = { header: renderHeader, contextSwitcher: renderContextSwitcher, tabs: renderTabs };
   window.initApp = initApp;
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 14: BOOT
-  // ══════════════════════════════════════════════════════════════
-  function boot() {
-    console.log('%c🔐 [PART 3] Auth + Router + Views READY', 'background:#8B5CF6;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
-    initApp();
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 200));
-  } else {
-    setTimeout(boot, 200);
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(initApp, 200));
+  else setTimeout(initApp, 200);
 
 })();
-</script>
+          </script>
   <!-- ═════════════════════════════════════════════════════════════
-     PART 4/15: WASLA LIVE + AUCTION ENGINES (THE BOMBS) - FIXED
-     - Live Deals Feed (Flash sales, live status)
-     - Auction Engine (Gamified bidding, timers, wallet integration)
+     PART 4/15: LIVE + AUCTION + SOCIAL PROOF ENGINE
 ═════════════════════════════════════════════════════════════ -->
 <style>
 /* Live & Auction Styles */
@@ -2248,7 +2039,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
   100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
-
 .live-card {
   background: linear-gradient(135deg, #1F2937, #111827);
   border-radius: var(--radius-md); padding: 16px;
@@ -2277,43 +2067,62 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px;
   position: relative;
 }
+.auction-item { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
+.auction-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+  flex-shrink: 0;
+}
+.auction-title { font-size: 16px; font-weight: 900; color: var(--text-primary); margin-bottom: 2px; }
+.auction-desc { font-size: 11px; color: var(--text-muted); font-weight: 700; }
+
 .auction-timer {
   display: inline-flex; align-items: center; gap: 4px;
   background: #FEF2F2; color: #DC2626; padding: 4px 8px;
   border-radius: 6px; font-size: 11px; font-weight: 900;
-  position: absolute; top: 16px; left: 16px;
 }
-.auction-item { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; margin-top: 10px; }
-.auction-icon {
-  width: 56px; height: 56px; border-radius: 14px;
-  background: var(--sector-gold-soft); color: var(--sector-gold);
-  display: flex; align-items: center; justify-content: center; font-size: 24px;
-}
-.auction-title { font-size: 16px; font-weight: 900; color: var(--text-primary); }
-.auction-desc { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-top: 2px; }
-
 .auction-bid-box {
   background: var(--bg-muted); border-radius: 10px; padding: 12px;
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
 }
-.auction-current-bid { font-size: 11px; color: var(--text-muted); font-weight: 800; }
-.auction-price { font-size: 20px; font-weight: 900; color: var(--sector-gold); line-height: 1.1; }
-.auction-winner { font-size: 10px; color: var(--sector-cars); font-weight: 800; margin-top: 4px; }
+.auction-current-bid { font-size: 10px; color: var(--text-muted); font-weight: 800; }
+.auction-price { font-size: 22px; font-weight: 900; line-height: 1.1; }
+.auction-winner { font-size: 10px; color: var(--sector-medical); font-weight: 900; margin-top: 4px; }
 
 .bid-btn {
   background: linear-gradient(135deg, #F59E0B, #D97706);
   color: #fff; border: none; border-radius: 8px;
-  padding: 10px 16px; font-size: 13px; font-weight: 900;
-  cursor: pointer; font-family: inherit; width: 100%;
+  padding: 10px 14px; font-size: 12px; font-weight: 900;
+  cursor: pointer; font-family: inherit;
   display: flex; align-items: center; justify-content: center; gap: 6px;
   box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+  transition: transform 0.15s ease;
 }
-.bid-btn:active { transform: scale(0.98); }
+.bid-btn:active { transform: scale(0.97); }
 .bid-btn:disabled { background: var(--text-disabled); box-shadow: none; cursor: not-allowed; }
+
+/* Social Proof Styles */
+.live-viewers-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 9.5px; font-weight: 900; padding: 3px 8px;
+  border-radius: var(--radius-full); background: rgba(5, 150, 105, 0.08);
+  color: var(--sector-medical); border: 1px solid rgba(5, 150, 105, 0.2);
+}
+.live-viewers-badge.fire {
+  background: rgba(234, 88, 12, 0.08); color: var(--sector-grocery); border-color: rgba(234, 88, 12, 0.2);
+}
+.live-viewers-badge .pulse {
+  width: 6px; height: 6px; background: currentColor; border-radius: 50%;
+  animation: live-pulse 1.5s infinite;
+}
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.5); }
+  70% { box-shadow: 0 0 0 5px rgba(5, 150, 105, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+}
 </style>
 
 <script>
-(function WASLA_PART_4_BOMBS_FIXED() {
+(function WASLA_PART_4_BOMBS() {
   'use strict';
 
   if (!window.WaslaCore || !window.Auth || !window.Router) {
@@ -2343,11 +2152,47 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     if (!db.auctions) {
       const now = Date.now();
       db.auctions = [
-        { id: 'a1', title: 'كرتونة خضار مشكل (من طحانوب)', desc: 'طماطم، بطاطس، خيار، فلفل - طازج النهاردة', icon: 'fa-carrot', basePrice: 50, currentPrice: 50, highestBidder: null, endsAt: now + 15 * 60000, status: 'active' },
-        { id: 'a2', title: 'غسيل وتلميع VIP لسيارتك', desc: 'خدمة متكاملة في موقعك', icon: 'fa-car', basePrice: 100, currentPrice: 100, highestBidder: null, endsAt: now + 5 * 60000, status: 'active' },
-        { id: 'a3', title: 'موعد كشف باطنة فاضي (الغد)', desc: 'د. محمد الشريف - فرصة ذهبية', icon: 'fa-stethoscope', basePrice: 150, currentPrice: 150, highestBidder: null, endsAt: now + 25 * 60000, status: 'active' }
+        {
+          id: 'a1', title: 'كرتونة خضار مشكل', desc: 'طماطم، بطاطس، خيار، فلفل - طازج النهاردة',
+          icon: 'fa-carrot', category: 'خضار وفاكهة', 
+          seller: 'مزارع طحانوب', sellerRating: 4.8, location: 'طحانوب',
+          quantity: 15, unit: 'كجم', condition: 'طازج', delivery: 'توصيل +15 ج.م',
+          originalPrice: 150, basePrice: 50, currentPrice: 50, minIncrement: 10,
+          bidsCount: 0, watchers: 12, highestBidder: null, 
+          endsAt: now + 15 * 60000, status: 'active', history: []
+        },
+        {
+          id: 'a2', title: 'غسيل وتلميع VIP', desc: 'خدمة متكاملة في موقعك',
+          icon: 'fa-car', category: 'خدمات سيارات',
+          seller: 'مغسلة وصلة', sellerRating: 4.9, location: 'شبين القناطر',
+          quantity: 1, unit: 'خدمة', condition: 'متاحة', delivery: 'في موقعك',
+          originalPrice: 200, basePrice: 100, currentPrice: 100, minIncrement: 10,
+          bidsCount: 0, watchers: 8, highestBidder: null,
+          endsAt: now + 5 * 60000, status: 'active', history: []
+        },
+        {
+          id: 'a3', title: 'موعد كشف باطنة فاضي', desc: 'د. محمد الشريف - فرصة ذهبية',
+          icon: 'fa-stethoscope', category: 'خدمات طبية',
+          seller: 'عيادة د. محمد الشريف', sellerRating: 4.9, location: 'شارع بورسعيد',
+          quantity: 1, unit: 'موعد', condition: 'متاح (الغد)', delivery: 'في العيادة',
+          originalPrice: 250, basePrice: 150, currentPrice: 150, minIncrement: 10,
+          bidsCount: 0, watchers: 15, highestBidder: null,
+          endsAt: now + 25 * 60000, status: 'active', history: []
+        }
       ];
       changed = true;
+    } else {
+      db.auctions.forEach(a => {
+        if (!a.category) {
+          a.category = a.icon === 'fa-carrot' ? 'خضار وفاكهة' : a.icon === 'fa-car' ? 'خدمات سيارات' : 'خدمات طبية';
+          a.seller = 'بائع وصلة'; a.sellerRating = 4.8; a.location = 'شبين القناطر';
+          a.quantity = a.icon === 'fa-carrot' ? 15 : 1; a.unit = a.icon === 'fa-carrot' ? 'كجم' : 'خدمة';
+          a.originalPrice = (a.currentPrice || a.basePrice) * 2; a.minIncrement = 10;
+          a.condition = 'متاح'; a.delivery = 'توصيل متاح';
+          a.bidsCount = a.bidsCount || 0; a.watchers = a.watchers || 10; a.history = a.history || [];
+          changed = true;
+        }
+      });
     }
 
     if (changed) {
@@ -2430,7 +2275,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         ${auctions.length === 0 ? `<div class="empty-state"><p class="empty-state-desc">لا يوجد مزادات حالياً.. عود قريباً</p></div>` : auctions.map(a => renderAuctionCard(a, user)).join('')}
       </div>
     `;
-
     startAuctionTimers();
   });
 
@@ -2439,154 +2283,179 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     const timeLeft = Math.max(0, a.endsAt - Date.now());
     const mins = Math.floor(timeLeft / 60000);
     const secs = Math.floor((timeLeft % 60000) / 1000);
+    const discount = a.originalPrice ? Math.round(((a.originalPrice - a.currentPrice) / a.originalPrice) * 100) : 0;
+    
+    const catColors = { 'خضار وفاكهة': 'var(--sector-medical)', 'خدمات سيارات': 'var(--sector-cars)', 'خدمات طبية': 'var(--sector-home)' };
+    const catColor = catColors[a.category] || 'var(--sector-gold)';
     
     return `
-      <div class="auction-card" data-auction-id="${a.id}">
-        <div class="auction-timer">
-          <i class="fa-solid fa-clock"></i> <span class="timer-text">${mins}:${String(secs).padStart(2, '0')}</span>
+      <div class="auction-card" data-auction-id="${a.id}" style="border-color:${catColor};">
+        
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div class="auction-timer">
+            <i class="fa-solid fa-clock"></i> <span class="timer-text">${mins}:${String(secs).padStart(2, '0')}</span>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <span class="tag" style="background:${catColor}22; color:${catColor}; border:1px solid ${catColor}44; font-size:9px;">
+              ${a.category}
+            </span>
+            <span class="tag tag-warning" style="font-size:9px;">
+              👁️ ${a.watchers}
+            </span>
+          </div>
         </div>
         
         <div class="auction-item">
-          <div class="auction-icon"><i class="fa-solid ${a.icon}"></i></div>
-          <div>
+          <div class="auction-icon" style="background:${catColor}22; color:${catColor};">
+            <i class="fa-solid ${a.icon}"></i>
+          </div>
+          <div style="flex:1;min-width:0;">
             <div class="auction-title">${Utils.escape(a.title)}</div>
             <div class="auction-desc">${Utils.escape(a.desc)}</div>
+            <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;font-size:10.5px;font-weight:800;color:var(--text-muted);">
+              <span><i class="fa-solid fa-user"></i> ${Utils.escape(a.seller)}</span>
+              <span><i class="fa-solid fa-star" style="color:#F59E0B;"></i> ${a.sellerRating}</span>
+              <span><i class="fa-solid fa-location-dot"></i> ${Utils.escape(a.location)}</span>
+            </div>
           </div>
         </div>
 
-        <div class="auction-bid-box">
-          <div>
-            <div class="auction-current-bid">أعلى مزايدة</div>
-            <div class="auction-price">${Utils.money(a.currentPrice)}</div>
-            ${isWinning ? `<div class="auction-winner">🎉 أنت الأعلى حالياً!</div>` : (a.highestBidder ? `<div class="auction-winner">شخص آخر في المقدمة</div>` : '')}
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;">
+          <div style="background:var(--bg-muted);padding:8px 6px;border-radius:8px;text-align:center;">
+            <div style="font-size:9px;color:var(--text-muted);font-weight:800;">الكمية</div>
+            <div style="font-size:12px;font-weight:900;color:var(--text-primary);">${a.quantity} ${Utils.escape(a.unit)}</div>
           </div>
-          <div style="text-align:center;">
-            <button class="bid-btn" ${!user ? 'disabled' : ''} onclick="AuctionEngine.bid('${a.id}', 10)">
-              <i class="fa-solid fa-plus"></i> زايد بـ 10 ج.م
-            </button>
-            <button class="bid-btn" style="margin-top:6px;background:#fff;color:var(--sector-gold);border:1px solid var(--sector-gold);box-shadow:none;" ${!user ? 'disabled' : ''} onclick="AuctionEngine.bid('${a.id}', 50)">
-              زايد بـ 50 ج.م
-            </button>
+          <div style="background:var(--bg-muted);padding:8px 6px;border-radius:8px;text-align:center;">
+            <div style="font-size:9px;color:var(--text-muted);font-weight:800;">الحالة</div>
+            <div style="font-size:11px;font-weight:900;color:var(--text-primary);">${Utils.escape(a.condition)}</div>
+          </div>
+          <div style="background:var(--bg-muted);padding:8px 6px;border-radius:8px;text-align:center;">
+            <div style="font-size:9px;color:var(--text-muted);font-weight:800;">التوصيل</div>
+            <div style="font-size:10px;font-weight:900;color:var(--text-primary);">${Utils.escape(a.delivery)}</div>
           </div>
         </div>
+
+        <div class="auction-bid-box" style="display:flex;flex-direction:column;align-items:stretch;gap:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="text-align:right;">
+              <div class="auction-current-bid">أعلى مزايدة</div>
+              <div class="auction-price" style="color:${catColor};">${Utils.money(a.currentPrice)}</div>
+              ${isWinning ? `<div class="auction-winner">🎉 أنت الأعلى حالياً!</div>` : ''}
+            </div>
+            <div style="text-align:left;">
+              <div style="font-size:10px;color:var(--text-muted);font-weight:800;">السعر الأصلي</div>
+              <div style="font-size:14px;font-weight:900;color:var(--text-secondary);text-decoration:line-through;">${Utils.money(a.originalPrice)}</div>
+              ${discount > 0 ? `<div style="font-size:10px;color:var(--sector-medical);font-weight:900;">خصم ${discount}%</div>` : ''}
+            </div>
+          </div>
+          
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:10.5px;color:var(--text-muted);font-weight:800;">
+              <i class="fa-solid fa-gavel"></i> ${a.bidsCount} مزايدة
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="bid-btn" style="width:auto;padding:8px 14px;background:linear-gradient(135deg,${catColor},#10B981);" ${!user ? 'disabled' : ''} onclick="AuctionEngine.bid('${a.id}', ${a.minIncrement})">
+                <i class="fa-solid fa-plus"></i> ${a.minIncrement} ج.م
+              </button>
+              <button class="bid-btn" style="width:auto;padding:8px 14px;background:linear-gradient(135deg,var(--sector-gold),#D97706);" ${!user ? 'disabled' : ''} onclick="AuctionEngine.bid('${a.id}', 50)">
+                <i class="fa-solid fa-plus"></i> 50 ج.م
+              </button>
+            </div>
+          </div>
+        </div>
+
+        ${a.history && a.history.length > 0 ? `
+          <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border-default);">
+            <div style="font-size:10px;color:var(--text-muted);font-weight:900;margin-bottom:6px;"><i class="fa-solid fa-clock-rotate-left"></i> آخر المزايدات:</div>
+            ${a.history.slice(-3).reverse().map(h => `
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:10.5px;font-weight:800;padding:3px 0;">
+                <span style="color:var(--text-primary);"><i class="fa-solid fa-user-circle" style="color:${catColor};"></i> ${Utils.escape(h.bidderName)}</span>
+                <span style="color:${catColor};">${Utils.money(h.amount)} · ${Utils.timeAgo(h.ts)}</span>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
       </div>
     `;
   }
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION 4: AUCTION ENGINE LOGIC
+  // SECTION 4: AUCTION ENGINE
   // ══════════════════════════════════════════════════════════════
   window.AuctionEngine = {
     bid(auctionId, amount) {
       const user = window.Auth.getCurrentUser();
       if (!user) return window.AuthUI.open();
-
       const db = Store.load();
       const auction = db.auctions.find(a => a.id === auctionId);
       if (!auction || auction.status !== 'active') return UI.toast('المزاد انتهى', 'error');
-
       const newPrice = auction.currentPrice + amount;
-
-      if ((user.wallet || 0) < newPrice) {
-        return UI.toast('رصيدك غير كافي! اشحن محفظتك عشان تشارك.', 'error');
-      }
+      if ((user.wallet || 0) < newPrice) return UI.toast('رصيدك غير كافي! اشحن محفظتك عشان تشارك.', 'error');
 
       auction.currentPrice = newPrice;
       auction.highestBidder = user.id;
+      auction.bidsCount = (auction.bidsCount || 0) + 1;
+      
+      if (!auction.history) auction.history = [];
+      auction.history.push({ bidderId: user.id, bidderName: user.name.split(' ')[0], amount: newPrice, ts: Date.now() });
       
       Store.save(db);
-
-      EventLog.log('auction_bid', {
-        actorId: user.id,
-        targetId: auctionId,
-        payload: { amount, newPrice }
-      });
-
+      EventLog.log('auction_bid', { actorId: user.id, targetId: auctionId, payload: { amount, newPrice, bidsCount: auction.bidsCount } });
       UI.toast(`مزايدتك نجحت! أنت الأعلى الآن بـ ${Utils.money(newPrice)}`, 'success');
-      
       window.Router.go('auction');
     },
 
     processExpired() {
       const db = Store.load();
       let changed = false;
-
       (db.auctions || []).forEach(a => {
         if (a.status === 'active' && a.endsAt <= Date.now()) {
-          a.status = 'ended';
-          changed = true;
-          
+          a.status = 'ended'; changed = true;
           if (a.highestBidder) {
             const winner = db.users.find(u => u.id === a.highestBidder);
             if (winner && (winner.wallet || 0) >= a.currentPrice) {
               winner.wallet -= a.currentPrice;
-              
               db.notifications = db.notifications || [];
-              db.notifications.push({
-                id: Utils.id('notif'),
-                userId: winner.id,
-                text: `🎉 مبروك! لقد فزت في المزاد: ${a.title} بـ ${Utils.money(a.currentPrice)}`,
-                read: false, ts: Date.now()
-              });
+              db.notifications.push({ id: Utils.id('notif'), userId: winner.id, text: `🎉 مبروك! لقد فزت في المزاد: ${a.title} بـ ${Utils.money(a.currentPrice)}`, read: false, ts: Date.now() });
             }
           }
         }
       });
-
-      if (changed) {
-        Store.save(db);
-        if (Utils.$('#view-auction')) window.Router.go('auction');
-      }
+      if (changed) { Store.save(db); if (Utils.$('#view-auction')) window.Router.go('auction'); }
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 5: TIMERS
-  // ══════════════════════════════════════════════════════════════
   let auctionTimerInterval = null;
-
   function startAuctionTimers() {
     if (auctionTimerInterval) clearInterval(auctionTimerInterval);
-    
     auctionTimerInterval = setInterval(() => {
       const cards = Utils.$$('.auction-card');
       if (cards.length === 0) return;
-
       cards.forEach(card => {
         const auctionId = card.getAttribute('data-auction-id');
         const db = Store.load();
         const auction = db.auctions.find(a => a.id === auctionId);
         if (!auction) return;
-
         const timeLeft = Math.max(0, auction.endsAt - Date.now());
         const mins = Math.floor(timeLeft / 60000);
         const secs = Math.floor((timeLeft % 60000) / 1000);
-        
         const timerText = card.querySelector('.timer-text');
-        if (timerText) {
-          timerText.textContent = `${mins}:${String(secs).padStart(2, '0')}`;
-        }
-
+        if (timerText) timerText.textContent = `${mins}:${String(secs).padStart(2, '0')}`;
         if (timeLeft === 0) {
           card.style.opacity = '0.5';
-          const btn = card.querySelector('.bid-btn');
-          if (btn) btn.disabled = true;
+          card.querySelectorAll('.bid-btn').forEach(btn => btn.disabled = true);
         }
       });
-      
       if (Math.random() < 0.2) window.AuctionEngine.processExpired();
     }, 1000);
   }
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION 6: UI INTEGRATION (Home & Header) - FIXED
+  // SECTION 5: HOME INTEGRATION & SOCIAL PROOF
   // ══════════════════════════════════════════════════════════════
-  
-  // 1. Override Home to inject bombs
   const originalRenderHome = window.Router.registry['home'];
   window.Router.register('home', (el) => {
     originalRenderHome.call(window.Router, el);
-
     const db = Store.load();
     const liveCount = (db.liveDeals || []).length;
     const activeAuctions = (db.auctions || []).filter(a => a.status === 'active').length;
@@ -2594,31 +2463,28 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     const bombsHTML = `
       <h2 class="section-title" style="margin-top:20px;"><i class="fa-solid fa-bomb" style="color:#EF4444;"></i> مفاجآت وصلة</h2>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
-        
         <div class="sector-card" style="background:linear-gradient(135deg,#1F2937,#111827);color:#fff;border:none;position:relative;overflow:hidden;" onclick="Router.go('live')">
           <div class="live-indicator" style="position:absolute;top:10px;right:10px;"><i class="fa-solid fa-circle" style="font-size:6px;"></i> بث</div>
           <div class="sector-card-icon" style="background:rgba(239,68,68,0.2);color:#F87171;"><i class="fa-solid fa-satellite-dish"></i></div>
           <h3 class="sector-card-title" style="color:#fff;">وصلة لايف</h3>
           <p class="sector-card-desc" style="color:#D1D5DB;">${liveCount} عروض لحظية</p>
         </div>
-
         <div class="sector-card" style="background:linear-gradient(135deg,#78350F,#D97706);color:#fff;border:none;" onclick="Router.go('auction')">
           <div class="sector-card-icon" style="background:rgba(255,255,255,0.2);color:#fff;"><i class="fa-solid fa-gavel"></i></div>
           <h3 class="sector-card-title" style="color:#fff;">وصلة مزاد</h3>
           <p class="sector-card-desc" style="color:#FEF3C7;">${activeAuctions} مزادات شغالة</p>
         </div>
-
       </div>
     `;
-
     const grid = el.querySelector('div[style*="grid-template-columns"]');
-    if (grid) {
-      grid.insertAdjacentHTML('afterend', bombsHTML);
-    }
+    if (grid) grid.insertAdjacentHTML('afterend', bombsHTML);
   });
 
-  // 2. Header Injection via MutationObserver (Fixes Login/Logout issue)
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 6: OBSERVERS (Header Button + Social Proof)
+  // ══════════════════════════════════════════════════════════════
   const observer = new MutationObserver(() => {
+    // 1. إضافة زر اللايف في الهيدر
     const headerActions = Utils.$('#header-actions');
     if (headerActions && window.Auth.getCurrentUser() && !headerActions.querySelector('.live-btn')) {
       const liveBtn = document.createElement('button');
@@ -2626,39 +2492,74 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       liveBtn.innerHTML = `<i class="fa-solid fa-satellite-dish" style="color:#F87171;"></i>`;
       liveBtn.onclick = () => window.Router.go('live');
       liveBtn.title = "وصلة لايف";
-      
       const notifBtn = headerActions.querySelector('.icon-btn');
       if (notifBtn) headerActions.insertBefore(liveBtn, notifBtn);
       else headerActions.appendChild(liveBtn);
     }
+
+    // 2. إضافة شارات المشاهدين (Social Proof)
+    function getStableRandom(id, base = 5, range = 20) {
+      let hash = 0; const str = String(id);
+      for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0; return base + (Math.abs(hash) % range);
+    }
+
+    Utils.$$('.doctor-card').forEach(card => {
+      if (!card.querySelector('.live-viewers-badge')) {
+        const docName = card.querySelector('.doctor-name')?.textContent.trim() || 'doc';
+        const viewers = getStableRandom(docName, 4, 12);
+        const infoBox = card.querySelector('.doctor-info');
+        if (infoBox) infoBox.insertAdjacentHTML('beforeend', `<div class="live-viewers-badge" style="margin-top:6px;"><span class="pulse"></span> ${viewers} يتصفحون العيادة الآن</div>`);
+      }
+    });
+
+    Utils.$$('.merchant-card').forEach(card => {
+      if (!card.querySelector('.live-viewers-badge')) {
+        const storeName = card.querySelector('.merchant-name')?.textContent.trim() || 'store';
+        const actionCount = getStableRandom(storeName, 6, 15);
+        const metaBox = card.querySelector('.merchant-stats');
+        if (metaBox) metaBox.insertAdjacentHTML('afterend', `<div class="live-viewers-badge fire" style="margin-top:8px;"><i class="fa-solid fa-fire"></i> ${actionCount} طلبوا من هنا النهاردة</div>`);
+      }
+    });
+
+    Utils.$$('.service-card').forEach(card => {
+      if (!card.querySelector('.live-viewers-badge')) {
+        const serviceName = card.querySelector('.service-card-name')?.textContent.trim() || 'service';
+        const actionCount = getStableRandom(serviceName, 3, 10);
+        const infoBox = card.querySelector('.service-card-info');
+        if (infoBox) infoBox.insertAdjacentHTML('beforeend', `<div class="live-viewers-badge fire" style="margin-top:6px;"><i class="fa-solid fa-bolt"></i> ${actionCount} طلبوا الخدمة اليوم</div>`);
+      }
+    });
+
+    Utils.$$('.sector-card').forEach(card => {
+      if (card.classList.contains('sector-card') && !card.querySelector('.live-viewers-badge') && !card.querySelector('style[data-injected="true"]')) {
+        const sectorTitle = card.querySelector('.sector-card-title')?.textContent.trim() || 'sector';
+        const activeCount = getStableRandom(sectorTitle, 10, 30);
+        const desc = card.querySelector('.sector-card-desc');
+        if (desc && !desc.parentElement.querySelector('style[data-injected="true"]')) {
+          const badge = document.createElement('div');
+          badge.className = 'sector-live-badge';
+          badge.style.cssText = 'font-size:9px; color:var(--text-muted); margin-top:4px; font-weight:800;';
+          badge.innerHTML = `<i class="fa-solid fa-circle" style="color:var(--sector-medical); font-size:5px; margin-left:2px;"></i> ${activeCount} نشط الآن`;
+          desc.insertAdjacentElement('afterend', badge);
+          const styleTag = document.createElement('style');
+          styleTag.setAttribute('data-injected', 'true');
+          badge.appendChild(styleTag);
+        }
+      }
+    });
   });
 
-  // Start observing header after a short delay to let PART 3 render it first
-  setTimeout(() => {
-    const targetNode = Utils.$('#header-actions');
-    if (targetNode) {
-      observer.observe(targetNode, { childList: true });
-    }
-  }, 500);
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 7: BOOT
-  // ══════════════════════════════════════════════════════════════
   function boot() {
     extendSchema();
-    
-    // Force re-render of home to show bombs immediately on load
-    if (window.Router && window.Router.current === 'home') {
-      window.Router.go('home');
-    }
-
-    console.log('%c💣 [PART 4] LIVE & AUCTION ENGINES READY', 'background:#EF4444;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
+    if (window.Router && window.Router.current === 'home') window.Router.go('home');
+    const targetNode = Utils.$('body');
+    if (targetNode) observer.observe(targetNode, { childList: true, subtree: true });
+    console.log('%c💣 [PART 4] LIVE, AUCTION & SOCIAL PROOF READY', 'background:#EF4444;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
   }
 
-  // Run after PART 3 has finished its initial render (200ms)
   setTimeout(boot, 400);
 
 })();
 </script>
-</body>
 </html>
