@@ -1538,5 +1538,1212 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
 })();
 </script>
+  <!-- ═════════════════════════════════════════════════════════════
+     PART 3/15: AUTH + ROUTER + HEADER + CONTEXT SWITCHER + VIEWS
+     - Auth (login/register/logout encrypted)
+     - Session management
+     - Router (dynamic view navigation)
+     - Dynamic Header + Tabs by role/context
+     - Context Switcher (طبيب ↔ مواطن)
+     - Home / Orders / Account views
+     - Placeholders for future parts
+═════════════════════════════════════════════════════════════ -->
+<style>
+/* PART 3 Styles */
+.header-user-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+.header-user-btn:hover { background: rgba(255, 255, 255, 0.16); }
+.header-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sector-medical), #10B981);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.header-user-name {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 500px) {
+  .header-user-name { display: none; }
+  .header-user-btn { padding: 3px; border-radius: 50%; }
+}
+.auth-demo-box {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--bg-muted);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.9;
+}
+.auth-demo-box strong { color: var(--text-primary); }
+.auth-demo-box code {
+  background: #fff;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 10.5px;
+}
+.notif-item {
+  padding: 12px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  border-right: 3px solid var(--border-default);
+}
+.notif-item.unread {
+  background: var(--sector-medical-soft);
+  border-right-color: var(--sector-medical);
+}
+.notif-time {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.notif-text {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.sector-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  padding: 20px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.sector-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+}
+.sector-card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin: 0 auto 10px;
+}
+.sector-card-title {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.sector-card-desc {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  font-weight: 700;
+  line-height: 1.4;
+}
+</style>
+
+<script>
+(function WASLA_PART_3() {
+  'use strict';
+
+  if (!window.WaslaCore) {
+    console.error('❌ PART 3 requires PART 2 — WaslaCore not found');
+    return;
+  }
+
+  const { Utils, UI, Crypto, EventLog, Store } = window.WaslaCore;
+  const SESSION_KEY = 'wasla_v5_session';
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 1: AUTH
+  // ══════════════════════════════════════════════════════════════
+  const Auth = {
+    login(phone, password) {
+      const db = Store.load();
+      if (!db) return { ok: false, msg: 'قاعدة البيانات غير متاحة' };
+
+      const user = db.users.find(u => u.phone === phone);
+      if (!user) {
+        EventLog.log('login_failed', { phone, reason: 'not_found' });
+        return { ok: false, msg: 'رقم الموبايل غير مسجل' };
+      }
+
+      if (user.status === 'suspended') {
+        return { ok: false, msg: 'الحساب موقوف — تواصل مع الإدارة' };
+      }
+
+      if (!Crypto.verify(password, user.passHash, user.salt)) {
+        EventLog.log('login_failed', { phone, reason: 'wrong_password', actorId: user.id });
+        return { ok: false, msg: 'كلمة السر غير صحيحة' };
+      }
+
+      const session = {
+        userId: user.id,
+        context: user.currentContext || (user.contexts && user.contexts[0]) || 'citizen',
+        loginAt: Date.now()
+      };
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+      EventLog.log('login_success', {
+        actorId: user.id,
+        phone,
+        role: user.role,
+        context: session.context
+      });
+
+      return { ok: true, user };
+    },
+
+    register(name, phone, password) {
+      const db = Store.load();
+      if (!db) return { ok: false, msg: 'قاعدة البيانات غير متاحة' };
+
+      if (db.users.find(u => u.phone === phone)) {
+        return { ok: false, msg: 'الرقم مسجل بالفعل — سجل دخول' };
+      }
+
+      const { hash, salt } = Crypto.create(password);
+
+      const newUser = {
+        id: 'u-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        phone,
+        name: name.trim(),
+        passHash: hash,
+        salt,
+        role: 'patient',
+        contexts: ['citizen'],
+        currentContext: 'citizen',
+        wallet: 0,
+        points: 0,
+        waslaId: 'WASLA-' + Math.floor(10000 + Math.random() * 90000),
+        emr: {
+          blood: 'غير محدد',
+          allergies: [],
+          chronic: [],
+          vitals: [],
+          currentMeds: [],
+          pastMeds: [],
+          labs: [],
+          visitNotes: []
+        },
+        familyIds: [],
+        successfulOrders: 0,
+        cancellations: 0,
+        status: 'active',
+        createdAt: Date.now()
+      };
+
+      db.users.push(newUser);
+      Store.save(db);
+
+      const session = {
+        userId: newUser.id,
+        context: 'citizen',
+        loginAt: Date.now()
+      };
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+      EventLog.log('register', {
+        actorId: newUser.id,
+        phone,
+        name,
+        waslaId: newUser.waslaId
+      });
+
+      return { ok: true, user: newUser };
+    },
+
+    logout() {
+      const session = this.getSession();
+      if (session) {
+        EventLog.log('logout', { actorId: session.userId });
+      }
+      sessionStorage.removeItem(SESSION_KEY);
+    },
+
+    getSession() {
+      try {
+        const raw = sessionStorage.getItem(SESSION_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (_) { return null; }
+    },
+
+    getCurrentUser() {
+      const session = this.getSession();
+      if (!session) return null;
+      const db = Store.load();
+      if (!db) return null;
+      return db.users.find(u => u.id === session.userId) || null;
+    },
+
+    getCurrentContext() {
+      const session = this.getSession();
+      return session ? session.context : null;
+    },
+
+    switchContext(newContext) {
+      const session = this.getSession();
+      if (!session) return false;
+      const user = this.getCurrentUser();
+      if (!user) return false;
+      const contexts = user.contexts || ['citizen'];
+      if (!contexts.includes(newContext)) return false;
+
+      session.context = newContext;
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+      const db = Store.load();
+      const u = db.users.find(x => x.id === user.id);
+      if (u) {
+        u.currentContext = newContext;
+        Store.save(db);
+      }
+
+      EventLog.log('context_switched', {
+        actorId: user.id,
+        context: newContext
+      });
+
+      return true;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 2: AUTH UI
+  // ══════════════════════════════════════════════════════════════
+  const AuthUI = {
+    open(mode = 'login') {
+      const body = Utils.$('#modal-auth-body');
+      if (!body) return;
+      body.innerHTML = `
+        <button class="modal-close" onclick="UI.modal('modal-auth', { open: false })">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        ${mode === 'login' ? this._loginForm() : this._registerForm()}
+      `;
+      UI.modal('modal-auth', { open: true });
+      setTimeout(() => {
+        const first = body.querySelector('input');
+        if (first) first.focus();
+      }, 200);
+    },
+
+    _loginForm() {
+      return `
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="width:56px;height:56px;background:linear-gradient(135deg,var(--sector-medical),#10B981);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin:0 auto 10px;box-shadow:0 8px 22px rgba(5,150,105,0.35);">
+            <i class="fa-solid fa-heart-pulse"></i>
+          </div>
+          <h3 style="font-size:18px;font-weight:900;">دخول وصلة</h3>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:4px;">مرحباً بك مجدداً</p>
+        </div>
+        <label class="label">رقم الموبايل</label>
+        <input type="tel" id="login-phone" class="input" placeholder="01xxxxxxxxx" maxlength="11" style="margin-bottom:12px;" autocomplete="tel" />
+        <label class="label">كلمة السر</label>
+        <input type="password" id="login-pass" class="input" placeholder="********" style="margin-bottom:16px;" autocomplete="current-password" />
+        <button class="btn btn-primary btn-block" onclick="AuthUI._submitLogin()">
+          <i class="fa-solid fa-right-to-bracket"></i> دخول
+        </button>
+        <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:16px;font-weight:700;">
+          ليس لديك حساب؟
+          <a style="color:var(--sector-medical);font-weight:900;cursor:pointer;" onclick="AuthUI.open('register')">سجّل الآن</a>
+        </p>
+        <div class="auth-demo-box">
+          <strong>🔑 حسابات تجريبية:</strong><br>
+          👑 مؤسس: <code>01068990089</code> / <code>As123789456*</code><br>
+          🧑 مريض: <code>01000000001</code> / <code>123456</code><br>
+          🩺 طبيب: <code>01000000002</code> / <code>123456</code><br>
+          🎧 موظف: <code>01000000003</code> / <code>123456</code><br>
+          🏪 تاجر: <code>01000000004</code> / <code>123456</code>
+        </div>
+      `;
+    },
+
+    _registerForm() {
+      return `
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="width:56px;height:56px;background:linear-gradient(135deg,var(--sector-medical),#10B981);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin:0 auto 10px;box-shadow:0 8px 22px rgba(5,150,105,0.35);">
+            <i class="fa-solid fa-user-plus"></i>
+          </div>
+          <h3 style="font-size:18px;font-weight:900;">حساب جديد</h3>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:4px;">انضم لشبكة وصلة</p>
+        </div>
+        <label class="label">الاسم الثلاثي</label>
+        <input type="text" id="reg-name" class="input" placeholder="محمد أحمد علي" style="margin-bottom:12px;" autocomplete="name" />
+        <label class="label">رقم الموبايل</label>
+        <input type="tel" id="reg-phone" class="input" placeholder="01xxxxxxxxx" maxlength="11" style="margin-bottom:12px;" autocomplete="tel" />
+        <label class="label">كلمة السر</label>
+        <input type="password" id="reg-pass" class="input" placeholder="6 أحرف على الأقل" style="margin-bottom:16px;" autocomplete="new-password" />
+        <button class="btn btn-primary btn-block" onclick="AuthUI._submitRegister()">
+          <i class="fa-solid fa-user-plus"></i> إنشاء الحساب
+        </button>
+        <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:16px;font-weight:700;">
+          لديك حساب؟
+          <a style="color:var(--sector-medical);font-weight:900;cursor:pointer;" onclick="AuthUI.open('login')">دخول</a>
+        </p>
+      `;
+    },
+
+    async _submitLogin() {
+      const phone = Utils.$('#login-phone').value.trim();
+      const pass = Utils.$('#login-pass').value;
+
+      if (!Utils.isValidPhone(phone)) {
+        UI.toast('رقم موبايل غير صحيح (01xxxxxxxxx)', 'error');
+        return;
+      }
+      if (!pass) {
+        UI.toast('أدخل كلمة السر', 'error');
+        return;
+      }
+
+      UI.loading('جاري الدخول...');
+      await Utils.sleep(250);
+
+      const result = Auth.login(phone, pass);
+      UI.stopLoading();
+
+      if (result.ok) {
+        UI.modal('modal-auth', { open: false });
+        UI.toast(`مرحباً ${result.user.name.split(' ')[0]} 👋`);
+        initApp();
+      } else {
+        UI.toast(result.msg, 'error');
+      }
+    },
+
+    async _submitRegister() {
+      const name = Utils.$('#reg-name').value.trim();
+      const phone = Utils.$('#reg-phone').value.trim();
+      const pass = Utils.$('#reg-pass').value;
+
+      if (!Utils.isValidName(name)) {
+        UI.toast('أدخل الاسم الثلاثي كاملاً', 'error');
+        return;
+      }
+      if (!Utils.isValidPhone(phone)) {
+        UI.toast('رقم موبايل غير صحيح', 'error');
+        return;
+      }
+      if (pass.length < 6) {
+        UI.toast('كلمة السر 6 أحرف على الأقل', 'error');
+        return;
+      }
+
+      UI.loading('جاري إنشاء الحساب...');
+      await Utils.sleep(250);
+
+      const result = Auth.register(name, phone, pass);
+      UI.stopLoading();
+
+      if (result.ok) {
+        UI.modal('modal-auth', { open: false });
+        UI.toast(`مرحباً ${name.split(' ')[0]} 🎉 حسابك جاهز`);
+        initApp();
+      } else {
+        UI.toast(result.msg, 'error');
+      }
+    },
+
+    async _confirmLogout() {
+      const ok = await UI.confirm(
+        'هل تريد الخروج من وصلة؟',
+        { title: 'تسجيل الخروج', confirmText: 'خروج', cancelText: 'إلغاء', danger: true }
+      );
+      if (!ok) return;
+      Auth.logout();
+      UI.toast('تم تسجيل الخروج', 'info');
+      initApp();
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 3: ROUTER
+  // ══════════════════════════════════════════════════════════════
+  const Router = {
+    registry: {},
+    current: null,
+    _sectorViews: ['medical', 'grocery', 'cars', 'home-services'],
+
+    register(viewName, rendererFn) {
+      this.registry[viewName] = rendererFn;
+      return this;
+    },
+
+    go(viewName, params) {
+      if (!this.registry[viewName]) {
+        console.warn(`[Router] View "${viewName}" not registered`);
+        this._renderNotFound(viewName);
+        return;
+      }
+
+      this.current = viewName;
+      const container = Utils.$('#main-container');
+      if (!container) return;
+
+      container.innerHTML = '';
+      const viewEl = document.createElement('div');
+      viewEl.id = 'view-' + viewName;
+      viewEl.className = 'view active';
+      container.appendChild(viewEl);
+
+      try {
+        this.registry[viewName](viewEl, params || {});
+      } catch (err) {
+        console.error('[Router] Render error:', err);
+        viewEl.innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-triangle-exclamation empty-state-icon" style="color:var(--color-danger);"></i>
+            <p class="empty-state-title">حدث خطأ</p>
+            <p class="empty-state-desc">تعذر تحميل الصفحة</p>
+          </div>
+        `;
+      }
+
+      this.updateActiveTab(viewName);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+
+    updateActiveTab(viewName) {
+      const isSector = this._sectorViews.includes(viewName);
+      const activeTab = isSector ? 'home' : viewName;
+
+      Utils.$$('.app-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.tab === activeTab);
+      });
+    },
+
+    _renderNotFound(viewName) {
+      const container = Utils.$('#main-container');
+      if (!container) return;
+      container.innerHTML = `
+        <div class="empty-state">
+          <i class="fa-solid fa-circle-question empty-state-icon"></i>
+          <p class="empty-state-title">صفحة غير موجودة</p>
+          <p class="empty-state-desc">${Utils.escape(viewName)}</p>
+          <button class="btn btn-primary" style="margin-top:16px;" onclick="Router.go('home')">الرئيسية</button>
+        </div>
+      `;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 4: RENDER HEADER
+  // ══════════════════════════════════════════════════════════════
+  function renderHeader() {
+    const el = Utils.$('#header-actions');
+    if (!el) return;
+
+    const user = Auth.getCurrentUser();
+
+    if (!user) {
+      el.innerHTML = `
+        <button class="icon-btn" onclick="AuthUI.open('login')" title="دخول" style="width:auto;padding:0 14px;gap:6px;font-size:12px;font-weight:900;">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span>دخول</span>
+        </button>
+      `;
+      return;
+    }
+
+    const db = Store.load();
+    const unread = (db.notifications || []).filter(n => n.userId === user.id && !n.read).length;
+
+    el.innerHTML = `
+      <button class="icon-btn" onclick="NotificationsPanel.open()" title="الإشعارات">
+        <i class="fa-solid fa-bell"></i>
+        ${unread > 0 ? `<span class="badge">${unread > 9 ? '9+' : unread}</span>` : ''}
+      </button>
+      <button class="header-user-btn" onclick="Router.go('account')" title="حسابي">
+        <div class="header-user-avatar">${Utils.escape(user.name.charAt(0))}</div>
+        <span class="header-user-name">${Utils.escape(user.name.split(' ')[0])}</span>
+      </button>
+      <button class="icon-btn" onclick="AuthUI._confirmLogout()" title="خروج">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </button>
+    `;
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 5: CONTEXT SWITCHER
+  // ══════════════════════════════════════════════════════════════
+  const ContextSwitcher = {
+    toggle() {
+      const user = Auth.getCurrentUser();
+      if (!user) return;
+      const contexts = user.contexts || ['citizen'];
+      if (contexts.length < 2) return;
+      const current = Auth.getCurrentContext() || 'citizen';
+      const other = contexts.find(c => c !== current);
+      if (other) this.switchTo(other);
+    },
+
+    async switchTo(context) {
+      const ok = Auth.switchContext(context);
+      if (!ok) {
+        UI.toast('لا يمكن التبديل لهذا الوضع', 'error');
+        return;
+      }
+
+      UI.toast('تم تبديل الوضع ✓', 'info');
+      renderHeader();
+      renderContextSwitcher();
+      renderTabs();
+
+      const defaultViews = {
+        citizen: 'home',
+        doctor: 'clinic',
+        merchant: 'store',
+        staff: 'reception',
+        founder: 'founder'
+      };
+      Router.go(defaultViews[context] || 'home');
+    }
+  };
+
+  function renderContextSwitcher() {
+    const switcher = Utils.$('#context-switcher');
+    if (!switcher) return;
+
+    const user = Auth.getCurrentUser();
+    if (!user) {
+      switcher.classList.remove('visible');
+      return;
+    }
+
+    const contexts = user.contexts || ['citizen'];
+    if (contexts.length < 2) {
+      switcher.classList.remove('visible');
+      return;
+    }
+
+    switcher.classList.add('visible');
+
+    const current = Auth.getCurrentContext() || 'citizen';
+    const labels = {
+      citizen: { label: 'مواطن', icon: 'fa-user', color: '#0284C7' },
+      doctor: { label: 'عيادتي', icon: 'fa-user-doctor', color: '#059669' },
+      merchant: { label: 'متجري', icon: 'fa-store', color: '#EA580C' },
+      staff: { label: 'الاستقبال', icon: 'fa-headset', color: '#7C3AED' },
+      founder: { label: 'الإدارة', icon: 'fa-crown', color: '#D97706' }
+    };
+
+    const curr = labels[current] || labels.citizen;
+    const other = contexts.find(c => c !== current);
+    const otherLabel = labels[other] || labels.citizen;
+
+    const iconEl = Utils.$('#context-icon');
+    const labelEl = Utils.$('#context-label');
+    const nameEl = Utils.$('#context-name');
+    const btnEl = Utils.$('#context-switch-btn');
+
+    if (iconEl) {
+      iconEl.innerHTML = `<i class="fa-solid ${curr.icon}"></i>`;
+      iconEl.style.background = curr.color + '22';
+      iconEl.style.color = curr.color;
+    }
+    if (labelEl) labelEl.textContent = 'الوضع الحالي';
+    if (nameEl) nameEl.textContent = curr.label;
+    if (btnEl) {
+      btnEl.innerHTML = `<i class="fa-solid ${otherLabel.icon}"></i> <span>التبديل إلى ${otherLabel.label}</span>`;
+      btnEl.onclick = () => ContextSwitcher.switchTo(other);
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 6: RENDER TABS
+  // ══════════════════════════════════════════════════════════════
+  function renderTabs() {
+    const tabsEl = Utils.$('#app-tabs');
+    if (!tabsEl) return;
+
+    const user = Auth.getCurrentUser();
+    const context = Auth.getCurrentContext() || 'citizen';
+
+    if (!user) {
+      tabsEl.innerHTML = `
+        <button class="app-tab active" data-tab="home" onclick="Router.go('home')">
+          <i class="fa-solid fa-house"></i><span>الرئيسية</span>
+        </button>
+        <button class="app-tab" data-tab="account" onclick="Router.go('account')">
+          <i class="fa-solid fa-user"></i><span>حسابي</span>
+        </button>
+      `;
+      return;
+    }
+
+    const tabsByContext = {
+      citizen: [
+        { id: 'home', label: 'الرئيسية', icon: 'fa-house' },
+        { id: 'orders', label: 'طلباتي', icon: 'fa-receipt' },
+        { id: 'account', label: 'حسابي', icon: 'fa-user' }
+      ],
+      doctor: [
+        { id: 'clinic', label: 'عيادتي', icon: 'fa-user-doctor' },
+        { id: 'my-patients', label: 'مرضاي', icon: 'fa-users' },
+        { id: 'account', label: 'حسابي', icon: 'fa-user' }
+      ],
+      merchant: [
+        { id: 'store', label: 'متجري', icon: 'fa-store' },
+        { id: 'store-orders', label: 'الطلبات', icon: 'fa-box' },
+        { id: 'account', label: 'حسابي', icon: 'fa-user' }
+      ],
+      staff: [
+        { id: 'reception', label: 'الاستقبال', icon: 'fa-headset' },
+        { id: 'schedule', label: 'الجدول', icon: 'fa-calendar' },
+        { id: 'account', label: 'حسابي', icon: 'fa-user' }
+      ],
+      founder: [
+        { id: 'founder', label: 'الإدارة', icon: 'fa-crown' },
+        { id: 'account', label: 'حسابي', icon: 'fa-user' }
+      ]
+    };
+
+    const tabs = tabsByContext[context] || tabsByContext.citizen;
+
+    tabsEl.innerHTML = tabs.map(t => `
+      <button class="app-tab" data-tab="${t.id}" onclick="Router.go('${t.id}')">
+        <i class="fa-solid ${t.icon}"></i>
+        <span>${t.label}</span>
+      </button>
+    `).join('');
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 7: NOTIFICATIONS PANEL
+  // ══════════════════════════════════════════════════════════════
+  const NotificationsPanel = {
+    open() {
+      const user = Auth.getCurrentUser();
+      if (!user) return;
+
+      const db = Store.load();
+      const notifs = (db.notifications || [])
+        .filter(n => n.userId === user.id)
+        .sort((a, b) => (b.ts || 0) - (a.ts || 0))
+        .slice(0, 30);
+
+      const body = Utils.$('#modal-generic-body');
+      body.innerHTML = `
+        <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <h3 style="font-size:16px;font-weight:900;margin-bottom:16px;">
+          <i class="fa-solid fa-bell" style="color:var(--sector-medical);"></i>
+          الإشعارات
+        </h3>
+        ${notifs.length === 0 ? `
+          <div class="empty-state" style="padding:32px 16px;">
+            <i class="fa-solid fa-bell-slash empty-state-icon"></i>
+            <p class="empty-state-desc">لا توجد إشعارات</p>
+          </div>
+        ` : notifs.map(n => `
+          <div class="notif-item ${!n.read ? 'unread' : ''}">
+            <div class="notif-time">${Utils.timeAgo(n.ts)}</div>
+            <div class="notif-text">${Utils.escape(n.text)}</div>
+          </div>
+        `).join('')}
+      `;
+      UI.modal('modal-generic', { open: true });
+
+      const freshDb = Store.load();
+      freshDb.notifications = (freshDb.notifications || []).map(n =>
+        n.userId === user.id ? { ...n, read: true } : n
+      );
+      Store.save(freshDb);
+      renderHeader();
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 8: HOME VIEW
+  // ══════════════════════════════════════════════════════════════
+  function _sectorCard(sector, title, desc, icon) {
+    const sectorVar = sector === 'home-services' ? 'home' : sector;
+    return `
+      <div class="sector-card" onclick="Router.go('${sector}')">
+        <div class="sector-card-icon" style="background:var(--sector-${sectorVar}-soft);color:var(--sector-${sectorVar});border:1px solid var(--sector-${sectorVar}-border);">
+          <i class="fa-solid ${icon}"></i>
+        </div>
+        <h3 class="sector-card-title">${title}</h3>
+        <p class="sector-card-desc">${desc}</p>
+      </div>
+    `;
+  }
+
+  Router.register('home', (el) => {
+    const user = Auth.getCurrentUser();
+    const db = Store.load();
+
+    const firstName = user ? user.name.split(' ')[0] : '';
+    const greeting = user ? `أهلاً ${firstName}` : 'أهلاً بك في وصلة';
+
+    let activitySection = '';
+    if (user) {
+      const myOrders = (db.orders || []).filter(o => o.userId === user.id).slice(-3).reverse();
+      const myAppts = (db.appointments || []).filter(a => a.patientId === user.id).slice(-3).reverse();
+      const recent = [
+        ...myOrders.map(o => ({ ...o, _kind: 'order' })),
+        ...myAppts.map(a => ({ ...a, _kind: 'appt' }))
+      ].sort((a, b) => (b.ts || b.createdAt || 0) - (a.ts || a.createdAt || 0)).slice(0, 3);
+
+      if (recent.length > 0) {
+        activitySection = `
+          <h2 class="section-title" style="margin-top:20px;">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            نشاطك الأخير
+          </h2>
+          ${recent.map(item => _renderMiniActivity(item)).join('')}
+        `;
+      }
+    }
+
+    el.innerHTML = `
+      <div class="sector-hero" data-sector="medical">
+        <span class="sector-hero-badge">
+          <i class="fa-solid fa-house"></i>
+          ${greeting}
+        </span>
+        <h1>كل خدمات شبين القناطر.. في مكان واحد</h1>
+        <p>صحة، تسوق، سيارات، وصيانة — اختر القطاع الذي تحتاجه</p>
+      </div>
+
+      <h2 class="section-title">
+        <i class="fa-solid fa-grid-2"></i>
+        اختر الخدمة
+      </h2>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+        ${_sectorCard('medical', 'القطاع الطبي', 'أطباء • حجز • EMR', 'fa-stethoscope')}
+        ${_sectorCard('grocery', 'سوبر ماركت', 'تسوق • توصيل', 'fa-basket-shopping')}
+        ${_sectorCard('cars', 'خدمات السيارات', 'فنيون متنقلون', 'fa-car')}
+        ${_sectorCard('home-services', 'الصيانة المنزلية', 'سباك • كهربائي', 'fa-screwdriver-wrench')}
+      </div>
+
+      ${!user ? `
+        <div class="card" style="margin-top:20px;background:linear-gradient(135deg,#FEF3C7,#FDE68A);border-color:#F59E0B;">
+          <div style="text-align:center;">
+            <i class="fa-solid fa-star" style="font-size:28px;color:#D97706;margin-bottom:8px;"></i>
+            <h3 style="font-size:14px;font-weight:900;color:#78350F;margin-bottom:4px;">جرب وصلة مجاناً</h3>
+            <p style="font-size:11.5px;color:#92400E;font-weight:700;margin-bottom:12px;">سجل حسابك واحصل على خصم أول كشف</p>
+            <button class="btn btn-primary" onclick="AuthUI.open('register')">
+              <i class="fa-solid fa-user-plus"></i> إنشاء حساب
+            </button>
+          </div>
+        </div>
+      ` : ''}
+
+      ${activitySection}
+    `;
+  });
+
+  function _renderMiniActivity(item) {
+    if (item._kind === 'order') {
+      const sectorClass = item.sector === 'grocery' ? 'grocery' : item.sector === 'cars' ? 'cars' : item.sector === 'home' ? 'home-services' : 'medical';
+      const statusLabels = {
+        pending: 'بانتظار',
+        preparing: 'قيد التجهيز',
+        on_way: 'في الطريق',
+        delivered: 'تم التوصيل',
+        canceled: 'ملغي'
+      };
+      return `
+        <div class="order-card ${sectorClass}" style="padding:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:12.5px;font-weight:900;color:var(--text-primary);">${Utils.escape(item.storeName || item.service || 'طلب')}</div>
+              <div style="font-size:10.5px;color:var(--text-muted);font-weight:700;margin-top:2px;">${statusLabels[item.status] || item.status}</div>
+            </div>
+            <div style="font-size:13px;font-weight:900;color:var(--sector-medical);">${Utils.money(item.total || item.price || 0)}</div>
+          </div>
+        </div>
+      `;
+    }
+    return `
+      <div class="order-card medical" style="padding:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:12.5px;font-weight:900;color:var(--text-primary);">${Utils.escape(item.doctorName || 'موعد')}</div>
+            <div style="font-size:10.5px;color:var(--text-muted);font-weight:700;margin-top:2px;">${item.slot || ''} • ${Utils.fmtDate(item.date)}</div>
+          </div>
+          <div style="font-size:13px;font-weight:900;color:var(--sector-medical);">${Utils.money(item.price || 0)}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 9: ORDERS VIEW
+  // ══════════════════════════════════════════════════════════════
+  Router.register('orders', (el) => {
+    const user = Auth.getCurrentUser();
+    if (!user) {
+      el.innerHTML = `
+        <div class="empty-state">
+          <i class="fa-solid fa-lock empty-state-icon"></i>
+          <p class="empty-state-title">سجل دخول</p>
+          <p class="empty-state-desc">تحتاج تسجيل الدخول لعرض طلباتك</p>
+          <button class="btn btn-primary" style="margin-top:16px;" onclick="AuthUI.open('login')">دخول</button>
+        </div>
+      `;
+      return;
+    }
+
+    const db = Store.load();
+    const myOrders = (db.orders || []).filter(o => o.userId === user.id);
+    const myAppts = (db.appointments || []).filter(a => a.patientId === user.id);
+
+    const all = [
+      ...myOrders.map(o => ({ ...o, _kind: 'order' })),
+      ...myAppts.map(a => ({ ...a, _kind: 'appt' }))
+    ].sort((a, b) => (b.ts || b.createdAt || 0) - (a.ts || a.createdAt || 0));
+
+    if (!all.length) {
+      el.innerHTML = `
+        <div class="empty-state">
+          <i class="fa-solid fa-receipt empty-state-icon"></i>
+          <p class="empty-state-title">لا توجد طلبات بعد</p>
+          <p class="empty-state-desc">ابدأ بأول خدمة من الرئيسية</p>
+          <button class="btn btn-primary" style="margin-top:16px;" onclick="Router.go('home')">
+            <i class="fa-solid fa-house"></i> تصفح الخدمات
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    el.innerHTML = `
+      <h2 class="section-title">
+        <i class="fa-solid fa-receipt"></i>
+        كل طلباتي (${all.length})
+      </h2>
+      ${all.map(item => item._kind === 'order' ? _renderOrderCard(item) : _renderApptCard(item)).join('')}
+    `;
+  });
+
+  function _renderOrderCard(order) {
+    const sectorClass = order.sector === 'grocery' ? 'grocery' : order.sector === 'cars' ? 'cars' : order.sector === 'home' ? 'home-services' : 'medical';
+    const typeLabels = { grocery: 'سوبر ماركت', cars: 'سيارات', home: 'صيانة' };
+    const statusLabels = {
+      pending: 'بانتظار',
+      preparing: 'قيد التجهيز',
+      on_way: 'في الطريق',
+      delivered: 'تم التوصيل',
+      canceled: 'ملغي'
+    };
+    return `
+      <div class="order-card ${sectorClass}">
+        <div class="order-header">
+          <div style="flex:1;min-width:0;">
+            <span class="tag tag-${sectorClass === 'home-services' ? 'home' : sectorClass}" style="margin-bottom:6px;">
+              <i class="fa-solid fa-receipt"></i> ${typeLabels[order.sector] || 'طلب'}
+            </span>
+            <div class="order-title">${Utils.escape(order.storeName || order.service || 'طلب')}</div>
+            <div class="order-meta">${Utils.timeAgo(order.ts || order.createdAt)}</div>
+          </div>
+          <div style="text-align:left;">
+            <div class="order-amount">${Utils.money(order.total || order.price || 0)}</div>
+            <div style="font-size:10px;font-weight:900;color:var(--text-muted);margin-top:2px;">${statusLabels[order.status] || order.status}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function _renderApptCard(appt) {
+    return `
+      <div class="order-card medical">
+        <div class="order-header">
+          <div style="flex:1;min-width:0;">
+            <span class="tag tag-medical" style="margin-bottom:6px;">
+              <i class="fa-solid fa-stethoscope"></i> طبي
+            </span>
+            <div class="order-title">${Utils.escape(appt.doctorName || 'موعد')}</div>
+            <div class="order-meta">${appt.slot || ''} • ${Utils.fmtDate(appt.date)}</div>
+          </div>
+          <div style="text-align:left;">
+            <div class="order-amount">${Utils.money(appt.price || 0)}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 10: ACCOUNT VIEW
+  // ══════════════════════════════════════════════════════════════
+  Router.register('account', (el) => {
+    const user = Auth.getCurrentUser();
+    if (!user) {
+      el.innerHTML = `
+        <div class="empty-state">
+          <i class="fa-solid fa-lock empty-state-icon"></i>
+          <p class="empty-state-title">سجل دخول</p>
+          <p class="empty-state-desc">تحتاج تسجيل الدخول لعرض حسابك</p>
+          <button class="btn btn-primary" style="margin-top:16px;" onclick="AuthUI.open('login')">دخول</button>
+        </div>
+      `;
+      return;
+    }
+
+    const db = Store.load();
+    const context = Auth.getCurrentContext() || 'citizen';
+    const myOrders = (db.orders || []).filter(o => o.userId === user.id);
+    const myAppts = (db.appointments || []).filter(a => a.patientId === user.id);
+    const completedOrders = myOrders.filter(o => o.status === 'delivered' || o.status === 'completed');
+
+    el.innerHTML = `
+      <div class="profile-header">
+        <div style="display:flex;align-items:center;gap:14px;position:relative;">
+          <div class="profile-avatar">${Utils.escape(user.name.charAt(0))}</div>
+          <div style="flex:1;min-width:0;">
+            <h2 style="font-size:17px;font-weight:900;margin-bottom:2px;">${Utils.escape(user.name)}</h2>
+            <p style="font-size:12px;font-weight:700;opacity:0.9;">${Utils.escape(user.phone)}</p>
+            <p style="font-size:10.5px;font-weight:800;opacity:0.85;margin-top:4px;">
+              <i class="fa-solid fa-id-card"></i> ${Utils.escape(user.waslaId || '—')}
+            </p>
+          </div>
+        </div>
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <div class="profile-stat-value">${myOrders.length + myAppts.length}</div>
+            <div class="profile-stat-label">إجمالي الطلبات</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-value">${completedOrders.length}</div>
+            <div class="profile-stat-label">مكتملة</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-value">${user.points || 0}</div>
+            <div class="profile-stat-label">نقاط</div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title">
+        <i class="fa-solid fa-gear"></i>
+        إدارة الحساب
+      </h2>
+
+      <div class="settings-item" onclick="Router.go('orders')">
+        <div class="settings-icon" style="background:var(--sector-medical-soft);color:var(--sector-medical);">
+          <i class="fa-solid fa-receipt"></i>
+        </div>
+        <div style="flex:1;">
+          <div class="settings-title">طلباتي</div>
+          <div class="settings-desc">عرض كل طلباتك السابقة</div>
+        </div>
+        <i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i>
+      </div>
+
+      ${user.emr ? `
+        <div class="settings-item" onclick="UI.toast('سيتم تفعيل الملف الطبي في PART 5','info')">
+          <div class="settings-icon" style="background:var(--sector-cars-soft);color:var(--sector-cars);">
+            <i class="fa-solid fa-file-medical"></i>
+          </div>
+          <div style="flex:1;">
+            <div class="settings-title">ملفي الطبي</div>
+            <div class="settings-desc">القياسات، الروشتات، السجل الكامل</div>
+          </div>
+          <i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i>
+        </div>
+      ` : ''}
+
+      <div class="settings-item" onclick="UI.toast('سيتم تفعيل الإعدادات في PART 15','info')">
+        <div class="settings-icon" style="background:var(--sector-home-soft);color:var(--sector-home);">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div style="flex:1;">
+          <div class="settings-title">الخصوصية والأمان</div>
+          <div class="settings-desc">كلمة السر، الأجهزة المتصلة</div>
+        </div>
+        <i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i>
+      </div>
+
+      <div class="settings-item" onclick="AuthUI._confirmLogout()" style="border-color:rgba(225,29,72,0.3);">
+        <div class="settings-icon" style="background:var(--color-danger-soft);color:var(--color-danger);">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </div>
+        <div style="flex:1;">
+          <div class="settings-title" style="color:var(--color-danger);">تسجيل الخروج</div>
+          <div class="settings-desc">الخروج الآمن من الحساب</div>
+        </div>
+        <i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i>
+      </div>
+
+      <p style="text-align:center;font-size:10.5px;color:var(--text-muted);font-weight:700;margin-top:24px;">
+        وصلة v5.0.0 — PART 3/15
+      </p>
+    `;
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 11: PLACEHOLDER VIEWS
+  // ══════════════════════════════════════════════════════════════
+  const placeholders = [
+    { id: 'medical', title: 'القطاع الطبي', part: 'PART 4', sector: 'medical' },
+    { id: 'grocery', title: 'سوبر ماركت', part: 'PART 7', sector: 'grocery' },
+    { id: 'cars', title: 'خدمات السيارات', part: 'PART 8', sector: 'cars' },
+    { id: 'home-services', title: 'الصيانة المنزلية', part: 'PART 8', sector: 'home' },
+    { id: 'clinic', title: 'عيادتي', part: 'PART 6', sector: 'medical' },
+    { id: 'my-patients', title: 'مرضاي', part: 'PART 6', sector: 'medical' },
+    { id: 'store', title: 'متجري', part: 'PART 11', sector: 'grocery' },
+    { id: 'store-orders', title: 'طلبات المتجر', part: 'PART 11', sector: 'grocery' },
+    { id: 'reception', title: 'الاستقبال', part: 'PART 12', sector: 'cars' },
+    { id: 'schedule', title: 'جدول اليوم', part: 'PART 12', sector: 'cars' },
+    { id: 'founder', title: 'الإدارة', part: 'PART 13', sector: 'founder' }
+  ];
+
+  placeholders.forEach(p => {
+    Router.register(p.id, (el) => {
+      el.innerHTML = `
+        <div class="sector-hero" data-sector="${p.sector}">
+          <span class="sector-hero-badge">
+            <i class="fa-solid fa-hourglass-half"></i>
+            قيد الإنشاء
+          </span>
+          <h1>${p.title}</h1>
+          <p>هذه الشاشة ستُبنى في ${p.part}</p>
+        </div>
+        <div class="empty-state">
+          <i class="fa-solid fa-tools empty-state-icon"></i>
+          <p class="empty-state-title">${p.title}</p>
+          <p class="empty-state-desc">جاري تطوير هذه الشاشة — ${p.part}</p>
+          <button class="btn btn-ghost" style="margin-top:16px;" onclick="Router.go('home')">
+            <i class="fa-solid fa-house"></i> العودة للرئيسية
+          </button>
+        </div>
+      `;
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 12: PATCH CONTEXTS (for existing users)
+  // ══════════════════════════════════════════════════════════════
+  function patchContexts() {
+    const db = Store.load();
+    if (!db) return;
+    let changed = false;
+
+    db.users.forEach(u => {
+      if (!u.contexts) {
+        u.contexts = ['citizen'];
+        changed = true;
+      }
+      if (u.role === 'doctor' && !u.contexts.includes('doctor')) {
+        u.contexts.push('doctor');
+        if (!u.currentContext) u.currentContext = 'doctor';
+        changed = true;
+      }
+      if (u.role === 'merchant' && !u.contexts.includes('merchant')) {
+        u.contexts.push('merchant');
+        if (!u.currentContext) u.currentContext = 'merchant';
+        changed = true;
+      }
+      if (u.role === 'staff' && !u.contexts.includes('staff')) {
+        u.contexts.push('staff');
+        if (!u.currentContext) u.currentContext = 'staff';
+        changed = true;
+      }
+      if (u.role === 'founder' && !u.contexts.includes('founder')) {
+        u.contexts.push('founder');
+        if (!u.currentContext) u.currentContext = 'founder';
+        changed = true;
+      }
+    });
+
+    if (changed) Store.save(db);
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 13: INIT
+  // ══════════════════════════════════════════════════════════════
+  function initApp() {
+    patchContexts();
+    renderHeader();
+    renderContextSwitcher();
+    renderTabs();
+
+    const user = Auth.getCurrentUser();
+    const context = Auth.getCurrentContext();
+
+    if (!user) {
+      Router.go('home');
+      setTimeout(() => {
+        if (!Auth.getCurrentUser()) {
+          AuthUI.open('login');
+        }
+      }, 500);
+      return;
+    }
+
+    const defaultViews = {
+      citizen: 'home',
+      doctor: 'clinic',
+      merchant: 'store',
+      staff: 'reception',
+      founder: 'founder'
+    };
+    Router.go(defaultViews[context] || 'home');
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 14: EXPOSE GLOBALS
+  // ══════════════════════════════════════════════════════════════
+  window.Auth = Auth;
+  window.AuthUI = AuthUI;
+  window.Router = Router;
+  window.NotificationsPanel = NotificationsPanel;
+  window.ContextSwitcher = ContextSwitcher;
+  window.WaslaRender = {
+    header: renderHeader,
+    contextSwitcher: renderContextSwitcher,
+    tabs: renderTabs
+  };
+  window.initApp = initApp;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 15: BOOT
+  // ══════════════════════════════════════════════════════════════
+  function boot() {
+    console.log('%c🔐 PART 3/15: AUTH + ROUTER + VIEWS READY',
+      'background:#0284C7;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
+    initApp();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 150));
+  } else {
+    setTimeout(boot, 150);
+  }
+
+})();
+</script>
 </body>
 </html>
