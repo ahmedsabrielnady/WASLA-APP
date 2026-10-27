@@ -125,10 +125,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   padding: 1px 6px; border-radius: var(--radius-xs);
   margin-right: 4px; vertical-align: middle;
 }
-.brand-text p {
-  font-size: 10px; color: rgba(255, 255, 255, 0.55);
-  font-weight: 600; margin-top: 2px;
-}
+.brand-text p { font-size: 10px; color: rgba(255, 255, 255, 0.55); font-weight: 600; margin-top: 2px; }
 .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
 .app-tabs-wrapper {
   background: #fff; border-bottom: 1px solid var(--border-default);
@@ -146,8 +143,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   color: var(--text-muted); font-family: var(--font-family);
   font-weight: 800; font-size: 12.5px;
   display: flex; flex-direction: column; align-items: center; gap: 4px;
-  cursor: pointer; position: relative;
-  transition: color 0.2s ease; min-width: 78px;
+  cursor: pointer; position: relative; transition: color 0.2s ease; min-width: 78px;
 }
 .app-tab i { font-size: 17px; }
 .app-tab::after {
@@ -325,12 +321,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   display: block; font-size: 11px; font-weight: 800;
   color: var(--text-secondary); margin-bottom: 6px;
 }
-.search-input-wrapper { position: relative; }
-.search-input-wrapper i {
-  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-  color: var(--text-muted); font-size: 13px; pointer-events: none;
-}
-.search-input-wrapper .input { padding-right: 40px; }
 .chip {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 14px; border-radius: var(--radius-full);
@@ -406,114 +396,14 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 .toast.error { border-right-color: var(--color-danger); }
 .toast.warning { border-right-color: var(--color-warning); }
 .toast.info { border-right-color: var(--color-info); }
-.toast.success { border-right-color: var(--color-success); }
 @keyframes toastSlide {
   from { opacity: 0; transform: translateX(30px); }
   to { opacity: 1; transform: translateX(0); }
 }
 .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
-.empty-state-icon {
-  font-size: 44px; color: var(--border-strong);
-  margin-bottom: 14px; display: block;
-}
-.empty-state-title {
-  font-size: var(--fs-md); font-weight: 900;
-  color: var(--text-primary); margin-bottom: 4px;
-}
+.empty-state-icon { font-size: 44px; color: var(--border-strong); margin-bottom: 14px; display: block; }
+.empty-state-title { font-size: var(--fs-md); font-weight: 900; color: var(--text-primary); margin-bottom: 4px; }
 .empty-state-desc { font-size: var(--fs-sm); color: var(--text-muted); }
-.video-overlay {
-  position: fixed; inset: 0; background: #000;
-  z-index: 500; display: none; flex-direction: column;
-}
-.video-overlay.open { display: flex; }
-.video-topbar {
-  background: var(--brand-ink); color: #fff;
-  padding: 12px 16px; display: flex;
-  align-items: center; justify-content: space-between; gap: 10px;
-}
-.video-frame-container { flex: 1; position: relative; }
-.video-frame { width: 100%; height: 100%; border: none; background: #000; }
-.profile-header {
-  background: linear-gradient(135deg, #064E3B, var(--sector-medical) 55%, #10B981);
-  color: #fff; border-radius: var(--radius-lg);
-  padding: 20px; margin-bottom: 16px;
-  position: relative; overflow: hidden;
-}
-.profile-header::before {
-  content: ''; position: absolute; top: -50%; right: -30%;
-  width: 300px; height: 300px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent 65%);
-  border-radius: 50%; pointer-events: none;
-}
-.profile-avatar {
-  width: 64px; height: 64px; border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22);
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 26px; font-weight: 900; flex-shrink: 0;
-}
-.profile-stats {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 8px; margin-top: 16px;
-}
-.profile-stat {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius-sm);
-  padding: 10px; text-align: center;
-}
-.profile-stat-value { font-size: 18px; font-weight: 900; line-height: 1.1; }
-.profile-stat-label {
-  font-size: 10px; font-weight: 800;
-  opacity: 0.85; margin-top: 4px;
-}
-.settings-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px; background: var(--bg-card);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-default);
-  margin-bottom: 8px; cursor: pointer;
-  transition: all 0.15s ease;
-}
-.settings-item:hover {
-  border-color: var(--sector-medical);
-  background: var(--sector-medical-soft);
-}
-.settings-icon {
-  width: 38px; height: 38px; border-radius: var(--radius-sm);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; flex-shrink: 0;
-}
-.settings-title {
-  font-size: 13px; font-weight: 900; color: var(--text-primary);
-}
-.settings-desc {
-  font-size: 11px; color: var(--text-muted);
-  font-weight: 700; margin-top: 2px;
-}
-.order-card {
-  background: var(--bg-card); border-radius: var(--radius-md);
-  border: 1px solid var(--border-default);
-  padding: 14px; margin-bottom: 10px;
-  border-right: 4px solid var(--sector-medical);
-}
-.order-card.grocery { border-right-color: var(--sector-grocery); }
-.order-card.cars { border-right-color: var(--sector-cars); }
-.order-card.home-services { border-right-color: var(--sector-home); }
-.order-card.medical { border-right-color: var(--sector-medical); }
-.order-header {
-  display: flex; justify-content: space-between;
-  align-items: flex-start; gap: 10px;
-  margin-bottom: 10px; flex-wrap: wrap;
-}
-.order-title {
-  font-size: 14px; font-weight: 900;
-  color: var(--text-primary); margin-bottom: 4px;
-}
-.order-meta { font-size: 11.5px; color: var(--text-muted); font-weight: 700; }
-.order-amount {
-  font-size: 16px; font-weight: 900;
-  color: var(--sector-medical); text-align: left;
-}
 @media (max-width: 640px) {
   .brand-text p { display: none; }
   .top-bar { display: none; }
@@ -528,12 +418,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   .modal { padding: 20px; border-radius: var(--radius-md); }
   .toast-container { bottom: 16px; right: 8px; left: 8px; }
 }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
 :focus-visible { outline: 2px solid var(--sector-medical); outline-offset: 2px; }
 </style>
 </head>
@@ -544,11 +428,11 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   <div class="top-bar" id="top-bar">
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
       <span class="top-bar-chip"><i class="fa-solid fa-bolt" style="color:#FBBF24;"></i> منصة وصلة — شبين القناطر</span>
-      <span class="top-bar-chip" id="topbar-live-counter"><i class="fa-solid fa-users" style="color:#34D399;"></i> <span id="topbar-users-count">0</span> مستخدم</span>
+      <span class="top-bar-chip" id="topbar-live-counter"><i class="fa-solid fa-users" style="color:#34D399;"></i> <span id="topbar-users-count">...</span> مستخدم</span>
     </div>
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
       <span class="top-bar-chip"><i class="fa-solid fa-phone"></i> 01068990089</span>
-      <span class="top-bar-chip"><i class="fa-solid fa-shield-halved" style="color:#34D399;"></i> نظام آمن</span>
+      <span class="top-bar-chip" id="topbar-status"><i class="fa-solid fa-circle-notch fa-spin" style="color:#FBBF24;"></i> جاري التحميل...</span>
     </div>
   </div>
 
@@ -574,7 +458,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
           <div class="context-name" id="context-name">—</div>
         </div>
       </div>
-      <button class="context-switch-btn" id="context-switch-btn" onclick="ContextSwitcher.toggle()">
+      <button class="context-switch-btn" id="context-switch-btn">
         <i class="fa-solid fa-arrows-rotate"></i>
         <span>تبديل</span>
       </button>
@@ -583,22 +467,32 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
   <div class="app-tabs-wrapper">
     <nav class="app-tabs" id="app-tabs">
-      <button class="app-tab active" data-tab="home" onclick="Router.go('home')">
+      <button class="app-tab active" data-tab="home">
         <i class="fa-solid fa-house"></i>
         <span>الرئيسية</span>
       </button>
-      <button class="app-tab" data-tab="orders" onclick="Router.go('orders')">
+      <button class="app-tab" data-tab="orders">
         <i class="fa-solid fa-receipt"></i>
         <span>طلباتي</span>
       </button>
-      <button class="app-tab" data-tab="account" onclick="Router.go('account')">
+      <button class="app-tab" data-tab="account">
         <i class="fa-solid fa-user"></i>
         <span>حسابي</span>
       </button>
     </nav>
   </div>
 
-  <main class="app-main" id="main-container"></main>
+  <main class="app-main" id="main-container">
+    <div style="text-align:center;padding:60px 20px;">
+      <div style="font-size:56px;color:var(--border-strong);margin-bottom:16px;">
+        <i class="fa-solid fa-link"></i>
+      </div>
+      <h2 style="font-size:20px;font-weight:900;color:var(--text-primary);margin-bottom:8px;">جاري تجهيز المنصة...</h2>
+      <p style="font-size:13px;color:var(--text-muted);font-weight:700;">
+        لو الشاشة دي فضلت ثابتة، افتح Console (F12) وابعتلنا الأخطاء
+      </p>
+    </div>
+  </main>
 
 </div>
 
@@ -627,30 +521,25 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   </div>
 </div>
 
-<div class="video-overlay" id="video-overlay">
-  <div class="video-topbar">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <i class="fa-solid fa-video" style="color:#34D399;"></i>
-      <span id="video-title" style="font-weight:900;font-size:13px;">استشارة فيديو</span>
-    </div>
-    <button class="btn btn-danger btn-sm" onclick="VideoModule.close()">
-      <i class="fa-solid fa-phone-slash"></i>
-      <span>إنهاء</span>
-    </button>
-  </div>
-  <div class="video-frame-container">
-    <iframe class="video-frame" id="video-frame" allow="camera; microphone; fullscreen; display-capture"></iframe>
-  </div>
-</div>
-
 <div class="toast-container" id="toast-container"></div>
-<!-- ═════════════════════════════════════════════════════════════
-     PART 2/15: CORE SYSTEMS
-     Utils + Crypto + EventLog + DB + Migration + Boot
-═════════════════════════════════════════════════════════════ -->
+
 <script>
+/* ══════════════════════════════════════════════════════════════════
+   WASLA v5.0.0 — PART 2/15: CORE SYSTEMS
+   Utils + Crypto + EventLog + DB + Migration + Boot
+   ══════════════════════════════════════════════════════════════════
+   تحسينات على النسخة السابقة:
+   - WaslaCore متاح فوراً حتى لو boot() فشلت
+   - try/catch شامل مع رسائل واضحة
+   - فحص صحة DB وإنشاء جديد لو تالف
+   - Visual status في الـ topbar
+   - diagnoseWasla() للتشخيص
+   ══════════════════════════════════════════════════════════════════ */
+
 (function WASLA_PART_2() {
   'use strict';
+
+  console.log('%c🌱 [PART 2] بدء التحميل...', 'color:#0284C7;font-weight:900');
 
   const VERSION = '5.0.0';
   const DB_KEY = 'wasla_v5_db';
@@ -669,7 +558,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     number: (n) => Number(n || 0).toLocaleString('ar-EG'),
     today: () => new Date().toISOString().split('T')[0],
     now: () => Date.now(),
-
     fmtDate: (iso) => {
       if (!iso) return '—';
       const d = new Date(iso);
@@ -677,18 +565,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
       return `${days[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
     },
-
     fmtTime: (ts) => new Date(ts).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
-
-    fmtDateTime: (ts) => `${Utils.fmtDate(new Date(ts).toISOString())} · ${Utils.fmtTime(ts)}`,
-
-    dayKey: (iso) => ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][new Date(iso).getDay()],
-
-    dayArabic: (k) => ({
-      sunday: 'الأحد', monday: 'الاثنين', tuesday: 'الثلاثاء',
-      wednesday: 'الأربعاء', thursday: 'الخميس', friday: 'الجمعة', saturday: 'السبت'
-    }[k] || ''),
-
     timeAgo: (ts) => {
       const s = Math.floor((Date.now() - ts) / 1000);
       if (s < 60) return 'الآن';
@@ -697,24 +574,12 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       if (s < 604800) return `قبل ${Math.floor(s / 86400)} ي`;
       return `قبل ${Math.floor(s / 604800)} أسبوع`;
     },
-
     isValidPhone: (phone) => /^01[0-9]{9}$/.test(String(phone || '').trim()),
     isValidName: (name) => name && String(name).trim().split(/\s+/).length >= 2,
-
     escape: (str) => String(str || '').replace(/[&<>"']/g, c => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c])),
-
     sleep: (ms) => new Promise(r => setTimeout(r, ms)),
-
-    debounce: (fn, ms = 300) => {
-      let t;
-      return function (...args) {
-        clearTimeout(t);
-        t = setTimeout(() => fn.apply(this, args), ms);
-      };
-    },
-
     timeToMin: (slot) => {
       const m = String(slot).match(/(\d{1,2}):(\d{2})\s*(م|ص|pm|am)?/i);
       if (!m) return 0;
@@ -728,7 +593,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   };
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION 2: UI (Toast + Modal + Confirm + Loading)
+  // SECTION 2: UI
   // ══════════════════════════════════════════════════════════════
   const UI = {
     toast(message, type = 'success', duration = 3200) {
@@ -737,10 +602,8 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       const el = document.createElement('div');
       el.className = `toast ${type}`;
       const icons = {
-        success: 'fa-circle-check',
-        error: 'fa-circle-exclamation',
-        warning: 'fa-triangle-exclamation',
-        info: 'fa-circle-info'
+        success: 'fa-circle-check', error: 'fa-circle-exclamation',
+        warning: 'fa-triangle-exclamation', info: 'fa-circle-info'
       };
       el.innerHTML = `<i class="fa-solid ${icons[type] || icons.success}"></i><span>${Utils.escape(message)}</span>`;
       container.appendChild(el);
@@ -751,27 +614,22 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         setTimeout(() => el.remove(), 320);
       }, duration);
     },
-
     modal(id, { open = true } = {}) {
       const el = Utils.$(`#${id}`);
       if (!el) return;
       el.classList.toggle('open', !!open);
     },
-
     closeAllModals() {
       Utils.$$('.modal-overlay.open').forEach(m => m.classList.remove('open'));
     },
-
     loading(text = 'جاري التحميل...') {
       const el = Utils.$('#loading-text');
       if (el) el.textContent = text;
       UI.modal('modal-loading', { open: true });
     },
-
     stopLoading() {
       UI.modal('modal-loading', { open: false });
     },
-
     confirm(message, { title = 'تأكيد', confirmText = 'نعم', cancelText = 'إلغاء', danger = false } = {}) {
       return new Promise((resolve) => {
         const body = Utils.$('#modal-confirm-body');
@@ -793,7 +651,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   };
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION 3: CRYPTO (SHA-256 + Salt)
+  // SECTION 3: CRYPTO (SHA-256)
   // ══════════════════════════════════════════════════════════════
   const Crypto = {
     _sha256(str) {
@@ -844,34 +702,34 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       }
       return H.map(x => x.toString(16).padStart(8, '0')).join('');
     },
-
     salt() {
       const arr = new Uint8Array(16);
-      if (window.crypto && window.crypto.getRandomValues) {
-        window.crypto.getRandomValues(arr);
-      } else {
-        for (let i = 0; i < 16; i++) arr[i] = Math.floor(Math.random() * 256);
-      }
+      try {
+        if (window.crypto && window.crypto.getRandomValues) {
+          window.crypto.getRandomValues(arr);
+          return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+      } catch (_) {}
+      for (let i = 0; i < 16; i++) arr[i] = Math.floor(Math.random() * 256);
       return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
     },
-
     hash(password, salt) {
       return this._sha256(`${password}::${salt}`);
     },
-
     create(password) {
       const salt = this.salt();
       return { hash: this.hash(password, salt), salt };
     },
-
     verify(password, storedHash, storedSalt) {
       if (!storedHash || !storedSalt) return false;
-      return this.hash(password, storedSalt) === storedHash;
+      try {
+        return this.hash(password, storedSalt) === storedHash;
+      } catch (_) { return false; }
     }
   };
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION 4: EVENT LOG (append-only, hash-chained)
+  // SECTION 4: EVENT LOG
   // ══════════════════════════════════════════════════════════════
   const EventLog = {
     _load() {
@@ -880,7 +738,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         return raw ? JSON.parse(raw) : [];
       } catch (_) { return []; }
     },
-
     _save(events) {
       try {
         const trimmed = events.length > 8000 ? events.slice(-8000) : events;
@@ -891,29 +748,27 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         } catch (__) {}
       }
     },
-
     log(type, payload = {}) {
-      const events = this._load();
-      const last = events[events.length - 1];
-      const prevHash = last ? last.hash : '0'.repeat(64);
-      const ts = Date.now();
-      const body = { type, payload, ts, prevHash };
-      const hash = Crypto._sha256(JSON.stringify(body));
-      const event = {
-        seq: events.length + 1,
-        type,
-        payload,
-        ts,
-        prevHash,
-        hash,
-        actorId: payload.actorId || null,
-        targetId: payload.targetId || null
-      };
-      events.push(event);
-      this._save(events);
-      return event;
+      try {
+        const events = this._load();
+        const last = events[events.length - 1];
+        const prevHash = last ? last.hash : '0'.repeat(64);
+        const ts = Date.now();
+        const body = { type, payload, ts, prevHash };
+        const hash = Crypto._sha256(JSON.stringify(body));
+        const event = {
+          seq: events.length + 1, type, payload, ts, prevHash, hash,
+          actorId: payload.actorId || null,
+          targetId: payload.targetId || null
+        };
+        events.push(event);
+        this._save(events);
+        return event;
+      } catch (e) {
+        console.warn('[EventLog] فشل التسجيل:', e);
+        return null;
+      }
     },
-
     query({ type, actorId, targetId, limit = 100 } = {}) {
       let events = this._load();
       if (type) events = events.filter(e => e.type === type);
@@ -921,7 +776,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       if (targetId) events = events.filter(e => e.targetId === targetId);
       return events.slice(-limit).reverse();
     },
-
     verifyChain() {
       const events = this._load();
       for (let i = 1; i < events.length; i++) {
@@ -931,12 +785,11 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       }
       return { ok: true, count: events.length };
     },
-
     count() { return this._load().length; }
   };
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION 5: STORE (DB Layer)
+  // SECTION 5: STORE
   // ══════════════════════════════════════════════════════════════
   const Store = {
     _read(key, fallback = null) {
@@ -945,17 +798,15 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         return raw ? JSON.parse(raw) : fallback;
       } catch (_) { return fallback; }
     },
-
     _write(key, value) {
       try {
         localStorage.setItem(key, JSON.stringify(value));
         return true;
       } catch (e) {
-        console.error('Storage write failed:', e);
+        console.error('[Store] فشل الحفظ:', e);
         return false;
       }
     },
-
     load() { return this._read(DB_KEY, null); },
     save(db) { return this._write(DB_KEY, db); },
     exists() { return !!this.load(); }
@@ -1002,16 +853,25 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
           }
         }
       };
+    },
+    validate(db) {
+      if (!db || typeof db !== 'object') return false;
+      if (!Array.isArray(db.users)) return false;
+      if (!Array.isArray(db.doctors)) return false;
+      if (!Array.isArray(db.merchants)) return false;
+      if (!Array.isArray(db.appointments)) return false;
+      if (!Array.isArray(db.orders)) return false;
+      if (!db.settings || typeof db.settings !== 'object') return false;
+      return true;
     }
   };
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION 7: SEED DATA
+  // SECTION 7: SEED
   // ══════════════════════════════════════════════════════════════
   function buildSeed() {
     const db = Schema.empty();
 
-    // Insurance companies (بدون نسب مزيفة)
     db.insuranceCompanies = [
       { id: 'ins1', name: 'جلوب ميد', logo: 'fa-shield-halved' },
       { id: 'ins2', name: 'ميتلايف', logo: 'fa-shield' },
@@ -1023,7 +883,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       { id: 'ins8', name: 'مصر للتأمين', logo: 'fa-landmark' }
     ];
 
-    // Car services
     db.carServices = [
       { id: 'car1', name: 'تغيير إطارات متنقل', price: 120, duration: 30, icon: 'fa-circle-dot', desc: 'فني متخصص يصل إليك' },
       { id: 'car2', name: 'شحن بطارية', price: 150, duration: 15, icon: 'fa-car-battery', desc: 'شحن سريع آمن' },
@@ -1033,7 +892,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       { id: 'car6', name: 'تغيير زيت وفلاتر', price: 450, duration: 30, icon: 'fa-oil-can', desc: 'زيوت أصلية معتمدة' }
     ];
 
-    // Home services
     db.homeServices = [
       { id: 'hs1', name: 'صيانة سباكة طارئة', price: 150, duration: 60, icon: 'fa-wrench', desc: 'تسليك وإصلاح فوري' },
       { id: 'hs2', name: 'تأسيس وصيانة كهرباء', price: 120, duration: 60, icon: 'fa-bolt', desc: 'كشف أعطال لوحة الكهرباء' },
@@ -1043,40 +901,23 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       { id: 'hs6', name: 'مكافحة حشرات', price: 300, duration: 90, icon: 'fa-bug', desc: 'مواد آمنة معتمدة' }
     ];
 
-    // Users (all passwords hashed)
     const founderPass = Crypto.create('As123789456*');
     const simplePass = Crypto.create('123456');
 
     db.users = [
       {
-        id: 'u-founder',
-        phone: '01068990089',
-        name: 'أحمد صبري',
-        passHash: founderPass.hash,
-        salt: founderPass.salt,
-        role: 'founder',
-        contexts: ['citizen', 'founder'],
-        currentContext: 'founder',
-        wallet: 500,
-        points: 0,
-        waslaId: 'WASLA-00001',
-        createdAt: Date.now() - 86400000 * 30,
-        status: 'active',
-        successfulOrders: 0,
-        cancellations: 0
+        id: 'u-founder', phone: '01068990089', name: 'أحمد صبري',
+        passHash: founderPass.hash, salt: founderPass.salt,
+        role: 'founder', contexts: ['citizen', 'founder'], currentContext: 'founder',
+        wallet: 500, points: 0, waslaId: 'WASLA-00001',
+        createdAt: Date.now() - 86400000 * 30, status: 'active',
+        successfulOrders: 0, cancellations: 0
       },
       {
-        id: 'u-p1',
-        phone: '01000000001',
-        name: 'محمد المريض',
-        passHash: simplePass.hash,
-        salt: simplePass.salt,
-        role: 'patient',
-        contexts: ['citizen'],
-        currentContext: 'citizen',
-        wallet: 150,
-        points: 120,
-        waslaId: 'WASLA-10001',
+        id: 'u-p1', phone: '01000000001', name: 'محمد المريض',
+        passHash: simplePass.hash, salt: simplePass.salt,
+        role: 'patient', contexts: ['citizen'], currentContext: 'citizen',
+        wallet: 150, points: 120, waslaId: 'WASLA-10001',
         emr: {
           blood: 'O+',
           allergies: [{ name: 'بنسلين', severity: 'high' }],
@@ -1087,70 +928,38 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
             { id: 'v3', date: '2025-10-20', bp: '128/82', hr: 72, sugar: 118, weight: 80 }
           ],
           currentMeds: [{ name: 'Glucophage 850mg', dose: 'قرص مرتين يومياً', active: true }],
-          pastMeds: [],
-          labs: [],
-          visitNotes: []
+          pastMeds: [], labs: [], visitNotes: []
         },
         familyIds: ['fam1', 'fam2'],
-        successfulOrders: 1,
-        cancellations: 0,
-        createdAt: Date.now() - 86400000 * 15,
-        status: 'active'
+        successfulOrders: 1, cancellations: 0,
+        createdAt: Date.now() - 86400000 * 15, status: 'active'
       },
       {
-        id: 'u-d1',
-        phone: '01000000002',
-        name: 'د. محمد الشريف',
-        passHash: simplePass.hash,
-        salt: simplePass.salt,
-        role: 'doctor',
-        contexts: ['citizen', 'doctor'],
-        currentContext: 'doctor',
-        wallet: 0,
-        points: 0,
-        waslaId: 'WASLA-20001',
-        createdAt: Date.now() - 86400000 * 20,
-        status: 'active',
-        successfulOrders: 0,
-        cancellations: 0
+        id: 'u-d1', phone: '01000000002', name: 'د. محمد الشريف',
+        passHash: simplePass.hash, salt: simplePass.salt,
+        role: 'doctor', contexts: ['citizen', 'doctor'], currentContext: 'doctor',
+        wallet: 0, points: 0, waslaId: 'WASLA-20001',
+        createdAt: Date.now() - 86400000 * 20, status: 'active',
+        successfulOrders: 0, cancellations: 0
       },
       {
-        id: 'u-s1',
-        phone: '01000000003',
-        name: 'موظف الاستقبال',
-        passHash: simplePass.hash,
-        salt: simplePass.salt,
-        role: 'staff',
-        contexts: ['citizen', 'staff'],
-        currentContext: 'staff',
-        wallet: 0,
-        points: 0,
-        waslaId: 'WASLA-30001',
-        createdAt: Date.now() - 86400000 * 10,
-        status: 'active',
-        successfulOrders: 0,
-        cancellations: 0
+        id: 'u-s1', phone: '01000000003', name: 'موظف الاستقبال',
+        passHash: simplePass.hash, salt: simplePass.salt,
+        role: 'staff', contexts: ['citizen', 'staff'], currentContext: 'staff',
+        wallet: 0, points: 0, waslaId: 'WASLA-30001',
+        createdAt: Date.now() - 86400000 * 10, status: 'active',
+        successfulOrders: 0, cancellations: 0
       },
       {
-        id: 'u-m1',
-        phone: '01000000004',
-        name: 'أحمد التاجر',
-        passHash: simplePass.hash,
-        salt: simplePass.salt,
-        role: 'merchant',
-        contexts: ['citizen', 'merchant'],
-        currentContext: 'merchant',
-        wallet: 0,
-        points: 0,
-        waslaId: 'WASLA-40001',
-        createdAt: Date.now() - 86400000 * 18,
-        status: 'active',
-        successfulOrders: 0,
-        cancellations: 0
+        id: 'u-m1', phone: '01000000004', name: 'أحمد التاجر',
+        passHash: simplePass.hash, salt: simplePass.salt,
+        role: 'merchant', contexts: ['citizen', 'merchant'], currentContext: 'merchant',
+        wallet: 0, points: 0, waslaId: 'WASLA-40001',
+        createdAt: Date.now() - 86400000 * 18, status: 'active',
+        successfulOrders: 0, cancellations: 0
       }
     ];
 
-    // Doctor schedule helper
     const schedule = () => ({
       saturday: { active: true, start: '17:00', end: '21:00', duration: 20 },
       sunday: { active: true, start: '17:00', end: '21:00', duration: 20 },
@@ -1163,17 +972,10 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
     db.doctors = [
       {
-        id: 'd1',
-        userId: 'u-d1',
-        name: 'د. محمد الشريف',
-        spec: 'باطنة وكبد',
-        bio: 'استشاري باطنة وكبد، خبرة 18 سنة',
-        area: 'شارع بورسعيد',
-        price: 250,
-        avgTime: 20,
-        rating: 4.9,
-        reviewsCount: 212,
-        status: 'available',
+        id: 'd1', userId: 'u-d1', name: 'د. محمد الشريف',
+        spec: 'باطنة وكبد', bio: 'استشاري باطنة وكبد، خبرة 18 سنة',
+        area: 'شارع بورسعيد', price: 250, avgTime: 20,
+        rating: 4.9, reviewsCount: 212, status: 'available',
         acceptedInsurances: ['ins1', 'ins2', 'ins4', 'ins8'],
         services: [
           { id: 'sv1', name: 'كشف عام', price: 0, duration: 20, icon: 'fa-stethoscope' },
@@ -1181,108 +983,68 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
           { id: 'sv3', name: 'منظار معدة', price: 800, duration: 45, icon: 'fa-microscope' },
           { id: 'sv4', name: 'تحليل سكر تراكمي', price: 120, duration: 5, icon: 'fa-vial' }
         ],
-        schedule: schedule(),
-        verified: true,
+        schedule: schedule(), verified: true,
         createdAt: Date.now() - 86400000 * 20
       },
       {
-        id: 'd2',
-        userId: null,
-        name: 'د. سارة أحمد',
-        spec: 'أطفال',
-        bio: 'أخصائية أطفال وحديثي الولادة',
-        area: 'ميدان المحطة',
-        price: 200,
-        avgTime: 15,
-        rating: 4.8,
-        reviewsCount: 168,
-        status: 'busy',
+        id: 'd2', userId: null, name: 'د. سارة أحمد',
+        spec: 'أطفال', bio: 'أخصائية أطفال وحديثي الولادة',
+        area: 'ميدان المحطة', price: 200, avgTime: 15,
+        rating: 4.8, reviewsCount: 168, status: 'busy',
         acceptedInsurances: ['ins1', 'ins3', 'ins5', 'ins6'],
         services: [
           { id: 'sv5', name: 'كشف أطفال', price: 0, duration: 15, icon: 'fa-baby' },
           { id: 'sv6', name: 'تطعيم', price: 180, duration: 5, icon: 'fa-syringe' }
         ],
-        schedule: schedule(),
-        verified: true,
+        schedule: schedule(), verified: true,
         createdAt: Date.now() - 86400000 * 15
       },
       {
-        id: 'd3',
-        userId: null,
-        name: 'د. كريم عبد العزيز',
-        spec: 'قلب',
-        bio: 'استشاري قلب وأوعية دموية',
-        area: 'شارع المستشفى',
-        price: 350,
-        avgTime: 25,
-        rating: 4.9,
-        reviewsCount: 142,
-        status: 'available',
+        id: 'd3', userId: null, name: 'د. كريم عبد العزيز',
+        spec: 'قلب', bio: 'استشاري قلب وأوعية دموية',
+        area: 'شارع المستشفى', price: 350, avgTime: 25,
+        rating: 4.9, reviewsCount: 142, status: 'available',
         acceptedInsurances: ['ins2', 'ins4', 'ins7'],
         services: [
           { id: 'sv8', name: 'كشف قلب', price: 0, duration: 25, icon: 'fa-heart' },
           { id: 'sv9', name: 'تخطيط قلب ECG', price: 250, duration: 15, icon: 'fa-wave-square' }
         ],
-        schedule: schedule(),
-        verified: true,
+        schedule: schedule(), verified: true,
         createdAt: Date.now() - 86400000 * 12
       },
       {
-        id: 'd4',
-        userId: null,
-        name: 'د. منى سالم',
-        spec: 'نساء وتوليد',
-        bio: 'أخصائية نساء وتوليد',
-        area: 'ميدان المحطة',
-        price: 300,
-        avgTime: 20,
-        rating: 4.7,
-        reviewsCount: 189,
-        status: 'available',
+        id: 'd4', userId: null, name: 'د. منى سالم',
+        spec: 'نساء وتوليد', bio: 'أخصائية نساء وتوليد',
+        area: 'ميدان المحطة', price: 300, avgTime: 20,
+        rating: 4.7, reviewsCount: 189, status: 'available',
         acceptedInsurances: ['ins1', 'ins3', 'ins5'],
         services: [
           { id: 'sv11', name: 'كشف نساء', price: 0, duration: 20, icon: 'fa-person-pregnant' },
           { id: 'sv12', name: 'سونار حمل', price: 350, duration: 15, icon: 'fa-baby-carriage' }
         ],
-        schedule: schedule(),
-        verified: true,
+        schedule: schedule(), verified: true,
         createdAt: Date.now() - 86400000 * 10
       },
       {
-        id: 'd5',
-        userId: null,
-        name: 'د. أحمد فؤاد',
-        spec: 'عظام',
-        bio: 'استشاري جراحة عظام ومفاصل',
-        area: 'شارع الجيش',
-        price: 280,
-        avgTime: 20,
-        rating: 4.8,
-        reviewsCount: 98,
-        status: 'available',
+        id: 'd5', userId: null, name: 'د. أحمد فؤاد',
+        spec: 'عظام', bio: 'استشاري جراحة عظام ومفاصل',
+        area: 'شارع الجيش', price: 280, avgTime: 20,
+        rating: 4.8, reviewsCount: 98, status: 'available',
         acceptedInsurances: ['ins2', 'ins4', 'ins8'],
         services: [
           { id: 'sv14', name: 'كشف عظام', price: 0, duration: 20, icon: 'fa-bone' },
           { id: 'sv15', name: 'جبس كسر', price: 450, duration: 30, icon: 'fa-bandage' }
         ],
-        schedule: schedule(),
-        verified: true,
+        schedule: schedule(), verified: true,
         createdAt: Date.now() - 86400000 * 8
       }
     ];
 
-    // Merchants
     db.merchants = [
       {
-        id: 'm1',
-        userId: 'u-m1',
-        name: 'سوبر ماركت الأمانة',
-        area: 'شارع بورسعيد',
-        rating: 4.8,
-        deliveryTime: '25-40 دقيقة',
-        minOrder: 50,
-        deliveryFee: 10,
-        icon: 'fa-store',
+        id: 'm1', userId: 'u-m1', name: 'سوبر ماركت الأمانة',
+        area: 'شارع بورسعيد', rating: 4.8, deliveryTime: '25-40 دقيقة',
+        minOrder: 50, deliveryFee: 10, icon: 'fa-store',
         products: [
           { id: 'p1', name: 'أرز مصري 5 كجم', price: 180, icon: 'fa-bowl-rice', stock: 50 },
           { id: 'p2', name: 'زيت عافية 2 لتر', price: 210, icon: 'fa-bottle-water', stock: 30 },
@@ -1290,66 +1052,47 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
           { id: 'p4', name: 'سكر 1 كجم', price: 35, icon: 'fa-cube', stock: 100 },
           { id: 'p5', name: 'جبنة رومي 500 جم', price: 120, icon: 'fa-cheese', stock: 25 }
         ],
-        verified: true,
-        createdAt: Date.now() - 86400000 * 18
+        verified: true, createdAt: Date.now() - 86400000 * 18
       },
       {
-        id: 'm2',
-        userId: null,
-        name: 'هايبر السعادة',
-        area: 'المحطة',
-        rating: 4.6,
-        deliveryTime: '30-50 دقيقة',
-        minOrder: 80,
-        deliveryFee: 15,
-        icon: 'fa-cart-shopping',
+        id: 'm2', userId: null, name: 'هايبر السعادة',
+        area: 'المحطة', rating: 4.6, deliveryTime: '30-50 دقيقة',
+        minOrder: 80, deliveryFee: 15, icon: 'fa-cart-shopping',
         products: [
           { id: 'p6', name: 'لبن جهينة 1 لتر', price: 45, icon: 'fa-cow', stock: 60 },
           { id: 'p7', name: 'بيض 30 بيضة', price: 160, icon: 'fa-egg', stock: 40 },
           { id: 'p8', name: 'دقيق فاخر 1 كجم', price: 40, icon: 'fa-wheat-awn', stock: 50 },
           { id: 'p9', name: 'مكرونة 400 جم', price: 28, icon: 'fa-utensils', stock: 80 }
         ],
-        verified: true,
-        createdAt: Date.now() - 86400000 * 15
+        verified: true, createdAt: Date.now() - 86400000 * 15
       },
       {
-        id: 'm3',
-        userId: null,
-        name: 'مخبز النور',
-        area: 'شارع الجيش',
-        rating: 4.9,
-        deliveryTime: '15-25 دقيقة',
-        minOrder: 30,
-        deliveryFee: 8,
-        icon: 'fa-bread-slice',
+        id: 'm3', userId: null, name: 'مخبز النور',
+        area: 'شارع الجيش', rating: 4.9, deliveryTime: '15-25 دقيقة',
+        minOrder: 30, deliveryFee: 8, icon: 'fa-bread-slice',
         products: [
           { id: 'p10', name: 'عيش فينو (10 قطع)', price: 15, icon: 'fa-bread-slice', stock: 100 },
           { id: 'p11', name: 'كرواسون بالشوكولاتة', price: 25, icon: 'fa-cookie', stock: 40 },
           { id: 'p12', name: 'كيك عسل', price: 60, icon: 'fa-cake-candles', stock: 20 }
         ],
-        verified: true,
-        createdAt: Date.now() - 86400000 * 12
+        verified: true, createdAt: Date.now() - 86400000 * 12
       }
     ];
 
-    // Staff
     db.staff = [
       { id: 'st1', userId: 'u-s1', name: 'موظف الاستقبال', role: 'receptionist' }
     ];
 
-    // Family members
     db.familyMembers = [
       { id: 'fam1', ownerId: 'u-p1', name: 'فاطمة المريضة', relation: 'الزوجة', age: 32, gender: 'female', blood: 'A+', allergies: [] },
       { id: 'fam2', ownerId: 'u-p1', name: 'يوسف المريض', relation: 'الابن', age: 8, gender: 'male', blood: 'O+', allergies: [{ name: 'فول', severity: 'medium' }] }
     ];
 
-    // Reviews
     db.reviews = [
       { id: 'rv1', doctorId: 'd1', patientId: 'u-p1', patientName: 'محمد المريض', rating: 5, comment: 'دكتور ممتاز ومتفهم جداً، شرح كل حاجة بالتفصيل.', reply: null, createdAt: Date.now() - 86400000 * 3 },
       { id: 'rv2', doctorId: 'd1', patientId: 'u-p2', patientName: 'سعيد', rating: 4, comment: 'انتظار طويل شوية بس كفاءة عالية.', reply: 'شكراً لك، هنسعى نطور الطابور.', createdAt: Date.now() - 86400000 * 7 }
     ];
 
-    // Audit logs
     db.auditLogs = [
       { id: 'log1', doctorId: 'd1', patientId: 'u-p1', action: 'update', details: 'تعديل جرعة دواء', createdAt: Date.now() - 3600000 }
     ];
@@ -1358,166 +1101,330 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   }
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION 8: MIGRATION (from wasla_med_v4 if exists)
+  // SECTION 8: MIGRATION (defensive)
   // ══════════════════════════════════════════════════════════════
   function migrateFromV4() {
-    const oldRaw = localStorage.getItem('wasla_med_v4');
-    if (!oldRaw) return { migrated: false, reason: 'no-old-db' };
+    try {
+      const oldRaw = localStorage.getItem('wasla_med_v4');
+      if (!oldRaw) return { migrated: false, reason: 'no-old-db' };
 
-    let oldDb;
-    try { oldDb = JSON.parse(oldRaw); } catch (_) { return { migrated: false, reason: 'invalid' }; }
-    if (!oldDb || !oldDb.users) return { migrated: false, reason: 'invalid-structure' };
-
-    const newDb = Schema.empty();
-    let passwordsHashed = 0;
-    let usersMigrated = 0;
-
-    (oldDb.users || []).forEach(u => {
-      const migrated = { ...u };
-      if (migrated.pass && !migrated.passHash) {
-        const { hash, salt } = Crypto.create(migrated.pass);
-        migrated.passHash = hash;
-        migrated.salt = salt;
-        delete migrated.pass;
-        passwordsHashed++;
+      let oldDb;
+      try { oldDb = JSON.parse(oldRaw); } catch (_) { return { migrated: false, reason: 'invalid-json' }; }
+      if (!oldDb || !Array.isArray(oldDb.users) || oldDb.users.length === 0) {
+        return { migrated: false, reason: 'invalid-structure' };
       }
-      if (!migrated.contexts) migrated.contexts = ['citizen'];
-      if (!migrated.currentContext) migrated.currentContext = 'citizen';
-      if (!migrated.status) migrated.status = 'active';
-      if (migrated.role === 'doctor' && !migrated.contexts.includes('doctor')) migrated.contexts.push('doctor');
-      if (migrated.role === 'merchant' && !migrated.contexts.includes('merchant')) migrated.contexts.push('merchant');
-      if (migrated.role === 'staff' && !migrated.contexts.includes('staff')) migrated.contexts.push('staff');
-      if (migrated.role === 'founder' && !migrated.contexts.includes('founder')) migrated.contexts.push('founder');
-      newDb.users.push(migrated);
-      usersMigrated++;
-    });
 
-    (oldDb.doctors || []).forEach(d => {
-      const migrated = { ...d };
-      migrated.acceptedInsurances = (d.insurances || []).map(i => typeof i === 'string' ? i : (i.id || i));
-      delete migrated.insurances;
-      if (!migrated.userId) migrated.userId = null;
-      newDb.doctors.push(migrated);
-    });
+      const newDb = Schema.empty();
+      let passwordsHashed = 0;
+      let usersMigrated = 0;
 
-    newDb.appointments = (oldDb.appointments || []).map(a => ({ ...a, status: a.status || 'waiting' }));
-    newDb.orders = (oldDb.orders || []).map(o => ({ ...o }));
+      oldDb.users.forEach(u => {
+        if (!u || typeof u !== 'object') return;
+        const migrated = { ...u };
 
-    if (oldDb.groceryStores) {
-      oldDb.groceryStores.forEach(g => {
-        newDb.merchants.push({
-          id: g.id,
-          userId: null,
-          name: g.name,
-          area: g.area,
-          rating: g.rating || 4.5,
-          deliveryTime: g.deliveryTime || '30-45 دقيقة',
-          minOrder: g.minOrder || 50,
-          deliveryFee: 10,
-          icon: g.icon || 'fa-store',
-          products: oldDb.groceryProducts && oldDb.groceryProducts[g.id] ? oldDb.groceryProducts[g.id] : [],
-          verified: true,
-          createdAt: Date.now()
-        });
+        if (migrated.pass && !migrated.passHash) {
+          try {
+            const { hash, salt } = Crypto.create(migrated.pass);
+            migrated.passHash = hash;
+            migrated.salt = salt;
+            delete migrated.pass;
+            passwordsHashed++;
+          } catch (_) { /* skip */ }
+        }
+        if (!Array.isArray(migrated.contexts)) migrated.contexts = ['citizen'];
+        if (!migrated.currentContext) migrated.currentContext = 'citizen';
+        if (!migrated.status) migrated.status = 'active';
+        if (!migrated.waslaId) migrated.waslaId = 'WASLA-' + Math.floor(10000 + Math.random() * 90000);
+
+        if (migrated.role === 'doctor' && !migrated.contexts.includes('doctor')) migrated.contexts.push('doctor');
+        if (migrated.role === 'merchant' && !migrated.contexts.includes('merchant')) migrated.contexts.push('merchant');
+        if (migrated.role === 'staff' && !migrated.contexts.includes('staff')) migrated.contexts.push('staff');
+        if (migrated.role === 'founder' && !migrated.contexts.includes('founder')) migrated.contexts.push('founder');
+
+        newDb.users.push(migrated);
+        usersMigrated++;
       });
+
+      if (usersMigrated === 0) return { migrated: false, reason: 'no-valid-users' };
+
+      if (Array.isArray(oldDb.doctors)) {
+        oldDb.doctors.forEach(d => {
+          if (!d || typeof d !== 'object') return;
+          const migrated = { ...d };
+          migrated.acceptedInsurances = Array.isArray(d.insurances)
+            ? d.insurances.map(i => typeof i === 'string' ? i : (i.id || i))
+            : [];
+          delete migrated.insurances;
+          if (!migrated.userId) migrated.userId = null;
+          newDb.doctors.push(migrated);
+        });
+      }
+
+      if (Array.isArray(oldDb.appointments)) {
+        newDb.appointments = oldDb.appointments.map(a => ({ ...a, status: a.status || 'waiting' }));
+      }
+      if (Array.isArray(oldDb.orders)) {
+        newDb.orders = oldDb.orders.map(o => ({ ...o }));
+      }
+      if (Array.isArray(oldDb.reviews)) newDb.reviews = oldDb.reviews;
+      if (Array.isArray(oldDb.auditLogs)) newDb.auditLogs = oldDb.auditLogs;
+      if (Array.isArray(oldDb.reminders)) newDb.reminders = oldDb.reminders;
+      if (Array.isArray(oldDb.familyMembers)) newDb.familyMembers = oldDb.familyMembers;
+
+      const seed = buildSeed();
+      if (!newDb.insuranceCompanies.length) newDb.insuranceCompanies = seed.insuranceCompanies;
+      if (!newDb.carServices.length) newDb.carServices = seed.carServices;
+      if (!newDb.homeServices.length) newDb.homeServices = seed.homeServices;
+      if (!newDb.staff.length) newDb.staff = seed.staff;
+      if (!newDb.doctors.length) newDb.doctors = seed.doctors;
+      if (!newDb.merchants.length) newDb.merchants = seed.merchants;
+
+      if (!Schema.validate(newDb)) return { migrated: false, reason: 'validation-failed' };
+
+      Store.save(newDb);
+      try {
+        localStorage.setItem(MIGRATED_KEY, JSON.stringify({
+          at: Date.now(), version: VERSION, from: 'v4',
+          usersMigrated, passwordsHashed
+        }));
+      } catch (_) {}
+
+      return { migrated: true, usersMigrated, passwordsHashed };
+    } catch (e) {
+      console.warn('[Migration] فشلت:', e);
+      return { migrated: false, reason: 'exception', error: String(e) };
     }
-
-    if (oldDb.carServices) newDb.carServices = oldDb.carServices;
-    if (oldDb.homeServices) newDb.homeServices = oldDb.homeServices;
-    if (oldDb.familyMembers) newDb.familyMembers = oldDb.familyMembers;
-    if (oldDb.reviews) newDb.reviews = oldDb.reviews;
-    if (oldDb.auditLogs) newDb.auditLogs = oldDb.auditLogs;
-    if (oldDb.reminders) newDb.reminders = oldDb.reminders;
-    if (oldDb.healthRecords) newDb.healthRecords = oldDb.healthRecords;
-    if (oldDb.healthLogs) newDb.healthLogs = oldDb.healthLogs;
-    if (oldDb.prescriptions) newDb.prescriptions = oldDb.prescriptions;
-
-    const seed = buildSeed();
-    if (!newDb.insuranceCompanies.length) newDb.insuranceCompanies = seed.insuranceCompanies;
-    if (!newDb.carServices.length) newDb.carServices = seed.carServices;
-    if (!newDb.homeServices.length) newDb.homeServices = seed.homeServices;
-    if (!newDb.staff.length) newDb.staff = seed.staff;
-
-    Store.save(newDb);
-    localStorage.setItem(MIGRATED_KEY, JSON.stringify({
-      at: Date.now(),
-      version: VERSION,
-      from: 'v4',
-      usersMigrated,
-      passwordsHashed
-    }));
-
-    return { migrated: true, usersMigrated, passwordsHashed };
   }
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION 9: BOOT
+  // SECTION 9: STATUS HELPERS
+  // ══════════════════════════════════════════════════════════════
+  function setTopbarStatus(status, text, color) {
+    const el = Utils.$('#topbar-status');
+    if (!el) return;
+    const icons = {
+      loading: 'fa-circle-notch fa-spin',
+      ready: 'fa-circle-check',
+      error: 'fa-triangle-exclamation',
+      warning: 'fa-exclamation-circle'
+    };
+    el.innerHTML = `<i class="fa-solid ${icons[status] || 'fa-circle'}" style="color:${color || '#34D399'}"></i> ${Utils.escape(text)}`;
+  }
+
+  function setTopbarCount(count) {
+    const el = Utils.$('#topbar-users-count');
+    if (el) el.textContent = count;
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 10: BOOT (defensive)
   // ══════════════════════════════════════════════════════════════
   function boot() {
-    if (!Store.exists()) {
-      const migrationResult = migrateFromV4();
-      if (migrationResult.migrated) {
-        console.log('%c✅ تم ترحيل البيانات من v4', 'color:#059669;font-weight:900');
-        console.log(`   • ${migrationResult.usersMigrated} مستخدم`);
-        console.log(`   • ${migrationResult.passwordsHashed} كلمة سر مشفرة`);
+    try {
+      console.log('%c🌱 [BOOT] بدء التهيئة...', 'color:#0284C7;font-weight:900');
+
+      // Step 1: Check if DB exists and is valid
+      let db = Store.load();
+      let usedSeed = false;
+      let usedMigration = false;
+
+      if (!db || !Schema.validate(db)) {
+        console.log('%c🌱 [BOOT] لا توجد DB صالحة، جاري الإنشاء...', 'color:#EA580C;font-weight:900');
+
+        // Try migration first
+        const migrationResult = migrateFromV4();
+        if (migrationResult.migrated) {
+          console.log(`%c✅ [BOOT] تم الترحيل: ${migrationResult.usersMigrated} مستخدم`, 'color:#059669;font-weight:900');
+          db = Store.load();
+          usedMigration = true;
+        }
+
+        // If migration didn't work or DB still invalid, use seed
+        if (!db || !Schema.validate(db)) {
+          console.log('%c🌱 [BOOT] استخدام البيانات الأولية...', 'color:#EA580C;font-weight:900');
+          db = buildSeed();
+          Store.save(db);
+          usedSeed = true;
+          console.log('%c🌱 [BOOT] تم تثبيت البيانات الأولية', 'color:#0284C7;font-weight:900');
+        }
       } else {
-        const seed = buildSeed();
-        Store.save(seed);
-        console.log('%c🌱 تم تثبيت البيانات الأولية', 'color:#0284C7;font-weight:900');
+        console.log(`%c✅ [BOOT] DB صالحة (${db.users.length} مستخدم)`, 'color:#059669;font-weight:900');
+      }
+
+      // Step 2: Verify chain
+      const chain = EventLog.verifyChain();
+      if (!chain.ok) {
+        console.warn(`⚠️ [BOOT] سلسلة الأحداث مكسورة عند #${chain.brokenAt}`);
+      }
+
+      // Step 3: Log boot event
+      EventLog.log('app_boot', {
+        version: VERSION,
+        ts: Date.now(),
+        usersCount: db.users.length,
+        eventCount: EventLog.count(),
+        usedSeed,
+        usedMigration
+      });
+
+      // Step 4: Update UI
+      setTopbarCount(db.users.length);
+      setTopbarStatus('ready', 'المنصة جاهزة ✓', '#34D399');
+
+      // Step 5: Render a simple placeholder in main content
+      const mainContainer = Utils.$('#main-container');
+      if (mainContainer) {
+        mainContainer.innerHTML = `
+          <div class="sector-hero" data-sector="medical">
+            <span class="sector-hero-badge">
+              <i class="fa-solid fa-check-circle"></i> PART 2/15 READY
+            </span>
+            <h1>تم تحميل النواة بنجاح ✅</h1>
+            <p>المنصة جاهزة. البيانات: ${db.users.length} مستخدم · ${db.doctors.length} طبيب · ${db.merchants.length} متجر</p>
+          </div>
+
+          <div class="card">
+            <div class="section-title">
+              <i class="fa-solid fa-terminal"></i>
+              اختبارات سريعة
+            </div>
+            <p style="font-size:12px;color:var(--text-secondary);font-weight:700;margin-bottom:12px;line-height:1.8;">
+              افتح Console (F12) واكتب الأوامر التالية للتأكد من عمل النظام:
+            </p>
+            <div style="background:var(--bg-muted);padding:12px;border-radius:var(--radius-sm);font-family:monospace;font-size:11.5px;line-height:1.9;color:var(--text-primary);">
+              <div style="margin-bottom:8px;"><strong>WaslaCore.inspect()</strong> — عرض الحالة</div>
+              <div style="margin-bottom:8px;"><strong>diagnoseWasla()</strong> — تشخيص تفصيلي</div>
+              <div><strong>WaslaCore.reset()</strong> — إعادة تثبيت</div>
+            </div>
+          </div>
+
+          <div class="card" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);border-color:#F59E0B;">
+            <div style="text-align:center;">
+              <i class="fa-solid fa-info-circle" style="font-size:28px;color:#D97706;margin-bottom:8px;"></i>
+              <h3 style="font-size:14px;font-weight:900;color:#78350F;margin-bottom:4px;">PART 2 شغال تمام</h3>
+              <p style="font-size:11.5px;color:#92400E;font-weight:700;">
+                لو شفت الرسالة دي، يعني النظام جاهز لاستقبال PART 3 (Auth + Router)
+              </p>
+            </div>
+          </div>
+        `;
+      }
+
+      console.log('%c⚡ WASLA v' + VERSION + ' — PART 2/15 READY',
+        'background:#059669;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
+      console.log('%c💡 اكتب في Console: WaslaCore.inspect()', 'color:#7C3AED;font-weight:900');
+
+    } catch (e) {
+      console.error('%c❌ [BOOT] خطأ فادح!', 'background:#E11D48;color:#fff;padding:4px 12px;border-radius:6px;font-weight:900;font-size:14px');
+      console.error(e);
+      console.error('Stack:', e.stack);
+
+      setTopbarStatus('error', 'خطأ في التحميل — افتح Console', '#E11D48');
+
+      const mainContainer = Utils.$('#main-container');
+      if (mainContainer) {
+        mainContainer.innerHTML = `
+          <div class="card" style="border-right:4px solid var(--color-danger);">
+            <h3 style="font-size:16px;font-weight:900;color:var(--color-danger);margin-bottom:8px;">
+              <i class="fa-solid fa-triangle-exclamation"></i> خطأ في تحميل النظام
+            </h3>
+            <p style="font-size:13px;color:var(--text-secondary);font-weight:700;line-height:1.7;margin-bottom:12px;">
+              حدث خطأ أثناء تحميل النواة. افتح Console (F12) وشوف الأخطاء.
+            </p>
+            <div style="background:var(--color-danger-soft);padding:12px;border-radius:var(--radius-sm);font-family:monospace;font-size:11px;color:#991B1B;line-height:1.6;">
+              ${Utils.escape(String(e))}
+            </div>
+            <button class="btn btn-danger btn-block" style="margin-top:12px;" onclick="localStorage.clear(); sessionStorage.clear(); location.reload();">
+              <i class="fa-solid fa-rotate"></i> مسح البيانات وإعادة المحاولة
+            </button>
+          </div>
+        `;
       }
     }
+  }
 
-    const db = Store.load();
-    if (!db) {
-      console.error('❌ فشل تحميل قاعدة البيانات');
-      return;
-    }
-
-    const chain = EventLog.verifyChain();
-    if (!chain.ok) {
-      console.warn(`⚠️ سلسلة الأحداث مكسورة عند #${chain.brokenAt}`);
-    }
-
-    EventLog.log('app_boot', {
-      version: VERSION,
-      ts: Date.now(),
-      usersCount: db.users.length,
-      eventCount: EventLog.count()
-    });
-
-    const counter = Utils.$('#topbar-users-count');
-    if (counter) counter.textContent = db.users.length;
-
-    window.WaslaCore = {
-      version: VERSION,
-      Utils, UI, Crypto, EventLog, Store, Schema,
-      db: () => Store.load(),
-      inspect: () => ({
-        version: VERSION,
-        users: Store.load().users.length,
-        doctors: Store.load().doctors.length,
-        merchants: Store.load().merchants.length,
-        events: EventLog.count(),
-        chain: EventLog.verifyChain(),
-        migratedAt: localStorage.getItem(MIGRATED_KEY)
-      }),
-      reset: () => {
-        if (confirm('⚠️ حذف كل البيانات والعودة للأصل؟')) {
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 11: EXPOSE WaslaCore IMMEDIATELY (before boot)
+  // ══════════════════════════════════════════════════════════════
+  window.WaslaCore = {
+    version: VERSION,
+    Utils, UI, Crypto, EventLog, Store, Schema,
+    db: () => Store.load(),
+    inspect: () => {
+      try {
+        const db = Store.load();
+        return {
+          version: VERSION,
+          hasDb: !!db,
+          isValid: db ? Schema.validate(db) : false,
+          users: db && Array.isArray(db.users) ? db.users.length : 0,
+          doctors: db && Array.isArray(db.doctors) ? db.doctors.length : 0,
+          merchants: db && Array.isArray(db.merchants) ? db.merchants.length : 0,
+          events: EventLog.count(),
+          chain: EventLog.verifyChain(),
+          migratedAt: localStorage.getItem(MIGRATED_KEY)
+        };
+      } catch (e) {
+        return { error: String(e) };
+      }
+    },
+    reset: () => {
+      if (confirm('⚠️ حذف كل البيانات والعودة للأصل؟')) {
+        try {
           localStorage.removeItem(DB_KEY);
           localStorage.removeItem(EVENT_KEY);
           localStorage.removeItem(SESSION_KEY);
           localStorage.removeItem(MIGRATED_KEY);
-          location.reload();
-        }
+          localStorage.removeItem('wasla_med_v4');
+        } catch (_) {}
+        location.reload();
       }
+    }
+  };
+
+  window.diagnoseWasla = () => {
+    const result = {
+      timestamp: new Date().toISOString(),
+      part: 'PART 2',
+      version: VERSION,
+      checks: {}
     };
 
-    console.log('%c⚡ WASLA v' + VERSION + ' — PART 2/15 READY',
-      'background:#059669;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
-    console.log('%c💡 لمراجعة الحالة، اكتب في Console: WaslaCore.inspect()',
-      'color:#7C3AED;font-weight:900');
-  }
+    try {
+      localStorage.setItem('_test_wasla', '1');
+      localStorage.removeItem('_test_wasla');
+      result.checks.localStorage = 'OK ✅';
+    } catch (e) {
+      result.checks.localStorage = 'BLOCKED ❌ (' + String(e) + ')';
+    }
 
+    try {
+      const db = Store.load();
+      result.checks.dbExists = !!db;
+      result.checks.dbValid = db ? Schema.validate(db) : false;
+      result.checks.usersCount = db && Array.isArray(db.users) ? db.users.length : 0;
+    } catch (e) {
+      result.checks.dbError = String(e);
+    }
+
+    try {
+      result.checks.eventCount = EventLog.count();
+      result.checks.chainStatus = EventLog.verifyChain();
+    } catch (e) {
+      result.checks.eventError = String(e);
+    }
+
+    result.checks.waslaCoreExists = !!window.WaslaCore;
+    result.checks.topbarCount = Utils.$('#topbar-users-count')?.textContent;
+
+    return result;
+  };
+
+  console.log('%c✅ [PART 2] WaslaCore exposed globally', 'color:#059669;font-weight:900');
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 12: RUN BOOT
+  // ══════════════════════════════════════════════════════════════
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
   } else {
@@ -1528,1220 +1435,12 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     if (e.key === 'Escape') UI.closeAllModals();
   });
 
-  Utils.$$('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay && overlay.id !== 'modal-loading') {
-        overlay.classList.remove('open');
-      }
-    });
+  document.addEventListener('click', (e) => {
+    const overlay = e.target.closest('.modal-overlay');
+    if (overlay && overlay.id !== 'modal-loading' && e.target === overlay) {
+      overlay.classList.remove('open');
+    }
   });
-
-})();
-</script>
-  <!-- ═════════════════════════════════════════════════════════════
-     PART 3/15: AUTH + ROUTER + HEADER + CONTEXT SWITCHER + VIEWS
-     - Auth (login/register/logout encrypted)
-     - Session management
-     - Router (dynamic view navigation)
-     - Dynamic Header + Tabs by role/context
-     - Context Switcher (طبيب ↔ مواطن)
-     - Home / Orders / Account views
-     - Placeholders for future parts
-═════════════════════════════════════════════════════════════ -->
-<style>
-/* PART 3 Styles */
-.header-user-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px 4px 4px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.15s ease;
-  flex-shrink: 0;
-}
-.header-user-btn:hover { background: rgba(255, 255, 255, 0.16); }
-.header-user-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--sector-medical), #10B981);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 900;
-  flex-shrink: 0;
-}
-.header-user-name {
-  font-size: 11.5px;
-  font-weight: 800;
-  color: #fff;
-  white-space: nowrap;
-  max-width: 100px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-@media (max-width: 500px) {
-  .header-user-name { display: none; }
-  .header-user-btn { padding: 3px; border-radius: 50%; }
-}
-.auth-demo-box {
-  margin-top: 16px;
-  padding: 12px;
-  background: var(--bg-muted);
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  color: var(--text-muted);
-  line-height: 1.9;
-}
-.auth-demo-box strong { color: var(--text-primary); }
-.auth-demo-box code {
-  background: #fff;
-  padding: 1px 6px;
-  border-radius: 3px;
-  font-family: monospace;
-  font-size: 10.5px;
-}
-.notif-item {
-  padding: 12px;
-  background: var(--bg-muted);
-  border-radius: var(--radius-sm);
-  margin-bottom: 8px;
-  border-right: 3px solid var(--border-default);
-}
-.notif-item.unread {
-  background: var(--sector-medical-soft);
-  border-right-color: var(--sector-medical);
-}
-.notif-time {
-  font-size: 10px;
-  color: var(--text-muted);
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-.notif-text {
-  font-size: 12.5px;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-.sector-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-default);
-  padding: 20px 12px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.sector-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-  border-color: var(--border-strong);
-}
-.sector-card-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  margin: 0 auto 10px;
-}
-.sector-card-title {
-  font-size: 13.5px;
-  font-weight: 900;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-}
-.sector-card-desc {
-  font-size: 10.5px;
-  color: var(--text-muted);
-  font-weight: 700;
-  line-height: 1.4;
-}
-</style>
-
-<script>
-(function WASLA_PART_3() {
-  'use strict';
-
-  if (!window.WaslaCore) {
-    console.error('❌ PART 3 requires PART 2 — WaslaCore not found');
-    return;
-  }
-
-  const { Utils, UI, Crypto, EventLog, Store } = window.WaslaCore;
-  const SESSION_KEY = 'wasla_v5_session';
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 1: AUTH
-  // ══════════════════════════════════════════════════════════════
-  const Auth = {
-    login(phone, password) {
-      const db = Store.load();
-      if (!db) return { ok: false, msg: 'قاعدة البيانات غير متاحة' };
-
-      const user = db.users.find(u => u.phone === phone);
-      if (!user) {
-        EventLog.log('login_failed', { phone, reason: 'not_found' });
-        return { ok: false, msg: 'رقم الموبايل غير مسجل' };
-      }
-
-      if (user.status === 'suspended') {
-        return { ok: false, msg: 'الحساب موقوف — تواصل مع الإدارة' };
-      }
-
-      if (!Crypto.verify(password, user.passHash, user.salt)) {
-        EventLog.log('login_failed', { phone, reason: 'wrong_password', actorId: user.id });
-        return { ok: false, msg: 'كلمة السر غير صحيحة' };
-      }
-
-      const session = {
-        userId: user.id,
-        context: user.currentContext || (user.contexts && user.contexts[0]) || 'citizen',
-        loginAt: Date.now()
-      };
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-
-      EventLog.log('login_success', {
-        actorId: user.id,
-        phone,
-        role: user.role,
-        context: session.context
-      });
-
-      return { ok: true, user };
-    },
-
-    register(name, phone, password) {
-      const db = Store.load();
-      if (!db) return { ok: false, msg: 'قاعدة البيانات غير متاحة' };
-
-      if (db.users.find(u => u.phone === phone)) {
-        return { ok: false, msg: 'الرقم مسجل بالفعل — سجل دخول' };
-      }
-
-      const { hash, salt } = Crypto.create(password);
-
-      const newUser = {
-        id: 'u-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-        phone,
-        name: name.trim(),
-        passHash: hash,
-        salt,
-        role: 'patient',
-        contexts: ['citizen'],
-        currentContext: 'citizen',
-        wallet: 0,
-        points: 0,
-        waslaId: 'WASLA-' + Math.floor(10000 + Math.random() * 90000),
-        emr: {
-          blood: 'غير محدد',
-          allergies: [],
-          chronic: [],
-          vitals: [],
-          currentMeds: [],
-          pastMeds: [],
-          labs: [],
-          visitNotes: []
-        },
-        familyIds: [],
-        successfulOrders: 0,
-        cancellations: 0,
-        status: 'active',
-        createdAt: Date.now()
-      };
-
-      db.users.push(newUser);
-      Store.save(db);
-
-      const session = {
-        userId: newUser.id,
-        context: 'citizen',
-        loginAt: Date.now()
-      };
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-
-      EventLog.log('register', {
-        actorId: newUser.id,
-        phone,
-        name,
-        waslaId: newUser.waslaId
-      });
-
-      return { ok: true, user: newUser };
-    },
-
-    logout() {
-      const session = this.getSession();
-      if (session) {
-        EventLog.log('logout', { actorId: session.userId });
-      }
-      sessionStorage.removeItem(SESSION_KEY);
-    },
-
-    getSession() {
-      try {
-        const raw = sessionStorage.getItem(SESSION_KEY);
-        if (!raw) return null;
-        return JSON.parse(raw);
-      } catch (_) { return null; }
-    },
-
-    getCurrentUser() {
-      const session = this.getSession();
-      if (!session) return null;
-      const db = Store.load();
-      if (!db) return null;
-      return db.users.find(u => u.id === session.userId) || null;
-    },
-
-    getCurrentContext() {
-      const session = this.getSession();
-      return session ? session.context : null;
-    },
-
-    switchContext(newContext) {
-      const session = this.getSession();
-      if (!session) return false;
-      const user = this.getCurrentUser();
-      if (!user) return false;
-      const contexts = user.contexts || ['citizen'];
-      if (!contexts.includes(newContext)) return false;
-
-      session.context = newContext;
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-
-      const db = Store.load();
-      const u = db.users.find(x => x.id === user.id);
-      if (u) {
-        u.currentContext = newContext;
-        Store.save(db);
-      }
-
-      EventLog.log('context_switched', {
-        actorId: user.id,
-        context: newContext
-      });
-
-      return true;
-    }
-  };
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 2: AUTH UI
-  // ══════════════════════════════════════════════════════════════
-  const AuthUI = {
-    open(mode = 'login') {
-      const body = Utils.$('#modal-auth-body');
-      if (!body) return;
-      body.innerHTML = `
-        <button class="modal-close" onclick="UI.modal('modal-auth', { open: false })">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-        ${mode === 'login' ? this._loginForm() : this._registerForm()}
-      `;
-      UI.modal('modal-auth', { open: true });
-      setTimeout(() => {
-        const first = body.querySelector('input');
-        if (first) first.focus();
-      }, 200);
-    },
-
-    _loginForm() {
-      return `
-        <div style="text-align:center;margin-bottom:20px;">
-          <div style="width:56px;height:56px;background:linear-gradient(135deg,var(--sector-medical),#10B981);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin:0 auto 10px;box-shadow:0 8px 22px rgba(5,150,105,0.35);">
-            <i class="fa-solid fa-heart-pulse"></i>
-          </div>
-          <h3 style="font-size:18px;font-weight:900;">دخول وصلة</h3>
-          <p style="font-size:12px;color:var(--text-muted);margin-top:4px;">مرحباً بك مجدداً</p>
-        </div>
-        <label class="label">رقم الموبايل</label>
-        <input type="tel" id="login-phone" class="input" placeholder="01xxxxxxxxx" maxlength="11" style="margin-bottom:12px;" autocomplete="tel" />
-        <label class="label">كلمة السر</label>
-        <input type="password" id="login-pass" class="input" placeholder="********" style="margin-bottom:16px;" autocomplete="current-password" />
-        <button class="btn btn-primary btn-block" onclick="AuthUI._submitLogin()">
-          <i class="fa-solid fa-right-to-bracket"></i> دخول
-        </button>
-        <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:16px;font-weight:700;">
-          ليس لديك حساب؟
-          <a style="color:var(--sector-medical);font-weight:900;cursor:pointer;" onclick="AuthUI.open('register')">سجّل الآن</a>
-        </p>
-        <div class="auth-demo-box">
-          <strong>🔑 حسابات تجريبية:</strong><br>
-          👑 مؤسس: <code>01068990089</code> / <code>As123789456*</code><br>
-          🧑 مريض: <code>01000000001</code> / <code>123456</code><br>
-          🩺 طبيب: <code>01000000002</code> / <code>123456</code><br>
-          🎧 موظف: <code>01000000003</code> / <code>123456</code><br>
-          🏪 تاجر: <code>01000000004</code> / <code>123456</code>
-        </div>
-      `;
-    },
-
-    _registerForm() {
-      return `
-        <div style="text-align:center;margin-bottom:20px;">
-          <div style="width:56px;height:56px;background:linear-gradient(135deg,var(--sector-medical),#10B981);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin:0 auto 10px;box-shadow:0 8px 22px rgba(5,150,105,0.35);">
-            <i class="fa-solid fa-user-plus"></i>
-          </div>
-          <h3 style="font-size:18px;font-weight:900;">حساب جديد</h3>
-          <p style="font-size:12px;color:var(--text-muted);margin-top:4px;">انضم لشبكة وصلة</p>
-        </div>
-        <label class="label">الاسم الثلاثي</label>
-        <input type="text" id="reg-name" class="input" placeholder="محمد أحمد علي" style="margin-bottom:12px;" autocomplete="name" />
-        <label class="label">رقم الموبايل</label>
-        <input type="tel" id="reg-phone" class="input" placeholder="01xxxxxxxxx" maxlength="11" style="margin-bottom:12px;" autocomplete="tel" />
-        <label class="label">كلمة السر</label>
-        <input type="password" id="reg-pass" class="input" placeholder="6 أحرف على الأقل" style="margin-bottom:16px;" autocomplete="new-password" />
-        <button class="btn btn-primary btn-block" onclick="AuthUI._submitRegister()">
-          <i class="fa-solid fa-user-plus"></i> إنشاء الحساب
-        </button>
-        <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:16px;font-weight:700;">
-          لديك حساب؟
-          <a style="color:var(--sector-medical);font-weight:900;cursor:pointer;" onclick="AuthUI.open('login')">دخول</a>
-        </p>
-      `;
-    },
-
-    async _submitLogin() {
-      const phone = Utils.$('#login-phone').value.trim();
-      const pass = Utils.$('#login-pass').value;
-
-      if (!Utils.isValidPhone(phone)) {
-        UI.toast('رقم موبايل غير صحيح (01xxxxxxxxx)', 'error');
-        return;
-      }
-      if (!pass) {
-        UI.toast('أدخل كلمة السر', 'error');
-        return;
-      }
-
-      UI.loading('جاري الدخول...');
-      await Utils.sleep(250);
-
-      const result = Auth.login(phone, pass);
-      UI.stopLoading();
-
-      if (result.ok) {
-        UI.modal('modal-auth', { open: false });
-        UI.toast(`مرحباً ${result.user.name.split(' ')[0]} 👋`);
-        initApp();
-      } else {
-        UI.toast(result.msg, 'error');
-      }
-    },
-
-    async _submitRegister() {
-      const name = Utils.$('#reg-name').value.trim();
-      const phone = Utils.$('#reg-phone').value.trim();
-      const pass = Utils.$('#reg-pass').value;
-
-      if (!Utils.isValidName(name)) {
-        UI.toast('أدخل الاسم الثلاثي كاملاً', 'error');
-        return;
-      }
-      if (!Utils.isValidPhone(phone)) {
-        UI.toast('رقم موبايل غير صحيح', 'error');
-        return;
-      }
-      if (pass.length < 6) {
-        UI.toast('كلمة السر 6 أحرف على الأقل', 'error');
-        return;
-      }
-
-      UI.loading('جاري إنشاء الحساب...');
-      await Utils.sleep(250);
-
-      const result = Auth.register(name, phone, pass);
-      UI.stopLoading();
-
-      if (result.ok) {
-        UI.modal('modal-auth', { open: false });
-        UI.toast(`مرحباً ${name.split(' ')[0]} 🎉 حسابك جاهز`);
-        initApp();
-      } else {
-        UI.toast(result.msg, 'error');
-      }
-    },
-
-    async _confirmLogout() {
-      const ok = await UI.confirm(
-        'هل تريد الخروج من وصلة؟',
-        { title: 'تسجيل الخروج', confirmText: 'خروج', cancelText: 'إلغاء', danger: true }
-      );
-      if (!ok) return;
-      Auth.logout();
-      UI.toast('تم تسجيل الخروج', 'info');
-      initApp();
-    }
-  };
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 3: ROUTER
-  // ══════════════════════════════════════════════════════════════
-  const Router = {
-    registry: {},
-    current: null,
-    _sectorViews: ['medical', 'grocery', 'cars', 'home-services'],
-
-    register(viewName, rendererFn) {
-      this.registry[viewName] = rendererFn;
-      return this;
-    },
-
-    go(viewName, params) {
-      if (!this.registry[viewName]) {
-        console.warn(`[Router] View "${viewName}" not registered`);
-        this._renderNotFound(viewName);
-        return;
-      }
-
-      this.current = viewName;
-      const container = Utils.$('#main-container');
-      if (!container) return;
-
-      container.innerHTML = '';
-      const viewEl = document.createElement('div');
-      viewEl.id = 'view-' + viewName;
-      viewEl.className = 'view active';
-      container.appendChild(viewEl);
-
-      try {
-        this.registry[viewName](viewEl, params || {});
-      } catch (err) {
-        console.error('[Router] Render error:', err);
-        viewEl.innerHTML = `
-          <div class="empty-state">
-            <i class="fa-solid fa-triangle-exclamation empty-state-icon" style="color:var(--color-danger);"></i>
-            <p class="empty-state-title">حدث خطأ</p>
-            <p class="empty-state-desc">تعذر تحميل الصفحة</p>
-          </div>
-        `;
-      }
-
-      this.updateActiveTab(viewName);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    },
-
-    updateActiveTab(viewName) {
-      const isSector = this._sectorViews.includes(viewName);
-      const activeTab = isSector ? 'home' : viewName;
-
-      Utils.$$('.app-tab').forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.tab === activeTab);
-      });
-    },
-
-    _renderNotFound(viewName) {
-      const container = Utils.$('#main-container');
-      if (!container) return;
-      container.innerHTML = `
-        <div class="empty-state">
-          <i class="fa-solid fa-circle-question empty-state-icon"></i>
-          <p class="empty-state-title">صفحة غير موجودة</p>
-          <p class="empty-state-desc">${Utils.escape(viewName)}</p>
-          <button class="btn btn-primary" style="margin-top:16px;" onclick="Router.go('home')">الرئيسية</button>
-        </div>
-      `;
-    }
-  };
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 4: RENDER HEADER
-  // ══════════════════════════════════════════════════════════════
-  function renderHeader() {
-    const el = Utils.$('#header-actions');
-    if (!el) return;
-
-    const user = Auth.getCurrentUser();
-
-    if (!user) {
-      el.innerHTML = `
-        <button class="icon-btn" onclick="AuthUI.open('login')" title="دخول" style="width:auto;padding:0 14px;gap:6px;font-size:12px;font-weight:900;">
-          <i class="fa-solid fa-right-to-bracket"></i>
-          <span>دخول</span>
-        </button>
-      `;
-      return;
-    }
-
-    const db = Store.load();
-    const unread = (db.notifications || []).filter(n => n.userId === user.id && !n.read).length;
-
-    el.innerHTML = `
-      <button class="icon-btn" onclick="NotificationsPanel.open()" title="الإشعارات">
-        <i class="fa-solid fa-bell"></i>
-        ${unread > 0 ? `<span class="badge">${unread > 9 ? '9+' : unread}</span>` : ''}
-      </button>
-      <button class="header-user-btn" onclick="Router.go('account')" title="حسابي">
-        <div class="header-user-avatar">${Utils.escape(user.name.charAt(0))}</div>
-        <span class="header-user-name">${Utils.escape(user.name.split(' ')[0])}</span>
-      </button>
-      <button class="icon-btn" onclick="AuthUI._confirmLogout()" title="خروج">
-        <i class="fa-solid fa-right-from-bracket"></i>
-      </button>
-    `;
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 5: CONTEXT SWITCHER
-  // ══════════════════════════════════════════════════════════════
-  const ContextSwitcher = {
-    toggle() {
-      const user = Auth.getCurrentUser();
-      if (!user) return;
-      const contexts = user.contexts || ['citizen'];
-      if (contexts.length < 2) return;
-      const current = Auth.getCurrentContext() || 'citizen';
-      const other = contexts.find(c => c !== current);
-      if (other) this.switchTo(other);
-    },
-
-    async switchTo(context) {
-      const ok = Auth.switchContext(context);
-      if (!ok) {
-        UI.toast('لا يمكن التبديل لهذا الوضع', 'error');
-        return;
-      }
-
-      UI.toast('تم تبديل الوضع ✓', 'info');
-      renderHeader();
-      renderContextSwitcher();
-      renderTabs();
-
-      const defaultViews = {
-        citizen: 'home',
-        doctor: 'clinic',
-        merchant: 'store',
-        staff: 'reception',
-        founder: 'founder'
-      };
-      Router.go(defaultViews[context] || 'home');
-    }
-  };
-
-  function renderContextSwitcher() {
-    const switcher = Utils.$('#context-switcher');
-    if (!switcher) return;
-
-    const user = Auth.getCurrentUser();
-    if (!user) {
-      switcher.classList.remove('visible');
-      return;
-    }
-
-    const contexts = user.contexts || ['citizen'];
-    if (contexts.length < 2) {
-      switcher.classList.remove('visible');
-      return;
-    }
-
-    switcher.classList.add('visible');
-
-    const current = Auth.getCurrentContext() || 'citizen';
-    const labels = {
-      citizen: { label: 'مواطن', icon: 'fa-user', color: '#0284C7' },
-      doctor: { label: 'عيادتي', icon: 'fa-user-doctor', color: '#059669' },
-      merchant: { label: 'متجري', icon: 'fa-store', color: '#EA580C' },
-      staff: { label: 'الاستقبال', icon: 'fa-headset', color: '#7C3AED' },
-      founder: { label: 'الإدارة', icon: 'fa-crown', color: '#D97706' }
-    };
-
-    const curr = labels[current] || labels.citizen;
-    const other = contexts.find(c => c !== current);
-    const otherLabel = labels[other] || labels.citizen;
-
-    const iconEl = Utils.$('#context-icon');
-    const labelEl = Utils.$('#context-label');
-    const nameEl = Utils.$('#context-name');
-    const btnEl = Utils.$('#context-switch-btn');
-
-    if (iconEl) {
-      iconEl.innerHTML = `<i class="fa-solid ${curr.icon}"></i>`;
-      iconEl.style.background = curr.color + '22';
-      iconEl.style.color = curr.color;
-    }
-    if (labelEl) labelEl.textContent = 'الوضع الحالي';
-    if (nameEl) nameEl.textContent = curr.label;
-    if (btnEl) {
-      btnEl.innerHTML = `<i class="fa-solid ${otherLabel.icon}"></i> <span>التبديل إلى ${otherLabel.label}</span>`;
-      btnEl.onclick = () => ContextSwitcher.switchTo(other);
-    }
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 6: RENDER TABS
-  // ══════════════════════════════════════════════════════════════
-  function renderTabs() {
-    const tabsEl = Utils.$('#app-tabs');
-    if (!tabsEl) return;
-
-    const user = Auth.getCurrentUser();
-    const context = Auth.getCurrentContext() || 'citizen';
-
-    if (!user) {
-      tabsEl.innerHTML = `
-        <button class="app-tab active" data-tab="home" onclick="Router.go('home')">
-          <i class="fa-solid fa-house"></i><span>الرئيسية</span>
-        </button>
-        <button class="app-tab" data-tab="account" onclick="Router.go('account')">
-          <i class="fa-solid fa-user"></i><span>حسابي</span>
-        </button>
-      `;
-      return;
-    }
-
-    const tabsByContext = {
-      citizen: [
-        { id: 'home', label: 'الرئيسية', icon: 'fa-house' },
-        { id: 'orders', label: 'طلباتي', icon: 'fa-receipt' },
-        { id: 'account', label: 'حسابي', icon: 'fa-user' }
-      ],
-      doctor: [
-        { id: 'clinic', label: 'عيادتي', icon: 'fa-user-doctor' },
-        { id: 'my-patients', label: 'مرضاي', icon: 'fa-users' },
-        { id: 'account', label: 'حسابي', icon: 'fa-user' }
-      ],
-      merchant: [
-        { id: 'store', label: 'متجري', icon: 'fa-store' },
-        { id: 'store-orders', label: 'الطلبات', icon: 'fa-box' },
-        { id: 'account', label: 'حسابي', icon: 'fa-user' }
-      ],
-      staff: [
-        { id: 'reception', label: 'الاستقبال', icon: 'fa-headset' },
-        { id: 'schedule', label: 'الجدول', icon: 'fa-calendar' },
-        { id: 'account', label: 'حسابي', icon: 'fa-user' }
-      ],
-      founder: [
-        { id: 'founder', label: 'الإدارة', icon: 'fa-crown' },
-        { id: 'account', label: 'حسابي', icon: 'fa-user' }
-      ]
-    };
-
-    const tabs = tabsByContext[context] || tabsByContext.citizen;
-
-    tabsEl.innerHTML = tabs.map(t => `
-      <button class="app-tab" data-tab="${t.id}" onclick="Router.go('${t.id}')">
-        <i class="fa-solid ${t.icon}"></i>
-        <span>${t.label}</span>
-      </button>
-    `).join('');
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 7: NOTIFICATIONS PANEL
-  // ══════════════════════════════════════════════════════════════
-  const NotificationsPanel = {
-    open() {
-      const user = Auth.getCurrentUser();
-      if (!user) return;
-
-      const db = Store.load();
-      const notifs = (db.notifications || [])
-        .filter(n => n.userId === user.id)
-        .sort((a, b) => (b.ts || 0) - (a.ts || 0))
-        .slice(0, 30);
-
-      const body = Utils.$('#modal-generic-body');
-      body.innerHTML = `
-        <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-        <h3 style="font-size:16px;font-weight:900;margin-bottom:16px;">
-          <i class="fa-solid fa-bell" style="color:var(--sector-medical);"></i>
-          الإشعارات
-        </h3>
-        ${notifs.length === 0 ? `
-          <div class="empty-state" style="padding:32px 16px;">
-            <i class="fa-solid fa-bell-slash empty-state-icon"></i>
-            <p class="empty-state-desc">لا توجد إشعارات</p>
-          </div>
-        ` : notifs.map(n => `
-          <div class="notif-item ${!n.read ? 'unread' : ''}">
-            <div class="notif-time">${Utils.timeAgo(n.ts)}</div>
-            <div class="notif-text">${Utils.escape(n.text)}</div>
-          </div>
-        `).join('')}
-      `;
-      UI.modal('modal-generic', { open: true });
-
-      const freshDb = Store.load();
-      freshDb.notifications = (freshDb.notifications || []).map(n =>
-        n.userId === user.id ? { ...n, read: true } : n
-      );
-      Store.save(freshDb);
-      renderHeader();
-    }
-  };
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 8: HOME VIEW
-  // ══════════════════════════════════════════════════════════════
-  function _sectorCard(sector, title, desc, icon) {
-    const sectorVar = sector === 'home-services' ? 'home' : sector;
-    return `
-      <div class="sector-card" onclick="Router.go('${sector}')">
-        <div class="sector-card-icon" style="background:var(--sector-${sectorVar}-soft);color:var(--sector-${sectorVar});border:1px solid var(--sector-${sectorVar}-border);">
-          <i class="fa-solid ${icon}"></i>
-        </div>
-        <h3 class="sector-card-title">${title}</h3>
-        <p class="sector-card-desc">${desc}</p>
-      </div>
-    `;
-  }
-
-  Router.register('home', (el) => {
-    const user = Auth.getCurrentUser();
-    const db = Store.load();
-
-    const firstName = user ? user.name.split(' ')[0] : '';
-    const greeting = user ? `أهلاً ${firstName}` : 'أهلاً بك في وصلة';
-
-    let activitySection = '';
-    if (user) {
-      const myOrders = (db.orders || []).filter(o => o.userId === user.id).slice(-3).reverse();
-      const myAppts = (db.appointments || []).filter(a => a.patientId === user.id).slice(-3).reverse();
-      const recent = [
-        ...myOrders.map(o => ({ ...o, _kind: 'order' })),
-        ...myAppts.map(a => ({ ...a, _kind: 'appt' }))
-      ].sort((a, b) => (b.ts || b.createdAt || 0) - (a.ts || a.createdAt || 0)).slice(0, 3);
-
-      if (recent.length > 0) {
-        activitySection = `
-          <h2 class="section-title" style="margin-top:20px;">
-            <i class="fa-solid fa-clock-rotate-left"></i>
-            نشاطك الأخير
-          </h2>
-          ${recent.map(item => _renderMiniActivity(item)).join('')}
-        `;
-      }
-    }
-
-    el.innerHTML = `
-      <div class="sector-hero" data-sector="medical">
-        <span class="sector-hero-badge">
-          <i class="fa-solid fa-house"></i>
-          ${greeting}
-        </span>
-        <h1>كل خدمات شبين القناطر.. في مكان واحد</h1>
-        <p>صحة، تسوق، سيارات، وصيانة — اختر القطاع الذي تحتاجه</p>
-      </div>
-
-      <h2 class="section-title">
-        <i class="fa-solid fa-grid-2"></i>
-        اختر الخدمة
-      </h2>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
-        ${_sectorCard('medical', 'القطاع الطبي', 'أطباء • حجز • EMR', 'fa-stethoscope')}
-        ${_sectorCard('grocery', 'سوبر ماركت', 'تسوق • توصيل', 'fa-basket-shopping')}
-        ${_sectorCard('cars', 'خدمات السيارات', 'فنيون متنقلون', 'fa-car')}
-        ${_sectorCard('home-services', 'الصيانة المنزلية', 'سباك • كهربائي', 'fa-screwdriver-wrench')}
-      </div>
-
-      ${!user ? `
-        <div class="card" style="margin-top:20px;background:linear-gradient(135deg,#FEF3C7,#FDE68A);border-color:#F59E0B;">
-          <div style="text-align:center;">
-            <i class="fa-solid fa-star" style="font-size:28px;color:#D97706;margin-bottom:8px;"></i>
-            <h3 style="font-size:14px;font-weight:900;color:#78350F;margin-bottom:4px;">جرب وصلة مجاناً</h3>
-            <p style="font-size:11.5px;color:#92400E;font-weight:700;margin-bottom:12px;">سجل حسابك واحصل على خصم أول كشف</p>
-            <button class="btn btn-primary" onclick="AuthUI.open('register')">
-              <i class="fa-solid fa-user-plus"></i> إنشاء حساب
-            </button>
-          </div>
-        </div>
-      ` : ''}
-
-      ${activitySection}
-    `;
-  });
-
-  function _renderMiniActivity(item) {
-    if (item._kind === 'order') {
-      const sectorClass = item.sector === 'grocery' ? 'grocery' : item.sector === 'cars' ? 'cars' : item.sector === 'home' ? 'home-services' : 'medical';
-      const statusLabels = {
-        pending: 'بانتظار',
-        preparing: 'قيد التجهيز',
-        on_way: 'في الطريق',
-        delivered: 'تم التوصيل',
-        canceled: 'ملغي'
-      };
-      return `
-        <div class="order-card ${sectorClass}" style="padding:10px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div>
-              <div style="font-size:12.5px;font-weight:900;color:var(--text-primary);">${Utils.escape(item.storeName || item.service || 'طلب')}</div>
-              <div style="font-size:10.5px;color:var(--text-muted);font-weight:700;margin-top:2px;">${statusLabels[item.status] || item.status}</div>
-            </div>
-            <div style="font-size:13px;font-weight:900;color:var(--sector-medical);">${Utils.money(item.total || item.price || 0)}</div>
-          </div>
-        </div>
-      `;
-    }
-    return `
-      <div class="order-card medical" style="padding:10px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div style="font-size:12.5px;font-weight:900;color:var(--text-primary);">${Utils.escape(item.doctorName || 'موعد')}</div>
-            <div style="font-size:10.5px;color:var(--text-muted);font-weight:700;margin-top:2px;">${item.slot || ''} • ${Utils.fmtDate(item.date)}</div>
-          </div>
-          <div style="font-size:13px;font-weight:900;color:var(--sector-medical);">${Utils.money(item.price || 0)}</div>
-        </div>
-      </div>
-    `;
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 9: ORDERS VIEW
-  // ══════════════════════════════════════════════════════════════
-  Router.register('orders', (el) => {
-    const user = Auth.getCurrentUser();
-    if (!user) {
-      el.innerHTML = `
-        <div class="empty-state">
-          <i class="fa-solid fa-lock empty-state-icon"></i>
-          <p class="empty-state-title">سجل دخول</p>
-          <p class="empty-state-desc">تحتاج تسجيل الدخول لعرض طلباتك</p>
-          <button class="btn btn-primary" style="margin-top:16px;" onclick="AuthUI.open('login')">دخول</button>
-        </div>
-      `;
-      return;
-    }
-
-    const db = Store.load();
-    const myOrders = (db.orders || []).filter(o => o.userId === user.id);
-    const myAppts = (db.appointments || []).filter(a => a.patientId === user.id);
-
-    const all = [
-      ...myOrders.map(o => ({ ...o, _kind: 'order' })),
-      ...myAppts.map(a => ({ ...a, _kind: 'appt' }))
-    ].sort((a, b) => (b.ts || b.createdAt || 0) - (a.ts || a.createdAt || 0));
-
-    if (!all.length) {
-      el.innerHTML = `
-        <div class="empty-state">
-          <i class="fa-solid fa-receipt empty-state-icon"></i>
-          <p class="empty-state-title">لا توجد طلبات بعد</p>
-          <p class="empty-state-desc">ابدأ بأول خدمة من الرئيسية</p>
-          <button class="btn btn-primary" style="margin-top:16px;" onclick="Router.go('home')">
-            <i class="fa-solid fa-house"></i> تصفح الخدمات
-          </button>
-        </div>
-      `;
-      return;
-    }
-
-    el.innerHTML = `
-      <h2 class="section-title">
-        <i class="fa-solid fa-receipt"></i>
-        كل طلباتي (${all.length})
-      </h2>
-      ${all.map(item => item._kind === 'order' ? _renderOrderCard(item) : _renderApptCard(item)).join('')}
-    `;
-  });
-
-  function _renderOrderCard(order) {
-    const sectorClass = order.sector === 'grocery' ? 'grocery' : order.sector === 'cars' ? 'cars' : order.sector === 'home' ? 'home-services' : 'medical';
-    const typeLabels = { grocery: 'سوبر ماركت', cars: 'سيارات', home: 'صيانة' };
-    const statusLabels = {
-      pending: 'بانتظار',
-      preparing: 'قيد التجهيز',
-      on_way: 'في الطريق',
-      delivered: 'تم التوصيل',
-      canceled: 'ملغي'
-    };
-    return `
-      <div class="order-card ${sectorClass}">
-        <div class="order-header">
-          <div style="flex:1;min-width:0;">
-            <span class="tag tag-${sectorClass === 'home-services' ? 'home' : sectorClass}" style="margin-bottom:6px;">
-              <i class="fa-solid fa-receipt"></i> ${typeLabels[order.sector] || 'طلب'}
-            </span>
-            <div class="order-title">${Utils.escape(order.storeName || order.service || 'طلب')}</div>
-            <div class="order-meta">${Utils.timeAgo(order.ts || order.createdAt)}</div>
-          </div>
-          <div style="text-align:left;">
-            <div class="order-amount">${Utils.money(order.total || order.price || 0)}</div>
-            <div style="font-size:10px;font-weight:900;color:var(--text-muted);margin-top:2px;">${statusLabels[order.status] || order.status}</div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  function _renderApptCard(appt) {
-    return `
-      <div class="order-card medical">
-        <div class="order-header">
-          <div style="flex:1;min-width:0;">
-            <span class="tag tag-medical" style="margin-bottom:6px;">
-              <i class="fa-solid fa-stethoscope"></i> طبي
-            </span>
-            <div class="order-title">${Utils.escape(appt.doctorName || 'موعد')}</div>
-            <div class="order-meta">${appt.slot || ''} • ${Utils.fmtDate(appt.date)}</div>
-          </div>
-          <div style="text-align:left;">
-            <div class="order-amount">${Utils.money(appt.price || 0)}</div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 10: ACCOUNT VIEW
-  // ══════════════════════════════════════════════════════════════
-  Router.register('account', (el) => {
-    const user = Auth.getCurrentUser();
-    if (!user) {
-      el.innerHTML = `
-        <div class="empty-state">
-          <i class="fa-solid fa-lock empty-state-icon"></i>
-          <p class="empty-state-title">سجل دخول</p>
-          <p class="empty-state-desc">تحتاج تسجيل الدخول لعرض حسابك</p>
-          <button class="btn btn-primary" style="margin-top:16px;" onclick="AuthUI.open('login')">دخول</button>
-        </div>
-      `;
-      return;
-    }
-
-    const db = Store.load();
-    const context = Auth.getCurrentContext() || 'citizen';
-    const myOrders = (db.orders || []).filter(o => o.userId === user.id);
-    const myAppts = (db.appointments || []).filter(a => a.patientId === user.id);
-    const completedOrders = myOrders.filter(o => o.status === 'delivered' || o.status === 'completed');
-
-    el.innerHTML = `
-      <div class="profile-header">
-        <div style="display:flex;align-items:center;gap:14px;position:relative;">
-          <div class="profile-avatar">${Utils.escape(user.name.charAt(0))}</div>
-          <div style="flex:1;min-width:0;">
-            <h2 style="font-size:17px;font-weight:900;margin-bottom:2px;">${Utils.escape(user.name)}</h2>
-            <p style="font-size:12px;font-weight:700;opacity:0.9;">${Utils.escape(user.phone)}</p>
-            <p style="font-size:10.5px;font-weight:800;opacity:0.85;margin-top:4px;">
-              <i class="fa-solid fa-id-card"></i> ${Utils.escape(user.waslaId || '—')}
-            </p>
-          </div>
-        </div>
-        <div class="profile-stats">
-          <div class="profile-stat">
-            <div class="profile-stat-value">${myOrders.length + myAppts.length}</div>
-            <div class="profile-stat-label">إجمالي الطلبات</div>
-          </div>
-          <div class="profile-stat">
-            <div class="profile-stat-value">${completedOrders.length}</div>
-            <div class="profile-stat-label">مكتملة</div>
-          </div>
-          <div class="profile-stat">
-            <div class="profile-stat-value">${user.points || 0}</div>
-            <div class="profile-stat-label">نقاط</div>
-          </div>
-        </div>
-      </div>
-
-      <h2 class="section-title">
-        <i class="fa-solid fa-gear"></i>
-        إدارة الحساب
-      </h2>
-
-      <div class="settings-item" onclick="Router.go('orders')">
-        <div class="settings-icon" style="background:var(--sector-medical-soft);color:var(--sector-medical);">
-          <i class="fa-solid fa-receipt"></i>
-        </div>
-        <div style="flex:1;">
-          <div class="settings-title">طلباتي</div>
-          <div class="settings-desc">عرض كل طلباتك السابقة</div>
-        </div>
-        <i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i>
-      </div>
-
-      ${user.emr ? `
-        <div class="settings-item" onclick="UI.toast('سيتم تفعيل الملف الطبي في PART 5','info')">
-          <div class="settings-icon" style="background:var(--sector-cars-soft);color:var(--sector-cars);">
-            <i class="fa-solid fa-file-medical"></i>
-          </div>
-          <div style="flex:1;">
-            <div class="settings-title">ملفي الطبي</div>
-            <div class="settings-desc">القياسات، الروشتات، السجل الكامل</div>
-          </div>
-          <i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i>
-        </div>
-      ` : ''}
-
-      <div class="settings-item" onclick="UI.toast('سيتم تفعيل الإعدادات في PART 15','info')">
-        <div class="settings-icon" style="background:var(--sector-home-soft);color:var(--sector-home);">
-          <i class="fa-solid fa-shield-halved"></i>
-        </div>
-        <div style="flex:1;">
-          <div class="settings-title">الخصوصية والأمان</div>
-          <div class="settings-desc">كلمة السر، الأجهزة المتصلة</div>
-        </div>
-        <i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i>
-      </div>
-
-      <div class="settings-item" onclick="AuthUI._confirmLogout()" style="border-color:rgba(225,29,72,0.3);">
-        <div class="settings-icon" style="background:var(--color-danger-soft);color:var(--color-danger);">
-          <i class="fa-solid fa-right-from-bracket"></i>
-        </div>
-        <div style="flex:1;">
-          <div class="settings-title" style="color:var(--color-danger);">تسجيل الخروج</div>
-          <div class="settings-desc">الخروج الآمن من الحساب</div>
-        </div>
-        <i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i>
-      </div>
-
-      <p style="text-align:center;font-size:10.5px;color:var(--text-muted);font-weight:700;margin-top:24px;">
-        وصلة v5.0.0 — PART 3/15
-      </p>
-    `;
-  });
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 11: PLACEHOLDER VIEWS
-  // ══════════════════════════════════════════════════════════════
-  const placeholders = [
-    { id: 'medical', title: 'القطاع الطبي', part: 'PART 4', sector: 'medical' },
-    { id: 'grocery', title: 'سوبر ماركت', part: 'PART 7', sector: 'grocery' },
-    { id: 'cars', title: 'خدمات السيارات', part: 'PART 8', sector: 'cars' },
-    { id: 'home-services', title: 'الصيانة المنزلية', part: 'PART 8', sector: 'home' },
-    { id: 'clinic', title: 'عيادتي', part: 'PART 6', sector: 'medical' },
-    { id: 'my-patients', title: 'مرضاي', part: 'PART 6', sector: 'medical' },
-    { id: 'store', title: 'متجري', part: 'PART 11', sector: 'grocery' },
-    { id: 'store-orders', title: 'طلبات المتجر', part: 'PART 11', sector: 'grocery' },
-    { id: 'reception', title: 'الاستقبال', part: 'PART 12', sector: 'cars' },
-    { id: 'schedule', title: 'جدول اليوم', part: 'PART 12', sector: 'cars' },
-    { id: 'founder', title: 'الإدارة', part: 'PART 13', sector: 'founder' }
-  ];
-
-  placeholders.forEach(p => {
-    Router.register(p.id, (el) => {
-      el.innerHTML = `
-        <div class="sector-hero" data-sector="${p.sector}">
-          <span class="sector-hero-badge">
-            <i class="fa-solid fa-hourglass-half"></i>
-            قيد الإنشاء
-          </span>
-          <h1>${p.title}</h1>
-          <p>هذه الشاشة ستُبنى في ${p.part}</p>
-        </div>
-        <div class="empty-state">
-          <i class="fa-solid fa-tools empty-state-icon"></i>
-          <p class="empty-state-title">${p.title}</p>
-          <p class="empty-state-desc">جاري تطوير هذه الشاشة — ${p.part}</p>
-          <button class="btn btn-ghost" style="margin-top:16px;" onclick="Router.go('home')">
-            <i class="fa-solid fa-house"></i> العودة للرئيسية
-          </button>
-        </div>
-      `;
-    });
-  });
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 12: PATCH CONTEXTS (for existing users)
-  // ══════════════════════════════════════════════════════════════
-  function patchContexts() {
-    const db = Store.load();
-    if (!db) return;
-    let changed = false;
-
-    db.users.forEach(u => {
-      if (!u.contexts) {
-        u.contexts = ['citizen'];
-        changed = true;
-      }
-      if (u.role === 'doctor' && !u.contexts.includes('doctor')) {
-        u.contexts.push('doctor');
-        if (!u.currentContext) u.currentContext = 'doctor';
-        changed = true;
-      }
-      if (u.role === 'merchant' && !u.contexts.includes('merchant')) {
-        u.contexts.push('merchant');
-        if (!u.currentContext) u.currentContext = 'merchant';
-        changed = true;
-      }
-      if (u.role === 'staff' && !u.contexts.includes('staff')) {
-        u.contexts.push('staff');
-        if (!u.currentContext) u.currentContext = 'staff';
-        changed = true;
-      }
-      if (u.role === 'founder' && !u.contexts.includes('founder')) {
-        u.contexts.push('founder');
-        if (!u.currentContext) u.currentContext = 'founder';
-        changed = true;
-      }
-    });
-
-    if (changed) Store.save(db);
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 13: INIT
-  // ══════════════════════════════════════════════════════════════
-  function initApp() {
-    patchContexts();
-    renderHeader();
-    renderContextSwitcher();
-    renderTabs();
-
-    const user = Auth.getCurrentUser();
-    const context = Auth.getCurrentContext();
-
-    if (!user) {
-      Router.go('home');
-      setTimeout(() => {
-        if (!Auth.getCurrentUser()) {
-          AuthUI.open('login');
-        }
-      }, 500);
-      return;
-    }
-
-    const defaultViews = {
-      citizen: 'home',
-      doctor: 'clinic',
-      merchant: 'store',
-      staff: 'reception',
-      founder: 'founder'
-    };
-    Router.go(defaultViews[context] || 'home');
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 14: EXPOSE GLOBALS
-  // ══════════════════════════════════════════════════════════════
-  window.Auth = Auth;
-  window.AuthUI = AuthUI;
-  window.Router = Router;
-  window.NotificationsPanel = NotificationsPanel;
-  window.ContextSwitcher = ContextSwitcher;
-  window.WaslaRender = {
-    header: renderHeader,
-    contextSwitcher: renderContextSwitcher,
-    tabs: renderTabs
-  };
-  window.initApp = initApp;
-
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 15: BOOT
-  // ══════════════════════════════════════════════════════════════
-  function boot() {
-    console.log('%c🔐 PART 3/15: AUTH + ROUTER + VIEWS READY',
-      'background:#0284C7;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
-    initApp();
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 150));
-  } else {
-    setTimeout(boot, 150);
-  }
 
 })();
 </script>
