@@ -9,6 +9,9 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 <style>
+/* ══════════════════════════════════════════════════════════════
+   PART 1: DESIGN SYSTEM & CORE STYLES
+══════════════════════════════════════════════════════════════ */
 :root {
   --brand-ink: #0B1220;
   --brand-ink-soft: #1E293B;
@@ -419,6 +422,150 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   .toast-container { bottom: 16px; right: 8px; left: 8px; }
 }
 :focus-visible { outline: 2px solid var(--sector-medical); outline-offset: 2px; }
+
+/* ══════════════════════════════════════════════════════════════
+   PART 3: AUTH & VIEWS STYLES
+══════════════════════════════════════════════════════════════ */
+.header-user-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px 4px 4px; background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14); border-radius: var(--radius-full);
+  cursor: pointer; font-family: inherit; transition: background 0.15s ease; flex-shrink: 0;
+}
+.header-user-btn:hover { background: rgba(255, 255, 255, 0.16); }
+.header-user-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--sector-medical), #10B981);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 13px; font-weight: 900; flex-shrink: 0;
+}
+.header-user-name {
+  font-size: 11.5px; font-weight: 800; color: #fff;
+  white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis;
+}
+@media (max-width: 500px) {
+  .header-user-name { display: none; }
+  .header-user-btn { padding: 3px; border-radius: 50%; }
+}
+.auth-demo-box {
+  margin-top: 16px; padding: 12px; background: var(--bg-muted);
+  border: 1px dashed var(--border-strong); border-radius: var(--radius-sm);
+  font-size: 11px; color: var(--text-muted); line-height: 1.9;
+}
+.auth-demo-box strong { color: var(--text-primary); }
+.auth-demo-box code { background: #fff; padding: 1px 6px; border-radius: 3px; font-family: monospace; font-size: 10.5px; }
+.notif-item {
+  padding: 12px; background: var(--bg-muted); border-radius: var(--radius-sm);
+  margin-bottom: 8px; border-right: 3px solid var(--border-default);
+}
+.notif-item.unread { background: var(--sector-medical-soft); border-right-color: var(--sector-medical); }
+.notif-time { font-size: 10px; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; }
+.notif-text { font-size: 12.5px; font-weight: 800; color: var(--text-primary); }
+.sector-card {
+  background: var(--bg-card); border-radius: var(--radius-md);
+  border: 1px solid var(--border-default); padding: 20px 12px;
+  text-align: center; cursor: pointer; transition: all 0.2s ease;
+}
+.sector-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--border-strong); }
+.sector-card-icon {
+  width: 52px; height: 52px; border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; margin: 0 auto 10px;
+}
+.sector-card-title { font-size: 13.5px; font-weight: 900; color: var(--text-primary); margin-bottom: 4px; }
+.sector-card-desc { font-size: 10.5px; color: var(--text-muted); font-weight: 700; line-height: 1.4; }
+
+/* ══════════════════════════════════════════════════════════════
+   PART 4: LIVE, AUCTION & SOCIAL PROOF STYLES
+══════════════════════════════════════════════════════════════ */
+.live-indicator {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; background: #EF4444; color: #fff;
+  border-radius: var(--radius-full); font-size: 9px; font-weight: 900;
+  animation: pulse-red 1.5s infinite; margin-right: 6px;
+}
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+.live-card {
+  background: linear-gradient(135deg, #1F2937, #111827);
+  border-radius: var(--radius-md); padding: 16px;
+  color: #fff; margin-bottom: 10px;
+  display: flex; gap: 12px; align-items: flex-start;
+  border-left: 4px solid #EF4444;
+  position: relative; overflow: hidden;
+}
+.live-card::after {
+  content: 'LIVE'; position: absolute; top: 8px; left: 8px;
+  background: #EF4444; color: #fff; font-size: 8px; font-weight: 900;
+  padding: 2px 6px; border-radius: 4px; letter-spacing: 1px;
+}
+.live-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: rgba(255,255,255,0.1); color: #F87171;
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+}
+.live-info { flex: 1; }
+.live-store { font-size: 14px; font-weight: 900; margin-bottom: 2px; }
+.live-deal { font-size: 12px; color: #D1D5DB; font-weight: 700; margin-bottom: 6px; line-height: 1.5; }
+.live-action { background: #EF4444; color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 10px; font-weight: 900; border: none; cursor: pointer; font-family: inherit; }
+
+.auction-card {
+  background: var(--bg-card); border: 2px solid var(--sector-gold);
+  border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px;
+  position: relative;
+}
+.auction-item { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
+.auction-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+  flex-shrink: 0;
+}
+.auction-title { font-size: 16px; font-weight: 900; color: var(--text-primary); margin-bottom: 2px; }
+.auction-desc { font-size: 11px; color: var(--text-muted); font-weight: 700; }
+.auction-timer {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #FEF2F2; color: #DC2626; padding: 4px 8px;
+  border-radius: 6px; font-size: 11px; font-weight: 900;
+}
+.auction-bid-box {
+  background: var(--bg-muted); border-radius: 10px; padding: 12px;
+}
+.auction-current-bid { font-size: 10px; color: var(--text-muted); font-weight: 800; }
+.auction-price { font-size: 22px; font-weight: 900; line-height: 1.1; }
+.auction-winner { font-size: 10px; color: var(--sector-medical); font-weight: 900; margin-top: 4px; }
+.bid-btn {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: #fff; border: none; border-radius: 8px;
+  padding: 10px 14px; font-size: 12px; font-weight: 900;
+  cursor: pointer; font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+  transition: transform 0.15s ease;
+}
+.bid-btn:active { transform: scale(0.97); }
+.bid-btn:disabled { background: var(--text-disabled); box-shadow: none; cursor: not-allowed; }
+
+.live-viewers-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 9.5px; font-weight: 900; padding: 3px 8px;
+  border-radius: var(--radius-full); background: rgba(5, 150, 105, 0.08);
+  color: var(--sector-medical); border: 1px solid rgba(5, 150, 105, 0.2);
+}
+.live-viewers-badge.fire {
+  background: rgba(234, 88, 12, 0.08); color: var(--sector-grocery); border-color: rgba(234, 88, 12, 0.2);
+}
+.live-viewers-badge .pulse {
+  width: 6px; height: 6px; background: currentColor; border-radius: 50%;
+  animation: live-pulse 1.5s infinite;
+}
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.5); }
+  70% { box-shadow: 0 0 0 5px rgba(5, 150, 105, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+}
 </style>
 </head>
 <body>
@@ -525,20 +672,10 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
 <script>
 /* ══════════════════════════════════════════════════════════════════
-   WASLA v5.0.0 — PART 2/15: CORE SYSTEMS
-   Utils + Crypto + EventLog + DB + Migration + Boot
-   ══════════════════════════════════════════════════════════════════
-   تحسينات على النسخة السابقة:
-   - WaslaCore متاح فوراً حتى لو boot() فشلت
-   - try/catch شامل مع رسائل واضحة
-   - فحص صحة DB وإنشاء جديد لو تالف
-   - Visual status في الـ topbar
-   - diagnoseWasla() للتشخيص
-   ══════════════════════════════════════════════════════════════════ */
-
+   PART 2/15: CORE SYSTEMS (Utils + Crypto + EventLog + DB)
+══════════════════════════════════════════════════════════════════ */
 (function WASLA_PART_2() {
   'use strict';
-
   console.log('%c🌱 [PART 2] بدء التحميل...', 'color:#0284C7;font-weight:900');
 
   const VERSION = '5.0.0';
@@ -547,9 +684,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   const SESSION_KEY = 'wasla_v5_session';
   const MIGRATED_KEY = 'wasla_v5_migrated';
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 1: UTILS
-  // ══════════════════════════════════════════════════════════════
   const Utils = {
     $: (sel, root = document) => root.querySelector(sel),
     $$: (sel, root = document) => Array.from(root.querySelectorAll(sel)),
@@ -592,9 +726,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 2: UI
-  // ══════════════════════════════════════════════════════════════
   const UI = {
     toast(message, type = 'success', duration = 3200) {
       const container = Utils.$('#toast-container');
@@ -650,9 +781,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 3: CRYPTO (SHA-256)
-  // ══════════════════════════════════════════════════════════════
   const Crypto = {
     _sha256(str) {
       const rr = (v, a) => (v >>> a) | (v << (32 - a));
@@ -713,39 +841,22 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       for (let i = 0; i < 16; i++) arr[i] = Math.floor(Math.random() * 256);
       return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
     },
-    hash(password, salt) {
-      return this._sha256(`${password}::${salt}`);
-    },
-    create(password) {
-      const salt = this.salt();
-      return { hash: this.hash(password, salt), salt };
-    },
+    hash(password, salt) { return this._sha256(`${password}::${salt}`); },
+    create(password) { const salt = this.salt(); return { hash: this.hash(password, salt), salt }; },
     verify(password, storedHash, storedSalt) {
       if (!storedHash || !storedSalt) return false;
-      try {
-        return this.hash(password, storedSalt) === storedHash;
-      } catch (_) { return false; }
+      try { return this.hash(password, storedSalt) === storedHash; } catch (_) { return false; }
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 4: EVENT LOG
-  // ══════════════════════════════════════════════════════════════
   const EventLog = {
-    _load() {
-      try {
-        const raw = localStorage.getItem(EVENT_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch (_) { return []; }
-    },
+    _load() { try { const raw = localStorage.getItem(EVENT_KEY); return raw ? JSON.parse(raw) : []; } catch (_) { return []; } },
     _save(events) {
       try {
         const trimmed = events.length > 8000 ? events.slice(-8000) : events;
         localStorage.setItem(EVENT_KEY, JSON.stringify(trimmed));
       } catch (_) {
-        try {
-          localStorage.setItem(EVENT_KEY, JSON.stringify(events.slice(-1000)));
-        } catch (__) {}
+        try { localStorage.setItem(EVENT_KEY, JSON.stringify(events.slice(-1000))); } catch (__) {}
       }
     },
     log(type, payload = {}) {
@@ -756,18 +867,11 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         const ts = Date.now();
         const body = { type, payload, ts, prevHash };
         const hash = Crypto._sha256(JSON.stringify(body));
-        const event = {
-          seq: events.length + 1, type, payload, ts, prevHash, hash,
-          actorId: payload.actorId || null,
-          targetId: payload.targetId || null
-        };
+        const event = { seq: events.length + 1, type, payload, ts, prevHash, hash, actorId: payload.actorId || null, targetId: payload.targetId || null };
         events.push(event);
         this._save(events);
         return event;
-      } catch (e) {
-        console.warn('[EventLog] فشل التسجيل:', e);
-        return null;
-      }
+      } catch (e) { console.warn('[EventLog] فشل التسجيل:', e); return null; }
     },
     query({ type, actorId, targetId, limit = 100 } = {}) {
       let events = this._load();
@@ -779,72 +883,34 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     verifyChain() {
       const events = this._load();
       for (let i = 1; i < events.length; i++) {
-        if (events[i].prevHash !== events[i - 1].hash) {
-          return { ok: false, brokenAt: i, seq: events[i].seq };
-        }
+        if (events[i].prevHash !== events[i - 1].hash) return { ok: false, brokenAt: i, seq: events[i].seq };
       }
       return { ok: true, count: events.length };
     },
     count() { return this._load().length; }
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 5: STORE
-  // ══════════════════════════════════════════════════════════════
   const Store = {
-    _read(key, fallback = null) {
-      try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-      } catch (_) { return fallback; }
-    },
-    _write(key, value) {
-      try {
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
-      } catch (e) {
-        console.error('[Store] فشل الحفظ:', e);
-        return false;
-      }
-    },
+    _read(key, fallback = null) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch (_) { return fallback; } },
+    _write(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { console.error('[Store] فشل الحفظ:', e); return false; } },
     load() { return this._read(DB_KEY, null); },
     save(db) { return this._write(DB_KEY, db); },
     exists() { return !!this.load(); }
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 6: SCHEMA
-  // ══════════════════════════════════════════════════════════════
   const Schema = {
     empty() {
       return {
-        version: VERSION,
-        createdAt: Date.now(),
-        users: [],
-        doctors: [],
-        merchants: [],
-        staff: [],
-        carServices: [],
-        homeServices: [],
-        insuranceCompanies: [],
-        appointments: [],
-        orders: [],
-        familyMembers: [],
-        reviews: [],
-        notifications: [],
-        chats: [],
-        reminders: [],
-        healthLogs: [],
-        healthRecords: [],
-        prescriptions: [],
-        auditLogs: [],
-        blockedRelations: [],
-        coupons: [],
+        version: VERSION, createdAt: Date.now(),
+        users: [], doctors: [], merchants: [], staff: [],
+        carServices: [], homeServices: [], insuranceCompanies: [],
+        appointments: [], orders: [], familyMembers: [], reviews: [],
+        notifications: [], chats: [], reminders: [], healthLogs: [],
+        healthRecords: [], prescriptions: [], auditLogs: [],
+        blockedRelations: [], coupons: [],
+        liveDeals: [], auctions: [],
         settings: {
-          commissionRate: 0.15,
-          platformPhone: '01068990089',
-          platformName: 'منصة وصلة',
-          cityName: 'شبين القناطر',
+          commissionRate: 0.15, platformPhone: '01068990089', platformName: 'منصة وصلة', cityName: 'شبين القناطر',
           depositRules: {
             medical: { firstOrderFree: true, secondOrderRate: 0.25 },
             grocery: { firstOrderThreshold: 300, firstOrderRate: 0.20, secondOrderRate: 0.20 },
@@ -866,12 +932,8 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 7: SEED
-  // ══════════════════════════════════════════════════════════════
   function buildSeed() {
     const db = Schema.empty();
-
     db.insuranceCompanies = [
       { id: 'ins1', name: 'جلوب ميد', logo: 'fa-shield-halved' },
       { id: 'ins2', name: 'ميتلايف', logo: 'fa-shield' },
@@ -882,7 +944,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       { id: 'ins7', name: 'إيتنا', logo: 'fa-heart-circle-check' },
       { id: 'ins8', name: 'مصر للتأمين', logo: 'fa-landmark' }
     ];
-
     db.carServices = [
       { id: 'car1', name: 'تغيير إطارات متنقل', price: 120, duration: 30, icon: 'fa-circle-dot', desc: 'فني متخصص يصل إليك' },
       { id: 'car2', name: 'شحن بطارية', price: 150, duration: 15, icon: 'fa-car-battery', desc: 'شحن سريع آمن' },
@@ -891,7 +952,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       { id: 'car5', name: 'تشخيص إلكتروني (OBD)', price: 100, duration: 30, icon: 'fa-wrench', desc: 'فحص بكمبيوتر السيارة' },
       { id: 'car6', name: 'تغيير زيت وفلاتر', price: 450, duration: 30, icon: 'fa-oil-can', desc: 'زيوت أصلية معتمدة' }
     ];
-
     db.homeServices = [
       { id: 'hs1', name: 'صيانة سباكة طارئة', price: 150, duration: 60, icon: 'fa-wrench', desc: 'تسليك وإصلاح فوري' },
       { id: 'hs2', name: 'تأسيس وصيانة كهرباء', price: 120, duration: 60, icon: 'fa-bolt', desc: 'كشف أعطال لوحة الكهرباء' },
@@ -900,277 +960,120 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       { id: 'hs5', name: 'تنظيف منازل', price: 350, duration: 120, icon: 'fa-broom', desc: 'فريق تنظيف متكامل' },
       { id: 'hs6', name: 'مكافحة حشرات', price: 300, duration: 90, icon: 'fa-bug', desc: 'مواد آمنة معتمدة' }
     ];
-
     const founderPass = Crypto.create('As123789456*');
     const simplePass = Crypto.create('123456');
-
     db.users = [
-      {
-        id: 'u-founder', phone: '01068990089', name: 'أحمد صبري',
-        passHash: founderPass.hash, salt: founderPass.salt,
-        role: 'founder', contexts: ['citizen', 'founder'], currentContext: 'founder',
-        wallet: 500, points: 0, waslaId: 'WASLA-00001',
-        createdAt: Date.now() - 86400000 * 30, status: 'active',
-        successfulOrders: 0, cancellations: 0
-      },
-      {
-        id: 'u-p1', phone: '01000000001', name: 'محمد المريض',
-        passHash: simplePass.hash, salt: simplePass.salt,
-        role: 'patient', contexts: ['citizen'], currentContext: 'citizen',
-        wallet: 150, points: 120, waslaId: 'WASLA-10001',
-        emr: {
-          blood: 'O+',
-          allergies: [{ name: 'بنسلين', severity: 'high' }],
-          chronic: [{ name: 'سكري نوع 2', since: '2018' }],
-          vitals: [
-            { id: 'v1', date: '2025-09-15', bp: '138/88', hr: 78, sugar: 145, weight: 82 },
-            { id: 'v2', date: '2025-10-01', bp: '135/85', hr: 75, sugar: 132, weight: 81 },
-            { id: 'v3', date: '2025-10-20', bp: '128/82', hr: 72, sugar: 118, weight: 80 }
-          ],
-          currentMeds: [{ name: 'Glucophage 850mg', dose: 'قرص مرتين يومياً', active: true }],
-          pastMeds: [], labs: [], visitNotes: []
-        },
-        familyIds: ['fam1', 'fam2'],
-        successfulOrders: 1, cancellations: 0,
-        createdAt: Date.now() - 86400000 * 15, status: 'active'
-      },
-      {
-        id: 'u-d1', phone: '01000000002', name: 'د. محمد الشريف',
-        passHash: simplePass.hash, salt: simplePass.salt,
-        role: 'doctor', contexts: ['citizen', 'doctor'], currentContext: 'doctor',
-        wallet: 0, points: 0, waslaId: 'WASLA-20001',
-        createdAt: Date.now() - 86400000 * 20, status: 'active',
-        successfulOrders: 0, cancellations: 0
-      },
-      {
-        id: 'u-s1', phone: '01000000003', name: 'موظف الاستقبال',
-        passHash: simplePass.hash, salt: simplePass.salt,
-        role: 'staff', contexts: ['citizen', 'staff'], currentContext: 'staff',
-        wallet: 0, points: 0, waslaId: 'WASLA-30001',
-        createdAt: Date.now() - 86400000 * 10, status: 'active',
-        successfulOrders: 0, cancellations: 0
-      },
-      {
-        id: 'u-m1', phone: '01000000004', name: 'أحمد التاجر',
-        passHash: simplePass.hash, salt: simplePass.salt,
-        role: 'merchant', contexts: ['citizen', 'merchant'], currentContext: 'merchant',
-        wallet: 0, points: 0, waslaId: 'WASLA-40001',
-        createdAt: Date.now() - 86400000 * 18, status: 'active',
-        successfulOrders: 0, cancellations: 0
-      }
+      { id: 'u-founder', phone: '01068990089', name: 'أحمد صبري', passHash: founderPass.hash, salt: founderPass.salt, role: 'founder', contexts: ['citizen', 'founder'], currentContext: 'founder', wallet: 500, points: 0, waslaId: 'WASLA-00001', createdAt: Date.now() - 86400000 * 30, status: 'active', successfulOrders: 0, cancellations: 0 },
+      { id: 'u-p1', phone: '01000000001', name: 'محمد المريض', passHash: simplePass.hash, salt: simplePass.salt, role: 'patient', contexts: ['citizen'], currentContext: 'citizen', wallet: 150, points: 120, waslaId: 'WASLA-10001', emr: { blood: 'O+', allergies: [{ name: 'بنسلين', severity: 'high' }], chronic: [{ name: 'سكري نوع 2', since: '2018' }], vitals: [ { id: 'v1', date: '2025-09-15', bp: '138/88', hr: 78, sugar: 145, weight: 82 }, { id: 'v2', date: '2025-10-01', bp: '135/85', hr: 75, sugar: 132, weight: 81 }, { id: 'v3', date: '2025-10-20', bp: '128/82', hr: 72, sugar: 118, weight: 80 } ], currentMeds: [{ name: 'Glucophage 850mg', dose: 'قرص مرتين يومياً', active: true }], pastMeds: [], labs: [], visitNotes: [] }, familyIds: ['fam1', 'fam2'], successfulOrders: 1, cancellations: 0, createdAt: Date.now() - 86400000 * 15, status: 'active' },
+      { id: 'u-d1', phone: '01000000002', name: 'د. محمد الشريف', passHash: simplePass.hash, salt: simplePass.salt, role: 'doctor', contexts: ['citizen', 'doctor'], currentContext: 'doctor', wallet: 0, points: 0, waslaId: 'WASLA-20001', createdAt: Date.now() - 86400000 * 20, status: 'active', successfulOrders: 0, cancellations: 0 },
+      { id: 'u-s1', phone: '01000000003', name: 'موظف الاستقبال', passHash: simplePass.hash, salt: simplePass.salt, role: 'staff', contexts: ['citizen', 'staff'], currentContext: 'staff', wallet: 0, points: 0, waslaId: 'WASLA-30001', createdAt: Date.now() - 86400000 * 10, status: 'active', successfulOrders: 0, cancellations: 0 },
+      { id: 'u-m1', phone: '01000000004', name: 'أحمد التاجر', passHash: simplePass.hash, salt: simplePass.salt, role: 'merchant', contexts: ['citizen', 'merchant'], currentContext: 'merchant', wallet: 0, points: 0, waslaId: 'WASLA-40001', createdAt: Date.now() - 86400000 * 18, status: 'active', successfulOrders: 0, cancellations: 0 }
     ];
-
     const schedule = () => ({
       saturday: { active: true, start: '17:00', end: '21:00', duration: 20 },
       sunday: { active: true, start: '17:00', end: '21:00', duration: 20 },
       monday: { active: false },
       tuesday: { active: true, start: '17:00', end: '21:00', duration: 20 },
       wednesday: { active: true, start: '17:00', end: '21:00', duration: 20 },
-      thursday: { active: false },
-      friday: { active: false }
+      thursday: { active: false }, friday: { active: false }
     });
-
     db.doctors = [
-      {
-        id: 'd1', userId: 'u-d1', name: 'د. محمد الشريف',
-        spec: 'باطنة وكبد', bio: 'استشاري باطنة وكبد، خبرة 18 سنة',
-        area: 'شارع بورسعيد', price: 250, avgTime: 20,
-        rating: 4.9, reviewsCount: 212, status: 'available',
-        acceptedInsurances: ['ins1', 'ins2', 'ins4', 'ins8'],
-        services: [
-          { id: 'sv1', name: 'كشف عام', price: 0, duration: 20, icon: 'fa-stethoscope' },
-          { id: 'sv2', name: 'أشعة تلفزيونية', price: 300, duration: 15, icon: 'fa-x-ray' },
-          { id: 'sv3', name: 'منظار معدة', price: 800, duration: 45, icon: 'fa-microscope' },
-          { id: 'sv4', name: 'تحليل سكر تراكمي', price: 120, duration: 5, icon: 'fa-vial' }
-        ],
-        schedule: schedule(), verified: true,
-        createdAt: Date.now() - 86400000 * 20
-      },
-      {
-        id: 'd2', userId: null, name: 'د. سارة أحمد',
-        spec: 'أطفال', bio: 'أخصائية أطفال وحديثي الولادة',
-        area: 'ميدان المحطة', price: 200, avgTime: 15,
-        rating: 4.8, reviewsCount: 168, status: 'busy',
-        acceptedInsurances: ['ins1', 'ins3', 'ins5', 'ins6'],
-        services: [
-          { id: 'sv5', name: 'كشف أطفال', price: 0, duration: 15, icon: 'fa-baby' },
-          { id: 'sv6', name: 'تطعيم', price: 180, duration: 5, icon: 'fa-syringe' }
-        ],
-        schedule: schedule(), verified: true,
-        createdAt: Date.now() - 86400000 * 15
-      },
-      {
-        id: 'd3', userId: null, name: 'د. كريم عبد العزيز',
-        spec: 'قلب', bio: 'استشاري قلب وأوعية دموية',
-        area: 'شارع المستشفى', price: 350, avgTime: 25,
-        rating: 4.9, reviewsCount: 142, status: 'available',
-        acceptedInsurances: ['ins2', 'ins4', 'ins7'],
-        services: [
-          { id: 'sv8', name: 'كشف قلب', price: 0, duration: 25, icon: 'fa-heart' },
-          { id: 'sv9', name: 'تخطيط قلب ECG', price: 250, duration: 15, icon: 'fa-wave-square' }
-        ],
-        schedule: schedule(), verified: true,
-        createdAt: Date.now() - 86400000 * 12
-      },
-      {
-        id: 'd4', userId: null, name: 'د. منى سالم',
-        spec: 'نساء وتوليد', bio: 'أخصائية نساء وتوليد',
-        area: 'ميدان المحطة', price: 300, avgTime: 20,
-        rating: 4.7, reviewsCount: 189, status: 'available',
-        acceptedInsurances: ['ins1', 'ins3', 'ins5'],
-        services: [
-          { id: 'sv11', name: 'كشف نساء', price: 0, duration: 20, icon: 'fa-person-pregnant' },
-          { id: 'sv12', name: 'سونار حمل', price: 350, duration: 15, icon: 'fa-baby-carriage' }
-        ],
-        schedule: schedule(), verified: true,
-        createdAt: Date.now() - 86400000 * 10
-      },
-      {
-        id: 'd5', userId: null, name: 'د. أحمد فؤاد',
-        spec: 'عظام', bio: 'استشاري جراحة عظام ومفاصل',
-        area: 'شارع الجيش', price: 280, avgTime: 20,
-        rating: 4.8, reviewsCount: 98, status: 'available',
-        acceptedInsurances: ['ins2', 'ins4', 'ins8'],
-        services: [
-          { id: 'sv14', name: 'كشف عظام', price: 0, duration: 20, icon: 'fa-bone' },
-          { id: 'sv15', name: 'جبس كسر', price: 450, duration: 30, icon: 'fa-bandage' }
-        ],
-        schedule: schedule(), verified: true,
-        createdAt: Date.now() - 86400000 * 8
-      }
+      { id: 'd1', userId: 'u-d1', name: 'د. محمد الشريف', spec: 'باطنة وكبد', bio: 'استشاري باطنة وكبد، خبرة 18 سنة', area: 'شارع بورسعيد', price: 250, avgTime: 20, rating: 4.9, reviewsCount: 212, status: 'available', acceptedInsurances: ['ins1', 'ins2', 'ins4', 'ins8'], services: [ { id: 'sv1', name: 'كشف عام', price: 0, duration: 20, icon: 'fa-stethoscope' }, { id: 'sv2', name: 'أشعة تلفزيونية', price: 300, duration: 15, icon: 'fa-x-ray' }, { id: 'sv3', name: 'منظار معدة', price: 800, duration: 45, icon: 'fa-microscope' }, { id: 'sv4', name: 'تحليل سكر تراكمي', price: 120, duration: 5, icon: 'fa-vial' } ], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 20 },
+      { id: 'd2', userId: null, name: 'د. سارة أحمد', spec: 'أطفال', bio: 'أخصائية أطفال وحديثي الولادة', area: 'ميدان المحطة', price: 200, avgTime: 15, rating: 4.8, reviewsCount: 168, status: 'busy', acceptedInsurances: ['ins1', 'ins3', 'ins5', 'ins6'], services: [ { id: 'sv5', name: 'كشف أطفال', price: 0, duration: 15, icon: 'fa-baby' }, { id: 'sv6', name: 'تطعيم', price: 180, duration: 5, icon: 'fa-syringe' } ], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 15 },
+      { id: 'd3', userId: null, name: 'د. كريم عبد العزيز', spec: 'قلب', bio: 'استشاري قلب وأوعية دموية', area: 'شارع المستشفى', price: 350, avgTime: 25, rating: 4.9, reviewsCount: 142, status: 'available', acceptedInsurances: ['ins2', 'ins4', 'ins7'], services: [ { id: 'sv8', name: 'كشف قلب', price: 0, duration: 25, icon: 'fa-heart' }, { id: 'sv9', name: 'تخطيط قلب ECG', price: 250, duration: 15, icon: 'fa-wave-square' } ], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 12 },
+      { id: 'd4', userId: null, name: 'د. منى سالم', spec: 'نساء وتوليد', bio: 'أخصائية نساء وتوليد', area: 'ميدان المحطة', price: 300, avgTime: 20, rating: 4.7, reviewsCount: 189, status: 'available', acceptedInsurances: ['ins1', 'ins3', 'ins5'], services: [ { id: 'sv11', name: 'كشف نساء', price: 0, duration: 20, icon: 'fa-person-pregnant' }, { id: 'sv12', name: 'سونار حمل', price: 350, duration: 15, icon: 'fa-baby-carriage' } ], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 10 },
+      { id: 'd5', userId: null, name: 'د. أحمد فؤاد', spec: 'عظام', bio: 'استشاري جراحة عظام ومفاصل', area: 'شارع الجيش', price: 280, avgTime: 20, rating: 4.8, reviewsCount: 98, status: 'available', acceptedInsurances: ['ins2', 'ins4', 'ins8'], services: [ { id: 'sv14', name: 'كشف عظام', price: 0, duration: 20, icon: 'fa-bone' }, { id: 'sv15', name: 'جبس كسر', price: 450, duration: 30, icon: 'fa-bandage' } ], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 8 }
     ];
-
     db.merchants = [
-      {
-        id: 'm1', userId: 'u-m1', name: 'سوبر ماركت الأمانة',
-        area: 'شارع بورسعيد', rating: 4.8, deliveryTime: '25-40 دقيقة',
-        minOrder: 50, deliveryFee: 10, icon: 'fa-store',
-        products: [
-          { id: 'p1', name: 'أرز مصري 5 كجم', price: 180, icon: 'fa-bowl-rice', stock: 50 },
-          { id: 'p2', name: 'زيت عافية 2 لتر', price: 210, icon: 'fa-bottle-water', stock: 30 },
-          { id: 'p3', name: 'شاي العروسة 250 جم', price: 95, icon: 'fa-mug-hot', stock: 40 },
-          { id: 'p4', name: 'سكر 1 كجم', price: 35, icon: 'fa-cube', stock: 100 },
-          { id: 'p5', name: 'جبنة رومي 500 جم', price: 120, icon: 'fa-cheese', stock: 25 }
-        ],
-        verified: true, createdAt: Date.now() - 86400000 * 18
-      },
-      {
-        id: 'm2', userId: null, name: 'هايبر السعادة',
-        area: 'المحطة', rating: 4.6, deliveryTime: '30-50 دقيقة',
-        minOrder: 80, deliveryFee: 15, icon: 'fa-cart-shopping',
-        products: [
-          { id: 'p6', name: 'لبن جهينة 1 لتر', price: 45, icon: 'fa-cow', stock: 60 },
-          { id: 'p7', name: 'بيض 30 بيضة', price: 160, icon: 'fa-egg', stock: 40 },
-          { id: 'p8', name: 'دقيق فاخر 1 كجم', price: 40, icon: 'fa-wheat-awn', stock: 50 },
-          { id: 'p9', name: 'مكرونة 400 جم', price: 28, icon: 'fa-utensils', stock: 80 }
-        ],
-        verified: true, createdAt: Date.now() - 86400000 * 15
-      },
-      {
-        id: 'm3', userId: null, name: 'مخبز النور',
-        area: 'شارع الجيش', rating: 4.9, deliveryTime: '15-25 دقيقة',
-        minOrder: 30, deliveryFee: 8, icon: 'fa-bread-slice',
-        products: [
-          { id: 'p10', name: 'عيش فينو (10 قطع)', price: 15, icon: 'fa-bread-slice', stock: 100 },
-          { id: 'p11', name: 'كرواسون بالشوكولاتة', price: 25, icon: 'fa-cookie', stock: 40 },
-          { id: 'p12', name: 'كيك عسل', price: 60, icon: 'fa-cake-candles', stock: 20 }
-        ],
-        verified: true, createdAt: Date.now() - 86400000 * 12
-      }
+      { id: 'm1', userId: 'u-m1', name: 'سوبر ماركت الأمانة', area: 'شارع بورسعيد', rating: 4.8, deliveryTime: '25-40 دقيقة', minOrder: 50, deliveryFee: 10, icon: 'fa-store', products: [ { id: 'p1', name: 'أرز مصري 5 كجم', price: 180, icon: 'fa-bowl-rice', stock: 50 }, { id: 'p2', name: 'زيت عافية 2 لتر', price: 210, icon: 'fa-bottle-water', stock: 30 }, { id: 'p3', name: 'شاي العروسة 250 جم', price: 95, icon: 'fa-mug-hot', stock: 40 }, { id: 'p4', name: 'سكر 1 كجم', price: 35, icon: 'fa-cube', stock: 100 }, { id: 'p5', name: 'جبنة رومي 500 جم', price: 120, icon: 'fa-cheese', stock: 25 } ], verified: true, createdAt: Date.now() - 86400000 * 18 },
+      { id: 'm2', userId: null, name: 'هايبر السعادة', area: 'المحطة', rating: 4.6, deliveryTime: '30-50 دقيقة', minOrder: 80, deliveryFee: 15, icon: 'fa-cart-shopping', products: [ { id: 'p6', name: 'لبن جهينة 1 لتر', price: 45, icon: 'fa-cow', stock: 60 }, { id: 'p7', name: 'بيض 30 بيضة', price: 160, icon: 'fa-egg', stock: 40 }, { id: 'p8', name: 'دقيق فاخر 1 كجم', price: 40, icon: 'fa-wheat-awn', stock: 50 }, { id: 'p9', name: 'مكرونة 400 جم', price: 28, icon: 'fa-utensils', stock: 80 } ], verified: true, createdAt: Date.now() - 86400000 * 15 },
+      { id: 'm3', userId: null, name: 'مخبز النور', area: 'شارع الجيش', rating: 4.9, deliveryTime: '15-25 دقيقة', minOrder: 30, deliveryFee: 8, icon: 'fa-bread-slice', products: [ { id: 'p10', name: 'عيش فينو (10 قطع)', price: 15, icon: 'fa-bread-slice', stock: 100 }, { id: 'p11', name: 'كرواسون بالشوكولاتة', price: 25, icon: 'fa-cookie', stock: 40 }, { id: 'p12', name: 'كيك عسل', price: 60, icon: 'fa-cake-candles', stock: 20 } ], verified: true, createdAt: Date.now() - 86400000 * 12 }
     ];
-
-    db.staff = [
-      { id: 'st1', userId: 'u-s1', name: 'موظف الاستقبال', role: 'receptionist' }
-    ];
-
+    db.staff = [ { id: 'st1', userId: 'u-s1', name: 'موظف الاستقبال', role: 'receptionist' } ];
     db.familyMembers = [
       { id: 'fam1', ownerId: 'u-p1', name: 'فاطمة المريضة', relation: 'الزوجة', age: 32, gender: 'female', blood: 'A+', allergies: [] },
       { id: 'fam2', ownerId: 'u-p1', name: 'يوسف المريض', relation: 'الابن', age: 8, gender: 'male', blood: 'O+', allergies: [{ name: 'فول', severity: 'medium' }] }
     ];
-
     db.reviews = [
       { id: 'rv1', doctorId: 'd1', patientId: 'u-p1', patientName: 'محمد المريض', rating: 5, comment: 'دكتور ممتاز ومتفهم جداً، شرح كل حاجة بالتفصيل.', reply: null, createdAt: Date.now() - 86400000 * 3 },
       { id: 'rv2', doctorId: 'd1', patientId: 'u-p2', patientName: 'سعيد', rating: 4, comment: 'انتظار طويل شوية بس كفاءة عالية.', reply: 'شكراً لك، هنسعى نطور الطابور.', createdAt: Date.now() - 86400000 * 7 }
     ];
+    db.auditLogs = [ { id: 'log1', doctorId: 'd1', patientId: 'u-p1', action: 'update', details: 'تعديل جرعة دواء', createdAt: Date.now() - 3600000 } ];
 
-    db.auditLogs = [
-      { id: 'log1', doctorId: 'd1', patientId: 'u-p1', action: 'update', details: 'تعديل جرعة دواء', createdAt: Date.now() - 3600000 }
+    // Live & Auction seed
+    db.liveDeals = [
+      { id: 'l1', store: 'مخبز النور', text: 'خصم 50% على المعجنات (باقي 5 عروض)', icon: 'fa-bread-slice', time: 'الآن' },
+      { id: 'l2', store: 'د. سارة أحمد', text: 'عيادة الأطفال فاضية دلوقتي.. احجز فوراً!', icon: 'fa-baby', time: 'قبل 5 دقائق' },
+      { id: 'l3', store: 'سوبر ماركت الأمانة', text: 'زيت عافية 2 لتر بـ 180 جنيه بس (الكمية محدودة)', icon: 'fa-bottle-water', time: 'قبل 12 دقيقة' }
+    ];
+    const now = Date.now();
+    db.auctions = [
+      {
+        id: 'a1', title: 'كرتونة خضار مشكل', desc: 'طماطم، بطاطس، خيار، فلفل - طازج النهاردة',
+        icon: 'fa-carrot', category: 'خضار وفاكهة', 
+        seller: 'مزارع طحانوب', sellerRating: 4.8, location: 'طحانوب',
+        quantity: 15, unit: 'كجم', condition: 'طازج', delivery: 'توصيل +15 ج.م',
+        originalPrice: 150, basePrice: 50, currentPrice: 50, minIncrement: 10,
+        bidsCount: 0, watchers: 12, highestBidder: null, 
+        endsAt: now + 15 * 60000, status: 'active', history: []
+      },
+      {
+        id: 'a2', title: 'غسيل وتلميع VIP', desc: 'خدمة متكاملة في موقعك',
+        icon: 'fa-car', category: 'خدمات سيارات',
+        seller: 'مغسلة وصلة', sellerRating: 4.9, location: 'شبين القناطر',
+        quantity: 1, unit: 'خدمة', condition: 'متاحة', delivery: 'في موقعك',
+        originalPrice: 200, basePrice: 100, currentPrice: 100, minIncrement: 10,
+        bidsCount: 0, watchers: 8, highestBidder: null,
+        endsAt: now + 5 * 60000, status: 'active', history: []
+      },
+      {
+        id: 'a3', title: 'موعد كشف باطنة فاضي', desc: 'د. محمد الشريف - فرصة ذهبية',
+        icon: 'fa-stethoscope', category: 'خدمات طبية',
+        seller: 'عيادة د. محمد الشريف', sellerRating: 4.9, location: 'شارع بورسعيد',
+        quantity: 1, unit: 'موعد', condition: 'متاح (الغد)', delivery: 'في العيادة',
+        originalPrice: 250, basePrice: 150, currentPrice: 150, minIncrement: 10,
+        bidsCount: 0, watchers: 15, highestBidder: null,
+        endsAt: now + 25 * 60000, status: 'active', history: []
+      }
     ];
 
     return db;
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 8: MIGRATION (defensive)
-  // ══════════════════════════════════════════════════════════════
   function migrateFromV4() {
     try {
       const oldRaw = localStorage.getItem('wasla_med_v4');
       if (!oldRaw) return { migrated: false, reason: 'no-old-db' };
-
       let oldDb;
       try { oldDb = JSON.parse(oldRaw); } catch (_) { return { migrated: false, reason: 'invalid-json' }; }
-      if (!oldDb || !Array.isArray(oldDb.users) || oldDb.users.length === 0) {
-        return { migrated: false, reason: 'invalid-structure' };
-      }
-
+      if (!oldDb || !Array.isArray(oldDb.users) || oldDb.users.length === 0) return { migrated: false, reason: 'invalid-structure' };
       const newDb = Schema.empty();
-      let passwordsHashed = 0;
-      let usersMigrated = 0;
-
+      let passwordsHashed = 0, usersMigrated = 0;
       oldDb.users.forEach(u => {
         if (!u || typeof u !== 'object') return;
         const migrated = { ...u };
-
         if (migrated.pass && !migrated.passHash) {
-          try {
-            const { hash, salt } = Crypto.create(migrated.pass);
-            migrated.passHash = hash;
-            migrated.salt = salt;
-            delete migrated.pass;
-            passwordsHashed++;
-          } catch (_) { /* skip */ }
+          try { const { hash, salt } = Crypto.create(migrated.pass); migrated.passHash = hash; migrated.salt = salt; delete migrated.pass; passwordsHashed++; } catch (_) {}
         }
         if (!Array.isArray(migrated.contexts)) migrated.contexts = ['citizen'];
         if (!migrated.currentContext) migrated.currentContext = 'citizen';
         if (!migrated.status) migrated.status = 'active';
         if (!migrated.waslaId) migrated.waslaId = 'WASLA-' + Math.floor(10000 + Math.random() * 90000);
-
         if (migrated.role === 'doctor' && !migrated.contexts.includes('doctor')) migrated.contexts.push('doctor');
         if (migrated.role === 'merchant' && !migrated.contexts.includes('merchant')) migrated.contexts.push('merchant');
         if (migrated.role === 'staff' && !migrated.contexts.includes('staff')) migrated.contexts.push('staff');
         if (migrated.role === 'founder' && !migrated.contexts.includes('founder')) migrated.contexts.push('founder');
-
         newDb.users.push(migrated);
         usersMigrated++;
       });
-
       if (usersMigrated === 0) return { migrated: false, reason: 'no-valid-users' };
-
-      if (Array.isArray(oldDb.doctors)) {
-        oldDb.doctors.forEach(d => {
-          if (!d || typeof d !== 'object') return;
-          const migrated = { ...d };
-          migrated.acceptedInsurances = Array.isArray(d.insurances)
-            ? d.insurances.map(i => typeof i === 'string' ? i : (i.id || i))
-            : [];
-          delete migrated.insurances;
-          if (!migrated.userId) migrated.userId = null;
-          newDb.doctors.push(migrated);
-        });
-      }
-
-      if (Array.isArray(oldDb.appointments)) {
-        newDb.appointments = oldDb.appointments.map(a => ({ ...a, status: a.status || 'waiting' }));
-      }
-      if (Array.isArray(oldDb.orders)) {
-        newDb.orders = oldDb.orders.map(o => ({ ...o }));
-      }
+      if (Array.isArray(oldDb.doctors)) oldDb.doctors.forEach(d => { if (!d || typeof d !== 'object') return; const m = { ...d }; m.acceptedInsurances = Array.isArray(d.insurances) ? d.insurances.map(i => typeof i === 'string' ? i : (i.id || i)) : []; delete m.insurances; if (!m.userId) m.userId = null; newDb.doctors.push(m); });
+      if (Array.isArray(oldDb.appointments)) newDb.appointments = oldDb.appointments.map(a => ({ ...a, status: a.status || 'waiting' }));
+      if (Array.isArray(oldDb.orders)) newDb.orders = oldDb.orders.map(o => ({ ...o }));
       if (Array.isArray(oldDb.reviews)) newDb.reviews = oldDb.reviews;
       if (Array.isArray(oldDb.auditLogs)) newDb.auditLogs = oldDb.auditLogs;
       if (Array.isArray(oldDb.reminders)) newDb.reminders = oldDb.reminders;
       if (Array.isArray(oldDb.familyMembers)) newDb.familyMembers = oldDb.familyMembers;
-
       const seed = buildSeed();
       if (!newDb.insuranceCompanies.length) newDb.insuranceCompanies = seed.insuranceCompanies;
       if (!newDb.carServices.length) newDb.carServices = seed.carServices;
@@ -1178,328 +1081,90 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       if (!newDb.staff.length) newDb.staff = seed.staff;
       if (!newDb.doctors.length) newDb.doctors = seed.doctors;
       if (!newDb.merchants.length) newDb.merchants = seed.merchants;
-
       if (!Schema.validate(newDb)) return { migrated: false, reason: 'validation-failed' };
-
       Store.save(newDb);
-      try {
-        localStorage.setItem(MIGRATED_KEY, JSON.stringify({
-          at: Date.now(), version: VERSION, from: 'v4',
-          usersMigrated, passwordsHashed
-        }));
-      } catch (_) {}
-
+      try { localStorage.setItem(MIGRATED_KEY, JSON.stringify({ at: Date.now(), version: VERSION, from: 'v4', usersMigrated, passwordsHashed })); } catch (_) {}
       return { migrated: true, usersMigrated, passwordsHashed };
-    } catch (e) {
-      console.warn('[Migration] فشلت:', e);
-      return { migrated: false, reason: 'exception', error: String(e) };
-    }
+    } catch (e) { console.warn('[Migration] فشلت:', e); return { migrated: false, reason: 'exception', error: String(e) }; }
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 9: STATUS HELPERS
-  // ══════════════════════════════════════════════════════════════
   function setTopbarStatus(status, text, color) {
     const el = Utils.$('#topbar-status');
     if (!el) return;
-    const icons = {
-      loading: 'fa-circle-notch fa-spin',
-      ready: 'fa-circle-check',
-      error: 'fa-triangle-exclamation',
-      warning: 'fa-exclamation-circle'
-    };
+    const icons = { loading: 'fa-circle-notch fa-spin', ready: 'fa-circle-check', error: 'fa-triangle-exclamation', warning: 'fa-exclamation-circle' };
     el.innerHTML = `<i class="fa-solid ${icons[status] || 'fa-circle'}" style="color:${color || '#34D399'}"></i> ${Utils.escape(text)}`;
   }
-
   function setTopbarCount(count) {
     const el = Utils.$('#topbar-users-count');
     if (el) el.textContent = count;
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 10: BOOT (defensive)
-  // ══════════════════════════════════════════════════════════════
   function boot() {
     try {
       console.log('%c🌱 [BOOT] بدء التهيئة...', 'color:#0284C7;font-weight:900');
-
-      // Step 1: Check if DB exists and is valid
       let db = Store.load();
-      let usedSeed = false;
-      let usedMigration = false;
-
+      let usedSeed = false, usedMigration = false;
       if (!db || !Schema.validate(db)) {
         console.log('%c🌱 [BOOT] لا توجد DB صالحة، جاري الإنشاء...', 'color:#EA580C;font-weight:900');
-
-        // Try migration first
         const migrationResult = migrateFromV4();
-        if (migrationResult.migrated) {
-          console.log(`%c✅ [BOOT] تم الترحيل: ${migrationResult.usersMigrated} مستخدم`, 'color:#059669;font-weight:900');
-          db = Store.load();
-          usedMigration = true;
-        }
-
-        // If migration didn't work or DB still invalid, use seed
-        if (!db || !Schema.validate(db)) {
-          console.log('%c🌱 [BOOT] استخدام البيانات الأولية...', 'color:#EA580C;font-weight:900');
-          db = buildSeed();
-          Store.save(db);
-          usedSeed = true;
-          console.log('%c🌱 [BOOT] تم تثبيت البيانات الأولية', 'color:#0284C7;font-weight:900');
-        }
+        if (migrationResult.migrated) { console.log(`%c✅ [BOOT] تم الترحيل: ${migrationResult.usersMigrated} مستخدم`, 'color:#059669;font-weight:900'); db = Store.load(); usedMigration = true; }
+        if (!db || !Schema.validate(db)) { console.log('%c🌱 [BOOT] استخدام البيانات الأولية...', 'color:#EA580C;font-weight:900'); db = buildSeed(); Store.save(db); usedSeed = true; console.log('%c🌱 [BOOT] تم تثبيت البيانات الأولية', 'color:#0284C7;font-weight:900'); }
       } else {
         console.log(`%c✅ [BOOT] DB صالحة (${db.users.length} مستخدم)`, 'color:#059669;font-weight:900');
       }
-
-      // Step 2: Verify chain
       const chain = EventLog.verifyChain();
-      if (!chain.ok) {
-        console.warn(`⚠️ [BOOT] سلسلة الأحداث مكسورة عند #${chain.brokenAt}`);
-      }
-
-      // Step 3: Log boot event
-      EventLog.log('app_boot', {
-        version: VERSION,
-        ts: Date.now(),
-        usersCount: db.users.length,
-        eventCount: EventLog.count(),
-        usedSeed,
-        usedMigration
-      });
-
-      // Step 4: Update UI
+      if (!chain.ok) console.warn(`⚠️ [BOOT] سلسلة الأحداث مكسورة عند #${chain.brokenAt}`);
+      EventLog.log('app_boot', { version: VERSION, ts: Date.now(), usersCount: db.users.length, eventCount: EventLog.count(), usedSeed, usedMigration });
       setTopbarCount(db.users.length);
       setTopbarStatus('ready', 'المنصة جاهزة ✓', '#34D399');
-
-      // Step 5: Render a simple placeholder in main content
-      const mainContainer = Utils.$('#main-container');
-      if (mainContainer) {
-        mainContainer.innerHTML = `
-          <div class="sector-hero" data-sector="medical">
-            <span class="sector-hero-badge">
-              <i class="fa-solid fa-check-circle"></i> PART 2/15 READY
-            </span>
-            <h1>تم تحميل النواة بنجاح ✅</h1>
-            <p>المنصة جاهزة. البيانات: ${db.users.length} مستخدم · ${db.doctors.length} طبيب · ${db.merchants.length} متجر</p>
-          </div>
-
-          <div class="card">
-            <div class="section-title">
-              <i class="fa-solid fa-terminal"></i>
-              اختبارات سريعة
-            </div>
-            <p style="font-size:12px;color:var(--text-secondary);font-weight:700;margin-bottom:12px;line-height:1.8;">
-              افتح Console (F12) واكتب الأوامر التالية للتأكد من عمل النظام:
-            </p>
-            <div style="background:var(--bg-muted);padding:12px;border-radius:var(--radius-sm);font-family:monospace;font-size:11.5px;line-height:1.9;color:var(--text-primary);">
-              <div style="margin-bottom:8px;"><strong>WaslaCore.inspect()</strong> — عرض الحالة</div>
-              <div style="margin-bottom:8px;"><strong>diagnoseWasla()</strong> — تشخيص تفصيلي</div>
-              <div><strong>WaslaCore.reset()</strong> — إعادة تثبيت</div>
-            </div>
-          </div>
-
-          <div class="card" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);border-color:#F59E0B;">
-            <div style="text-align:center;">
-              <i class="fa-solid fa-info-circle" style="font-size:28px;color:#D97706;margin-bottom:8px;"></i>
-              <h3 style="font-size:14px;font-weight:900;color:#78350F;margin-bottom:4px;">PART 2 شغال تمام</h3>
-              <p style="font-size:11.5px;color:#92400E;font-weight:700;">
-                لو شفت الرسالة دي، يعني النظام جاهز لاستقبال PART 3 (Auth + Router)
-              </p>
-            </div>
-          </div>
-        `;
-      }
-
-      console.log('%c⚡ WASLA v' + VERSION + ' — PART 2/15 READY',
-        'background:#059669;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
-      console.log('%c💡 اكتب في Console: WaslaCore.inspect()', 'color:#7C3AED;font-weight:900');
-
+      
+      console.log('%c⚡ WASLA v' + VERSION + ' — PART 2/15 READY', 'background:#059669;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
     } catch (e) {
       console.error('%c❌ [BOOT] خطأ فادح!', 'background:#E11D48;color:#fff;padding:4px 12px;border-radius:6px;font-weight:900;font-size:14px');
       console.error(e);
-      console.error('Stack:', e.stack);
-
       setTopbarStatus('error', 'خطأ في التحميل — افتح Console', '#E11D48');
-
-      const mainContainer = Utils.$('#main-container');
-      if (mainContainer) {
-        mainContainer.innerHTML = `
-          <div class="card" style="border-right:4px solid var(--color-danger);">
-            <h3 style="font-size:16px;font-weight:900;color:var(--color-danger);margin-bottom:8px;">
-              <i class="fa-solid fa-triangle-exclamation"></i> خطأ في تحميل النظام
-            </h3>
-            <p style="font-size:13px;color:var(--text-secondary);font-weight:700;line-height:1.7;margin-bottom:12px;">
-              حدث خطأ أثناء تحميل النواة. افتح Console (F12) وشوف الأخطاء.
-            </p>
-            <div style="background:var(--color-danger-soft);padding:12px;border-radius:var(--radius-sm);font-family:monospace;font-size:11px;color:#991B1B;line-height:1.6;">
-              ${Utils.escape(String(e))}
-            </div>
-            <button class="btn btn-danger btn-block" style="margin-top:12px;" onclick="localStorage.clear(); sessionStorage.clear(); location.reload();">
-              <i class="fa-solid fa-rotate"></i> مسح البيانات وإعادة المحاولة
-            </button>
-          </div>
-        `;
-      }
     }
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 11: EXPOSE WaslaCore IMMEDIATELY (before boot)
-  // ══════════════════════════════════════════════════════════════
   window.WaslaCore = {
-    version: VERSION,
-    Utils, UI, Crypto, EventLog, Store, Schema,
+    version: VERSION, Utils, UI, Crypto, EventLog, Store, Schema,
     db: () => Store.load(),
     inspect: () => {
       try {
         const db = Store.load();
-        return {
-          version: VERSION,
-          hasDb: !!db,
-          isValid: db ? Schema.validate(db) : false,
-          users: db && Array.isArray(db.users) ? db.users.length : 0,
-          doctors: db && Array.isArray(db.doctors) ? db.doctors.length : 0,
-          merchants: db && Array.isArray(db.merchants) ? db.merchants.length : 0,
-          events: EventLog.count(),
-          chain: EventLog.verifyChain(),
-          migratedAt: localStorage.getItem(MIGRATED_KEY)
-        };
-      } catch (e) {
-        return { error: String(e) };
-      }
+        return { version: VERSION, hasDb: !!db, isValid: db ? Schema.validate(db) : false, users: db && Array.isArray(db.users) ? db.users.length : 0, doctors: db && Array.isArray(db.doctors) ? db.doctors.length : 0, merchants: db && Array.isArray(db.merchants) ? db.merchants.length : 0, events: EventLog.count(), chain: EventLog.verifyChain(), migratedAt: localStorage.getItem(MIGRATED_KEY) };
+      } catch (e) { return { error: String(e) }; }
     },
     reset: () => {
       if (confirm('⚠️ حذف كل البيانات والعودة للأصل؟')) {
-        try {
-          localStorage.removeItem(DB_KEY);
-          localStorage.removeItem(EVENT_KEY);
-          localStorage.removeItem(SESSION_KEY);
-          localStorage.removeItem(MIGRATED_KEY);
-          localStorage.removeItem('wasla_med_v4');
-        } catch (_) {}
+        try { localStorage.removeItem(DB_KEY); localStorage.removeItem(EVENT_KEY); localStorage.removeItem(SESSION_KEY); localStorage.removeItem(MIGRATED_KEY); localStorage.removeItem('wasla_med_v4'); } catch (_) {}
         location.reload();
       }
     }
   };
 
   window.diagnoseWasla = () => {
-    const result = {
-      timestamp: new Date().toISOString(),
-      part: 'PART 2',
-      version: VERSION,
-      checks: {}
-    };
-
-    try {
-      localStorage.setItem('_test_wasla', '1');
-      localStorage.removeItem('_test_wasla');
-      result.checks.localStorage = 'OK ✅';
-    } catch (e) {
-      result.checks.localStorage = 'BLOCKED ❌ (' + String(e) + ')';
-    }
-
-    try {
-      const db = Store.load();
-      result.checks.dbExists = !!db;
-      result.checks.dbValid = db ? Schema.validate(db) : false;
-      result.checks.usersCount = db && Array.isArray(db.users) ? db.users.length : 0;
-    } catch (e) {
-      result.checks.dbError = String(e);
-    }
-
-    try {
-      result.checks.eventCount = EventLog.count();
-      result.checks.chainStatus = EventLog.verifyChain();
-    } catch (e) {
-      result.checks.eventError = String(e);
-    }
-
+    const result = { timestamp: new Date().toISOString(), part: 'PART 2', version: VERSION, checks: {} };
+    try { localStorage.setItem('_test_wasla', '1'); localStorage.removeItem('_test_wasla'); result.checks.localStorage = 'OK ✅'; } catch (e) { result.checks.localStorage = 'BLOCKED ❌ (' + String(e) + ')'; }
+    try { const db = Store.load(); result.checks.dbExists = !!db; result.checks.dbValid = db ? Schema.validate(db) : false; result.checks.usersCount = db && Array.isArray(db.users) ? db.users.length : 0; } catch (e) { result.checks.dbError = String(e); }
+    try { result.checks.eventCount = EventLog.count(); result.checks.chainStatus = EventLog.verifyChain(); } catch (e) { result.checks.eventError = String(e); }
     result.checks.waslaCoreExists = !!window.WaslaCore;
     result.checks.topbarCount = Utils.$('#topbar-users-count')?.textContent;
-
     return result;
   };
 
-  console.log('%c✅ [PART 2] WaslaCore exposed globally', 'color:#059669;font-weight:900');
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 12: RUN BOOT
-  // ══════════════════════════════════════════════════════════════
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') UI.closeAllModals();
-  });
-
-  document.addEventListener('click', (e) => {
-    const overlay = e.target.closest('.modal-overlay');
-    if (overlay && overlay.id !== 'modal-loading' && e.target === overlay) {
-      overlay.classList.remove('open');
-    }
-  });
-
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') UI.closeAllModals(); });
+  document.addEventListener('click', (e) => { const overlay = e.target.closest('.modal-overlay'); if (overlay && overlay.id !== 'modal-loading' && e.target === overlay) overlay.classList.remove('open'); });
 })();
 </script>
 
-</body><!-- ═════════════════════════════════════════════════════════════
-     PART 3/15: AUTH + ROUTER + HEADER + CONTEXT SWITCHER + VIEWS
-═════════════════════════════════════════════════════════════ -->
-<style>
-.header-user-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 10px 4px 4px; background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14); border-radius: var(--radius-full);
-  cursor: pointer; font-family: inherit; transition: background 0.15s ease; flex-shrink: 0;
-}
-.header-user-btn:hover { background: rgba(255, 255, 255, 0.16); }
-.header-user-avatar {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--sector-medical), #10B981);
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 13px; font-weight: 900; flex-shrink: 0;
-}
-.header-user-name {
-  font-size: 11.5px; font-weight: 800; color: #fff;
-  white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis;
-}
-@media (max-width: 500px) {
-  .header-user-name { display: none; }
-  .header-user-btn { padding: 3px; border-radius: 50%; }
-}
-.auth-demo-box {
-  margin-top: 16px; padding: 12px; background: var(--bg-muted);
-  border: 1px dashed var(--border-strong); border-radius: var(--radius-sm);
-  font-size: 11px; color: var(--text-muted); line-height: 1.9;
-}
-.auth-demo-box strong { color: var(--text-primary); }
-.auth-demo-box code { background: #fff; padding: 1px 6px; border-radius: 3px; font-family: monospace; font-size: 10.5px; }
-.notif-item {
-  padding: 12px; background: var(--bg-muted); border-radius: var(--radius-sm);
-  margin-bottom: 8px; border-right: 3px solid var(--border-default);
-}
-.notif-item.unread { background: var(--sector-medical-soft); border-right-color: var(--sector-medical); }
-.notif-time { font-size: 10px; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; }
-.notif-text { font-size: 12.5px; font-weight: 800; color: var(--text-primary); }
-.sector-card {
-  background: var(--bg-card); border-radius: var(--radius-md);
-  border: 1px solid var(--border-default); padding: 20px 12px;
-  text-align: center; cursor: pointer; transition: all 0.2s ease;
-}
-.sector-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--border-strong); }
-.sector-card-icon {
-  width: 52px; height: 52px; border-radius: var(--radius-md);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 24px; margin: 0 auto 10px;
-}
-.sector-card-title { font-size: 13.5px; font-weight: 900; color: var(--text-primary); margin-bottom: 4px; }
-.sector-card-desc { font-size: 10.5px; color: var(--text-muted); font-weight: 700; line-height: 1.4; }
-</style>
-
 <script>
+/* ══════════════════════════════════════════════════════════════════
+   PART 3/15: AUTH + ROUTER + HEADER + CONTEXT SWITCHER + VIEWS
+══════════════════════════════════════════════════════════════════ */
 (function WASLA_PART_3() {
   'use strict';
 
@@ -1513,9 +1178,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   const { Utils, UI, Crypto, EventLog, Store } = window.WaslaCore;
   const SESSION_KEY = 'wasla_v5_session';
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 1: AUTH
-  // ══════════════════════════════════════════════════════════════
   const Auth = {
     login(phone, password) {
       const db = Store.load();
@@ -1530,7 +1192,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       EventLog.log('login_success', { actorId: user.id, phone, role: user.role, context: session.context });
       return { ok: true, user };
     },
-
     register(name, phone, password) {
       const db = Store.load();
       if (!db) return { ok: false, msg: 'قاعدة البيانات غير متاحة' };
@@ -1554,17 +1215,14 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       EventLog.log('register', { actorId: newUser.id, phone, name, waslaId: newUser.waslaId });
       return { ok: true, user: newUser };
     },
-
     logout() { 
       const session = this.getSession(); 
       if (session) EventLog.log('logout', { actorId: session.userId }); 
       sessionStorage.removeItem(SESSION_KEY); 
     },
-
     getSession() { 
       try { const raw = sessionStorage.getItem(SESSION_KEY); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } 
     },
-
     getCurrentUser() { 
       const session = this.getSession(); 
       if (!session) return null; 
@@ -1572,11 +1230,9 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       if (!db) return null; 
       return db.users.find(u => u.id === session.userId) || null; 
     },
-
     getCurrentContext() { 
       const session = this.getSession(); return session ? session.context : null; 
     },
-
     switchContext(newContext) {
       const session = this.getSession(); if (!session) return false;
       const user = this.getCurrentUser(); if (!user) return false;
@@ -1590,9 +1246,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 2: AUTH UI
-  // ══════════════════════════════════════════════════════════════
   const AuthUI = {
     open(mode = 'login') {
       const body = Utils.$('#modal-auth-body');
@@ -1606,7 +1259,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       UI.modal('modal-auth', { open: true });
       setTimeout(() => { const first = body.querySelector('input'); if (first) first.focus(); }, 200);
     },
-
     _loginForm() {
       return `
         <div style="text-align:center;margin-bottom:20px;">
@@ -1636,7 +1288,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         </div>
       `;
     },
-
     _registerForm() {
       return `
         <div style="text-align:center;margin-bottom:20px;">
@@ -1660,7 +1311,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         </p>
       `;
     },
-
     async _submitLogin() {
       const phone = Utils.$('#login-phone').value.trim();
       const pass = Utils.$('#login-pass').value;
@@ -1674,7 +1324,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         initApp();
       } else UI.toast(result.msg, 'error');
     },
-
     async _submitRegister() {
       const name = Utils.$('#reg-name').value.trim();
       const phone = Utils.$('#reg-phone').value.trim();
@@ -1690,7 +1339,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         initApp();
       } else UI.toast(result.msg, 'error');
     },
-
     async _confirmLogout() {
       const ok = await UI.confirm('هل تريد الخروج من وصلة؟', { title: 'تسجيل الخروج', confirmText: 'خروج', cancelText: 'إلغاء', danger: true });
       if (!ok) return;
@@ -1698,16 +1346,11 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 3: ROUTER
-  // ══════════════════════════════════════════════════════════════
   const Router = {
     registry: {},
     current: null,
     _sectorViews: ['medical', 'grocery', 'cars', 'home-services', 'live', 'auction'],
-
     register(viewName, rendererFn) { this.registry[viewName] = rendererFn; return this; },
-
     go(viewName, params) {
       if (!this.registry[viewName]) { console.warn(`[Router] View "${viewName}" not registered`); this._renderNotFound(viewName); return; }
       this.current = viewName;
@@ -1724,22 +1367,17 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       this.updateActiveTab(viewName);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
-
     updateActiveTab(viewName) {
       const isSector = this._sectorViews.includes(viewName);
       const activeTab = isSector ? 'home' : viewName;
       Utils.$$('.app-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.tab === activeTab));
     },
-
     _renderNotFound(viewName) {
       const container = Utils.$('#main-container'); if (!container) return;
       container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-question empty-state-icon"></i><p class="empty-state-title">صفحة غير موجودة</p><p class="empty-state-desc">${Utils.escape(viewName)}</p><button class="btn btn-primary" style="margin-top:16px;" onclick="Router.go('home')">الرئيسية</button></div>`;
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 4: HEADER & NAVIGATION
-  // ══════════════════════════════════════════════════════════════
   function renderHeader() {
     const el = Utils.$('#header-actions'); if (!el) return;
     const user = Auth.getCurrentUser();
@@ -1854,9 +1492,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 5: VIEWS
-  // ══════════════════════════════════════════════════════════════
   function _sectorCard(sector, title, desc, icon) {
     const sectorVar = sector === 'home-services' ? 'home' : sector;
     return `
@@ -2020,109 +1655,14 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(initApp, 200));
   else setTimeout(initApp, 200);
-
 })();
-          </script>
-  <!-- ═════════════════════════════════════════════════════════════
-     PART 4/15: LIVE + AUCTION + SOCIAL PROOF ENGINE
-═════════════════════════════════════════════════════════════ -->
-<style>
-/* Live & Auction Styles */
-.live-indicator {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 8px; background: #EF4444; color: #fff;
-  border-radius: var(--radius-full); font-size: 9px; font-weight: 900;
-  animation: pulse-red 1.5s infinite; margin-right: 6px;
-}
-@keyframes pulse-red {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-}
-.live-card {
-  background: linear-gradient(135deg, #1F2937, #111827);
-  border-radius: var(--radius-md); padding: 16px;
-  color: #fff; margin-bottom: 10px;
-  display: flex; gap: 12px; align-items: flex-start;
-  border-left: 4px solid #EF4444;
-  position: relative; overflow: hidden;
-}
-.live-card::after {
-  content: 'LIVE'; position: absolute; top: 8px; left: 8px;
-  background: #EF4444; color: #fff; font-size: 8px; font-weight: 900;
-  padding: 2px 6px; border-radius: 4px; letter-spacing: 1px;
-}
-.live-icon {
-  width: 44px; height: 44px; border-radius: 12px;
-  background: rgba(255,255,255,0.1); color: #F87171;
-  display: flex; align-items: center; justify-content: center; font-size: 20px;
-}
-.live-info { flex: 1; }
-.live-store { font-size: 14px; font-weight: 900; margin-bottom: 2px; }
-.live-deal { font-size: 12px; color: #D1D5DB; font-weight: 700; margin-bottom: 6px; line-height: 1.5; }
-.live-action { background: #EF4444; color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 10px; font-weight: 900; border: none; cursor: pointer; font-family: inherit; }
-
-.auction-card {
-  background: var(--bg-card); border: 2px solid var(--sector-gold);
-  border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px;
-  position: relative;
-}
-.auction-item { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
-.auction-icon {
-  width: 56px; height: 56px; border-radius: 14px;
-  display: flex; align-items: center; justify-content: center; font-size: 24px;
-  flex-shrink: 0;
-}
-.auction-title { font-size: 16px; font-weight: 900; color: var(--text-primary); margin-bottom: 2px; }
-.auction-desc { font-size: 11px; color: var(--text-muted); font-weight: 700; }
-
-.auction-timer {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: #FEF2F2; color: #DC2626; padding: 4px 8px;
-  border-radius: 6px; font-size: 11px; font-weight: 900;
-}
-.auction-bid-box {
-  background: var(--bg-muted); border-radius: 10px; padding: 12px;
-}
-.auction-current-bid { font-size: 10px; color: var(--text-muted); font-weight: 800; }
-.auction-price { font-size: 22px; font-weight: 900; line-height: 1.1; }
-.auction-winner { font-size: 10px; color: var(--sector-medical); font-weight: 900; margin-top: 4px; }
-
-.bid-btn {
-  background: linear-gradient(135deg, #F59E0B, #D97706);
-  color: #fff; border: none; border-radius: 8px;
-  padding: 10px 14px; font-size: 12px; font-weight: 900;
-  cursor: pointer; font-family: inherit;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
-  transition: transform 0.15s ease;
-}
-.bid-btn:active { transform: scale(0.97); }
-.bid-btn:disabled { background: var(--text-disabled); box-shadow: none; cursor: not-allowed; }
-
-/* Social Proof Styles */
-.live-viewers-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 9.5px; font-weight: 900; padding: 3px 8px;
-  border-radius: var(--radius-full); background: rgba(5, 150, 105, 0.08);
-  color: var(--sector-medical); border: 1px solid rgba(5, 150, 105, 0.2);
-}
-.live-viewers-badge.fire {
-  background: rgba(234, 88, 12, 0.08); color: var(--sector-grocery); border-color: rgba(234, 88, 12, 0.2);
-}
-.live-viewers-badge .pulse {
-  width: 6px; height: 6px; background: currentColor; border-radius: 50%;
-  animation: live-pulse 1.5s infinite;
-}
-@keyframes live-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.5); }
-  70% { box-shadow: 0 0 0 5px rgba(5, 150, 105, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
-}
-</style>
+</script>
 
 <script>
-(function WASLA_PART_4_BOMBS() {
+/* ══════════════════════════════════════════════════════════════════
+   PART 4/15: LIVE, AUCTION & SOCIAL PROOF
+══════════════════════════════════════════════════════════════════ */
+(function WASLA_PART_4() {
   'use strict';
 
   if (!window.WaslaCore || !window.Auth || !window.Router) {
@@ -2132,9 +1672,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
   const { Utils, UI, Store, EventLog } = window.WaslaCore;
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 1: DATABASE EXTENSION
-  // ══════════════════════════════════════════════════════════════
   function extendSchema() {
     const db = Store.load();
     if (!db) return;
@@ -2194,32 +1731,22 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         }
       });
     }
-
-    if (changed) {
-      Store.save(db);
-      EventLog.log('schema_extended_live_auction', { ts: Date.now() });
-    }
+    if (changed) { Store.save(db); EventLog.log('schema_extended', { ts: Date.now() }); }
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 2: LIVE VIEW
-  // ══════════════════════════════════════════════════════════════
   window.Router.register('live', (el) => {
     const db = Store.load();
     const deals = db.liveDeals || [];
-
     el.innerHTML = `
       <div class="sector-hero" style="background: linear-gradient(120deg, #7F1D1D, #EF4444 55%, #F87171);">
         <span class="sector-hero-badge"><i class="fa-solid fa-satellite-dish"></i> وصلة لايف</span>
         <h1>رادار شبين القناطر</h1>
         <p>كل العروض والفرص اللحظية في مكان واحد.. اللي يسبق يكسب</p>
       </div>
-
       <div class="flex justify-between items-center" style="margin-bottom:16px;">
         <h2 class="section-title" style="margin:0;"><i class="fa-solid fa-bolt"></i> يحدث الآن</h2>
         <span class="live-indicator"><i class="fa-solid fa-circle" style="font-size:6px;"></i> بث مباشر</span>
       </div>
-
       <div style="display:flex;flex-direction:column;gap:10px;">
         ${deals.map(deal => `
           <div class="live-card">
@@ -2238,9 +1765,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     `;
   });
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 3: AUCTION VIEW
-  // ══════════════════════════════════════════════════════════════
   window.Router.register('auction', (el) => {
     const user = window.Auth.getCurrentUser();
     const db = Store.load();
@@ -2252,7 +1776,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         <h1>مزاد الليل</h1>
         <p>زايد على بضاعة الاستوك والمواعيد الفاضية.. مين هياخد اللقطة؟</p>
       </div>
-
       ${!user ? `
         <div class="card text-center" style="border-color:var(--sector-gold);">
           <p class="empty-state-desc">سجل دخول عشان تشارك في المزاد</p>
@@ -2270,7 +1793,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
           </div>
         </div>
       `}
-
       <div id="auction-list">
         ${auctions.length === 0 ? `<div class="empty-state"><p class="empty-state-desc">لا يوجد مزادات حالياً.. عود قريباً</p></div>` : auctions.map(a => renderAuctionCard(a, user)).join('')}
       </div>
@@ -2290,25 +1812,17 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     
     return `
       <div class="auction-card" data-auction-id="${a.id}" style="border-color:${catColor};">
-        
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <div class="auction-timer">
             <i class="fa-solid fa-clock"></i> <span class="timer-text">${mins}:${String(secs).padStart(2, '0')}</span>
           </div>
           <div style="display:flex;gap:6px;">
-            <span class="tag" style="background:${catColor}22; color:${catColor}; border:1px solid ${catColor}44; font-size:9px;">
-              ${a.category}
-            </span>
-            <span class="tag tag-warning" style="font-size:9px;">
-              👁️ ${a.watchers}
-            </span>
+            <span class="tag" style="background:${catColor}22; color:${catColor}; border:1px solid ${catColor}44; font-size:9px;">${a.category}</span>
+            <span class="tag tag-warning" style="font-size:9px;">👁️ ${a.watchers}</span>
           </div>
         </div>
-        
         <div class="auction-item">
-          <div class="auction-icon" style="background:${catColor}22; color:${catColor};">
-            <i class="fa-solid ${a.icon}"></i>
-          </div>
+          <div class="auction-icon" style="background:${catColor}22; color:${catColor};"><i class="fa-solid ${a.icon}"></i></div>
           <div style="flex:1;min-width:0;">
             <div class="auction-title">${Utils.escape(a.title)}</div>
             <div class="auction-desc">${Utils.escape(a.desc)}</div>
@@ -2319,7 +1833,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
             </div>
           </div>
         </div>
-
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;">
           <div style="background:var(--bg-muted);padding:8px 6px;border-radius:8px;text-align:center;">
             <div style="font-size:9px;color:var(--text-muted);font-weight:800;">الكمية</div>
@@ -2334,7 +1847,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
             <div style="font-size:10px;font-weight:900;color:var(--text-primary);">${Utils.escape(a.delivery)}</div>
           </div>
         </div>
-
         <div class="auction-bid-box" style="display:flex;flex-direction:column;align-items:stretch;gap:10px;">
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <div style="text-align:right;">
@@ -2348,11 +1860,8 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
               ${discount > 0 ? `<div style="font-size:10px;color:var(--sector-medical);font-weight:900;">خصم ${discount}%</div>` : ''}
             </div>
           </div>
-          
           <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div style="font-size:10.5px;color:var(--text-muted);font-weight:800;">
-              <i class="fa-solid fa-gavel"></i> ${a.bidsCount} مزايدة
-            </div>
+            <div style="font-size:10.5px;color:var(--text-muted);font-weight:800;"><i class="fa-solid fa-gavel"></i> ${a.bidsCount} مزايدة</div>
             <div style="display:flex;gap:6px;">
               <button class="bid-btn" style="width:auto;padding:8px 14px;background:linear-gradient(135deg,${catColor},#10B981);" ${!user ? 'disabled' : ''} onclick="AuctionEngine.bid('${a.id}', ${a.minIncrement})">
                 <i class="fa-solid fa-plus"></i> ${a.minIncrement} ج.م
@@ -2363,7 +1872,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
             </div>
           </div>
         </div>
-
         ${a.history && a.history.length > 0 ? `
           <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border-default);">
             <div style="font-size:10px;color:var(--text-muted);font-weight:900;margin-bottom:6px;"><i class="fa-solid fa-clock-rotate-left"></i> آخر المزايدات:</div>
@@ -2379,9 +1887,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     `;
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 4: AUCTION ENGINE
-  // ══════════════════════════════════════════════════════════════
   window.AuctionEngine = {
     bid(auctionId, amount) {
       const user = window.Auth.getCurrentUser();
@@ -2404,7 +1909,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       UI.toast(`مزايدتك نجحت! أنت الأعلى الآن بـ ${Utils.money(newPrice)}`, 'success');
       window.Router.go('auction');
     },
-
     processExpired() {
       const db = Store.load();
       let changed = false;
@@ -2450,9 +1954,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     }, 1000);
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 5: HOME INTEGRATION & SOCIAL PROOF
-  // ══════════════════════════════════════════════════════════════
   const originalRenderHome = window.Router.registry['home'];
   window.Router.register('home', (el) => {
     originalRenderHome.call(window.Router, el);
@@ -2480,11 +1981,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     if (grid) grid.insertAdjacentHTML('afterend', bombsHTML);
   });
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 6: OBSERVERS (Header Button + Social Proof)
-  // ══════════════════════════════════════════════════════════════
   const observer = new MutationObserver(() => {
-    // 1. إضافة زر اللايف في الهيدر
     const headerActions = Utils.$('#header-actions');
     if (headerActions && window.Auth.getCurrentUser() && !headerActions.querySelector('.live-btn')) {
       const liveBtn = document.createElement('button');
@@ -2497,54 +1994,23 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       else headerActions.appendChild(liveBtn);
     }
 
-    // 2. إضافة شارات المشاهدين (Social Proof)
     function getStableRandom(id, base = 5, range = 20) {
       let hash = 0; const str = String(id);
       for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
       hash |= 0; return base + (Math.abs(hash) % range);
     }
 
-    Utils.$$('.doctor-card').forEach(card => {
-      if (!card.querySelector('.live-viewers-badge')) {
-        const docName = card.querySelector('.doctor-name')?.textContent.trim() || 'doc';
-        const viewers = getStableRandom(docName, 4, 12);
-        const infoBox = card.querySelector('.doctor-info');
-        if (infoBox) infoBox.insertAdjacentHTML('beforeend', `<div class="live-viewers-badge" style="margin-top:6px;"><span class="pulse"></span> ${viewers} يتصفحون العيادة الآن</div>`);
-      }
-    });
-
-    Utils.$$('.merchant-card').forEach(card => {
-      if (!card.querySelector('.live-viewers-badge')) {
-        const storeName = card.querySelector('.merchant-name')?.textContent.trim() || 'store';
-        const actionCount = getStableRandom(storeName, 6, 15);
-        const metaBox = card.querySelector('.merchant-stats');
-        if (metaBox) metaBox.insertAdjacentHTML('afterend', `<div class="live-viewers-badge fire" style="margin-top:8px;"><i class="fa-solid fa-fire"></i> ${actionCount} طلبوا من هنا النهاردة</div>`);
-      }
-    });
-
-    Utils.$$('.service-card').forEach(card => {
-      if (!card.querySelector('.live-viewers-badge')) {
-        const serviceName = card.querySelector('.service-card-name')?.textContent.trim() || 'service';
-        const actionCount = getStableRandom(serviceName, 3, 10);
-        const infoBox = card.querySelector('.service-card-info');
-        if (infoBox) infoBox.insertAdjacentHTML('beforeend', `<div class="live-viewers-badge fire" style="margin-top:6px;"><i class="fa-solid fa-bolt"></i> ${actionCount} طلبوا الخدمة اليوم</div>`);
-      }
-    });
-
     Utils.$$('.sector-card').forEach(card => {
-      if (card.classList.contains('sector-card') && !card.querySelector('.live-viewers-badge') && !card.querySelector('style[data-injected="true"]')) {
+      if (!card.querySelector('.sector-live-badge')) {
         const sectorTitle = card.querySelector('.sector-card-title')?.textContent.trim() || 'sector';
         const activeCount = getStableRandom(sectorTitle, 10, 30);
         const desc = card.querySelector('.sector-card-desc');
-        if (desc && !desc.parentElement.querySelector('style[data-injected="true"]')) {
+        if (desc) {
           const badge = document.createElement('div');
           badge.className = 'sector-live-badge';
           badge.style.cssText = 'font-size:9px; color:var(--text-muted); margin-top:4px; font-weight:800;';
           badge.innerHTML = `<i class="fa-solid fa-circle" style="color:var(--sector-medical); font-size:5px; margin-left:2px;"></i> ${activeCount} نشط الآن`;
           desc.insertAdjacentElement('afterend', badge);
-          const styleTag = document.createElement('style');
-          styleTag.setAttribute('data-injected', 'true');
-          badge.appendChild(styleTag);
         }
       }
     });
@@ -2559,7 +2025,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   }
 
   setTimeout(boot, 400);
-
 })();
 </script>
+</body>
 </html>
