@@ -5493,5 +5493,144 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
 })();
 </script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 6.1: DOCTOR QUICK ACCESS PANEL
+     - Adds visible floating buttons for doctor features
+     - Fixes missing entry points for PART 6
+     - Includes diagnostics
+═════════════════════════════════════════════════════════════ -->
+<script>
+(function WASLA_PART_6_1_QUICK_ACCESS() {
+  'use strict';
+  
+  console.log('%c🔧 [PART 6.1] Quick Access Panel loading...', 'color:#DC2626;font-weight:900');
+  
+  function run() {
+    // Check prerequisites
+    if (!window.WaslaCore || !window.Auth) {
+      console.error('❌ WaslaCore/Auth missing — cannot add panel');
+      return;
+    }
+    if (!window.WaslaTestEMR) {
+      console.error('❌ WaslaTestEMR missing — PART 6 did not load. Check the script above.');
+      return;
+    }
+    
+    const user = window.Auth.getCurrentUser();
+    if (!user) {
+      console.warn('⚠️ No user logged in — panel will appear after login');
+      return;
+    }
+    
+    if (user.role !== 'doctor') {
+      console.log('%cℹ️ Not a doctor — panel skipped', 'color:#0284C7');
+      return;
+    }
+    
+    // Remove old panel if exists
+    document.getElementById('wasla-doctor-panel')?.remove();
+    
+    // Create floating panel
+    const panel = document.createElement('div');
+    panel.id = 'wasla-doctor-panel';
+    panel.style.cssText = `
+      position: fixed;
+      bottom: 90px;
+      left: 16px;
+      z-index: 9998;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      animation: wasla-slide-in 0.3s ease;
+    `;
+    
+    // Inject animation
+    if (!document.getElementById('wasla-doc-panel-style')) {
+      const style = document.createElement('style');
+      style.id = 'wasla-doc-panel-style';
+      style.textContent = `
+        @keyframes wasla-slide-in {
+          from { opacity: 0; transform: translateX(-20px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        .wasla-doc-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: linear-gradient(135deg, #7C3AED, #5B21B6);
+          color: #fff;
+          border: none;
+          padding: 10px 14px;
+          border-radius: 12px;
+          font-family: 'Cairo', sans-serif;
+          font-weight: 900;
+          font-size: 12px;
+          cursor: pointer;
+          box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+          transition: transform 0.15s, box-shadow 0.15s;
+          white-space: nowrap;
+        }
+        .wasla-doc-btn:hover {
+          transform: translateX(4px);
+          box-shadow: 0 8px 24px rgba(124, 58, 237, 0.5);
+        }
+        .wasla-doc-btn:active { transform: scale(0.97); }
+        .wasla-doc-btn .icon { font-size: 16px; }
+        .wasla-doc-btn.toggle {
+          background: linear-gradient(135deg, #059669, #047857);
+          box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35);
+        }
+        #wasla-doctor-panel.collapsed .wasla-doc-btn:not(.toggle) {
+          display: none;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    const buttons = [
+      { icon: '📋', label: 'كشف جديد (EMR)', action: () => window.WaslaTestEMR('open') },
+      { icon: '👥', label: 'مرضاي',           action: () => window.WaslaTestEMR('patients') },
+      { icon: '📊', label: 'إحصائيات العيادة', action: () => window.WaslaTestEMR('stats') },
+      { icon: '🎥', label: 'استشارة فيديو',   action: () => window.WaslaTestEMR('video') }
+    ];
+    
+    // Toggle button first
+    const toggle = document.createElement('button');
+    toggle.className = 'wasla-doc-btn toggle';
+    toggle.innerHTML = '<span class="icon">🩺</span> أدوات الطبيب';
+    toggle.onclick = () => panel.classList.toggle('collapsed');
+    panel.appendChild(toggle);
+    
+    buttons.forEach(b => {
+      const btn = document.createElement('button');
+      btn.className = 'wasla-doc-btn';
+      btn.innerHTML = `<span class="icon">${b.icon}</span> ${b.label}`;
+      btn.onclick = () => {
+        try { b.action(); }
+        catch (e) { console.error(e); alert('خطأ: ' + e.message); }
+      };
+      panel.appendChild(btn);
+    });
+    
+    document.body.appendChild(panel);
+    panel.classList.add('collapsed'); // Start collapsed
+    
+    console.log('%c✅ [PART 6.1] Doctor panel added (bottom-left) — click "أدوات الطبيب"', 
+                'color:#059669;font-weight:900;font-size:12px');
+  }
+  
+  // Try after PART 6 boots (1.4s) + buffer
+  setTimeout(run, 2000);
+  
+  // Re-check when user logs in/out
+  setInterval(() => {
+    const user = window.Auth?.getCurrentUser?.();
+    const panel = document.getElementById('wasla-doctor-panel');
+    if (user?.role === 'doctor' && !panel) run();
+    if (user?.role !== 'doctor' && panel) panel.remove();
+  }, 3000);
+  
+})();
+</script>
 </body>
 </html>
