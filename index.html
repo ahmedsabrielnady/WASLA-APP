@@ -644,12 +644,899 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 </div>
 
 <div class="toast-container" id="toast-container"></div>
-
 <!-- ═════════════════════════════════════════════════════════════
-     ⬇️⬇️⬇️ PART 2 سيُضاف هنا ⬇️⬇️⬇️
-     (عندما أرسل PART 2، ستحتاج فقط لاستبدال هذا التعليق
-     بالكود الذي سأرسله. لا تحذف أي شيء آخر.)
+     PART 2/15: CORE SYSTEMS
+     Utils + Crypto + EventLog + DB + Migration + Boot
 ═════════════════════════════════════════════════════════════ -->
+<script>
+(function WASLA_PART_2() {
+  'use strict';
 
+  const VERSION = '5.0.0';
+  const DB_KEY = 'wasla_v5_db';
+  const EVENT_KEY = 'wasla_v5_events';
+  const SESSION_KEY = 'wasla_v5_session';
+  const MIGRATED_KEY = 'wasla_v5_migrated';
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 1: UTILS
+  // ══════════════════════════════════════════════════════════════
+  const Utils = {
+    $: (sel, root = document) => root.querySelector(sel),
+    $$: (sel, root = document) => Array.from(root.querySelectorAll(sel)),
+    id: (prefix = 'id') => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+    money: (n) => `${Number(n || 0).toLocaleString('ar-EG')} ج.م`,
+    number: (n) => Number(n || 0).toLocaleString('ar-EG'),
+    today: () => new Date().toISOString().split('T')[0],
+    now: () => Date.now(),
+
+    fmtDate: (iso) => {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '—';
+      const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+      return `${days[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+    },
+
+    fmtTime: (ts) => new Date(ts).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+
+    fmtDateTime: (ts) => `${Utils.fmtDate(new Date(ts).toISOString())} · ${Utils.fmtTime(ts)}`,
+
+    dayKey: (iso) => ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][new Date(iso).getDay()],
+
+    dayArabic: (k) => ({
+      sunday: 'الأحد', monday: 'الاثنين', tuesday: 'الثلاثاء',
+      wednesday: 'الأربعاء', thursday: 'الخميس', friday: 'الجمعة', saturday: 'السبت'
+    }[k] || ''),
+
+    timeAgo: (ts) => {
+      const s = Math.floor((Date.now() - ts) / 1000);
+      if (s < 60) return 'الآن';
+      if (s < 3600) return `قبل ${Math.floor(s / 60)} د`;
+      if (s < 86400) return `قبل ${Math.floor(s / 3600)} س`;
+      if (s < 604800) return `قبل ${Math.floor(s / 86400)} ي`;
+      return `قبل ${Math.floor(s / 604800)} أسبوع`;
+    },
+
+    isValidPhone: (phone) => /^01[0-9]{9}$/.test(String(phone || '').trim()),
+    isValidName: (name) => name && String(name).trim().split(/\s+/).length >= 2,
+
+    escape: (str) => String(str || '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c])),
+
+    sleep: (ms) => new Promise(r => setTimeout(r, ms)),
+
+    debounce: (fn, ms = 300) => {
+      let t;
+      return function (...args) {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), ms);
+      };
+    },
+
+    timeToMin: (slot) => {
+      const m = String(slot).match(/(\d{1,2}):(\d{2})\s*(م|ص|pm|am)?/i);
+      if (!m) return 0;
+      let h = parseInt(m[1], 10);
+      const mi = parseInt(m[2], 10);
+      const p = (m[3] || '').toLowerCase();
+      if ((p === 'م' || p === 'pm') && h < 12) h += 12;
+      if ((p === 'ص' || p === 'am') && h === 12) h = 0;
+      return h * 60 + mi;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 2: UI (Toast + Modal + Confirm + Loading)
+  // ══════════════════════════════════════════════════════════════
+  const UI = {
+    toast(message, type = 'success', duration = 3200) {
+      const container = Utils.$('#toast-container');
+      if (!container) return;
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      const icons = {
+        success: 'fa-circle-check',
+        error: 'fa-circle-exclamation',
+        warning: 'fa-triangle-exclamation',
+        info: 'fa-circle-info'
+      };
+      el.innerHTML = `<i class="fa-solid ${icons[type] || icons.success}"></i><span>${Utils.escape(message)}</span>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.transition = 'opacity 0.3s, transform 0.3s';
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(30px)';
+        setTimeout(() => el.remove(), 320);
+      }, duration);
+    },
+
+    modal(id, { open = true } = {}) {
+      const el = Utils.$(`#${id}`);
+      if (!el) return;
+      el.classList.toggle('open', !!open);
+    },
+
+    closeAllModals() {
+      Utils.$$('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+    },
+
+    loading(text = 'جاري التحميل...') {
+      const el = Utils.$('#loading-text');
+      if (el) el.textContent = text;
+      UI.modal('modal-loading', { open: true });
+    },
+
+    stopLoading() {
+      UI.modal('modal-loading', { open: false });
+    },
+
+    confirm(message, { title = 'تأكيد', confirmText = 'نعم', cancelText = 'إلغاء', danger = false } = {}) {
+      return new Promise((resolve) => {
+        const body = Utils.$('#modal-confirm-body');
+        if (!body) return resolve(false);
+        body.innerHTML = `
+          <h3 style="font-size:16px;font-weight:900;margin-bottom:12px;">${Utils.escape(title)}</h3>
+          <p style="font-size:13px;color:var(--text-secondary);font-weight:700;line-height:1.7;margin-bottom:20px;">${Utils.escape(message)}</p>
+          <div style="display:flex;gap:8px;">
+            <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" style="flex:1;" id="confirm-yes">${Utils.escape(confirmText)}</button>
+            <button class="btn btn-ghost" style="flex:1;" id="confirm-no">${Utils.escape(cancelText)}</button>
+          </div>
+        `;
+        UI.modal('modal-confirm', { open: true });
+        const cleanup = () => UI.modal('modal-confirm', { open: false });
+        Utils.$('#confirm-yes').onclick = () => { cleanup(); resolve(true); };
+        Utils.$('#confirm-no').onclick = () => { cleanup(); resolve(false); };
+      });
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 3: CRYPTO (SHA-256 + Salt)
+  // ══════════════════════════════════════════════════════════════
+  const Crypto = {
+    _sha256(str) {
+      const rr = (v, a) => (v >>> a) | (v << (32 - a));
+      const K = [
+        0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+        0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+        0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+        0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+        0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+        0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+        0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+        0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+      ];
+      const H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+      const bytes = new TextEncoder().encode(str);
+      const bitLen = bytes.length * 8;
+      const padded = new Uint8Array(Math.ceil((bytes.length + 9) / 64) * 64);
+      padded.set(bytes);
+      padded[bytes.length] = 0x80;
+      const dv = new DataView(padded.buffer);
+      dv.setUint32(padded.length - 4, bitLen, false);
+      for (let i = 0; i < padded.length; i += 64) {
+        const W = new Array(64);
+        for (let t = 0; t < 16; t++) {
+          W[t] = (padded[i + t * 4] << 24) | (padded[i + t * 4 + 1] << 16) | (padded[i + t * 4 + 2] << 8) | padded[i + t * 4 + 3];
+        }
+        for (let t = 16; t < 64; t++) {
+          const s0 = rr(W[t - 15], 7) ^ rr(W[t - 15], 18) ^ (W[t - 15] >>> 3);
+          const s1 = rr(W[t - 2], 17) ^ rr(W[t - 2], 19) ^ (W[t - 2] >>> 10);
+          W[t] = (W[t - 16] + s0 + W[t - 7] + s1) >>> 0;
+        }
+        let [a, b, c, d, e, f, g, h] = H;
+        for (let t = 0; t < 64; t++) {
+          const S1 = rr(e, 6) ^ rr(e, 11) ^ rr(e, 25);
+          const ch = (e & f) ^ (~e & g);
+          const t1 = (h + S1 + ch + K[t] + W[t]) >>> 0;
+          const S0 = rr(a, 2) ^ rr(a, 13) ^ rr(a, 22);
+          const maj = (a & b) ^ (a & c) ^ (b & c);
+          const t2 = (S0 + maj) >>> 0;
+          h = g; g = f; f = e; e = (d + t1) >>> 0;
+          d = c; c = b; b = a; a = (t1 + t2) >>> 0;
+        }
+        H[0] = (H[0] + a) >>> 0; H[1] = (H[1] + b) >>> 0;
+        H[2] = (H[2] + c) >>> 0; H[3] = (H[3] + d) >>> 0;
+        H[4] = (H[4] + e) >>> 0; H[5] = (H[5] + f) >>> 0;
+        H[6] = (H[6] + g) >>> 0; H[7] = (H[7] + h) >>> 0;
+      }
+      return H.map(x => x.toString(16).padStart(8, '0')).join('');
+    },
+
+    salt() {
+      const arr = new Uint8Array(16);
+      if (window.crypto && window.crypto.getRandomValues) {
+        window.crypto.getRandomValues(arr);
+      } else {
+        for (let i = 0; i < 16; i++) arr[i] = Math.floor(Math.random() * 256);
+      }
+      return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+    },
+
+    hash(password, salt) {
+      return this._sha256(`${password}::${salt}`);
+    },
+
+    create(password) {
+      const salt = this.salt();
+      return { hash: this.hash(password, salt), salt };
+    },
+
+    verify(password, storedHash, storedSalt) {
+      if (!storedHash || !storedSalt) return false;
+      return this.hash(password, storedSalt) === storedHash;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 4: EVENT LOG (append-only, hash-chained)
+  // ══════════════════════════════════════════════════════════════
+  const EventLog = {
+    _load() {
+      try {
+        const raw = localStorage.getItem(EVENT_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (_) { return []; }
+    },
+
+    _save(events) {
+      try {
+        const trimmed = events.length > 8000 ? events.slice(-8000) : events;
+        localStorage.setItem(EVENT_KEY, JSON.stringify(trimmed));
+      } catch (_) {
+        try {
+          localStorage.setItem(EVENT_KEY, JSON.stringify(events.slice(-1000)));
+        } catch (__) {}
+      }
+    },
+
+    log(type, payload = {}) {
+      const events = this._load();
+      const last = events[events.length - 1];
+      const prevHash = last ? last.hash : '0'.repeat(64);
+      const ts = Date.now();
+      const body = { type, payload, ts, prevHash };
+      const hash = Crypto._sha256(JSON.stringify(body));
+      const event = {
+        seq: events.length + 1,
+        type,
+        payload,
+        ts,
+        prevHash,
+        hash,
+        actorId: payload.actorId || null,
+        targetId: payload.targetId || null
+      };
+      events.push(event);
+      this._save(events);
+      return event;
+    },
+
+    query({ type, actorId, targetId, limit = 100 } = {}) {
+      let events = this._load();
+      if (type) events = events.filter(e => e.type === type);
+      if (actorId) events = events.filter(e => e.actorId === actorId);
+      if (targetId) events = events.filter(e => e.targetId === targetId);
+      return events.slice(-limit).reverse();
+    },
+
+    verifyChain() {
+      const events = this._load();
+      for (let i = 1; i < events.length; i++) {
+        if (events[i].prevHash !== events[i - 1].hash) {
+          return { ok: false, brokenAt: i, seq: events[i].seq };
+        }
+      }
+      return { ok: true, count: events.length };
+    },
+
+    count() { return this._load().length; }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 5: STORE (DB Layer)
+  // ══════════════════════════════════════════════════════════════
+  const Store = {
+    _read(key, fallback = null) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (_) { return fallback; }
+    },
+
+    _write(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (e) {
+        console.error('Storage write failed:', e);
+        return false;
+      }
+    },
+
+    load() { return this._read(DB_KEY, null); },
+    save(db) { return this._write(DB_KEY, db); },
+    exists() { return !!this.load(); }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 6: SCHEMA
+  // ══════════════════════════════════════════════════════════════
+  const Schema = {
+    empty() {
+      return {
+        version: VERSION,
+        createdAt: Date.now(),
+        users: [],
+        doctors: [],
+        merchants: [],
+        staff: [],
+        carServices: [],
+        homeServices: [],
+        insuranceCompanies: [],
+        appointments: [],
+        orders: [],
+        familyMembers: [],
+        reviews: [],
+        notifications: [],
+        chats: [],
+        reminders: [],
+        healthLogs: [],
+        healthRecords: [],
+        prescriptions: [],
+        auditLogs: [],
+        blockedRelations: [],
+        coupons: [],
+        settings: {
+          commissionRate: 0.15,
+          platformPhone: '01068990089',
+          platformName: 'منصة وصلة',
+          cityName: 'شبين القناطر',
+          depositRules: {
+            medical: { firstOrderFree: true, secondOrderRate: 0.25 },
+            grocery: { firstOrderThreshold: 300, firstOrderRate: 0.20, secondOrderRate: 0.20 },
+            cars: { firstOrderThreshold: 300, firstOrderRate: 0.20, secondOrderRate: 0.20 },
+            home: { firstOrderThreshold: 300, firstOrderRate: 0.20, secondOrderRate: 0.20 }
+          }
+        }
+      };
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 7: SEED DATA
+  // ══════════════════════════════════════════════════════════════
+  function buildSeed() {
+    const db = Schema.empty();
+
+    // Insurance companies (بدون نسب مزيفة)
+    db.insuranceCompanies = [
+      { id: 'ins1', name: 'جلوب ميد', logo: 'fa-shield-halved' },
+      { id: 'ins2', name: 'ميتلايف', logo: 'fa-shield' },
+      { id: 'ins3', name: 'ميد رايت', logo: 'fa-heart-pulse' },
+      { id: 'ins4', name: 'أليانز', logo: 'fa-shield-heart' },
+      { id: 'ins5', name: 'أكسا', logo: 'fa-umbrella' },
+      { id: 'ins6', name: 'بوبا', logo: 'fa-hospital' },
+      { id: 'ins7', name: 'إيتنا', logo: 'fa-heart-circle-check' },
+      { id: 'ins8', name: 'مصر للتأمين', logo: 'fa-landmark' }
+    ];
+
+    // Car services
+    db.carServices = [
+      { id: 'car1', name: 'تغيير إطارات متنقل', price: 120, duration: 30, icon: 'fa-circle-dot', desc: 'فني متخصص يصل إليك' },
+      { id: 'car2', name: 'شحن بطارية', price: 150, duration: 15, icon: 'fa-car-battery', desc: 'شحن سريع آمن' },
+      { id: 'car3', name: 'غسيل وتلميع VIP', price: 120, duration: 45, icon: 'fa-droplet', desc: 'غسيل احترافي في موقعك' },
+      { id: 'car4', name: 'استجابة طوارئ (SOS)', price: 300, duration: 60, icon: 'fa-truck-pickup', desc: 'إنقاذ 24/7' },
+      { id: 'car5', name: 'تشخيص إلكتروني (OBD)', price: 100, duration: 30, icon: 'fa-wrench', desc: 'فحص بكمبيوتر السيارة' },
+      { id: 'car6', name: 'تغيير زيت وفلاتر', price: 450, duration: 30, icon: 'fa-oil-can', desc: 'زيوت أصلية معتمدة' }
+    ];
+
+    // Home services
+    db.homeServices = [
+      { id: 'hs1', name: 'صيانة سباكة طارئة', price: 150, duration: 60, icon: 'fa-wrench', desc: 'تسليك وإصلاح فوري' },
+      { id: 'hs2', name: 'تأسيس وصيانة كهرباء', price: 120, duration: 60, icon: 'fa-bolt', desc: 'كشف أعطال لوحة الكهرباء' },
+      { id: 'hs3', name: 'أعمال نجارة', price: 200, duration: 90, icon: 'fa-hammer', desc: 'تركيب أبواب ومطابخ' },
+      { id: 'hs4', name: 'صيانة تكييف', price: 250, duration: 90, icon: 'fa-wind', desc: 'تنظيف وشحن فريون' },
+      { id: 'hs5', name: 'تنظيف منازل', price: 350, duration: 120, icon: 'fa-broom', desc: 'فريق تنظيف متكامل' },
+      { id: 'hs6', name: 'مكافحة حشرات', price: 300, duration: 90, icon: 'fa-bug', desc: 'مواد آمنة معتمدة' }
+    ];
+
+    // Users (all passwords hashed)
+    const founderPass = Crypto.create('As123789456*');
+    const simplePass = Crypto.create('123456');
+
+    db.users = [
+      {
+        id: 'u-founder',
+        phone: '01068990089',
+        name: 'أحمد صبري',
+        passHash: founderPass.hash,
+        salt: founderPass.salt,
+        role: 'founder',
+        contexts: ['citizen', 'founder'],
+        currentContext: 'founder',
+        wallet: 500,
+        points: 0,
+        waslaId: 'WASLA-00001',
+        createdAt: Date.now() - 86400000 * 30,
+        status: 'active',
+        successfulOrders: 0,
+        cancellations: 0
+      },
+      {
+        id: 'u-p1',
+        phone: '01000000001',
+        name: 'محمد المريض',
+        passHash: simplePass.hash,
+        salt: simplePass.salt,
+        role: 'patient',
+        contexts: ['citizen'],
+        currentContext: 'citizen',
+        wallet: 150,
+        points: 120,
+        waslaId: 'WASLA-10001',
+        emr: {
+          blood: 'O+',
+          allergies: [{ name: 'بنسلين', severity: 'high' }],
+          chronic: [{ name: 'سكري نوع 2', since: '2018' }],
+          vitals: [
+            { id: 'v1', date: '2025-09-15', bp: '138/88', hr: 78, sugar: 145, weight: 82 },
+            { id: 'v2', date: '2025-10-01', bp: '135/85', hr: 75, sugar: 132, weight: 81 },
+            { id: 'v3', date: '2025-10-20', bp: '128/82', hr: 72, sugar: 118, weight: 80 }
+          ],
+          currentMeds: [{ name: 'Glucophage 850mg', dose: 'قرص مرتين يومياً', active: true }],
+          pastMeds: [],
+          labs: [],
+          visitNotes: []
+        },
+        familyIds: ['fam1', 'fam2'],
+        successfulOrders: 1,
+        cancellations: 0,
+        createdAt: Date.now() - 86400000 * 15,
+        status: 'active'
+      },
+      {
+        id: 'u-d1',
+        phone: '01000000002',
+        name: 'د. محمد الشريف',
+        passHash: simplePass.hash,
+        salt: simplePass.salt,
+        role: 'doctor',
+        contexts: ['citizen', 'doctor'],
+        currentContext: 'doctor',
+        wallet: 0,
+        points: 0,
+        waslaId: 'WASLA-20001',
+        createdAt: Date.now() - 86400000 * 20,
+        status: 'active',
+        successfulOrders: 0,
+        cancellations: 0
+      },
+      {
+        id: 'u-s1',
+        phone: '01000000003',
+        name: 'موظف الاستقبال',
+        passHash: simplePass.hash,
+        salt: simplePass.salt,
+        role: 'staff',
+        contexts: ['citizen', 'staff'],
+        currentContext: 'staff',
+        wallet: 0,
+        points: 0,
+        waslaId: 'WASLA-30001',
+        createdAt: Date.now() - 86400000 * 10,
+        status: 'active',
+        successfulOrders: 0,
+        cancellations: 0
+      },
+      {
+        id: 'u-m1',
+        phone: '01000000004',
+        name: 'أحمد التاجر',
+        passHash: simplePass.hash,
+        salt: simplePass.salt,
+        role: 'merchant',
+        contexts: ['citizen', 'merchant'],
+        currentContext: 'merchant',
+        wallet: 0,
+        points: 0,
+        waslaId: 'WASLA-40001',
+        createdAt: Date.now() - 86400000 * 18,
+        status: 'active',
+        successfulOrders: 0,
+        cancellations: 0
+      }
+    ];
+
+    // Doctor schedule helper
+    const schedule = () => ({
+      saturday: { active: true, start: '17:00', end: '21:00', duration: 20 },
+      sunday: { active: true, start: '17:00', end: '21:00', duration: 20 },
+      monday: { active: false },
+      tuesday: { active: true, start: '17:00', end: '21:00', duration: 20 },
+      wednesday: { active: true, start: '17:00', end: '21:00', duration: 20 },
+      thursday: { active: false },
+      friday: { active: false }
+    });
+
+    db.doctors = [
+      {
+        id: 'd1',
+        userId: 'u-d1',
+        name: 'د. محمد الشريف',
+        spec: 'باطنة وكبد',
+        bio: 'استشاري باطنة وكبد، خبرة 18 سنة',
+        area: 'شارع بورسعيد',
+        price: 250,
+        avgTime: 20,
+        rating: 4.9,
+        reviewsCount: 212,
+        status: 'available',
+        acceptedInsurances: ['ins1', 'ins2', 'ins4', 'ins8'],
+        services: [
+          { id: 'sv1', name: 'كشف عام', price: 0, duration: 20, icon: 'fa-stethoscope' },
+          { id: 'sv2', name: 'أشعة تلفزيونية', price: 300, duration: 15, icon: 'fa-x-ray' },
+          { id: 'sv3', name: 'منظار معدة', price: 800, duration: 45, icon: 'fa-microscope' },
+          { id: 'sv4', name: 'تحليل سكر تراكمي', price: 120, duration: 5, icon: 'fa-vial' }
+        ],
+        schedule: schedule(),
+        verified: true,
+        createdAt: Date.now() - 86400000 * 20
+      },
+      {
+        id: 'd2',
+        userId: null,
+        name: 'د. سارة أحمد',
+        spec: 'أطفال',
+        bio: 'أخصائية أطفال وحديثي الولادة',
+        area: 'ميدان المحطة',
+        price: 200,
+        avgTime: 15,
+        rating: 4.8,
+        reviewsCount: 168,
+        status: 'busy',
+        acceptedInsurances: ['ins1', 'ins3', 'ins5', 'ins6'],
+        services: [
+          { id: 'sv5', name: 'كشف أطفال', price: 0, duration: 15, icon: 'fa-baby' },
+          { id: 'sv6', name: 'تطعيم', price: 180, duration: 5, icon: 'fa-syringe' }
+        ],
+        schedule: schedule(),
+        verified: true,
+        createdAt: Date.now() - 86400000 * 15
+      },
+      {
+        id: 'd3',
+        userId: null,
+        name: 'د. كريم عبد العزيز',
+        spec: 'قلب',
+        bio: 'استشاري قلب وأوعية دموية',
+        area: 'شارع المستشفى',
+        price: 350,
+        avgTime: 25,
+        rating: 4.9,
+        reviewsCount: 142,
+        status: 'available',
+        acceptedInsurances: ['ins2', 'ins4', 'ins7'],
+        services: [
+          { id: 'sv8', name: 'كشف قلب', price: 0, duration: 25, icon: 'fa-heart' },
+          { id: 'sv9', name: 'تخطيط قلب ECG', price: 250, duration: 15, icon: 'fa-wave-square' }
+        ],
+        schedule: schedule(),
+        verified: true,
+        createdAt: Date.now() - 86400000 * 12
+      },
+      {
+        id: 'd4',
+        userId: null,
+        name: 'د. منى سالم',
+        spec: 'نساء وتوليد',
+        bio: 'أخصائية نساء وتوليد',
+        area: 'ميدان المحطة',
+        price: 300,
+        avgTime: 20,
+        rating: 4.7,
+        reviewsCount: 189,
+        status: 'available',
+        acceptedInsurances: ['ins1', 'ins3', 'ins5'],
+        services: [
+          { id: 'sv11', name: 'كشف نساء', price: 0, duration: 20, icon: 'fa-person-pregnant' },
+          { id: 'sv12', name: 'سونار حمل', price: 350, duration: 15, icon: 'fa-baby-carriage' }
+        ],
+        schedule: schedule(),
+        verified: true,
+        createdAt: Date.now() - 86400000 * 10
+      },
+      {
+        id: 'd5',
+        userId: null,
+        name: 'د. أحمد فؤاد',
+        spec: 'عظام',
+        bio: 'استشاري جراحة عظام ومفاصل',
+        area: 'شارع الجيش',
+        price: 280,
+        avgTime: 20,
+        rating: 4.8,
+        reviewsCount: 98,
+        status: 'available',
+        acceptedInsurances: ['ins2', 'ins4', 'ins8'],
+        services: [
+          { id: 'sv14', name: 'كشف عظام', price: 0, duration: 20, icon: 'fa-bone' },
+          { id: 'sv15', name: 'جبس كسر', price: 450, duration: 30, icon: 'fa-bandage' }
+        ],
+        schedule: schedule(),
+        verified: true,
+        createdAt: Date.now() - 86400000 * 8
+      }
+    ];
+
+    // Merchants
+    db.merchants = [
+      {
+        id: 'm1',
+        userId: 'u-m1',
+        name: 'سوبر ماركت الأمانة',
+        area: 'شارع بورسعيد',
+        rating: 4.8,
+        deliveryTime: '25-40 دقيقة',
+        minOrder: 50,
+        deliveryFee: 10,
+        icon: 'fa-store',
+        products: [
+          { id: 'p1', name: 'أرز مصري 5 كجم', price: 180, icon: 'fa-bowl-rice', stock: 50 },
+          { id: 'p2', name: 'زيت عافية 2 لتر', price: 210, icon: 'fa-bottle-water', stock: 30 },
+          { id: 'p3', name: 'شاي العروسة 250 جم', price: 95, icon: 'fa-mug-hot', stock: 40 },
+          { id: 'p4', name: 'سكر 1 كجم', price: 35, icon: 'fa-cube', stock: 100 },
+          { id: 'p5', name: 'جبنة رومي 500 جم', price: 120, icon: 'fa-cheese', stock: 25 }
+        ],
+        verified: true,
+        createdAt: Date.now() - 86400000 * 18
+      },
+      {
+        id: 'm2',
+        userId: null,
+        name: 'هايبر السعادة',
+        area: 'المحطة',
+        rating: 4.6,
+        deliveryTime: '30-50 دقيقة',
+        minOrder: 80,
+        deliveryFee: 15,
+        icon: 'fa-cart-shopping',
+        products: [
+          { id: 'p6', name: 'لبن جهينة 1 لتر', price: 45, icon: 'fa-cow', stock: 60 },
+          { id: 'p7', name: 'بيض 30 بيضة', price: 160, icon: 'fa-egg', stock: 40 },
+          { id: 'p8', name: 'دقيق فاخر 1 كجم', price: 40, icon: 'fa-wheat-awn', stock: 50 },
+          { id: 'p9', name: 'مكرونة 400 جم', price: 28, icon: 'fa-utensils', stock: 80 }
+        ],
+        verified: true,
+        createdAt: Date.now() - 86400000 * 15
+      },
+      {
+        id: 'm3',
+        userId: null,
+        name: 'مخبز النور',
+        area: 'شارع الجيش',
+        rating: 4.9,
+        deliveryTime: '15-25 دقيقة',
+        minOrder: 30,
+        deliveryFee: 8,
+        icon: 'fa-bread-slice',
+        products: [
+          { id: 'p10', name: 'عيش فينو (10 قطع)', price: 15, icon: 'fa-bread-slice', stock: 100 },
+          { id: 'p11', name: 'كرواسون بالشوكولاتة', price: 25, icon: 'fa-cookie', stock: 40 },
+          { id: 'p12', name: 'كيك عسل', price: 60, icon: 'fa-cake-candles', stock: 20 }
+        ],
+        verified: true,
+        createdAt: Date.now() - 86400000 * 12
+      }
+    ];
+
+    // Staff
+    db.staff = [
+      { id: 'st1', userId: 'u-s1', name: 'موظف الاستقبال', role: 'receptionist' }
+    ];
+
+    // Family members
+    db.familyMembers = [
+      { id: 'fam1', ownerId: 'u-p1', name: 'فاطمة المريضة', relation: 'الزوجة', age: 32, gender: 'female', blood: 'A+', allergies: [] },
+      { id: 'fam2', ownerId: 'u-p1', name: 'يوسف المريض', relation: 'الابن', age: 8, gender: 'male', blood: 'O+', allergies: [{ name: 'فول', severity: 'medium' }] }
+    ];
+
+    // Reviews
+    db.reviews = [
+      { id: 'rv1', doctorId: 'd1', patientId: 'u-p1', patientName: 'محمد المريض', rating: 5, comment: 'دكتور ممتاز ومتفهم جداً، شرح كل حاجة بالتفصيل.', reply: null, createdAt: Date.now() - 86400000 * 3 },
+      { id: 'rv2', doctorId: 'd1', patientId: 'u-p2', patientName: 'سعيد', rating: 4, comment: 'انتظار طويل شوية بس كفاءة عالية.', reply: 'شكراً لك، هنسعى نطور الطابور.', createdAt: Date.now() - 86400000 * 7 }
+    ];
+
+    // Audit logs
+    db.auditLogs = [
+      { id: 'log1', doctorId: 'd1', patientId: 'u-p1', action: 'update', details: 'تعديل جرعة دواء', createdAt: Date.now() - 3600000 }
+    ];
+
+    return db;
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 8: MIGRATION (from wasla_med_v4 if exists)
+  // ══════════════════════════════════════════════════════════════
+  function migrateFromV4() {
+    const oldRaw = localStorage.getItem('wasla_med_v4');
+    if (!oldRaw) return { migrated: false, reason: 'no-old-db' };
+
+    let oldDb;
+    try { oldDb = JSON.parse(oldRaw); } catch (_) { return { migrated: false, reason: 'invalid' }; }
+    if (!oldDb || !oldDb.users) return { migrated: false, reason: 'invalid-structure' };
+
+    const newDb = Schema.empty();
+    let passwordsHashed = 0;
+    let usersMigrated = 0;
+
+    (oldDb.users || []).forEach(u => {
+      const migrated = { ...u };
+      if (migrated.pass && !migrated.passHash) {
+        const { hash, salt } = Crypto.create(migrated.pass);
+        migrated.passHash = hash;
+        migrated.salt = salt;
+        delete migrated.pass;
+        passwordsHashed++;
+      }
+      if (!migrated.contexts) migrated.contexts = ['citizen'];
+      if (!migrated.currentContext) migrated.currentContext = 'citizen';
+      if (!migrated.status) migrated.status = 'active';
+      if (migrated.role === 'doctor' && !migrated.contexts.includes('doctor')) migrated.contexts.push('doctor');
+      if (migrated.role === 'merchant' && !migrated.contexts.includes('merchant')) migrated.contexts.push('merchant');
+      if (migrated.role === 'staff' && !migrated.contexts.includes('staff')) migrated.contexts.push('staff');
+      if (migrated.role === 'founder' && !migrated.contexts.includes('founder')) migrated.contexts.push('founder');
+      newDb.users.push(migrated);
+      usersMigrated++;
+    });
+
+    (oldDb.doctors || []).forEach(d => {
+      const migrated = { ...d };
+      migrated.acceptedInsurances = (d.insurances || []).map(i => typeof i === 'string' ? i : (i.id || i));
+      delete migrated.insurances;
+      if (!migrated.userId) migrated.userId = null;
+      newDb.doctors.push(migrated);
+    });
+
+    newDb.appointments = (oldDb.appointments || []).map(a => ({ ...a, status: a.status || 'waiting' }));
+    newDb.orders = (oldDb.orders || []).map(o => ({ ...o }));
+
+    if (oldDb.groceryStores) {
+      oldDb.groceryStores.forEach(g => {
+        newDb.merchants.push({
+          id: g.id,
+          userId: null,
+          name: g.name,
+          area: g.area,
+          rating: g.rating || 4.5,
+          deliveryTime: g.deliveryTime || '30-45 دقيقة',
+          minOrder: g.minOrder || 50,
+          deliveryFee: 10,
+          icon: g.icon || 'fa-store',
+          products: oldDb.groceryProducts && oldDb.groceryProducts[g.id] ? oldDb.groceryProducts[g.id] : [],
+          verified: true,
+          createdAt: Date.now()
+        });
+      });
+    }
+
+    if (oldDb.carServices) newDb.carServices = oldDb.carServices;
+    if (oldDb.homeServices) newDb.homeServices = oldDb.homeServices;
+    if (oldDb.familyMembers) newDb.familyMembers = oldDb.familyMembers;
+    if (oldDb.reviews) newDb.reviews = oldDb.reviews;
+    if (oldDb.auditLogs) newDb.auditLogs = oldDb.auditLogs;
+    if (oldDb.reminders) newDb.reminders = oldDb.reminders;
+    if (oldDb.healthRecords) newDb.healthRecords = oldDb.healthRecords;
+    if (oldDb.healthLogs) newDb.healthLogs = oldDb.healthLogs;
+    if (oldDb.prescriptions) newDb.prescriptions = oldDb.prescriptions;
+
+    const seed = buildSeed();
+    if (!newDb.insuranceCompanies.length) newDb.insuranceCompanies = seed.insuranceCompanies;
+    if (!newDb.carServices.length) newDb.carServices = seed.carServices;
+    if (!newDb.homeServices.length) newDb.homeServices = seed.homeServices;
+    if (!newDb.staff.length) newDb.staff = seed.staff;
+
+    Store.save(newDb);
+    localStorage.setItem(MIGRATED_KEY, JSON.stringify({
+      at: Date.now(),
+      version: VERSION,
+      from: 'v4',
+      usersMigrated,
+      passwordsHashed
+    }));
+
+    return { migrated: true, usersMigrated, passwordsHashed };
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 9: BOOT
+  // ══════════════════════════════════════════════════════════════
+  function boot() {
+    if (!Store.exists()) {
+      const migrationResult = migrateFromV4();
+      if (migrationResult.migrated) {
+        console.log('%c✅ تم ترحيل البيانات من v4', 'color:#059669;font-weight:900');
+        console.log(`   • ${migrationResult.usersMigrated} مستخدم`);
+        console.log(`   • ${migrationResult.passwordsHashed} كلمة سر مشفرة`);
+      } else {
+        const seed = buildSeed();
+        Store.save(seed);
+        console.log('%c🌱 تم تثبيت البيانات الأولية', 'color:#0284C7;font-weight:900');
+      }
+    }
+
+    const db = Store.load();
+    if (!db) {
+      console.error('❌ فشل تحميل قاعدة البيانات');
+      return;
+    }
+
+    const chain = EventLog.verifyChain();
+    if (!chain.ok) {
+      console.warn(`⚠️ سلسلة الأحداث مكسورة عند #${chain.brokenAt}`);
+    }
+
+    EventLog.log('app_boot', {
+      version: VERSION,
+      ts: Date.now(),
+      usersCount: db.users.length,
+      eventCount: EventLog.count()
+    });
+
+    const counter = Utils.$('#topbar-users-count');
+    if (counter) counter.textContent = db.users.length;
+
+    window.WaslaCore = {
+      version: VERSION,
+      Utils, UI, Crypto, EventLog, Store, Schema,
+      db: () => Store.load(),
+      inspect: () => ({
+        version: VERSION,
+        users: Store.load().users.length,
+        doctors: Store.load().doctors.length,
+        merchants: Store.load().merchants.length,
+        events: EventLog.count(),
+        chain: EventLog.verifyChain(),
+        migratedAt: localStorage.getItem(MIGRATED_KEY)
+      }),
+      reset: () => {
+        if (confirm('⚠️ حذف كل البيانات والعودة للأصل؟')) {
+          localStorage.removeItem(DB_KEY);
+          localStorage.removeItem(EVENT_KEY);
+          localStorage.removeItem(SESSION_KEY);
+          localStorage.removeItem(MIGRATED_KEY);
+          location.reload();
+        }
+      }
+    };
+
+    console.log('%c⚡ WASLA v' + VERSION + ' — PART 2/15 READY',
+      'background:#059669;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
+    console.log('%c💡 لمراجعة الحالة، اكتب في Console: WaslaCore.inspect()',
+      'color:#7C3AED;font-weight:900');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') UI.closeAllModals();
+  });
+
+  Utils.$$('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay && overlay.id !== 'modal-loading') {
+        overlay.classList.remove('open');
+      }
+    });
+  });
+
+})();
+</script>
 </body>
 </html>
