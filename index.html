@@ -4811,5 +4811,609 @@ self.addEventListener('notificationclick', (event) => {
 
 })();
 </script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 9.1: IN-APP TEST PANEL (Mobile-Friendly)
+     - زرار عائم للوصول لكل أدوات التجريب
+     - يعرض حالة كل الأجزاء (PWA / SW / Manifest / Auth)
+     - يعرض أي أخطاء حدثت في الجلسة
+     - يديك أزرار تجريب مباشرة (بدون Console)
+     - يعرض محتوى الـ DB والـ Store
+═════════════════════════════════════════════════════════════ -->
+<style>
+/* زرار التجريب العائم */
+.test-panel-fab {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #DC2626, #991B1B);
+  color: #fff;
+  border: none;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+  cursor: pointer;
+  z-index: 9997;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  transition: transform 0.2s;
+}
+.test-panel-fab:active { transform: scale(0.9); }
+.test-panel-fab .test-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  background: #FBBF24;
+  color: #000;
+  font-size: 9px;
+  font-weight: 900;
+  border-radius: 99px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid #DC2626;
+}
+.test-panel-fab.has-errors .test-badge { display: flex; }
+
+/* لوحة الاختبار */
+.test-panel {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 18, 32, 0.95);
+  backdrop-filter: blur(8px);
+  z-index: 9996;
+  display: none;
+  flex-direction: column;
+  color: #fff;
+  overflow-y: auto;
+}
+.test-panel.open { display: flex; }
+
+.test-panel-header {
+  padding: 16px;
+  background: linear-gradient(135deg, #0B1220, #1E293B);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.test-panel-header h2 {
+  font-size: 15px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+}
+.test-panel-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.test-panel-content {
+  padding: 16px;
+  padding-bottom: 60px;
+  flex: 1;
+}
+
+/* Sections */
+.test-section {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.test-section-title {
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  font-weight: 900;
+  color: #34D399;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.test-section-body {
+  padding: 12px 14px;
+}
+
+/* Status rows */
+.test-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  font-weight: 700;
+}
+.test-row:last-child { border-bottom: none; }
+.test-row-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11.5px;
+}
+.test-row-value {
+  color: #fff;
+  font-weight: 900;
+  text-align: left;
+  max-width: 55%;
+  word-break: break-word;
+}
+.test-row-value.ok { color: #34D399; }
+.test-row-value.warn { color: #FBBF24; }
+.test-row-value.error { color: #F87171; }
+.test-row-value.info { color: #60A5FA; }
+
+/* Action buttons */
+.test-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+.test-btn {
+  padding: 11px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  text-align: center;
+  transition: background 0.2s;
+}
+.test-btn:active { background: rgba(255, 255, 255, 0.15); }
+.test-btn.primary {
+  background: linear-gradient(135deg, #059669, #10B981);
+  border-color: transparent;
+}
+.test-btn.danger {
+  background: linear-gradient(135deg, #DC2626, #991B1B);
+  border-color: transparent;
+}
+.test-btn.warn {
+  background: linear-gradient(135deg, #D97706, #B45309);
+  border-color: transparent;
+}
+
+/* Error Log */
+.test-errors {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  line-height: 1.6;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #0B1220;
+  border-radius: 8px;
+  padding: 10px;
+  color: #F87171;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.test-errors:empty::before {
+  content: '✅ لا توجد أخطاء';
+  color: #34D399;
+  font-family: 'Cairo', sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+/* DB Viewer */
+.test-db-viewer {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #0B1220;
+  border-radius: 8px;
+  padding: 10px;
+  color: #34D399;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Users List */
+.test-users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.test-user-item {
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 11.5px;
+}
+.test-user-item:active { background: rgba(255, 255, 255, 0.1); }
+.test-user-item .name { font-weight: 900; color: #fff; }
+.test-user-item .role { font-size: 9.5px; color: #60A5FA; font-weight: 800; }
+.test-user-item .phone { font-size: 10px; color: rgba(255, 255, 255, 0.5); }
+</style>
+
+<script>
+(function WASLA_TEST_PANEL_MOBILE() {
+  'use strict';
+
+  console.log('%c🧪 [TEST PANEL] Mobile diagnostic panel loading...', 'color:#DC2626;font-weight:900');
+
+  // ══════════════════════════════════════════════════════════════
+  // Capture all errors globally
+  // ══════════════════════════════════════════════════════════════
+  const errors = [];
+  const originalError = console.error;
+  console.error = function (...args) {
+    errors.push({
+      msg: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '),
+      ts: Date.now()
+    });
+    originalError.apply(console, args);
+    updateBadge();
+  };
+
+  window.addEventListener('error', (e) => {
+    errors.push({ msg: e.message + ' (' + (e.filename || '') + ':' + (e.lineno || 0) + ')', ts: Date.now() });
+    updateBadge();
+  });
+
+  window.addEventListener('unhandledrejection', (e) => {
+    errors.push({ msg: 'Promise rejection: ' + (e.reason?.message || e.reason), ts: Date.now() });
+    updateBadge();
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // Build UI
+  // ══════════════════════════════════════════════════════════════
+  const fab = document.createElement('button');
+  fab.id = 'test-panel-fab';
+  fab.className = 'test-panel-fab';
+  fab.innerHTML = '🧪<span class="test-badge">0</span>';
+  fab.title = 'لوحة الاختبار';
+  document.body.appendChild(fab);
+
+  const panel = document.createElement('div');
+  panel.id = 'test-panel';
+  panel.className = 'test-panel';
+  document.body.appendChild(panel);
+
+  function updateBadge() {
+    const badge = fab.querySelector('.test-badge');
+    if (!badge) return;
+    badge.textContent = errors.length;
+    if (errors.length > 0) fab.classList.add('has-errors');
+    else fab.classList.remove('has-errors');
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // Render Panel
+  // ══════════════════════════════════════════════════════════════
+  function renderPanel() {
+    const pwa = window.WaslaPWA?.status() || {};
+    const user = window.Auth?.getCurrentUser();
+    const core = window.WaslaCore;
+    const db = core?.Store?.load() || {};
+    const isStandalone = pwa.isStandalone || window.navigator.standalone;
+    const isHTTPS = location.protocol === 'https:' || location.hostname === 'localhost';
+    const swStatus = pwa.swRegistered ? 'مسجل ✓' : (isHTTPS ? 'غير مسجل' : 'يحتاج HTTPS');
+    const swClass = pwa.swRegistered ? 'ok' : (isHTTPS ? 'warn' : 'error');
+
+    const parts = [
+      { name: 'PART 1 (Design)', loaded: !!document.querySelector('.app-shell') },
+      { name: 'PART 2 (Core)', loaded: !!window.WaslaCore },
+      { name: 'PART 3 (Auth+Router)', loaded: !!window.Auth && !!window.Router },
+      { name: 'PART 4 (Live)', loaded: !!window.AuctionEngine },
+      { name: 'PART 5 (Medical)', loaded: !!window.MedicalView },
+      { name: 'PART 5.2 (Reminders)', loaded: !!window.WaslaReminderEngine },
+      { name: 'PART 6 (Doctor)', loaded: !!window.WaslaConsultation },
+      { name: 'PART 6.1 (Panel)', loaded: !!document.getElementById('wasla-doctor-panel') || !!window.WaslaTestEMR },
+      { name: 'PART 7 (Comms)', loaded: !!window.WaslaPrescriptionPDF },
+      { name: 'PART 8 (Admin)', loaded: !!window.WaslaAdmin },
+      { name: 'PART 9 (PWA)', loaded: !!window.WaslaPWA }
+    ];
+    const loadedCount = parts.filter(p => p.loaded).length;
+
+    panel.innerHTML = `
+      <div class="test-panel-header">
+        <h2><i class="fa-solid fa-flask"></i> لوحة الاختبار</h2>
+        <button class="test-panel-close" onclick="document.getElementById('test-panel').classList.remove('open')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="test-panel-content">
+
+        <!-- Parts Status -->
+        <div class="test-section">
+          <div class="test-section-title"><i class="fa-solid fa-puzzle-piece"></i> حالة الأجزاء (${loadedCount}/${parts.length})</div>
+          <div class="test-section-body">
+            ${parts.map(p => `
+              <div class="test-row">
+                <span class="test-row-label">${p.name}</span>
+                <span class="test-row-value ${p.loaded ? 'ok' : 'error'}">${p.loaded ? '✓ محمل' : '✗ مفقود'}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- PWA Status -->
+        <div class="test-section">
+          <div class="test-section-title"><i class="fa-solid fa-mobile-screen"></i> PWA / Service Worker</div>
+          <div class="test-section-body">
+            <div class="test-row"><span class="test-row-label">HTTPS / Secure</span><span class="test-row-value ${isHTTPS ? 'ok' : 'error'}">${isHTTPS ? '✓' : '✗ ' + location.protocol}</span></div>
+            <div class="test-row"><span class="test-row-label">Manifest</span><span class="test-row-value ${pwa.hasManifest ? 'ok' : 'error'}">${pwa.hasManifest ? '✓ محقون' : '✗ مفقود'}</span></div>
+            <div class="test-row"><span class="test-row-label">Service Worker</span><span class="test-row-value ${swClass}">${swStatus}</span></div>
+            <div class="test-row"><span class="test-row-label">مثبت (Standalone)</span><span class="test-row-value ${isStandalone ? 'ok' : 'info'}">${isStandalone ? '✓ مثبت' : 'متصفح فقط'}</span></div>
+            <div class="test-row"><span class="test-row-label">Install Prompt</span><span class="test-row-value ${pwa.installPromptAvailable ? 'ok' : 'info'}">${pwa.installPromptAvailable ? '✓ متاح' : 'انتظار المتصفح'}</span></div>
+            <div class="test-row"><span class="test-row-label">Badge API</span><span class="test-row-value ${pwa.badgeSupported ? 'ok' : 'info'}">${pwa.badgeSupported ? '✓' : 'غير مدعوم'}</span></div>
+            <div class="test-row"><span class="test-row-label">Wake Lock</span><span class="test-row-value ${pwa.wakeLockSupported ? 'ok' : 'info'}">${pwa.wakeLockSupported ? '✓' : 'غير مدعوم'}</span></div>
+            <div class="test-row"><span class="test-row-label">Web Share</span><span class="test-row-value ${pwa.shareSupported ? 'ok' : 'info'}">${pwa.shareSupported ? '✓' : 'غير مدعوم'}</span></div>
+            <div class="test-row"><span class="test-row-label">الاتصال</span><span class="test-row-value ${pwa.isOnline ? 'ok' : 'error'}">${pwa.isOnline ? '✓ Online' : '✗ Offline'}</span></div>
+          </div>
+        </div>
+
+        <!-- User & Auth -->
+        <div class="test-section">
+          <div class="test-section-title"><i class="fa-solid fa-user"></i> المستخدم الحالي</div>
+          <div class="test-section-body">
+            ${user ? `
+              <div class="test-row"><span class="test-row-label">الاسم</span><span class="test-row-value">${user.name}</span></div>
+              <div class="test-row"><span class="test-row-label">الدور</span><span class="test-row-value info">${user.role}</span></div>
+              <div class="test-row"><span class="test-row-label">الهاتف</span><span class="test-row-value">${user.phone}</span></div>
+              <div class="test-row"><span class="test-row-label">السياق</span><span class="test-row-value info">${user.currentContext || 'citizen'}</span></div>
+            ` : `<div style="text-align:center;padding:16px;color:#F87171;font-weight:900;">⚠️ لا يوجد مستخدم مسجل</div>`}
+          </div>
+        </div>
+
+        <!-- DB Summary -->
+        <div class="test-section">
+          <div class="test-section-title"><i class="fa-solid fa-database"></i> قاعدة البيانات</div>
+          <div class="test-section-body">
+            <div class="test-row"><span class="test-row-label">المستخدمين</span><span class="test-row-value">${(db.users || []).length}</span></div>
+            <div class="test-row"><span class="test-row-label">الأطباء</span><span class="test-row-value">${(db.doctors || []).length}</span></div>
+            <div class="test-row"><span class="test-row-label">المواعيد</span><span class="test-row-value">${(db.appointments || []).length}</span></div>
+            <div class="test-row"><span class="test-row-label">الطلبات</span><span class="test-row-value">${(db.orders || []).length}</span></div>
+            <div class="test-row"><span class="test-row-label">الإشعارات</span><span class="test-row-value">${(db.notifications || []).length}</span></div>
+            <div class="test-row"><span class="test-row-label">السجلات الطبية</span><span class="test-row-value">${(db.medicalRecords || []).length}</span></div>
+          </div>
+        </div>
+
+        <!-- Errors Log -->
+        <div class="test-section">
+          <div class="test-section-title"><i class="fa-solid fa-triangle-exclamation"></i> الأخطاء (${errors.length})</div>
+          <div class="test-section-body">
+            <div class="test-errors">${errors.map(e => `[${new Date(e.ts).toLocaleTimeString('ar-EG')}] ${e.msg}`).join('\n')}</div>
+            ${errors.length > 0 ? `<button class="test-btn danger" style="width:100%;margin-top:8px;" onclick="window.__clearErrors()"><i class="fa-solid fa-trash"></i> مسح الأخطاء</button>` : ''}
+          </div>
+        </div>
+
+        <!-- Quick Login -->
+        <div class="test-section">
+          <div class="test-section-title"><i class="fa-solid fa-right-to-bracket"></i> تسجيل دخول سريع</div>
+          <div class="test-section-body">
+            <div class="test-users-list">
+              ${[
+                { phone: '01068990089', pass: 'As123789456*', role: '👑 مؤسس', name: 'أحمد صبري' },
+                { phone: '01000000001', pass: '123456', role: '🧑 مريض', name: 'محمد المريض' },
+                { phone: '01000000002', pass: '123456', role: '🩺 طبيب', name: 'د. محمد الشريف' },
+                { phone: '01000000003', pass: '123456', role: '🎧 موظف', name: 'موظف الاستقبال' },
+                { phone: '01000000004', pass: '123456', role: '🏪 تاجر', name: 'أحمد التاجر' }
+              ].map(u => `
+                <div class="test-user-item" onclick="window.__quickLogin('${u.phone}', '${u.pass}')">
+                  <div>
+                    <div class="name">${u.name}</div>
+                    <div class="phone">${u.phone}</div>
+                  </div>
+                  <div class="role">${u.role}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="test-section">
+          <div class="test-section-title"><i class="fa-solid fa-bolt"></i> إجراءات سريعة</div>
+          <div class="test-section-body">
+            <div class="test-actions">
+              <button class="test-btn primary" onclick="window.__triggerInstall()"><i class="fa-solid fa-download"></i> تثبيت التطبيق</button>
+              <button class="test-btn primary" onclick="window.__testShare()"><i class="fa-solid fa-share"></i> مشاركة</button>
+              <button class="test-btn warn" onclick="window.__testWakeLock()"><i class="fa-solid fa-lightbulb"></i> Wake Lock</button>
+              <button class="test-btn warn" onclick="window.__testNotif()"><i class="fa-solid fa-bell"></i> إشعار</button>
+              <button class="test-btn" onclick="window.__testDayReminder()"><i class="fa-solid fa-calendar-day"></i> تذكير اليوم</button>
+              <button class="test-btn" onclick="window.__testThreeReminder()"><i class="fa-solid fa-hourglass"></i> فاضل 3</button>
+              <button class="test-btn" onclick="window.__testTurnReminder()"><i class="fa-solid fa-bullhorn"></i> دورك الآن</button>
+              <button class="test-btn" onclick="window.__testPDF()"><i class="fa-solid fa-file-pdf"></i> تحميل PDF</button>
+              <button class="test-btn" onclick="window.__updateBadge()"><i class="fa-solid fa-circle-dot"></i> تحديث Badge</button>
+              <button class="test-btn" onclick="window.__dumpDB()"><i class="fa-solid fa-database"></i> عرض DB</button>
+            </div>
+            <button class="test-btn danger" style="width:100%;margin-top:8px;" onclick="window.__resetAll()"><i class="fa-solid fa-bomb"></i> إعادة تعيين كاملة</button>
+          </div>
+        </div>
+
+        <!-- DB Dump Viewer -->
+        <div class="test-section" id="db-dump-section" style="display:none;">
+          <div class="test-section-title"><i class="fa-solid fa-code"></i> محتوى DB (JSON)</div>
+          <div class="test-section-body">
+            <div class="test-db-viewer" id="db-dump-content"></div>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div style="text-align:center;padding:20px 0;color:rgba(255,255,255,0.4);font-size:10.5px;font-weight:800;">
+          WASLA v5.0.0 · Test Panel<br>
+          ${navigator.userAgent.slice(0, 60)}...
+        </div>
+      </div>
+    `;
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // Actions
+  // ══════════════════════════════════════════════════════════════
+  window.__clearErrors = () => { errors.length = 0; updateBadge(); renderPanel(); };
+
+  window.__quickLogin = (phone, pass) => {
+    try {
+      const auth = window.Auth;
+      if (!auth) return alert('Auth غير محمل');
+      const result = auth.login(phone, pass);
+      if (result.ok) {
+        alert('✓ تم تسجيل الدخول: ' + result.user.name);
+        document.getElementById('test-panel').classList.remove('open');
+        setTimeout(() => location.reload(), 300);
+      } else {
+        alert('✗ فشل: ' + result.msg);
+      }
+    } catch (e) { alert('خطأ: ' + e.message); }
+  };
+
+  window.__triggerInstall = () => {
+    if (window.WaslaPWA) window.WaslaPWA.install();
+    else alert('PWA غير محمل');
+  };
+
+  window.__testShare = async () => {
+    if (window.WaslaPWA) {
+      await window.WaslaPWA.share({ title: 'منصة وصلة', text: 'جرب منصة وصلة', url: location.href });
+    }
+  };
+
+  window.__testWakeLock = async () => {
+    if (window.WaslaPWA) {
+      const ok = await window.WaslaPWA.requestWakeLock();
+      alert(ok ? '✓ الشاشة هتفضل شغالة' : '✗ غير مدعوم على جهازك');
+    }
+  };
+
+  window.__testNotif = () => {
+    if (!('Notification' in window)) return alert('✗ الإشعارات غير مدعومة');
+    if (Notification.permission === 'granted') {
+      new Notification('🔔 اختبار الإشعار', { body: 'لو شوفت الرسالة دي يبقى الإشعارات شغالة!' });
+    } else {
+      Notification.requestPermission().then(p => {
+        if (p === 'granted') new Notification('🔔 اختبار', { body: 'تم تفعيل الإشعارات!' });
+        else alert('✗ الإشعارات مرفوضة');
+      });
+    }
+  };
+
+  window.__testDayReminder = () => {
+    if (window.WaslaTestReminder) window.WaslaTestReminder('day');
+    else alert('✗ تذكيرات غير محملة');
+  };
+
+  window.__testThreeReminder = () => {
+    if (window.WaslaTestReminder) window.WaslaTestReminder('three');
+    else alert('✗ تذكيرات غير محملة');
+  };
+
+  window.__testTurnReminder = () => {
+    if (window.WaslaTestReminder) window.WaslaTestReminder('turn');
+    else alert('✗ تذكيرات غير محملة');
+  };
+
+  window.__testPDF = () => {
+    const user = window.Auth?.getCurrentUser();
+    if (!user) return alert('✗ سجل دخول أولاً');
+    const db = window.WaslaCore.Store.load();
+    const myAppt = (db.appointments || []).find(a =>
+      user.role === 'doctor' ? (a.doctorId === user.doctorId || a.doctorId === user.id) : a.patientId === user.id);
+    if (!myAppt) return alert('✗ لا يوجد موعد');
+    if (window.WaslaPrescriptionPDF) window.WaslaPrescriptionPDF.generate(myAppt.id);
+    else alert('✗ PDF غير محمل');
+  };
+
+  window.__updateBadge = () => {
+    if (window.WaslaPWA) {
+      window.WaslaPWA.updateBadge();
+      alert('✓ تم تحديث الـ Badge');
+    }
+  };
+
+  window.__dumpDB = () => {
+    const db = window.WaslaCore?.Store?.load() || {};
+    const section = document.getElementById('db-dump-section');
+    const content = document.getElementById('db-dump-content');
+    if (!section || !content) return;
+    section.style.display = 'block';
+    // Show a summary, not everything (too big)
+    const summary = {
+      usersCount: (db.users || []).length,
+      doctorsCount: (db.doctors || []).length,
+      appointmentsCount: (db.appointments || []).length,
+      ordersCount: (db.orders || []).length,
+      notificationsCount: (db.notifications || []).length,
+      medicalRecordsCount: (db.medicalRecords || []).length,
+      users: (db.users || []).map(u => ({ id: u.id, name: u.name, phone: u.phone, role: u.role })),
+      appointments: (db.appointments || []).slice(0, 5),
+      notifications: (db.notifications || []).slice(0, 10)
+    };
+    content.textContent = JSON.stringify(summary, null, 2);
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  window.__resetAll = () => {
+    if (!confirm('⚠️ سيتم حذف كل البيانات وإعادة التهيئة. متأكد؟')) return;
+    if (!confirm('⚠️⚠️ تأكيد أخير: كل حاجة هتتمسح!')) return;
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+      }
+      alert('✓ تم المسح. جاري إعادة التحميل...');
+      setTimeout(() => location.reload(), 500);
+    } catch (e) { alert('✗ ' + e.message); }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // Open/Close
+  // ══════════════════════════════════════════════════════════════
+  fab.onclick = () => {
+    renderPanel();
+    panel.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  // Close when clicking on panel header X
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.test-panel-close')) {
+      panel.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
+
+  console.log('%c🧪 [TEST PANEL] Ready — اضغط الزرار الأحمر (🧪) أسفل اليمين', 'background:#DC2626;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
+
+})();
+</script>
 </body>
 </html>
