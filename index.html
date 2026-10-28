@@ -1043,6 +1043,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   });
 })();
 </script>
+   </script>
 /* ══════════════════════════════════════════════════════════════════
    PART 3/15: AUTH + ROUTER + HEADER + CONTEXT SWITCHER + VIEWS
 ══════════════════════════════════════════════════════════════════ */
@@ -4443,12 +4444,12 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       this._bindPrint(appointmentId);
 
       // Mark exam started
-      const db = Store
-             const db = Store.load();
+      const db = Store.load();
       const idx = db.appointments.findIndex(a => a.id === appointmentId);
       if (idx >= 0 && db.appointments[idx].status !== 'in-progress') {
         db.appointments[idx].status = 'in-progress';
         Store.save(db);
+      }
       }
     },
 
