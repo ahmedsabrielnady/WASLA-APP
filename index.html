@@ -1495,7 +1495,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   function _renderMiniActivity(item) {
     if (item._kind === 'order') {
       const sectorClass = item.sector === 'grocery' ? 'grocery' : item.sector === 'cars' ? 'cars' : item.sector === 'home' ? 'home-services' : 'medical';
-      const statusLabels = { pending: 'بانتظار', preparing: 'قيد التجهيز', on_way: 'في الطريق', delivered: 'تم التوصيل', canceled: 'ملغي' };
+      const statusLabels = { pending: 'بانتظار مقدم الخدمة', awaiting_pharmacy_confirmation: 'بانتظار تأكيد الصيدلية', quote_ready: 'عرض سعر جاهز', accepted: 'تم قبول الطلب', preparing: 'قيد التجهيز', ready_for_pickup: 'جاهز للاستلام', on_way: 'في الطريق', delivered: 'تم التوصيل', completed: 'مكتمل', unavailable: 'تعذر توفير الخدمة', rejected: 'مرفوض', canceled: 'ملغي' };
       return `<div class="order-card ${sectorClass}" style="padding:10px;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:12.5px;font-weight:900;color:var(--text-primary);">${Utils.escape(item.storeName || item.service || 'طلب')}</div><div style="font-size:10.5px;color:var(--text-muted);font-weight:700;margin-top:2px;">${statusLabels[item.status] || item.status}</div></div><div style="font-size:13px;font-weight:900;color:var(--sector-medical);">${Utils.money(item.total || item.price || 0)}</div></div></div>`;
     }
     return `<div class="order-card medical" style="padding:10px;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:12.5px;font-weight:900;color:var(--text-primary);">${Utils.escape(item.doctorName || 'موعد')}</div><div style="font-size:10.5px;color:var(--text-muted);font-weight:700;margin-top:2px;">${item.slot || ''} • ${Utils.fmtDate(item.date)}</div></div><div style="font-size:13px;font-weight:900;color:var(--sector-medical);">${Utils.money(item.price || 0)}</div></div></div>`;
@@ -1515,10 +1515,15 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   function _renderOrderCard(order) {
     const sectorClass = order.sector === 'grocery' ? 'grocery' : order.sector === 'cars' ? 'cars' : order.sector === 'home' ? 'home-services' : 'medical';
     const typeLabels = { grocery: 'سوبر ماركت', cars: 'سيارات', home: 'صيانة', medical: order.subSector === 'nursing' ? 'تمريض منزلي' : order.subSector === 'pharmacy' ? 'طلب صيدلية' : order.subSector === 'supplies' ? 'مستلزمات طبية' : 'خدمة طبية' };
-    const statusLabels = { pending: 'بانتظار قبول مقدم الخدمة', awaiting_pharmacy_confirmation: 'بانتظار تأكيد الصيدلية', accepted: 'تم قبول الطلب', preparing: 'قيد التجهيز', on_way: 'في الطريق', delivered: 'تم التوصيل', completed: 'مكتمل', canceled: 'ملغي' };
-    const amountLabel = Number(order.total || order.price || 0) > 0 ? Utils.money(order.total || order.price) : (Number(order.estimatedAmount || 0) > 0 ? `تقديري ${Utils.money(order.estimatedAmount)}` : (order.subSector ? 'يحدد بعد التأكيد' : Utils.money(0)));
-    const details = order.subSector === 'pharmacy' ? 'طلب تجريبي — ينتظر تأكيد الصيدلية' : order.subSector === 'nursing' ? 'طلب خدمة — يحتاج قبول مقدم خدمة' : order.subSector === 'supplies' ? 'استفسار/طلب — السعر والتوافر غير مؤكدين' : '';
-    return `<div class="order-card ${sectorClass}"><div class="order-header"><div style="flex:1;min-width:0;"><span class="tag tag-${sectorClass === 'home-services' ? 'home' : sectorClass}" style="margin-bottom:6px;"><i class="fa-solid fa-receipt"></i> ${typeLabels[order.sector] || 'طلب'}</span><div class="order-title">${Utils.escape(order.storeName || order.service || 'طلب')}</div><div class="order-meta">${Utils.timeAgo(order.ts || order.createdAt)}</div>${details ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">${details}</div>` : ''}</div><div style="text-align:left;"><div class="order-amount" style="font-size:12px;">${amountLabel}</div><div style="font-size:10px;font-weight:900;color:var(--text-muted);margin-top:2px;">${statusLabels[order.status] || order.status}</div></div></div></div>`;
+    const statusLabels = { pending: 'بانتظار قبول مقدم الخدمة', awaiting_pharmacy_confirmation: 'بانتظار تأكيد الصيدلية', quote_ready: 'عرض سعر جاهز — راجع المبلغ قبل الموافقة', accepted: 'تم قبول الطلب', preparing: 'قيد التجهيز', ready_for_pickup: 'جاهز للاستلام', on_way: 'في الطريق', delivered: 'تم التوصيل', completed: 'مكتمل', unavailable: 'تعذر توفير الخدمة', rejected: 'مرفوض', canceled: 'ملغي' };
+    const quoted = Number(order.quotedAmount || 0); const amountLabel = quoted > 0 ? `عرض سعر ${Utils.money(quoted)}` : (Number(order.total || order.price || 0) > 0 ? Utils.money(order.total || order.price) : (Number(order.estimatedAmount || 0) > 0 ? `تقديري ${Utils.money(order.estimatedAmount)}` : (order.subSector ? 'يحدد بعد التأكيد' : Utils.money(0))));
+    const details = order.subSector === 'pharmacy' ? 'طلب تجريبي — لا يعتمد الصرف إلا بعد مراجعة الصيدلية' : order.subSector === 'nursing' ? 'طلب تجريبي — يحتاج قبول مقدم خدمة مؤهل' : order.subSector === 'supplies' ? 'استفسار/طلب — السعر والتوافر غير مؤكدين' : '';
+    const lastStatus = Array.isArray(order.statusHistory) && order.statusHistory.length ? order.statusHistory[order.statusHistory.length - 1] : null;
+    const statusNote = lastStatus?.note ? `<div style="font-size:10px;color:var(--text-secondary);margin-top:5px;">ملاحظة: ${Utils.escape(lastStatus.note)}</div>` : '';
+    const quoteNote = quoted > 0 ? `<div style="font-size:10px;color:var(--text-secondary);margin-top:5px;">عرض السعر توضيحي وغير مدفوع. الموافقة لا تعني الدفع أو تأكيد التوافر.</div>` : '';
+    const viewer = Auth.getCurrentUser();
+    const quoteAction = viewer?.role === 'patient' && viewer.id === order.userId && order.subSector === 'supplies' && order.status === 'quote_ready' ? `<button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="WaslaHealth.acceptSupplyQuote('${Utils.escape(order.id)}');Router.go('orders')">أوافق على عرض السعر التجريبي</button>` : '';
+    return `<div class="order-card ${sectorClass}"><div class="order-header"><div style="flex:1;min-width:0;"><span class="tag tag-${sectorClass === 'home-services' ? 'home' : sectorClass}" style="margin-bottom:6px;"><i class="fa-solid fa-receipt"></i> ${typeLabels[order.sector] || 'طلب'}</span><div class="order-title">${Utils.escape(order.storeName || order.service || 'طلب')}</div><div class="order-meta">${Utils.timeAgo(order.ts || order.createdAt)}</div>${details ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">${details}</div>` : ''}${statusNote}${quoteNote}${quoteAction}</div><div style="text-align:left;"><div class="order-amount" style="font-size:12px;">${amountLabel}</div><div style="font-size:10px;font-weight:900;color:var(--text-muted);margin-top:2px;">${statusLabels[order.status] || order.status}</div></div></div></div>`;
   }
 
   function _renderApptCard(appt) {
@@ -6325,6 +6330,131 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
     return createOrder({ user, subSector: 'pharmacy', service: 'طلب صرف روشتة معتمدة', storeName: pharmacy.name, address: data.address || 'لم يحدد عنوان توصيل — يلزم التواصل/الاستلام', note: data.note, items, extra: { pharmacyId: pharmacy.id, prescriptionRecordId: record.id, appointmentId: record.appointmentId, patientConsentAt: Date.now(), prescriptionSnapshot: items, pharmacistConfirmationRequired: true, externalDispatch: false } });
   }
 
+  // Operations workflow for demo medical-service orders. This remains local-only.
+  const medicalOrderTransitions = {
+    nursing: {
+      pending: ['accepted', 'unavailable', 'canceled'],
+      accepted: ['completed', 'canceled']
+    },
+    pharmacy: {
+      awaiting_pharmacy_confirmation: ['accepted', 'unavailable', 'canceled'],
+      accepted: ['preparing', 'canceled'],
+      preparing: ['ready_for_pickup', 'on_way', 'canceled'],
+      ready_for_pickup: ['completed', 'delivered', 'canceled'],
+      on_way: ['delivered', 'canceled']
+    },
+    supplies: {
+      pending: ['quote_ready', 'unavailable', 'canceled'],
+      quote_ready: ['accepted', 'canceled'],
+      accepted: ['preparing', 'on_way', 'delivered', 'canceled'],
+      preparing: ['on_way', 'delivered', 'canceled'],
+      on_way: ['delivered', 'canceled']
+    }
+  };
+  const medicalOrderStatusLabels = {
+    pending: 'بانتظار المراجعة', awaiting_pharmacy_confirmation: 'بانتظار تأكيد الصيدلية',
+    quote_ready: 'عرض سعر جاهز', accepted: 'تم القبول', preparing: 'قيد التجهيز',
+    ready_for_pickup: 'جاهز للاستلام', on_way: 'في الطريق', delivered: 'تم التسليم',
+    completed: 'مكتمل', unavailable: 'تعذر توفير الخدمة', rejected: 'مرفوض', canceled: 'ملغي'
+  };
+  const medicalOrderActionLabels = {
+    accepted: 'قبول / تأكيد التوافر', quote_ready: 'تسجيل عرض سعر', unavailable: 'تعذر التوفير',
+    preparing: 'بدء التجهيز', ready_for_pickup: 'جاهز للاستلام', on_way: 'خرج للتوصيل',
+    delivered: 'تأكيد التسليم', completed: 'تأكيد اكتمال الخدمة', canceled: 'إلغاء الطلب'
+  };
+  function setMedicalOrderStatus(orderId, nextStatus, options = {}) {
+    const actor = window.Auth.getCurrentUser();
+    if (!actor || actor.role !== 'founder') return { ok: false, error: 'admin_required' };
+    const db = Store.load();
+    if (!db) return { ok: false, error: 'database_unavailable' };
+    const order = (db.orders || []).find(item => item.id === orderId && item.sector === 'medical' && ['nursing','pharmacy','supplies'].includes(item.subSector));
+    if (!order) return { ok: false, error: 'order_not_found' };
+    const transitions = medicalOrderTransitions[order.subSector] || {};
+    const allowed = transitions[order.status] || [];
+    if (!allowed.includes(nextStatus)) return { ok: false, error: 'invalid_transition', allowed };
+    const note = String(options.note || '').trim().slice(0, 400);
+    if (nextStatus === 'quote_ready') {
+      const quote = Number(options.quotedAmount);
+      if (!Number.isFinite(quote) || quote <= 0 || quote > 10000000) return { ok: false, error: 'invalid_quote' };
+      order.quotedAmount = Math.round(quote * 100) / 100;
+      order.quoteRecordedAt = Date.now();
+      order.quoteRecordedBy = actor.id;
+    }
+    const priorStatus = order.status;
+    order.status = nextStatus;
+    order.updatedAt = Date.now();
+    order.statusHistory = Array.isArray(order.statusHistory) ? order.statusHistory : [];
+    order.statusHistory.push({ from: priorStatus, to: nextStatus, changedAt: order.updatedAt, changedBy: actor.id, note });
+    if (!Store.save(db)) return { ok: false, error: 'save_failed' };
+    const msg = `تحديث طلب وصلة (${order.service || 'خدمة طبية'}): ${medicalOrderStatusLabels[nextStatus] || nextStatus}${nextStatus === 'quote_ready' ? ` — عرض سعر توضيحي ${Utils.money(order.quotedAmount)}، غير مدفوع` : ''}${note ? ` — ${note}` : ''}. هذا تحديث تجريبي داخل المنصة فقط.`;
+    pushNotification(order.userId, msg, order.id, order.subSector);
+    try { EventLog.log('medical_order_status_changed', { actorId: actor.id, targetId: order.id, payload: { subSector: order.subSector, from: priorStatus, to: nextStatus, quotedAmount: order.quotedAmount || null, demoOnly: true } }); } catch (_) {}
+    return { ok: true, order };
+  }
+  function acceptSupplyQuote(orderId) {
+    const user = window.Auth.getCurrentUser();
+    if (!user || user.role !== 'patient') return { ok: false, error: 'patient_required' };
+    const db = Store.load();
+    if (!db) return { ok: false, error: 'database_unavailable' };
+    const order = (db.orders || []).find(item => item.id === orderId && item.userId === user.id && item.sector === 'medical' && item.subSector === 'supplies');
+    if (!order) return { ok: false, error: 'order_not_found' };
+    if (order.status !== 'quote_ready' || !Number.isFinite(Number(order.quotedAmount)) || Number(order.quotedAmount) <= 0) return { ok: false, error: 'quote_not_available' };
+    const previous = order.status;
+    order.status = 'accepted';
+    order.updatedAt = Date.now();
+    order.statusHistory = Array.isArray(order.statusHistory) ? order.statusHistory : [];
+    order.statusHistory.push({ from: previous, to: 'accepted', changedAt: order.updatedAt, changedBy: user.id, note: 'موافقة المريض على عرض سعر تجريبي غير مدفوع' });
+    if (!Store.save(db)) return { ok: false, error: 'save_failed' };
+    pushNotification(user.id, `تم تسجيل موافقتك التجريبية على عرض السعر ${Utils.money(order.quotedAmount)} لطلب المستلزمات. لم يتم الدفع ولم يتأكد المخزون أو التنفيذ.`, order.id, order.subSector);
+    try { EventLog.log('medical_supply_quote_accepted', { actorId: user.id, targetId: order.id, payload: { quotedAmount: order.quotedAmount, demoOnly: true } }); } catch (_) {}
+    return { ok: true, order };
+  }
+
+  function renderMedicalOperations(el) {
+    const user = window.Auth.getCurrentUser();
+    if (!user || user.role !== 'founder') {
+      el.innerHTML = `${backButton()}<div class="empty-state"><i class="fa-solid fa-lock empty-state-icon"></i><p class="empty-state-title">هذه الشاشة للمؤسس فقط</p><p class="empty-state-desc">سجّل الدخول بحساب المؤسس التجريبي لإدارة طلبات الخدمات.</p><button class="btn btn-primary" onclick="AuthUI.open('login')">تسجيل الدخول</button></div>`;
+      return;
+    }
+    const db = Store.load() || {};
+    const orders = (db.orders || []).filter(order => order.sector === 'medical' && ['nursing','pharmacy','supplies'].includes(order.subSector)).sort((a,b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+    const openCount = orders.filter(order => !['delivered','completed','unavailable','rejected','canceled'].includes(order.status)).length;
+    const escText = esc;
+    const cards = orders.map(order => {
+      const labels = { nursing: 'تمريض منزلي', pharmacy: 'صيدلية / روشتة', supplies: 'مستلزمات طبية' };
+      const steps = (medicalOrderTransitions[order.subSector] || {})[order.status] || [];
+      const customer = (db.users || []).find(item => item.id === order.userId);
+      const history = (order.statusHistory || []).slice(-3).reverse();
+      const actionButtons = steps.map(status => `<button class="btn ${['unavailable','canceled'].includes(status) ? 'btn-danger' : 'btn-primary'} btn-sm" style="white-space:normal;" onclick="WaslaHealth.transitionMedicalOrderFromUI('${escText(order.id)}','${status}')">${medicalOrderActionLabels[status] || medicalOrderStatusLabels[status] || status}</button>`).join('');
+      const quote = Number(order.quotedAmount || 0) > 0 ? `<div class="wasla-health-info">عرض السعر المسجل: <strong>${Utils.money(order.quotedAmount)}</strong> — غير محصل ماليًا</div>` : '';
+      const hist = history.length ? `<div style="border-top:1px solid var(--border-default);margin-top:10px;padding-top:8px;font-size:10.5px;color:var(--text-secondary);">${history.map(h => `<div style="margin:3px 0;">${escText(medicalOrderStatusLabels[h.to] || h.to)} · ${new Date(h.changedAt).toLocaleString('ar-EG')}${h.note ? ` · ${escText(h.note)}` : ''}</div>`).join('')}</div>` : '';
+      return `<article class="card" style="margin-bottom:12px;"><div style="display:flex;gap:10px;align-items:flex-start;"><div class="wasla-health-icon" style="background:#ECFDF5;color:#047857;flex-shrink:0;"><i class="fa-solid ${order.subSector === 'pharmacy' ? 'fa-prescription-bottle-medical' : order.subSector === 'nursing' ? 'fa-house-medical' : 'fa-wheelchair'}"></i></div><div style="flex:1;min-width:0;"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"><strong style="font-size:13px;">${escText(labels[order.subSector] || order.service)}</strong><span class="wasla-health-pill">${escText(medicalOrderStatusLabels[order.status] || order.status)}</span></div><p style="font-size:11px;color:var(--text-secondary);margin-top:4px;line-height:1.8;">الطلب: ${escText(order.service)}<br>المريض: ${escText(customer?.name || 'حساب غير موجود')} · ${escText(customer?.phone || '')}<br>العنوان: ${escText(order.address || 'غير محدد')}<br>التاريخ: ${escText(order.date || 'غير محدد')}</p>${order.note ? `<p style="font-size:11px;margin-top:4px;">ملاحظات: ${escText(order.note)}</p>` : ''}${quote}${actionButtons ? `<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;">${actionButtons}</div>` : '<p style="font-size:11px;color:var(--text-muted);margin-top:10px;">لا توجد إجراءات تالية متاحة لهذا الطلب.</p>'}${hist}</div></div></article>`;
+    }).join('');
+    el.innerHTML = `${backButton()}${renderPageHead('تشغيل طلبات الرعاية','لوحة تجريبية لتحديث حالة طلبات التمريض والصيدليات والمستلزمات. التغييرات محلية ولا تصل لمقدمي خدمة حقيقيين.','fa-list-check')}
+      <div class="admin-stats-grid"><div class="admin-stat-card blue"><div class="icon"><i class="fa-solid fa-inbox"></i></div><div class="value">${orders.length}</div><div class="label">إجمالي الطلبات الطبية</div></div><div class="admin-stat-card orange"><div class="icon"><i class="fa-solid fa-clock"></i></div><div class="value">${openCount}</div><div class="label">طلبات تحتاج متابعة</div></div></div>
+      <div class="wasla-health-alert"><i class="fa-solid fa-flask"></i> وضع العرض: تحديث الحالة يولّد سجلًا وإشعارًا داخل المتصفح فقط. لا توجد صيدلية أو خدمة تمريض متصلة أو عملية دفع حقيقية.</div>
+      ${cards || '<div class="empty-state"><i class="fa-solid fa-inbox empty-state-icon"></i><p class="empty-state-title">لا توجد طلبات خدمات طبية بعد</p><p class="empty-state-desc">أنشئ طلبًا تجريبيًا من حساب المريض ثم ارجع لهذه الشاشة لاختبار دورة الخدمة.</p></div>'}`;
+  }
+  function transitionMedicalOrderFromUI(orderId, nextStatus) {
+    const options = {};
+    if (nextStatus === 'quote_ready') {
+      const raw = window.prompt('أدخل عرض السعر التجريبي بالجنيه (لن يتم تحصيل أي مبلغ):', '250');
+      if (raw == null) return;
+      options.quotedAmount = Number(raw);
+      if (!Number.isFinite(options.quotedAmount) || options.quotedAmount <= 0) return toast('أدخل مبلغًا أكبر من صفر.', 'error');
+    }
+    if (['unavailable','canceled'].includes(nextStatus)) {
+      const note = window.prompt('سبب مختصر (اختياري):', nextStatus === 'canceled' ? 'إلغاء تجريبي' : 'الخدمة غير متاحة حاليًا');
+      if (note == null) return;
+      options.note = note;
+    }
+    const result = setMedicalOrderStatus(orderId, nextStatus, options);
+    if (!result.ok) return toast(({ admin_required:'إجراء للمؤسس فقط.', order_not_found:'لم يتم العثور على الطلب.', invalid_transition:'هذا الانتقال غير مسموح لحالة الطلب الحالية.', invalid_quote:'عرض السعر غير صالح.', save_failed:'فشل حفظ الحالة.' })[result.error] || 'تعذر تحديث الطلب.', 'error');
+    toast(`تم تحديث حالة الطلب إلى: ${medicalOrderStatusLabels[nextStatus] || nextStatus}. تحديث محلي تجريبي.`, 'success', 4500);
+    renderMedicalOperations(document.getElementById('main-container'));
+    return result;
+  }
+
   function renderPageHead(title, description, icon = 'fa-heart-pulse') {
     return `<div class="wasla-health-page-head"><span class="sector-hero-badge"><i class="fa-solid ${icon}"></i> وصلة الطبية</span><h1>${esc(title)}</h1><p>${esc(description)}</p></div>`;
   }
@@ -6335,6 +6465,8 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
     return `<button type="button" class="wasla-health-card" onclick="Router.go('${route}')"><span class="wasla-health-icon" style="background:${bg};color:${color};"><i class="fa-solid ${icon}"></i></span><strong>${esc(title)}</strong><span>${esc(description)}</span><span class="wasla-health-link">فتح الخدمة <i class="fa-solid fa-arrow-left"></i></span></button>`;
   }
   function medicalServiceCards() {
+    const user = window.Auth.getCurrentUser();
+    const operationsCard = user?.role === 'founder' ? serviceCard('medical-operations','تشغيل طلبات الرعاية','متابعة طلبات التمريض والصيدليات والمستلزمات وتحديث حالاتها','fa-list-check','#FEF3C7','#92400E') : '';
     return `<section class="wasla-health-services"><div class="wasla-health-services-head"><div><h2>خدمات الرعاية الصحية</h2><p>خدمات مترابطة تبدأ من الحجز وتستمر بعد الزيارة</p></div><span class="wasla-health-pill">نسخة تجريبية</span></div><div class="wasla-health-grid">
       ${serviceCard('symptom-checker','اعرف أعراضك','توجيه مبدئي للتخصص والخطوة التالية','fa-stethoscope','#ECFDF5','#059669')}
       ${serviceCard('nursing','تمريض منزلي','طلب خدمة منزلية مع تحديد الاحتياج والعنوان','fa-house-medical','#F5F3FF','#7C3AED')}
@@ -6342,10 +6474,13 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
       ${serviceCard('medical-supplies','المستلزمات الطبية','شراء أو طلب استئجار أجهزة ومستلزمات','fa-wheelchair','#F0F9FF','#0284C7')}
       ${serviceCard('my-health-record','ملفي الصحي','الزيارات والروشتات والحساسية والتاريخ الطبي','fa-file-medical','#ECFDF5','#059669')}
       ${serviceCard('health-services','كل الخدمات الطبية','استعرض جميع وحدات القطاع الطبي','fa-grid-2','#F8FAFC','#334155')}
+      ${operationsCard}
     </div><div class="wasla-health-info">تنبيه: هذه نسخة عرض محلية. طلبات التمريض والصيدليات والمستلزمات لا تصل إلى جهات حقيقية حتى يتم ربط المنصة بالخادم ومقدمي الخدمة.</div></section>`;
   }
 
   function renderHealthServices(el) {
+    const currentUser = window.Auth.getCurrentUser();
+    const operationsCard = currentUser?.role === 'founder' ? serviceCard('medical-operations','تشغيل طلبات الرعاية','مراجعة وتحديث حالات طلبات الخدمات الطبية التجريبية','fa-list-check','#FEF3C7','#92400E') : '';
     el.innerHTML = `${backButton()}${renderPageHead('رعاية صحية متصلة','اختَر الخدمة المناسبة، مع وضوح حالة كل طلب ومن المسؤول عن الخطوة التالية.')}<div class="wasla-health-grid">
       ${serviceCard('medical','الأطباء والعيادات','استكشف التخصصات، المواعيد، والحجز','fa-user-doctor','#ECFDF5','#059669')}
       ${serviceCard('symptom-checker','اعرف أعراضك','توجيه أولي غير تشخيصي','fa-stethoscope','#EFF6FF','#2563EB')}
@@ -6353,6 +6488,7 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
       ${serviceCard('pharmacies','الصيدليات والروشتات','إعداد طلب متعلق بروشتة محفوظة','fa-prescription-bottle-medical','#FFF7ED','#EA580C')}
       ${serviceCard('medical-supplies','المستلزمات والأجهزة','مرتبة هوائية، كرسي متحرك، أجهزة قياس وغيرها','fa-wheelchair','#F0F9FF','#0284C7')}
       ${serviceCard('my-health-record','ملفي الصحي','السجل والروشتات الخاصة بحسابك','fa-file-medical','#ECFDF5','#059669')}
+      ${operationsCard}
     </div><div class="card" style="margin-top:14px;"><h2 class="section-title"><i class="fa-solid fa-shield-heart"></i> ضوابط الخدمة</h2><p style="font-size:11.5px;line-height:1.9;color:var(--text-secondary);font-weight:700;">لا يقدم فاحص الأعراض تشخيصًا أو علاجًا. توافر الصيدليات ومقدمي التمريض والمستلزمات وأسعارها غير مؤكد في هذه النسخة. مشاركة السجل الطبي تتطلب موافقة المريض ولا تنفّذ تلقائيًا إلى طرف خارجي.</p></div>`;
   }
 
@@ -6492,6 +6628,7 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
   window.Router.register('pharmacies', renderPharmacies);
   window.Router.register('medical-supplies', renderSupplies);
   window.Router.register('my-health-record', renderHealthRecord);
+  window.Router.register('medical-operations', renderMedicalOperations);
 
   // Add service shortcut cards to the existing medical sector after its hero.
   const originalMedicalRoute = window.Router.registry.medical;
@@ -6511,6 +6648,10 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
     createPharmacyRequest(data) { const user = window.Auth.getCurrentUser(); if (!user || user.role !== 'patient') return { ok: false, error: 'patient_required' }; return submitPharmacyRequest(data); },
     runSymptomCheck, submitNursingFromPage, submitPharmacyFromPage, submitSupplyFromPage,
     updateSupplyEstimate, enableNotifications, goDoctorsForSymptom,
+    transitionMedicalOrder(orderId, status, options = {}) { return setMedicalOrderStatus(orderId, status, options); },
+    transitionMedicalOrderFromUI,
+    acceptSupplyQuote,
+    renderMedicalOperations,
     requestStatus(orderId) { const db = Store.load(); const user = window.Auth.getCurrentUser(); return (db.orders || []).find(o => o.id === orderId && o.userId === user?.id) || null; },
     diagnostics() { return { version: this.version, routes: ROUTES.filter(route => typeof window.Router.registry[route] === 'function'), nursingServices: nursingCatalog.length, pharmaciesAreDemo: true, supplyProducts: supplies.length, requestsAreLocalOnly: true, symptomDataIsPersisted: false }; }
   };
