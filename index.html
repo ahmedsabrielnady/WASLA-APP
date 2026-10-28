@@ -3802,5 +3802,1014 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   }, 1800);
 })();
 </script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 9/15: PWA — Installable App + Offline + Push Notifications
+     - Manifest + Icons (generated dynamically as PNG)
+     - Service Worker (offline cache + stale-while-revalidate)
+     - Custom Install Prompt (beforeinstallprompt)
+     - Network Status (online/offline)
+     - App Badge API (unread count on home screen icon)
+     - Update Available notification (SW version)
+     - Wake Lock API (keeps screen on during queue tracking)
+     - Web Share API
+     - Fullscreen mode toggle
+═════════════════════════════════════════════════════════════ -->
+<style>
+/* ── PWA Install Banner ── */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  left: 16px;
+  max-width: 400px;
+  margin-inline: auto;
+  background: linear-gradient(135deg, #0B1220, #1E293B);
+  color: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 20px 55px rgba(11, 18, 32, 0.4);
+  z-index: 500;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: pwa-slide-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translateY(200%);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.pwa-install-banner.show { transform: translateY(0); }
+@keyframes pwa-slide-up {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.pwa-install-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #059669, #10B981);
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
+}
+.pwa-install-info { flex: 1; min-width: 0; }
+.pwa-install-info strong {
+  font-size: 13px;
+  font-weight: 900;
+  display: block;
+  margin-bottom: 2px;
+}
+.pwa-install-info small {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 700;
+}
+.pwa-install-btn {
+  background: linear-gradient(135deg, #059669, #10B981);
+  color: #fff;
+  border: none;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 11.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+}
+.pwa-install-btn:active { transform: scale(0.97); }
+.pwa-install-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Network Status Indicator ── */
+.net-status {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 11.5px;
+  font-weight: 900;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease;
+  color: #fff;
+}
+.net-status.show { transform: translateY(0); }
+.net-status.offline {
+  background: linear-gradient(90deg, #DC2626, #991B1B);
+}
+.net-status.online {
+  background: linear-gradient(90deg, #059669, #047857);
+}
+
+/* ── Update Available Toast ── */
+.pwa-update-toast {
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  left: 16px;
+  max-width: 400px;
+  margin-inline: auto;
+  background: linear-gradient(135deg, #7C3AED, #5B21B6);
+  color: #fff;
+  padding: 14px;
+  border-radius: 14px;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 20px 55px rgba(124, 58, 237, 0.4);
+  z-index: 500;
+}
+.pwa-update-toast.show { display: flex; }
+.pwa-update-toast i { font-size: 24px; }
+.pwa-update-toast div { flex: 1; }
+.pwa-update-toast strong { display: block; font-size: 13px; font-weight: 900; }
+.pwa-update-toast small { font-size: 11px; opacity: 0.9; font-weight: 700; }
+.pwa-update-btn {
+  background: #fff;
+  color: #7C3AED;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ── Install Button in Settings ── */
+.install-app-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: linear-gradient(135deg, #F0FDF4, #DCFCE7);
+  border: 1.5px solid #86EFAC;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.install-app-btn:hover {
+  border-color: #059669;
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.15);
+}
+.install-app-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #059669, #10B981);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  color: #fff;
+  flex-shrink: 0;
+}
+.install-app-info { flex: 1; }
+.install-app-info strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 900;
+  color: #065F46;
+  margin-bottom: 2px;
+}
+.install-app-info small {
+  font-size: 10.5px;
+  color: #047857;
+  font-weight: 700;
+}
+
+/* ── Fullscreen mode ── */
+body.fullscreen-mode .app-header { display: none; }
+body.fullscreen-mode .app-tabs-wrapper { display: none; }
+body.fullscreen-mode .top-bar { display: none; }
+body.fullscreen-mode .context-switcher { display: none; }
+body.fullscreen-mode .app-main { padding-top: 16px; }
+
+/* ── Hide install banner when modal open ── */
+body.modal-open .pwa-install-banner,
+body.modal-open .pwa-update-toast {
+  display: none !important;
+}
+</style>
+
+<script>
+(function WASLA_PART_9_PWA() {
+  'use strict';
+
+  if (!window.WaslaCore || !window.Auth) {
+    console.error('❌ PART 9 requires PART 2, 3');
+    return;
+  }
+
+  const { Utils, UI, Store, EventLog } = window.WaslaCore;
+
+  console.log('%c📱 [PART 9] PWA Module loading...', 'color:#7C3AED;font-weight:900');
+
+  const PWA = {
+    deferredPrompt: null,
+    swRegistration: null,
+    currentWakeLock: null,
+    isStandalone: false,
+    isOnline: navigator.onLine,
+    iconCache: {},
+
+    // ══════════════════════════════════════════════════════════════
+    // SECTION 1: ICON GENERATION (PNG via Canvas)
+    // ══════════════════════════════════════════════════════════════
+    generateIcon(size) {
+      if (this.iconCache[size]) return this.iconCache[size];
+
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // Background gradient
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#059669');
+      gradient.addColorStop(0.5, '#10B981');
+      gradient.addColorStop(1, '#34D399');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+
+      // Rounded corners (for maskable icons, the shape is important)
+      const r = size * 0.22;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(r, 0);
+      ctx.arcTo(size, 0, size, size, r);
+      ctx.arcTo(size, size, 0, size, r);
+      ctx.arcTo(0, size, 0, 0, r);
+      ctx.arcTo(0, 0, size, 0, r);
+      ctx.closePath();
+      ctx.clip();
+      // Redraw gradient
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+      ctx.restore();
+
+      // Heart-pulse icon (simplified)
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `900 ${size * 0.55}px "Font Awesome 6 Free", serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      try {
+        ctx.fillText('💚', size / 2, size / 2 + size * 0.05);
+      } catch (_) {
+        // Fallback: simple heart shape
+        const cx = size / 2;
+        const cy = size / 2;
+        const s = size * 0.28;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy + s * 0.7);
+        ctx.bezierCurveTo(cx - s * 1.2, cy - s * 0.2, cx - s * 0.5, cy - s, cx, cy - s * 0.4);
+        ctx.bezierCurveTo(cx + s * 0.5, cy - s, cx + s * 1.2, cy - s * 0.2, cx, cy + s * 0.7);
+        ctx.fill();
+      }
+
+      // Small "WASLA" text at bottom
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.font = `900 ${size * 0.08}px "Cairo", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText('WASLA', size / 2, size - size * 0.12);
+
+      const dataUrl = canvas.toDataURL('image/png');
+      this.iconCache[size] = dataUrl;
+      return dataUrl;
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    // SECTION 2: MANIFEST GENERATION & INJECTION
+    // ══════════════════════════════════════════════════════════════
+    buildManifest() {
+      const icon192 = this.generateIcon(192);
+      const icon512 = this.generateIcon(512);
+      const icon144 = this.generateIcon(144);
+      const icon72 = this.generateIcon(72);
+
+      const manifest = {
+        name: 'منصة وصلة - WASLA',
+        short_name: 'وصلة',
+        description: 'شبكة الحياة اليومية الذكية - صحة، تسوق، سيارات، وصيانة',
+        start_url: location.pathname + location.search,
+        scope: location.pathname.replace(/[^/]*$/, ''),
+        display: 'standalone',
+        display_override: ['window-controls-overlay', 'standalone', 'minimal-ui'],
+        orientation: 'portrait',
+        background_color: '#0B1220',
+        theme_color: '#059669',
+        lang: 'ar',
+        dir: 'rtl',
+        categories: ['health', 'shopping', 'lifestyle', 'medical'],
+        prefer_related_applications: false,
+        icons: [
+          { src: icon72, sizes: '72x72', type: 'image/png', purpose: 'any' },
+          { src: icon144, sizes: '144x144', type: 'image/png', purpose: 'any' },
+          { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+          { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+        ],
+        shortcuts: [
+          {
+            name: 'احجز موعد',
+            short_name: 'حجز',
+            description: 'احجز مع طبيب',
+            url: location.pathname + '#medical',
+            icons: [{ src: icon192, sizes: '192x192' }]
+          },
+          {
+            name: 'طلباتي',
+            short_name: 'طلباتي',
+            description: 'عرض طلباتي',
+            url: location.pathname + '#orders',
+            icons: [{ src: icon192, sizes: '192x192' }]
+          }
+        ],
+        screenshots: []
+      };
+
+      return manifest;
+    },
+
+    injectManifest() {
+      // Remove old manifest if exists
+      const oldLink = document.querySelector('link[rel="manifest"]');
+      if (oldLink) oldLink.remove();
+
+      // Create Blob URL for manifest
+      const manifest = this.buildManifest();
+      const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = url;
+      document.head.appendChild(link);
+
+      // Also update theme-color meta
+      let themeMeta = document.querySelector('meta[name="theme-color"]');
+      if (!themeMeta) {
+        themeMeta = document.createElement('meta');
+        themeMeta.name = 'theme-color';
+        document.head.appendChild(themeMeta);
+      }
+      themeMeta.content = '#059669';
+
+      // Apple touch icon (for iOS)
+      const appleIcon = this.generateIcon(180);
+      let appleLink = document.querySelector('link[rel="apple-touch-icon"]');
+      if (!appleLink) {
+        appleLink = document.createElement('link');
+        appleLink.rel = 'apple-touch-icon';
+        document.head.appendChild(appleLink);
+      }
+      appleLink.href = appleIcon;
+
+      // Apple mobile web app
+      const appleMetaNames = [
+        ['apple-mobile-web-app-capable', 'yes'],
+        ['apple-mobile-web-app-status-bar-style', 'black-translucent'],
+        ['apple-mobile-web-app-title', 'وصلة'],
+        ['mobile-web-app-capable', 'yes']
+      ];
+      appleMetaNames.forEach(([name, content]) => {
+        let meta = document.querySelector(`meta[name="${name}"]`);
+        if (!meta) {
+          meta = document.createElement('meta');
+          meta.name = name;
+          document.head.appendChild(meta);
+        }
+        meta.content = content;
+      });
+
+      console.log('%c📱 [PWA] Manifest injected (Blob URL)', 'color:#059669;font-weight:900');
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    // SECTION 3: SERVICE WORKER (Blob-based)
+    // ══════════════════════════════════════════════════════════════
+    getServiceWorkerCode() {
+      return `
+'use strict';
+
+const CACHE_VERSION = 'v5.0.0-part9';
+const STATIC_CACHE = 'wasla-static-' + CACHE_VERSION;
+const RUNTIME_CACHE = 'wasla-runtime-' + CACHE_VERSION;
+
+// Install: skip waiting immediately
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+// Activate: cleanup old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys
+          .filter((key) => !key.endsWith(CACHE_VERSION))
+          .map((key) => caches.delete(key))
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
+// Fetch: cache-first with stale-while-revalidate
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+
+  // Only cache GET requests
+  if (request.method !== 'GET') return;
+
+  // Only cache http(s)
+  if (!request.url.startsWith('http')) return;
+
+  // Skip hot-reload / dev tools
+  if (request.url.includes('__vite') || request.url.includes('chrome-extension')) return;
+
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      // Start network fetch regardless (stale-while-revalidate)
+      const fetchPromise = fetch(request).then((response) => {
+        // Cache successful responses
+        if (response && response.status === 200 && response.type !== 'opaque') {
+          const clone = response.clone();
+          caches.open(RUNTIME_CACHE).then((cache) => {
+            cache.put(request, clone).catch(() => {});
+          });
+        }
+        return response;
+      }).catch(() => {
+        // If network fails, return cached (if available)
+        return cached || new Response(
+          '<!DOCTYPE html><html><body style="font-family:sans-serif;text-align:center;padding:40px;background:#F4F6FB;">' +
+          '<h1 style="color:#059669;">📡 لا يوجد اتصال</h1>' +
+          '<p style="color:#64748B;">تعذر تحميل الصفحة. تحقق من الإنترنت وأعد المحاولة.</p>' +
+          '<button onclick="location.reload()" style="background:#059669;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-weight:900;cursor:pointer;">إعادة المحاولة</button>' +
+          '</body></html>',
+          { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+        );
+      });
+
+      // Return cached immediately if exists, otherwise wait for network
+      return cached || fetchPromise;
+    })
+  );
+});
+
+// Message: handle skipWaiting from client
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+// Push notifications
+self.addEventListener('push', (event) => {
+  let data = { title: 'منصة وصلة', body: 'لديك إشعار جديد' };
+  try {
+    if (event.data) data = { ...data, ...event.data.json() };
+  } catch (_) {
+    if (event.data) data.body = event.data.text();
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon,
+      badge: data.badge,
+      tag: data.tag || 'wasla-push',
+      requireInteraction: data.requireInteraction || false,
+      data: data.data || {},
+      vibrate: [200, 100, 200],
+      dir: 'rtl',
+      lang: 'ar'
+    })
+  );
+});
+
+// Notification click: focus or open app
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const targetUrl = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      // Focus existing window if open
+      for (const client of clients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise open new window
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+    })
+  );
+});
+      `.trim();
+    },
+
+    async registerServiceWorker() {
+      if (!('serviceWorker' in navigator)) {
+        console.warn('⚠️ [PWA] Service Worker not supported');
+        return null;
+      }
+
+      // Service Worker requires HTTPS (or localhost)
+      if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        console.warn('%c⚠️ [PWA] Service Worker requires HTTPS. Skipping registration on ' + location.protocol, 'color:#D97706;font-weight:900');
+        return null;
+      }
+
+      try {
+        const swCode = this.getServiceWorkerCode();
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+
+        const registration = await navigator.serviceWorker.register(swUrl, {
+          scope: './',
+          updateViaCache: 'none'
+        });
+
+        this.swRegistration = registration;
+
+        // Detect updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (!newWorker) return;
+
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New version available
+              this.showUpdateToast();
+              EventLog.log('pwa_update_available', { ts: Date.now() });
+            }
+          });
+        });
+
+        console.log('%c✅ [PWA] Service Worker registered', 'color:#059669;font-weight:900');
+        EventLog.log('pwa_sw_registered', { scope: registration.scope, ts: Date.now() });
+
+        return registration;
+      } catch (e) {
+        console.error('❌ [PWA] SW registration failed:', e);
+        return null;
+      }
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    // SECTION 4: INSTALL PROMPT
+    // ══════════════════════════════════════════════════════════════
+    setupInstallPrompt() {
+      // Capture the install prompt event
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        this.deferredPrompt = e;
+        console.log('%c📱 [PWA] Install prompt captured', 'color:#7C3AED;font-weight:900');
+
+        // Show custom banner (only if not already installed and not dismissed)
+        const dismissed = localStorage.getItem('wasla_pwa_dismissed');
+        const dismissedAt = dismissed ? parseInt(dismissed, 10) : 0;
+        const daysSinceDismissed = (Date.now() - dismissedAt) / (1000 * 60 * 60 * 24);
+
+        if (!this.isStandalone && daysSinceDismissed > 3) {
+          setTimeout(() => this.showInstallBanner(), 2000);
+        }
+      });
+
+      // Hide banner if user installs
+      window.addEventListener('appinstalled', () => {
+        console.log('%c✅ [PWA] App installed!', 'color:#059669;font-weight:900');
+        this.hideInstallBanner();
+        this.deferredPrompt = null;
+        UI.toast('🎉 تم تثبيت وصلة على جهازك!', 'success', 5000);
+        EventLog.log('pwa_installed', { ts: Date.now() });
+      });
+
+      // Detect if already running as standalone
+      this.isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                          window.navigator.standalone === true;
+    },
+
+    showInstallBanner() {
+      if (document.getElementById('pwa-install-banner')) return;
+      if (this.isStandalone) return;
+
+      const icon192 = this.generateIcon(192);
+
+      const banner = document.createElement('div');
+      banner.id = 'pwa-install-banner';
+      banner.className = 'pwa-install-banner';
+      banner.innerHTML = `
+        <div class="pwa-install-icon">
+          <img src="${icon192}" alt="وصلة" style="width:100%;height:100%;border-radius:12px;object-fit:cover;">
+        </div>
+        <div class="pwa-install-info">
+          <strong>ثبت وصلة على جهازك</strong>
+          <small>تجربة أسرع + إشعارات فورية</small>
+        </div>
+        <button class="pwa-install-btn" id="pwa-install-accept">تثبيت</button>
+        <button class="pwa-install-close" id="pwa-install-dismiss" title="ليس الآن">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      `;
+      document.body.appendChild(banner);
+
+      // Animate in
+      requestAnimationFrame(() => {
+        banner.classList.add('show');
+      });
+
+      document.getElementById('pwa-install-accept').onclick = () => this.triggerInstall();
+      document.getElementById('pwa-install-dismiss').onclick = () => this.dismissInstallBanner();
+    },
+
+    hideInstallBanner() {
+      const banner = document.getElementById('pwa-install-banner');
+      if (banner) {
+        banner.classList.remove('show');
+        setTimeout(() => banner.remove(), 400);
+      }
+    },
+
+    dismissInstallBanner() {
+      this.hideInstallBanner();
+      // Don't show again for 3 days
+      localStorage.setItem('wasla_pwa_dismissed', String(Date.now()));
+    },
+
+    async triggerInstall() {
+      if (!this.deferredPrompt) {
+        UI.toast('التثبيت غير متاح حالياً. جرّب من قائمة المتصفح (⋮) → تثبيت التطبيق', 'info', 6000);
+        return;
+      }
+
+      try {
+        this.deferredPrompt.prompt();
+        const { outcome } = await this.deferredPrompt.userChoice;
+
+        if (outcome === 'accepted') {
+          console.log('%c✅ [PWA] User accepted install', 'color:#059669;font-weight:900');
+          UI.toast('🎉 بدأ التثبيت...', 'success');
+        } else {
+          console.log('%c❌ [PWA] User dismissed install', 'color:#D97706;font-weight:900');
+          UI.toast('تم إلغاء التثبيت', 'info');
+        }
+
+        this.deferredPrompt = null;
+        this.hideInstallBanner();
+      } catch (e) {
+        console.error('[PWA] Install failed:', e);
+        UI.toast('فشل التثبيت', 'error');
+      }
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    // SECTION 5: NETWORK STATUS
+    // ══════════════════════════════════════════════════════════════
+    setupNetworkStatus() {
+      const banner = document.createElement('div');
+      banner.id = 'pwa-net-status';
+      banner.className = 'net-status';
+      document.body.appendChild(banner);
+
+      const updateStatus = () => {
+        this.isOnline = navigator.onLine;
+        if (this.isOnline) {
+          banner.className = 'net-status online';
+          banner.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم استعادة الاتصال بالإنترنت';
+          banner.classList.add('show');
+          setTimeout(() => banner.classList.remove('show'), 3000);
+        } else {
+          banner.className = 'net-status offline';
+          banner.innerHTML = '<i class="fa-solid fa-wifi"></i> لا يوجد اتصال بالإنترنت — أنت في الوضع Offline';
+          banner.classList.add('show');
+        }
+      };
+
+      window.addEventListener('online', () => {
+        updateStatus();
+        EventLog.log('network_online', { ts: Date.now() });
+      });
+
+      window.addEventListener('offline', () => {
+        updateStatus();
+        EventLog.log('network_offline', { ts: Date.now() });
+      });
+
+      // Initial state (show only if offline)
+      if (!navigator.onLine) {
+        banner.className = 'net-status offline';
+        banner.innerHTML = '<i class="fa-solid fa-wifi"></i> لا يوجد اتصال بالإنترنت — أنت في الوضع Offline';
+        banner.classList.add('show');
+      }
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    // SECTION 6: UPDATE TOAST
+    // ══════════════════════════════════════════════════════════════
+    showUpdateToast() {
+      if (document.getElementById('pwa-update-toast')) return;
+
+      const toast = document.createElement('div');
+      toast.id = 'pwa-update-toast';
+      toast.className = 'pwa-update-toast show';
+      toast.innerHTML = `
+        <i class="fa-solid fa-circle-up"></i>
+        <div>
+          <strong>تحديث متاح</strong>
+          <small>نسخة جديدة من وصلة جاهزة</small>
+        </div>
+        <button class="pwa-update-btn" id="pwa-update-apply">تحديث</button>
+      `;
+      document.body.appendChild(toast);
+
+      document.getElementById('pwa-update-apply').onclick = () => {
+        if (this.swRegistration && this.swRegistration.waiting) {
+          this.swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+        // Reload after a short delay
+        setTimeout(() => location.reload(), 500);
+      };
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    // SECTION 7: APP BADGE API (unread count on home screen)
+    // ══════════════════════════════════════════════════════════════
+    updateAppBadge() {
+      if (!('setAppBadge' in navigator)) return;
+
+      const user = window.Auth.getCurrentUser();
+      if (!user) {
+        navigator.clearAppBadge?.().catch(() => {});
+        return;
+      }
+
+      const db = Store.load();
+      const unread = (db.notifications || []).filter(n => n.userId === user.id && !n.read).length;
+
+      if (unread > 0) {
+        navigator.setAppBadge(unread).catch(() => {});
+      } else {
+        navigator.clearAppBadge?.().catch(() => {});
+      }
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    // SECTION 8: WAKE LOCK (for queue tracking)
+    // ══════════════════════════════════════════════════════════════
+    async requestWakeLock() {
+      if (!('wakeLock' in navigator)) {
+        console.warn('⚠️ [PWA] Wake Lock not supported');
+        return false;
+      }
+
+      try {
+        this.currentWakeLock = await navigator.wakeLock.request('screen');
+        this.currentWakeLock.addEventListener('release', () => {
+          console.log('%c💡 [PWA] Wake Lock released', 'color:#D97706');
+        });
+        console.log('%c💡 [PWA] Wake Lock acquired — screen will stay on', 'color:#059669;font-weight:900');
+        UI.toast('💡 الشاشة هتفضل شغالة أثناء متابعة الدور', 'info', 3000);
+        return true;
+      } catch (e) {
+        console.warn('Wake Lock request failed:', e);
+        return false;
+      }
+    },
+
+    releaseWakeLock() {
+      if (this.currentWakeLock) {
+        this.currentWakeLock.release();
+        this.currentWakeLock = null;
+      }
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    // SECTION 9: FULLSCREEN MODE
+    // ══════════════════════════════════════════════════════════════
+    async toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        try {
+          await document.documentElement.requestFullscreen();
+          document.body.classList.add('fullscreen-mode');
+          UI.toast('🖥️ وضع ملء الشاشة', 'info', 2000);
+        } catch (e) {
+          UI.toast('فشل تفعيل ملء الشاشة', 'error');
+        }
+      } else {
+        try {
+          await document.exitFullscreen();
+          document.body.classList.remove('fullscreen-mode');
+        } catch (e) {}
+      }
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    // SECTION 10: WEB SHARE API
+    // ══════════════════════════════════════════════════════════════
+    async share(data) {
+      if (!('share' in navigator)) {
+        // Fallback: copy to clipboard
+        try {
+          await navigator.clipboard.writeText(data.url || data.text || '');
+          UI.toast('📋 تم نسخ الرابط', 'success');
+        } catch (_) {
+          UI.toast('المشاركة غير متاحة على هذا الجهاز', 'error');
+        }
+        return false;
+      }
+
+      try {
+        await navigator.share(data);
+        EventLog.log('pwa_share', { ts: Date.now() });
+        return true;
+      } catch (e) {
+        // User cancelled — silent
+        return false;
+      }
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    // SECTION 11: SETTINGS INTEGRATION (Install button)
+    // ══════════════════════════════════════════════════════════════
+    injectInstallButton() {
+      // Only inject when user is on account page
+      const accountView = document.getElementById('view-account');
+      if (!accountView) return;
+      if (accountView.querySelector('#install-app-btn')) return;
+      if (this.isStandalone) return;
+
+      const sectionTitle = accountView.querySelector('.section-title');
+      if (!sectionTitle) return;
+
+      const icon192 = this.generateIcon(192);
+
+      const btn = document.createElement('div');
+      btn.id = 'install-app-btn';
+      btn.className = 'install-app-btn';
+      btn.innerHTML = `
+        <div class="install-app-icon">
+          <img src="${icon192}" alt="وصلة" style="width:100%;height:100%;border-radius:10px;object-fit:cover;">
+        </div>
+        <div class="install-app-info">
+          <strong>📲 ثبّت وصلة كتطبيق</strong>
+          <small>أسرع • يشتغل أوفلاين • إشعارات فورية</small>
+        </div>
+        <i class="fa-solid fa-chevron-left" style="color:#059669;"></i>
+      `;
+
+      btn.onclick = () => {
+        if (this.deferredPrompt) {
+          this.triggerInstall();
+        } else {
+          // Show instructions
+          const ua = navigator.userAgent.toLowerCase();
+          let instructions = '';
+
+          if (/iphone|ipad|ipod/.test(ua)) {
+            instructions = 'على iPhone/iPad:\n\n1. اضغط زر المشاركة ⬆️\n2. اختر "إضافة إلى الشاشة الرئيسية"\n3. اضغط "إضافة"';
+          } else if (/android/.test(ua)) {
+            instructions = 'على Android:\n\n1. افتح قائمة المتصفح (⋮)\n2. اختر "تثبيت التطبيق" أو "إضافة للشاشة الرئيسية"\n3. اضغط "تثبيت"';
+          } else {
+            instructions = 'على الكمبيوتر:\n\n1. ابحث عن أيقونة ⊕ أو 💻 في شريط العنوان\n2. اضغط "تثبيت"';
+          }
+
+          alert(instructions);
+        }
+      };
+
+      sectionTitle.parentNode.insertBefore(btn, sectionTitle.nextSibling);
+    },
+
+    // Monitor account page render to inject button
+    startAccountPageObserver() {
+      const observer = new MutationObserver(() => {
+        if (window.Router && window.Router.current === 'account') {
+          this.injectInstallButton();
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    // SECTION 12: BADGE OBSERVER (update badge on notif changes)
+    // ══════════════════════════════════════════════════════════════
+    startBadgeObserver() {
+      // Update badge every 30 seconds
+      setInterval(() => this.updateAppBadge(), 30000);
+      // Also update on login/logout
+      const originalHeader = window.WaslaRender?.header;
+      if (originalHeader) {
+        window.WaslaRender.header = function () {
+          originalHeader.apply(this, arguments);
+          setTimeout(() => PWA.updateAppBadge(), 100);
+        };
+      }
+    },
+
+    // ══════════════════════════════════════════════════════════════
+    // SECTION 13: PWA STATUS DIAGNOSTICS
+    // ══════════════════════════════════════════════════════════════
+    getStatus() {
+      return {
+        isStandalone: this.isStandalone,
+        isOnline: this.isOnline,
+        swSupported: 'serviceWorker' in navigator,
+        swRegistered: !!this.swRegistration,
+        swScope: this.swRegistration?.scope || null,
+        installPromptAvailable: !!this.deferredPrompt,
+        notifSupported: 'Notification' in window,
+        notifPermission: 'Notification' in window ? Notification.permission : 'unsupported',
+        badgeSupported: 'setAppBadge' in navigator,
+        wakeLockSupported: 'wakeLock' in navigator,
+        shareSupported: 'share' in navigator,
+        isHTTPS: location.protocol === 'https:' || location.hostname === 'localhost',
+        hasManifest: !!document.querySelector('link[rel="manifest"]'),
+        protocol: location.protocol
+      };
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 14: PUBLIC API
+  // ══════════════════════════════════════════════════════════════
+  window.WaslaPWA = {
+    status: () => PWA.getStatus(),
+    showInstallBanner: () => PWA.showInstallBanner(),
+    install: () => PWA.triggerInstall(),
+    share: (data) => PWA.share(data),
+    fullscreen: () => PWA.toggleFullscreen(),
+    requestWakeLock: () => PWA.requestWakeLock(),
+    releaseWakeLock: () => PWA.releaseWakeLock(),
+    updateBadge: () => PWA.updateAppBadge(),
+    generateIcon: (size) => PWA.generateIcon(size || 512)
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 15: BOOT
+  // ══════════════════════════════════════════════════════════════
+  async function boot() {
+    try {
+      console.log('%c📱 [PWA] Boot sequence starting...', 'color:#7C3AED;font-weight:900');
+
+      // 1. Inject manifest (must happen early for install prompt)
+      PWA.injectManifest();
+
+      // 2. Register service worker (only on HTTPS)
+      await PWA.registerServiceWorker();
+
+      // 3. Setup install prompt capture
+      PWA.setupInstallPrompt();
+
+      // 4. Network status monitoring
+      PWA.setupNetworkStatus();
+
+      // 5. App badge (unread notifications)
+      PWA.startBadgeObserver();
+
+      // 6. Install button injection on account page
+      PWA.startAccountPageObserver();
+
+      // 7. Log
+      EventLog.log('pwa_ready', { ts: Date.now(), standalone: PWA.isStandalone, https: PWA.getStatus().isHTTPS });
+
+      // 8. Success messages
+      console.log('%c📱 [PART 9] PWA READY', 'background:#7C3AED;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
+      console.log('%c✅ Manifest: ${document.querySelector(\'link[rel="manifest"]\') ? "محقون" : "غير محقون"}', 'color:#059669;font-weight:900');
+      console.log('%c✅ Service Worker: ${PWA.swRegistration ? "مسجل" : "غير مسجل (يحتاج HTTPS)"}', 'color:#059669;font-weight:900');
+      console.log('%c✅ Install Prompt: ${PWA.deferredPrompt ? "جاهز" : "بانتظار المتصفح"}', 'color:#059669;font-weight:900');
+      console.log('%c💡 للاختبار: WaslaPWA.status() | WaslaPWA.install() | WaslaPWA.share()', 'color:#0284C7;font-weight:900');
+
+    } catch (e) {
+      console.error('[PWA] Boot failed:', e);
+    }
+  }
+
+  // Run after PART 8 (1.8s) + buffer
+  setTimeout(boot, 2200);
+
+})();
+</script>
 </body>
 </html>
