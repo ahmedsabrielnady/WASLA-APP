@@ -6195,5 +6195,511 @@ self.addEventListener('notificationclick', (event) => {
 
 })();
 </script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 5.6: LABS + RADIOLOGY + ONLINE CONSULT + HOME SHORTCUTS
+     - إزالة بانر الطوارئ نهائياً
+     - إضافة اختصارات الطب في الرئيسية
+     - تفعيل التحاليل (سحب من البيت)
+     - تفعيل الأشعة (من البيت)
+     - تفعيل الاستشارة أونلاين
+═════════════════════════════════════════════════════════════ -->
+<style>
+/* ── Home Medical Shortcuts ── */
+.home-med-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.home-med-shortcut {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 12px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.home-med-shortcut:active { transform: scale(0.95); }
+.home-med-shortcut-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+.home-med-shortcut-title {
+  font-size: 10.5px;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+/* ألوان الأيقونات */
+.icon-doctors { background: #ECFDF5; color: #059669; }
+.icon-symptoms { background: #E0F2FE; color: #0284C7; }
+.icon-nursing { background: #F5F3FF; color: #7C3AED; }
+.icon-pharmacy { background: #DBEAFE; color: #1E40AF; }
+.icon-labs { background: #FEF3C7; color: #D97706; }
+.icon-radiology { background: #FCE7F3; color: #DB2777; }
+.icon-consult { background: #FEE2E2; color: #DC2626; }
+
+/* ── Labs & Radiology List ── */
+.service-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.service-list-item:active { transform: scale(0.98); background: var(--bg-muted); }
+.service-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.service-info { flex: 1; min-width: 0; }
+.service-name { font-size: 13px; font-weight: 900; color: var(--text-primary); margin-bottom: 2px; }
+.service-desc { font-size: 10.5px; color: var(--text-muted); font-weight: 700; line-height: 1.4; margin-bottom: 4px; }
+.service-price { font-size: 13px; font-weight: 900; color: var(--sector-medical); }
+
+/* ── Online Consult Card ── */
+.consult-doc-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.consult-doc-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #DC2626, #EF4444);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+</style>
+
+<script>
+(function WASLA_PART_5_6_FINAL_MEDICAL() {
+  'use strict';
+
+  if (!window.WaslaCore || !window.Auth || !window.Router) return;
+
+  const { Utils, UI, Store, EventLog } = window.WaslaCore;
+  console.log('%c🔬 [PART 5.6] Labs + Radiology + Consult + Home Shortcuts', 'color:#0284C7;font-weight:900');
+
+  // 1️⃣ إزالة بانر الطوارئ نهائياً
+  setTimeout(() => {
+    const emergencyBanner = document.getElementById('wasla-emg-banner');
+    if (emergencyBanner) emergencyBanner.remove();
+    // تعطيل الدالة اللي بترجعه تاني
+    window.injectEmergencyBanner = () => {}; 
+    const originalEmergencyTrigger = window.WaslaEmergency?.trigger;
+    if (originalEmergencyTrigger) {
+      window.WaslaEmergency.trigger = () => UI.toast('خدمة الطوارئ غير متاحة حالياً', 'info');
+    }
+  }, 1000);
+
+  // 2️⃣ إضافة البيانات (تحاليل وأشعة)
+  function extendSchema() {
+    const db = Store.load();
+    if (!db) return;
+    let changed = false;
+
+    if (!db.labTests) {
+      db.labTests = [
+        { id: 'lab1', name: 'صورة دم كاملة (CBC)', desc: 'تحليل شامل لمكونات الدم', price: 120, icon: 'fa-vial', time: '12 ساعة' },
+        { id: 'lab2', name: 'سكر صائم', desc: 'قياس مستوى السكر في الدم', price: 60, icon: 'fa-droplet', time: '6 ساعات' },
+        { id: 'lab3', name: 'وظائف كبد', desc: 'ALT, AST, Bilirubin', price: 180, icon: 'fa-flask', time: '12 ساعة' },
+        { id: 'lab4', name: 'وظائف كلى', desc: 'Creatinine, Urea', price: 150, icon: 'fa-flask', time: '12 ساعة' },
+        { id: 'lab5', name: 'دهون كاملة', desc: 'كوليسترول، ترايجليسرايد', price: 200, icon: 'fa-heart-pulse', time: '12 ساعة' },
+        { id: 'lab6', name: 'هرمونات الغدة الدرقية', desc: 'TSH, T3, T4', price: 350, icon: 'fa-microscope', time: '24 ساعة' },
+        { id: 'lab7', name: 'فيتامين د', desc: 'قياس فيتامين D3', price: 400, icon: 'fa-sun', time: '24 ساعة' }
+      ];
+      changed = true;
+    }
+
+    if (!db.radiologyTests) {
+      db.radiologyTests = [
+        { id: 'rad1', name: 'أشعة عادية (X-Ray)', desc: 'صدر، عظام، أسنان...', price: 250, icon: 'fa-x-ray', time: '30 دقيقة', inHome: false },
+        { id: 'rad2', name: 'موجات صوتية (سونار)', desc: 'بطن كامل، حمل، كلى...', price: 450, icon: 'fa-wave-square', time: '45 دقيقة', inHome: true },
+        { id: 'rad3', name: 'رسم قلب (ECG)', desc: 'تخطيط كهربية القلب', price: 150, icon: 'fa-heart', time: '15 دقيقة', inHome: true },
+        { id: 'rad4', name: 'دوبلر', desc: 'أوعية دموية، أوردة', price: 600, icon: 'fa-heart-pulse', time: '45 دقيقة', inHome: true }
+      ];
+      changed = true;
+    }
+
+    if (!db.labBookings) { db.labBookings = []; changed = true; }
+    if (!db.radiologyBookings) { db.radiologyBookings = []; changed = true; }
+
+    if (changed) Store.save(db);
+  }
+  extendSchema();
+
+  // 3️⃣ إضافة التابات الموحدة للقطاع الطبي (عشان تشمل التحاليل والأشعة)
+  const medNavHTML = (active) => `
+    <div class="med-nav-scroll">
+      ${[
+        { id: 'doctors', label: 'الأطباء', icon: 'fa-user-doctor', route: 'medical' },
+        { id: 'symptoms', label: 'أعراضي', icon: 'fa-stethoscope', route: 'symptom-checker' },
+        { id: 'nursing', label: 'التمريض', icon: 'fa-user-nurse', route: 'nursing' },
+        { id: 'pharmacy', label: 'الصيدلية', icon: 'fa-mortar-pestle', route: 'pharmacy' },
+        { id: 'labs', label: 'التحاليل', icon: 'fa-vial', route: 'labs' },
+        { id: 'radiology', label: 'الأشعة', icon: 'fa-x-ray', route: 'radiology' },
+        { id: 'consult', label: 'استشارة', icon: 'fa-video', route: 'online-consult' }
+      ].map(c => `
+        <button class="med-nav-chip ${active === c.id ? 'active' : ''}" onclick="Router.go('${c.route}')">
+          <i class="fa-solid ${c.icon}"></i> ${c.label}
+        </button>
+      `).join('')}
+    </div>
+  `;
+  window.__renderMedicalNav = medNavHTML;
+
+  // 4️⃣ صفحة التحاليل
+  window.Router.register('labs', (el) => {
+    const db = Store.load();
+    const tests = db.labTests || [];
+    
+    el.innerHTML = `
+      <div class="sector-hero" data-sector="medical" style="background:linear-gradient(120deg,#B45309,#D97706 55%,#F59E0B);">
+        <span class="sector-hero-badge"><i class="fa-solid fa-vial"></i> التحاليل الطبية</span>
+        <h1>اطلب تحاليلك.. وهنجيلك لحد البيت</h1>
+        <p>سحب عينات في المنزل · نتائج أونلاين · دقة معتمدة</p>
+      </div>
+      ${medNavHTML('labs')}
+      
+      <div class="card" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);border-color:#F59E0B;">
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <i class="fa-solid fa-house-medical" style="color:#D97706;font-size:20px;flex-shrink:0;margin-top:2px;"></i>
+          <div>
+            <div style="font-size:12.5px;font-weight:900;color:#78350F;margin-bottom:4px;">سحب من البيت</div>
+            <p style="font-size:11px;color:#92400E;font-weight:700;line-height:1.6;margin:0;">
+              فني معمل معتمد هييجي لحد باب البيت لسحب العينة. رسوم الزيارة 30 ج.م.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title"><i class="fa-solid fa-list"></i> التحاليل المتاحة (${tests.length})</h2>
+      <div>
+        ${tests.map(t => `
+          <div class="service-list-item" onclick="window.__bookLab('${t.id}')">
+            <div class="service-icon" style="background:#FEF3C7;color:#D97706;"><i class="fa-solid ${t.icon}"></i></div>
+            <div class="service-info">
+              <div class="service-name">${Utils.escape(t.name)}</div>
+              <div class="service-desc">${Utils.escape(t.desc)}</div>
+              <div style="font-size:10px;color:var(--text-muted);font-weight:700;"><i class="fa-solid fa-clock"></i> النتيجة في ${t.time}</div>
+            </div>
+            <div style="text-align:center;">
+              <div class="service-price">${t.price} ج.م</div>
+              <button class="btn btn-sm" style="background:#D97706;color:#fff;margin-top:4px;font-size:10.5px;">احجز</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  });
+
+  // 5️⃣ صفحة الأشعة
+  window.Router.register('radiology', (el) => {
+    const db = Store.load();
+    const tests = db.radiologyTests || [];
+
+    el.innerHTML = `
+      <div class="sector-hero" data-sector="medical" style="background:linear-gradient(120deg,#831843,#BE185D 55%,#EC4899);">
+        <span class="sector-hero-badge"><i class="fa-solid fa-x-ray"></i> الأشعة</span>
+        <h1>أشعة في بيتك.. أو في أقرب مركز</h1>
+        <p>سونار، رسم قلب، دوبلر · أجهزة حديثة · تقارير فورية</p>
+      </div>
+      ${medNavHTML('radiology')}
+
+      <h2 class="section-title"><i class="fa-solid fa-list"></i> خدمات الأشعة (${tests.length})</h2>
+      <div>
+        ${tests.map(t => `
+          <div class="service-list-item" onclick="window.__bookRadiology('${t.id}')">
+            <div class="service-icon" style="background:#FCE7F3;color:#DB2777;"><i class="fa-solid ${t.icon}"></i></div>
+            <div class="service-info">
+              <div class="service-name">${Utils.escape(t.name)}</div>
+              <div class="service-desc">${Utils.escape(t.desc)}</div>
+              <div style="font-size:10px;color:var(--text-muted);font-weight:700;">
+                <i class="fa-solid fa-clock"></i> ${t.time}
+                ${t.inHome ? '<span style="background:#DBEAFE;color:#1E40AF;padding:1px 6px;border-radius:99px;margin-right:4px;font-size:9px;">في البيت</span>' : '<span style="background:#F3F4F6;color:#4B5563;padding:1px 6px;border-radius:99px;margin-right:4px;font-size:9px;">في المركز</span>'}
+              </div>
+            </div>
+            <div style="text-align:center;">
+              <div class="service-price" style="color:#DB2777;">${t.price} ج.م</div>
+              <button class="btn btn-sm" style="background:#DB2777;color:#fff;margin-top:4px;font-size:10.5px;">احجز</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  });
+
+  // 6️⃣ صفحة الاستشارة أونلاين
+  window.Router.register('online-consult', (el) => {
+    const db = Store.load();
+    const doctors = (db.doctors || []).slice(0, 6); // نعرض 6 أطباء كمثال
+
+    el.innerHTML = `
+      <div class="sector-hero" data-sector="medical" style="background:linear-gradient(120deg,#7F1D1D,#B91C1C 55%,#EF4444);">
+        <span class="sector-hero-badge"><i class="fa-solid fa-video"></i> استشارة أونلاين</span>
+        <h1>كلم دكتورك فيديو من البيت</h1>
+        <p>استشارة طبية فورية · دفع أونلاين · تقرير مكتوب</p>
+      </div>
+      ${medNavHTML('consult')}
+
+      <div class="card" style="background:linear-gradient(135deg,#FEE2E2,#FECACA);border-color:#F87171;">
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <i class="fa-solid fa-shield-halved" style="color:#DC2626;font-size:20px;flex-shrink:0;margin-top:2px;"></i>
+          <div>
+            <div style="font-size:12.5px;font-weight:900;color:#991B1B;margin-bottom:4px;">خصوصية تامة</div>
+            <p style="font-size:11px;color:#B91C1C;font-weight:700;line-height:1.6;margin:0;">
+              المكالمة مشفرة ومش بتتسجل. دفعك آمن ومحمي.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title"><i class="fa-solid fa-user-doctor"></i> أطباء متاحين للاستشارة</h2>
+      <div>
+        ${doctors.map(d => `
+          <div class="consult-doc-card">
+            <div class="consult-doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:14px;font-weight:900;color:var(--text-primary);margin-bottom:2px;">${Utils.escape(d.name)}</div>
+              <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:4px;">${Utils.escape(d.spec)} · ⭐ ${d.rating}</div>
+              <div style="font-size:12px;color:var(--sector-medical);font-weight:900;">${d.price + 50} ج.م <span style="font-size:10px;color:var(--text-muted);font-weight:700;">/ استشارة</span></div>
+            </div>
+            <button class="btn" style="background:linear-gradient(135deg,#DC2626,#EF4444);color:#fff;box-shadow:0 4px 12px rgba(220,38,38,0.3);font-size:11px;padding:8px 12px;" onclick="window.__startOnlineConsult('${d.id}')">
+              <i class="fa-solid fa-video"></i> ابدأ
+            </button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  });
+
+  // 7️⃣ دوال الحجز
+  window.__bookLab = (labId) => {
+    const db = Store.load();
+    const lab = (db.labTests || []).find(l => l.id === labId);
+    if (!lab) return;
+    const user = window.Auth.getCurrentUser();
+    if (!user) { UI.toast('سجل دخول أولاً', 'warning'); window.AuthUI.open('login'); return; }
+
+    const body = Utils.$('#modal-generic-body');
+    body.innerHTML = `
+      <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="font-size:16px;font-weight:900;margin-bottom:6px;">${Utils.escape(lab.name)}</h3>
+      <p style="font-size:11.5px;color:var(--text-muted);font-weight:700;margin-bottom:14px;">${Utils.escape(lab.desc)}</p>
+      
+      <label class="label">العنوان</label>
+      <textarea id="lab-address" class="input" placeholder="الشارع، رقم العمارة، الدور..." style="min-height:60px;margin-bottom:12px;resize:vertical;"></textarea>
+
+      <label class="label">رقم الموبايل</label>
+      <input type="tel" id="lab-phone" class="input" value="${user.phone}" maxlength="11" style="margin-bottom:12px;" />
+
+      <div style="background:var(--bg-muted);padding:12px;border-radius:10px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;font-weight:800;"><span>سعر التحليل</span><span>${lab.price} ج.م</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px;font-weight:800;"><span>رسوم الزيارة</span><span>30 ج.م</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:900;color:var(--sector-medical);border-top:1px dashed var(--border-default);padding-top:8px;">
+          <span>الإجمالي</span><span>${lab.price + 30} ج.م</span>
+        </div>
+      </div>
+
+      <button class="btn btn-block btn-lg" style="background:linear-gradient(135deg,#D97706,#F59E0B);color:#fff;" onclick="window.__submitLabBooking('${lab.id}')">
+        <i class="fa-solid fa-calendar-check"></i> تأكيد الحجز
+      </button>
+    `;
+    UI.modal('modal-generic', { open: true });
+  };
+
+  window.__submitLabBooking = (labId) => {
+    const address = Utils.$('#lab-address').value.trim();
+    const phone = Utils.$('#lab-phone').value.trim();
+    if (address.length < 10) return UI.toast('أدخل عنوان واضح', 'error');
+    if (!Utils.isValidPhone(phone)) return UI.toast('رقم موبايل غير صحيح', 'error');
+
+    const db = Store.load();
+    const lab = db.labTests.find(l => l.id === labId);
+    const user = window.Auth.getCurrentUser();
+    
+    db.labBookings.push({
+      id: Utils.id('lab'), userId: user.id, labName: lab.name, price: lab.price + 30,
+      address, phone, status: 'pending', date: Utils.today(), ts: Date.now()
+    });
+    
+    db.notifications.unshift({ id: Utils.id('notif'), userId: user.id, text: `✅ تم حجز ${lab.name}. فني المعمل هيتواصل معاك.`, read: false, ts: Date.now() });
+    
+    Store.save(db);
+    UI.modal('modal-generic', { open: false });
+    UI.toast('✅ تم الحجز بنجاح', 'success');
+    window.Router.go('orders');
+  };
+
+  window.__bookRadiology = (radId) => {
+    const db = Store.load();
+    const rad = (db.radiologyTests || []).find(r => r.id === radId);
+    if (!rad) return;
+    const user = window.Auth.getCurrentUser();
+    if (!user) { UI.toast('سجل دخول أولاً', 'warning'); window.AuthUI.open('login'); return; }
+
+    const body = Utils.$('#modal-generic-body');
+    body.innerHTML = `
+      <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="font-size:16px;font-weight:900;margin-bottom:6px;">${Utils.escape(rad.name)}</h3>
+      <p style="font-size:11.5px;color:var(--text-muted);font-weight:700;margin-bottom:14px;">${Utils.escape(rad.desc)} · ${rad.inHome ? 'زيارة منزلية' : 'في المركز'}</p>
+      
+      ${rad.inHome ? `
+        <label class="label">العنوان</label>
+        <textarea id="rad-address" class="input" placeholder="الشارع، رقم العمارة..." style="min-height:60px;margin-bottom:12px;resize:vertical;"></textarea>
+      ` : `
+        <div style="background:#FEF2F2;color:#991B1B;padding:10px;border-radius:8px;font-size:11px;font-weight:700;margin-bottom:12px;">
+          <i class="fa-solid fa-location-dot"></i> يُرجى الحضور للمركز الطبي (شارع المستشفى).
+        </div>
+      `}
+
+      <label class="label">رقم الموبايل</label>
+      <input type="tel" id="rad-phone" class="input" value="${user.phone}" maxlength="11" style="margin-bottom:12px;" />
+
+      <div style="background:var(--bg-muted);padding:12px;border-radius:10px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:900;color:#DB2777;">
+          <span>الإجمالي</span><span>${rad.price} ج.م</span>
+        </div>
+      </div>
+
+      <button class="btn btn-block btn-lg" style="background:linear-gradient(135deg,#BE185D,#DB2777);color:#fff;" onclick="window.__submitRadBooking('${rad.id}')">
+        <i class="fa-solid fa-calendar-check"></i> تأكيد الحجز
+      </button>
+    `;
+    UI.modal('modal-generic', { open: true });
+  };
+
+  window.__submitRadBooking = (radId) => {
+    const phone = Utils.$('#rad-phone').value.trim();
+    if (!Utils.isValidPhone(phone)) return UI.toast('رقم موبايل غير صحيح', 'error');
+
+    const db = Store.load();
+    const rad = db.radiologyTests.find(r => r.id === radId);
+    const user = window.Auth.getCurrentUser();
+    
+    db.radiologyBookings.push({
+      id: Utils.id('rad'), userId: user.id, radName: rad.name, price: rad.price,
+      phone, status: 'pending', date: Utils.today(), ts: Date.now()
+    });
+    
+    db.notifications.unshift({ id: Utils.id('notif'), userId: user.id, text: `✅ تم حجز ${rad.name}.`, read: false, ts: Date.now() });
+    
+    Store.save(db);
+    UI.modal('modal-generic', { open: false });
+    UI.toast('✅ تم الحجز بنجاح', 'success');
+    window.Router.go('orders');
+  };
+
+  window.__startOnlineConsult = (doctorId) => {
+    // استخدام دالة الفيديو من PART 7
+    if (window.WaslaVideo) {
+      // هنكريت موعد وهمي للاستشارة عشان نستخدم نفس نظام الفيديو
+      const db = Store.load();
+      const doc = db.doctors.find(d => d.id === doctorId);
+      const user = window.Auth.getCurrentUser();
+      const apptId = Utils.id('consult');
+      
+      db.appointments.push({
+        id: apptId, patientId: user.id, patientName: user.name,
+        doctorId: doc.id, doctorName: doc.name, doctorSpec: doc.spec,
+        date: Utils.today(), slot: 'أونلاين', price: doc.price + 50,
+        status: 'waiting', ts: Date.now()
+      });
+      Store.save(db);
+      
+      window.WaslaVideo.start(apptId);
+      // نقفل صفحة الاستشارة ونروح للطلبات
+      window.Router.go('orders');
+    } else {
+      UI.toast('نظام الفيديو غير جاهز', 'error');
+    }
+  };
+
+  // 8️⃣ إضافة الاختصارات في الصفحة الرئيسية
+  function patchHomePage() {
+    const origHome = window.Router.registry['home'];
+    if (!origHome) return;
+
+    window.Router.register('home', (el, params) => {
+      origHome.call(window.Router, el, params);
+      
+      setTimeout(() => {
+        const grid = el.querySelector('div[style*="grid-template-columns:repeat(2,1fr)"]');
+        if (!grid || el.querySelector('.home-med-shortcuts')) return;
+
+        const shortcutsHTML = `
+          <h2 class="section-title" style="margin-top:20px;"><i class="fa-solid fa-heart-pulse"></i> الخدمات الطبية السريعة</h2>
+          <div class="home-med-shortcuts">
+            <div class="home-med-shortcut" onclick="Router.go('medical')">
+              <div class="home-med-shortcut-icon icon-doctors"><i class="fa-solid fa-user-doctor"></i></div>
+              <div class="home-med-shortcut-title">أطباء</div>
+            </div>
+            <div class="home-med-shortcut" onclick="Router.go('symptom-checker')">
+              <div class="home-med-shortcut-icon icon-symptoms"><i class="fa-solid fa-stethoscope"></i></div>
+              <div class="home-med-shortcut-title">أعراضي</div>
+            </div>
+            <div class="home-med-shortcut" onclick="Router.go('nursing')">
+              <div class="home-med-shortcut-icon icon-nursing"><i class="fa-solid fa-user-nurse"></i></div>
+              <div class="home-med-shortcut-title">تمريض</div>
+            </div>
+            <div class="home-med-shortcut" onclick="Router.go('pharmacy')">
+              <div class="home-med-shortcut-icon icon-pharmacy"><i class="fa-solid fa-mortar-pestle"></i></div>
+              <div class="home-med-shortcut-title">صيدلية</div>
+            </div>
+            <div class="home-med-shortcut" onclick="Router.go('labs')">
+              <div class="home-med-shortcut-icon icon-labs"><i class="fa-solid fa-vial"></i></div>
+              <div class="home-med-shortcut-title">تحاليل</div>
+            </div>
+            <div class="home-med-shortcut" onclick="Router.go('radiology')">
+              <div class="home-med-shortcut-icon icon-radiology"><i class="fa-solid fa-x-ray"></i></div>
+              <div class="home-med-shortcut-title">أشعة</div>
+            </div>
+            <div class="home-med-shortcut" onclick="Router.go('online-consult')" style="grid-column: span 3; flex-direction: row; justify-content: center; padding: 14px;">
+              <div class="home-med-shortcut-icon icon-consult" style="margin-bottom:0;"><i class="fa-solid fa-video"></i></div>
+              <div class="home-med-shortcut-title" style="font-size:13px;">استشارة طبية أونلاين</div>
+            </div>
+          </div>
+        `;
+        
+        grid.insertAdjacentHTML('afterend', shortcutsHTML);
+      }, 100);
+    });
+  }
+
+  setTimeout(patchHomePage, 3000);
+  console.log('%c✅ [PART 5.6] READY', 'color:#059669;font-weight:900');
+
+})();
+</script>
 </body>
 </html>
