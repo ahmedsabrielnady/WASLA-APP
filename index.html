@@ -7073,5 +7073,152 @@ self.addEventListener('notificationclick', (event) => {
   console.log('%c✅ [PART 5.9] Medical Fix Applied Successfully', 'color:#059669;font-weight:900');
 })();
 </script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 5.10: ULTIMATE CLEANUP (Fix Duplicate Grids + Empty Data)
+═════════════════════════════════════════════════════════════ -->
+<script>
+(function WASLA_PART_5_10_ULTIMATE_FIX() {
+  'use strict';
+
+  console.log('%c🧹 [PART 5.10] Starting Ultimate Cleanup...', 'color:#DC2626;font-weight:900');
+
+  // 1️⃣ إجبار قاعدة البيانات على حفظ بيانات التمريض والمستلزمات
+  function forceInjectData() {
+    const db = Store.load();
+    if (!db) return;
+    
+    // إجبار التمريض
+    db.nursingServices = [
+      { id: 'ns1', name: 'حقن عضل / وريد', icon: 'fa-syringe', desc: 'ممرض معتمد لإعطاء الحقن في المنزل', price: 80, duration: 20, category: 'حقن', popular: true },
+      { id: 'ns2', name: 'تغيير ضمادة / غيار', icon: 'fa-bandage', desc: 'تغيير الغيار الجراحي بعناية معقمة', price: 100, duration: 30, category: 'جراحة', popular: true },
+      { id: 'ns3', name: 'تركيب كانيولا', icon: 'fa-droplet', desc: 'تركيب كانيولا للمحاليل والأدوية الوريدية', price: 120, duration: 25, category: 'تركيبات' },
+      { id: 'ns4', name: 'سحب عينة دم', icon: 'fa-vial', desc: 'سحب عينة دم للتحاليل المعملية', price: 90, duration: 15, category: 'تحاليل', popular: true },
+      { id: 'ns5', name: 'تركيب مغذي (IV)', icon: 'fa-bag-shopping', desc: 'تركيب محلول مغذي مع متابعة كاملة', price: 200, duration: 60, category: 'تركيبات' },
+      { id: 'ns6', name: 'تركيب قسطرة بولية', icon: 'fa-hospital-user', desc: 'قسطرة بولية بأدوات معقمة لمرة واحدة', price: 250, duration: 40, category: 'تركيبات' },
+      { id: 'ns7', name: 'رعاية كبار السن (زيارة منزلية)', icon: 'fa-user-nurse', desc: 'زيارة يومية لمتابعة كبار السن (ضغط، سكر، أدوية، نظافة)', price: 300, duration: 90, category: 'رعاية', popular: true },
+      { id: 'ns8', name: 'رعاية ما بعد العمليات', icon: 'fa-heart-pulse', desc: 'رعاية متكاملة بعد الجراحة (غيار، حقن، متابعة)', price: 350, duration: 120, category: 'رعاية' },
+      { id: 'ns9', name: 'تركيب أنبوبة أكسجين', icon: 'fa-lungs', desc: 'تركيب وضبط جهاز الأكسجين للمريض', price: 150, duration: 30, category: 'طوارئ' },
+      { id: 'ns10', name: 'جلسة تنفس (بخار)', icon: 'fa-wind', desc: 'جلسة بخار لمرضى الجهاز التنفسي', price: 120, duration: 30, category: 'رعاية' }
+    ];
+
+    // إجبار المستلزمات
+    db.medicalSupplies = [
+      { id: 'ms1', name: 'مرتبة هوائية', desc: 'للمرضى طريحي الفراش - مقاسات مختلفة', price: 450, icon: 'fa-bed', category: 'عناية', stock: 20 },
+      { id: 'ms2', name: 'عكاز طبي (ألومنيوم)', desc: 'قابل للتعديل - متين وخفيف', price: 250, icon: 'fa-person-cane', category: 'تأهيل', stock: 30 },
+      { id: 'ms3', name: 'كرسي متحرك', desc: 'كرسي متحرك قياسي قابل للطي', price: 1800, icon: 'fa-wheelchair', category: 'تأهيل', stock: 10 },
+      { id: 'ms4', name: 'رقبة طبية (Soft)', desc: 'دعم للرقبة بعد الإصابات', price: 150, icon: 'fa-user-injured', category: 'عناية', stock: 40 },
+      { id: 'ms5', name: 'مشاية (Walker)', desc: 'مشاية للمساعدة في الحركة', price: 350, icon: 'fa-person-walking', category: 'تأهيل', stock: 15 },
+      { id: 'ms6', name: 'كرسي حمام (Commode)', desc: 'كرسي لقضاء الحاجة للمرضى', price: 400, icon: 'fa-toilet', category: 'عناية', stock: 12 },
+      { id: 'ms7', name: 'جهاز أكسجين منزلي 5 لتر', desc: 'جهاز أكسجين معتمد للمنزل', price: 4500, icon: 'fa-lungs-virus', category: 'أجهزة', stock: 5 },
+      { id: 'ms8', name: 'جهاز ضغط رقمي', desc: 'جهاز قياس ضغط الدم الأوتوماتيكي', price: 650, icon: 'fa-heart-pulse', category: 'أجهزة', stock: 25 },
+      { id: 'ms9', name: 'جهاز قياس سكر', desc: 'جهاز قياس السكر مع 50 شريط', price: 450, icon: 'fa-droplet', category: 'أجهزة', stock: 35 }
+    ];
+
+    Store.save(db);
+    console.log('✅ Data Injected: Nursing & Supplies');
+  }
+  
+  // ننفذها فوراً
+  forceInjectData();
+
+  // 2️⃣ إخفاء ومسح أي شبكات مكررة قديمة
+  function removeDuplicateGrids() {
+    // مسح أي شبكة اتحقنت قبل كده
+    const oldGrids = document.querySelectorAll('.med-services-grid, .med-services-grid-v2');
+    oldGrids.forEach(g => g.remove());
+    
+    // مسح بانر الطوارئ لو ظهر
+    const banner = document.getElementById('wasla-emg-banner');
+    if (banner) banner.remove();
+  }
+
+  // 3️⃣ إعادة بناء صفحة "القطاع الطبي" بشكل نظيف
+  if (window.Router && window.Router.registry['medical']) {
+    const originalMedical = window.Router.registry['medical'];
+
+    window.Router.register('medical', (el, params) => {
+      // مسح أي شبكات قديمة الأول
+      removeDuplicateGrids();
+      
+      // تشغيل الصفحة الأصلية (الأطباء)
+      originalMedical.call(window.Router, el, params);
+
+      // انتظار بسيط ثم إضافة الشبكة النظيفة
+      setTimeout(() => {
+        const hero = el.querySelector('.sector-hero');
+        if (!hero) return;
+
+        // مسح الشبكات القديمة اللي ممكن تكون ظهرت أثناء التحميل
+        el.querySelectorAll('.med-services-grid, .med-services-grid-v2').forEach(g => g.remove());
+
+        const gridHTML = `
+          <div class="med-services-grid-final" style="margin-bottom: 20px; margin-top: 16px;">
+            <h2 class="section-title" style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-notes-medical" style="color: var(--sector-medical);"></i> كل الخدمات الطبية
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+              
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 12px; background: #fff; border: 1px solid #E2E8F0; box-shadow: none;" onclick="Router.go('symptom-checker')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #E0F2FE; color: #0284C7; margin: 0 auto 6px; display: grid; place-items: center; border-radius: 8px;"><i class="fa-solid fa-stethoscope"></i></div>
+                <div class="sector-card-title" style="font-size: 10px; font-weight: 900; color: #334155;">أعراضي</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 12px; background: #fff; border: 1px solid #E2E8F0; box-shadow: none;" onclick="Router.go('nursing')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #F5F3FF; color: #7C3AED; margin: 0 auto 6px; display: grid; place-items: center; border-radius: 8px;"><i class="fa-solid fa-user-nurse"></i></div>
+                <div class="sector-card-title" style="font-size: 10px; font-weight: 900; color: #334155;">التمريض</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 12px; background: #fff; border: 1px solid #E2E8F0; box-shadow: none;" onclick="Router.go('pharmacy')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #DBEAFE; color: #1E40AF; margin: 0 auto 6px; display: grid; place-items: center; border-radius: 8px;"><i class="fa-solid fa-mortar-pestle"></i></div>
+                <div class="sector-card-title" style="font-size: 10px; font-weight: 900; color: #334155;">الصيدلية</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 12px; background: #fff; border: 1px solid #E2E8F0; box-shadow: none;" onclick="Router.go('labs')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #FEF3C7; color: #D97706; margin: 0 auto 6px; display: grid; place-items: center; border-radius: 8px;"><i class="fa-solid fa-vial"></i></div>
+                <div class="sector-card-title" style="font-size: 10px; font-weight: 900; color: #334155;">التحاليل</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 12px; background: #fff; border: 1px solid #E2E8F0; box-shadow: none;" onclick="Router.go('radiology')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #FCE7F3; color: #DB2777; margin: 0 auto 6px; display: grid; place-items: center; border-radius: 8px;"><i class="fa-solid fa-x-ray"></i></div>
+                <div class="sector-card-title" style="font-size: 10px; font-weight: 900; color: #334155;">الأشعة</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 12px; background: #fff; border: 1px solid #E2E8F0; box-shadow: none;" onclick="Router.go('online-consult')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #FEE2E2; color: #DC2626; margin: 0 auto 6px; display: grid; place-items: center; border-radius: 8px;"><i class="fa-solid fa-video"></i></div>
+                <div class="sector-card-title" style="font-size: 10px; font-weight: 900; color: #334155;">استشارة</div>
+              </div>
+
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 12px; background: #fff; border: 1px solid #E2E8F0; box-shadow: none;" onclick="Router.go('medical-supplies')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #CCFBF1; color: #0F766E; margin: 0 auto 6px; display: grid; place-items: center; border-radius: 8px;"><i class="fa-solid fa-wheelchair"></i></div>
+                <div class="sector-card-title" style="font-size: 10px; font-weight: 900; color: #334155;">مستلزمات</div>
+              </div>
+              
+            </div>
+          </div>
+        `;
+        
+        hero.insertAdjacentHTML('afterend', gridHTML);
+      }, 50);
+    });
+  }
+
+  // 4️⃣ مراقب مستمر لمنع تكرار الشبكات أو رجوع البانر
+  setInterval(() => {
+    // إخفاء البانر
+    const banner = document.getElementById('wasla-emg-banner');
+    if (banner) banner.remove();
+
+    // لو لقينا أكتر من شبكة، نمسح الزيادة
+    const grids = document.querySelectorAll('.med-services-grid-final');
+    if (grids.length > 1) {
+      for (let i = 1; i < grids.length; i++) {
+        grids[i].remove();
+      }
+    }
+  }, 500);
+
+  console.log('%c✅ [PART 5.10] Cleanup Complete. Single grid injected, data forced.', 'color:#059669;font-weight:900');
+})();
+</script>
 </body>
 </html>
