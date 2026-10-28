@@ -6784,5 +6784,294 @@ self.addEventListener('notificationclick', (event) => {
 
 })();
 </script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 5.9: FINAL MEDICAL FIX (Nursing Data + Medical Supplies)
+═════════════════════════════════════════════════════════════ -->
+<script>
+(function WASLA_PART_5_9_MEDICAL_FIX() {
+  'use strict';
+
+  if (!window.WaslaCore || !window.Auth || !window.Router) return;
+
+  const { Utils, UI, Store, EventLog } = window.WaslaCore;
+  console.log('%c🚑 [PART 5.9] Applying Medical Fix (Nursing + Supplies)...', 'color:#DC2626;font-weight:900');
+
+  // ══════════════════════════════════════════════════════════════
+  // 1. إجبار النظام على تحديث بيانات التمريض (حل مشكلة الشاشة الفاضية)
+  // ══════════════════════════════════════════════════════════════
+  const db = Store.load();
+  
+  if (!db.nursingServices || db.nursingServices.length === 0) {
+    db.nursingServices = [
+      { id: 'ns1', name: 'حقن عضل / وريد', icon: 'fa-syringe', desc: 'ممرض معتمد لإعطاء الحقن في المنزل', price: 80, duration: 20, category: 'حقن', popular: true },
+      { id: 'ns2', name: 'تغيير ضمادة / غيار', icon: 'fa-bandage', desc: 'تغيير الغيار الجراحي بعناية معقمة', price: 100, duration: 30, category: 'جراحة', popular: true },
+      { id: 'ns3', name: 'تركيب كانيولا', icon: 'fa-droplet', desc: 'تركيب كانيولا للمحاليل والأدوية الوريدية', price: 120, duration: 25, category: 'تركيبات' },
+      { id: 'ns4', name: 'سحب عينة دم', icon: 'fa-vial', desc: 'سحب عينة دم للتحاليل المعملية', price: 90, duration: 15, category: 'تحاليل', popular: true },
+      { id: 'ns5', name: 'تركيب مغذي (IV)', icon: 'fa-bag-shopping', desc: 'تركيب محلول مغذي مع متابعة كاملة', price: 200, duration: 60, category: 'تركيبات' },
+      { id: 'ns6', name: 'تركيب قسطرة بولية', icon: 'fa-hospital-user', desc: 'قسطرة بولية بأدوات معقمة لمرة واحدة', price: 250, duration: 40, category: 'تركيبات' },
+      { id: 'ns7', name: 'رعاية كبار السن (زيارة منزلية)', icon: 'fa-user-nurse', desc: 'زيارة يومية لمتابعة كبار السن (ضغط، سكر، أدوية، نظافة)', price: 300, duration: 90, category: 'رعاية', popular: true },
+      { id: 'ns8', name: 'رعاية ما بعد العمليات', icon: 'fa-heart-pulse', desc: 'رعاية متكاملة بعد الجراحة (غيار، حقن، متابعة)', price: 350, duration: 120, category: 'رعاية' },
+      { id: 'ns9', name: 'تركيب أنبوبة أكسجين', icon: 'fa-lungs', desc: 'تركيب وضبط جهاز الأكسجين للمريض', price: 150, duration: 30, category: 'طوارئ' },
+      { id: 'ns10', name: 'جلسة تنفس (بخار)', icon: 'fa-wind', desc: 'جلسة بخار لمرضى الجهاز التنفسي', price: 120, duration: 30, category: 'رعاية' }
+    ];
+    Store.save(db);
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // 2. إضافة بيانات المستلزمات الطبية
+  // ══════════════════════════════════════════════════════════════
+  if (!db.medicalSupplies) {
+    db.medicalSupplies = [
+      { id: 'ms1', name: 'مرتبة هوائية', desc: 'للمرضى طريحي الفراش - مقاسات مختلفة', price: 450, icon: 'fa-bed', category: 'عناية', stock: 20 },
+      { id: 'ms2', name: 'عكاز طبي (ألومنيوم)', desc: 'قابل للتعديل - متين وخفيف', price: 250, icon: 'fa-person-cane', category: 'تأهيل', stock: 30 },
+      { id: 'ms3', name: 'كرسي متحرك', desc: 'كرسي متحرك قياسي قابل للطي', price: 1800, icon: 'fa-wheelchair', category: 'تأهيل', stock: 10 },
+      { id: 'ms4', name: 'رقبة طبية (Soft)', desc: 'دعم للرقبة بعد الإصابات', price: 150, icon: 'fa-user-injured', category: 'عناية', stock: 40 },
+      { id: 'ms5', name: 'مشاية (Walker)', desc: 'مشاية للمساعدة في الحركة', price: 350, icon: 'fa-person-walking', category: 'تأهيل', stock: 15 },
+      { id: 'ms6', name: 'كرسي حمام (Commode)', desc: 'كرسي لقضاء الحاجة للمرضى', price: 400, icon: 'fa-toilet', category: 'عناية', stock: 12 },
+      { id: 'ms7', name: 'جهاز أكسجين منزلي 5 لتر', desc: 'جهاز أكسجين معتمد للمنزل', price: 4500, icon: 'fa-lungs-virus', category: 'أجهزة', stock: 5 },
+      { id: 'ms8', name: 'جهاز ضغط رقمي', desc: 'جهاز قياس ضغط الدم الأوتوماتيكي', price: 650, icon: 'fa-heart-pulse', category: 'أجهزة', stock: 25 },
+      { id: 'ms9', name: 'جهاز قياس سكر', desc: 'جهاز قياس السكر مع 50 شريط', price: 450, icon: 'fa-droplet', category: 'أجهزة', stock: 35 }
+    ];
+    Store.save(db);
+  }
+
+  if (!db.suppliesCart) { db.suppliesCart = {}; }
+
+  // ══════════════════════════════════════════════════════════════
+  // 3. صفحة التمريض (إعادة بناءها لضمان ظهور البيانات)
+  // ══════════════════════════════════════════════════════════════
+  window.Router.register('nursing', (el) => {
+    const db = Store.load();
+    const services = db.nursingServices || [];
+
+    el.innerHTML = `
+      <div class="sector-hero" data-sector="home" style="background:linear-gradient(120deg,#4C1D95,#7C3AED 55%,#A78BFA);">
+        <span class="sector-hero-badge"><i class="fa-solid fa-user-nurse"></i> خدمات التمريض</span>
+        <h1>ممرض معتمد.. ييجي لحد بيتك</h1>
+        <p>${services.length} خدمة تمريضية · زيارة منزلية · ممرضين معتمدين</p>
+      </div>
+
+      <div class="card" style="background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-color:#C4B5FD;">
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <i class="fa-solid fa-shield-heart" style="color:#7C3AED;font-size:20px;flex-shrink:0;margin-top:2px;"></i>
+          <div>
+            <div style="font-size:12.5px;font-weight:900;color:#4C1D95;margin-bottom:4px;">ممرضين معتمدين من وزارة الصحة</div>
+            <p style="font-size:11px;color:#5B21B6;font-weight:700;line-height:1.6;margin:0;">
+              كل ممرضينا حاصلين على ترخيص رسمي ولديهم خبرة لا تقل عن 3 سنوات.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title"><i class="fa-solid fa-list-check"></i> الخدمات المتاحة (${services.length})</h2>
+
+      <div id="nursing-services-list">
+        ${services.map(s => `
+          <div class="nursing-service-card" onclick="window.__bookNursing('${s.id}')">
+            <div class="nursing-icon"><i class="fa-solid ${s.icon}"></i></div>
+            <div class="nursing-info">
+              <div class="nursing-name">
+                ${Utils.escape(s.name)}
+                ${s.popular ? `<span class="tag tag-warning" style="font-size:8.5px;padding:1px 6px;margin-right:4px;">🔥 مطلوب</span>` : ''}
+              </div>
+              <div class="nursing-desc">${Utils.escape(s.desc)}</div>
+              <div class="nursing-meta">
+                <span><i class="fa-solid fa-clock"></i> ${s.duration} دقيقة</span>
+                <span><i class="fa-solid fa-tag"></i> ${Utils.escape(s.category)}</span>
+              </div>
+            </div>
+            <div>
+              <div class="nursing-price">${s.price}<small>ج.م</small></div>
+              <button class="btn" style="background:#7C3AED;color:#fff;margin-top:6px;font-size:11px;padding:7px 12px;font-weight:900;">
+                احجز
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // 4. صفحة المستلزمات الطبية (جديدة)
+  // ══════════════════════════════════════════════════════════════
+  window.Router.register('medical-supplies', (el) => {
+    const db = Store.load();
+    const supplies = db.medicalSupplies || [];
+    
+    el.innerHTML = `
+      <div class="sector-hero" data-sector="medical" style="background:linear-gradient(120deg,#0F766E,#0D9488 55%,#14B8A6);">
+        <span class="sector-hero-badge"><i class="fa-solid fa-wheelchair"></i> مستلزمات طبية</span>
+        <h1>كل مستلزمات العناية.. في مكان واحد</h1>
+        <p>أجهزة، كراسي متحركة، مراتب هوائية، وأدوات تأهيل</p>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <input type="search" id="supplies-search" class="input" placeholder="🔍 ابحث عن مستلزم (كرسي، جهاز ضغط...)" style="font-size:14px;" />
+      </div>
+
+      <h2 class="section-title"><i class="fa-solid fa-box-open"></i> المتوفر حالياً (${supplies.length})</h2>
+      
+      <div id="supplies-list">
+        ${supplies.map(s => `
+          <div class="pharmacy-product-card supply-item-card" data-name="${s.name.toLowerCase()}">
+            <div class="pharmacy-product-icon" style="background:#CCFBF1;color:#0F766E;"><i class="fa-solid ${s.icon}"></i></div>
+            <div class="pharmacy-product-info">
+              <div class="pharmacy-product-name">${Utils.escape(s.name)}</div>
+              <div class="pharmacy-product-brand">${Utils.escape(s.desc)}</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="pharmacy-product-price" style="color:#0F766E;">${s.price} ج.م</span>
+              </div>
+            </div>
+            <button class="add-btn" style="background:linear-gradient(135deg,#0F766E,#14B8A6);box-shadow:0 4px 12px rgba(15,118,110,0.3);" onclick="window.__orderSupply('${s.id}')">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    document.getElementById('supplies-search')?.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      document.querySelectorAll('.supply-item-card').forEach(card => {
+        card.style.display = card.dataset.name.includes(q) ? 'flex' : 'none';
+      });
+    });
+  });
+
+  // دالة طلب المستلزمات
+  window.__orderSupply = (supplyId) => {
+    const user = window.Auth.getCurrentUser();
+    if (!user) { UI.toast('سجل دخول أولاً', 'warning'); window.AuthUI.open('login'); return; }
+    
+    const db = Store.load();
+    const item = db.medicalSupplies.find(s => s.id === supplyId);
+    if (!item) return;
+
+    const body = Utils.$('#modal-generic-body');
+    body.innerHTML = `
+      <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="font-size:16px;font-weight:900;margin-bottom:6px;">${Utils.escape(item.name)}</h3>
+      <p style="font-size:11.5px;color:var(--text-muted);font-weight:700;margin-bottom:14px;">${Utils.escape(item.desc)}</p>
+      
+      <div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:12px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:14px;font-weight:900;color:#0F766E;">السعر</span>
+        <span style="font-size:20px;font-weight:900;color:#0F766E;">${item.price} ج.م</span>
+      </div>
+
+      <label class="label">العنوان بالتفصيل</label>
+      <textarea id="supply-address" class="input" placeholder="الشارع، رقم العمارة، الدور..." style="min-height:60px;margin-bottom:12px;resize:vertical;"></textarea>
+
+      <label class="label">رقم الموبايل</label>
+      <input type="tel" id="supply-phone" class="input" value="${user.phone}" maxlength="11" style="margin-bottom:16px;" />
+
+      <button class="btn btn-block btn-lg" style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;" onclick="window.__submitSupplyOrder('${item.id}')">
+        <i class="fa-solid fa-truck-fast"></i> تأكيد الطلب
+      </button>
+    `;
+    UI.modal('modal-generic', { open: true });
+  };
+
+  window.__submitSupplyOrder = (supplyId) => {
+    const address = Utils.$('#supply-address').value.trim();
+    const phone = Utils.$('#supply-phone').value.trim();
+    if (address.length < 10) return UI.toast('أدخل عنوان واضح', 'error');
+    if (!Utils.isValidPhone(phone)) return UI.toast('رقم موبايل غير صحيح', 'error');
+
+    const db = Store.load();
+    const item = db.medicalSupplies.find(s => s.id === supplyId);
+    const user = window.Auth.getCurrentUser();
+    
+    const orderId = Utils.id('sup');
+    db.orders.push({
+      id: orderId, userId: user.id, userName: user.name, userPhone: phone,
+      sector: 'medical_supplies', storeName: 'مستلزمات طبية',
+      items: [{ name: item.name, price: item.price, qty: 1, subtotal: item.price }],
+      total: item.price, address, paymentMethod: 'cash',
+      status: 'pending', createdAt: Date.now()
+    });
+    
+    db.notifications.unshift({ 
+      id: Utils.id('notif'), userId: user.id, 
+      text: `✅ تم طلب ${item.name}. هنتواصل معاك للتأكيد.`, 
+      read: false, ts: Date.now() 
+    });
+    
+    Store.save(db);
+    UI.modal('modal-generic', { open: false });
+    UI.toast('✅ تم استلام طلبك بنجاح', 'success');
+    window.Router.go('orders');
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // 5. تحديث شبكة الخدمات داخل "القطاع الطبي" لتشمل المستلزمات
+  // ══════════════════════════════════════════════════════════════
+  const originalMedical = window.Router.registry['medical'];
+  if (originalMedical) {
+    window.Router.register('medical', (el, params) => {
+      originalMedical.call(window.Router, el, params);
+
+      setTimeout(() => {
+        const hero = el.querySelector('.sector-hero');
+        if (!hero || el.querySelector('.med-services-grid-v2')) return;
+
+        const gridHTML = `
+          <div class="med-services-grid-v2" style="margin-bottom: 20px; margin-top: 16px;">
+            <h2 class="section-title" style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary);"><i class="fa-solid fa-notes-medical" style="color: var(--sector-medical);"></i> كل الخدمات الطبية</h2>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+              
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 10px; background: #fff;" onclick="Router.go('symptom-checker')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #E0F2FE; color: #0284C7; margin-bottom: 4px;"><i class="fa-solid fa-stethoscope"></i></div>
+                <div class="sector-card-title" style="font-size: 10px;">أعراضي</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 10px; background: #fff;" onclick="Router.go('nursing')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #F5F3FF; color: #7C3AED; margin-bottom: 4px;"><i class="fa-solid fa-user-nurse"></i></div>
+                <div class="sector-card-title" style="font-size: 10px;">التمريض</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 10px; background: #fff;" onclick="Router.go('pharmacy')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #DBEAFE; color: #1E40AF; margin-bottom: 4px;"><i class="fa-solid fa-mortar-pestle"></i></div>
+                <div class="sector-card-title" style="font-size: 10px;">الصيدلية</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 10px; background: #fff;" onclick="Router.go('labs')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #FEF3C7; color: #D97706; margin-bottom: 4px;"><i class="fa-solid fa-vial"></i></div>
+                <div class="sector-card-title" style="font-size: 10px;">التحاليل</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 10px; background: #fff;" onclick="Router.go('radiology')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #FCE7F3; color: #DB2777; margin-bottom: 4px;"><i class="fa-solid fa-x-ray"></i></div>
+                <div class="sector-card-title" style="font-size: 10px;">الأشعة</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 10px; background: #fff;" onclick="Router.go('online-consult')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #FEE2E2; color: #DC2626; margin-bottom: 4px;"><i class="fa-solid fa-video"></i></div>
+                <div class="sector-card-title" style="font-size: 10px;">استشارة</div>
+              </div>
+
+              <div class="sector-card" style="padding: 10px 4px; border-radius: 10px; background: #fff;" onclick="Router.go('medical-supplies')">
+                <div class="sector-card-icon" style="width: 32px; height: 32px; font-size: 14px; background: #CCFBF1; color: #0F766E; margin-bottom: 4px;"><i class="fa-solid fa-wheelchair"></i></div>
+                <div class="sector-card-title" style="font-size: 10px;">مستلزمات</div>
+              </div>
+              
+            </div>
+          </div>
+        `;
+        
+        hero.insertAdjacentHTML('afterend', gridHTML);
+      }, 50);
+    });
+  }
+
+  // مسح البانر لو ظهر تاني
+  setInterval(() => {
+    const banner = document.getElementById('wasla-emg-banner');
+    if (banner) banner.remove();
+  }, 500);
+
+  console.log('%c✅ [PART 5.9] Medical Fix Applied Successfully', 'color:#059669;font-weight:900');
+})();
+</script>
 </body>
 </html>
