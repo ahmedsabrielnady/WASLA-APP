@@ -6701,5 +6701,88 @@ self.addEventListener('notificationclick', (event) => {
 
 })();
 </script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 5.8: MEDICAL SECTOR FINAL FIX
+     - مسح بانر الطوارئ نهائياً
+     - إضافة شبكة الخدمات (تمريض، صيدلية، الخ) داخل صفحة القطاع الطبي
+═════════════════════════════════════════════════════════════ -->
+<script>
+(function WASLA_MEDICAL_FINAL_FIX() {
+  'use strict';
+
+  console.log('%c🔧 [PART 5.8] Applying Medical Sector Final Fix...', 'color:#DC2626;font-weight:900');
+
+  // ══════════════════════════════════════════════════════════════
+  // 1. مسح بانر الطوارئ نهائياً (مراقبة مستمرة)
+  // ══════════════════════════════════════════════════════════════
+  setInterval(() => {
+    const banner = document.getElementById('wasla-emg-banner');
+    if (banner) {
+      banner.remove();
+    }
+  }, 200);
+
+  // ══════════════════════════════════════════════════════════════
+  // 2. حقن شبكة الخدمات داخل صفحة "القطاع الطبي"
+  // ══════════════════════════════════════════════════════════════
+  const originalMedical = window.Router.registry['medical'];
+  
+  if (originalMedical) {
+    window.Router.register('medical', (el, params) => {
+      // تشغيل الصفحة الأصلية (قائمة الأطباء والبحث)
+      originalMedical.call(window.Router, el, params);
+
+      // انتظار بسيط لظهور العناصر ثم حقن الشبكة
+      setTimeout(() => {
+        const hero = el.querySelector('.sector-hero');
+        if (!hero || el.querySelector('.med-services-grid')) return;
+
+        const gridHTML = `
+          <div class="med-services-grid" style="margin-bottom: 20px; margin-top: 16px;">
+            <h2 class="section-title" style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary);"><i class="fa-solid fa-notes-medical" style="color: var(--sector-medical);"></i> كل الخدمات الطبية</h2>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+              
+              <div class="sector-card" style="padding: 12px 6px; border-radius: 12px; background: #fff;" onclick="Router.go('symptom-checker')">
+                <div class="sector-card-icon" style="width: 36px; height: 36px; font-size: 16px; background: #E0F2FE; color: #0284C7; margin-bottom: 6px;"><i class="fa-solid fa-stethoscope"></i></div>
+                <div class="sector-card-title" style="font-size: 11px;">أعراضي</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 12px 6px; border-radius: 12px; background: #fff;" onclick="Router.go('nursing')">
+                <div class="sector-card-icon" style="width: 36px; height: 36px; font-size: 16px; background: #F5F3FF; color: #7C3AED; margin-bottom: 6px;"><i class="fa-solid fa-user-nurse"></i></div>
+                <div class="sector-card-title" style="font-size: 11px;">التمريض</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 12px 6px; border-radius: 12px; background: #fff;" onclick="Router.go('pharmacy')">
+                <div class="sector-card-icon" style="width: 36px; height: 36px; font-size: 16px; background: #DBEAFE; color: #1E40AF; margin-bottom: 6px;"><i class="fa-solid fa-mortar-pestle"></i></div>
+                <div class="sector-card-title" style="font-size: 11px;">الصيدلية</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 12px 6px; border-radius: 12px; background: #fff;" onclick="Router.go('labs')">
+                <div class="sector-card-icon" style="width: 36px; height: 36px; font-size: 16px; background: #FEF3C7; color: #D97706; margin-bottom: 6px;"><i class="fa-solid fa-vial"></i></div>
+                <div class="sector-card-title" style="font-size: 11px;">التحاليل</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 12px 6px; border-radius: 12px; background: #fff;" onclick="Router.go('radiology')">
+                <div class="sector-card-icon" style="width: 36px; height: 36px; font-size: 16px; background: #FCE7F3; color: #DB2777; margin-bottom: 6px;"><i class="fa-solid fa-x-ray"></i></div>
+                <div class="sector-card-title" style="font-size: 11px;">الأشعة</div>
+              </div>
+              
+              <div class="sector-card" style="padding: 12px 6px; border-radius: 12px; background: #fff;" onclick="Router.go('online-consult')">
+                <div class="sector-card-icon" style="width: 36px; height: 36px; font-size: 16px; background: #FEE2E2; color: #DC2626; margin-bottom: 6px;"><i class="fa-solid fa-video"></i></div>
+                <div class="sector-card-title" style="font-size: 11px;">استشارة</div>
+              </div>
+              
+            </div>
+          </div>
+        `;
+        
+        // نحقن الشبكة بعد البانر الأخضر مباشرة
+        hero.insertAdjacentHTML('afterend', gridHTML);
+      }, 50);
+    });
+  }
+
+})();
+</script>
 </body>
 </html>
