@@ -5415,5 +5415,785 @@ self.addEventListener('notificationclick', (event) => {
 
 })();
 </script>
+   <!-- ═════════════════════════════════════════════════════════════
+     PART 5.5: SYMPTOM CHECKER + MEDICAL NAVIGATION
+     - 20 شائعة مربوطة بالتخصصات
+     - تحديد الأعراض → اقتراح التخصص والأطباء
+     - 9 أطباء جداد لتغطية كل التخصصات
+     - Tab bar موحد لكل صفحات القطاع الطبي
+═════════════════════════════════════════════════════════════ -->
+<style>
+/* ── Medical Navigation Chips ── */
+.med-nav-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 12px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  margin: 0 -16px;
+  padding-inline: 16px;
+}
+.med-nav-scroll::-webkit-scrollbar { display: none; }
+.med-nav-chip {
+  flex-shrink: 0;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1.5px solid var(--border-default);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+}
+.med-nav-chip:active { transform: scale(0.95); }
+.med-nav-chip.active {
+  background: linear-gradient(135deg, #059669, #10B981);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+/* ── Symptom Grid ── */
+.symptom-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.symptom-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-default);
+  border-radius: 12px;
+  padding: 12px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+  position: relative;
+}
+.symptom-card:active { transform: scale(0.96); }
+.symptom-card.selected {
+  background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+  border-color: #059669;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15);
+}
+.symptom-card.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  background: #059669;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+}
+.symptom-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  margin: 0 auto 8px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  background: var(--sector-medical-soft);
+  color: var(--sector-medical);
+}
+.symptom-card.selected .symptom-icon {
+  background: linear-gradient(135deg, #059669, #10B981);
+  color: #fff;
+}
+.symptom-name {
+  font-size: 11.5px;
+  font-weight: 900;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+.symptom-urgent-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: var(--color-danger);
+  color: #fff;
+  font-size: 7.5px;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* ── Selected Bar (sticky bottom) ── */
+.symptoms-action-bar {
+  position: sticky;
+  bottom: 16px;
+  background: linear-gradient(135deg, #059669, #10B981);
+  color: #fff;
+  border-radius: 14px;
+  padding: 12px 16px;
+  box-shadow: 0 12px 32px rgba(5, 150, 105, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  z-index: 850;
+  animation: slide-up-bar 0.3s ease;
+}
+@keyframes slide-up-bar {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.symptoms-action-bar .sab-info { flex: 1; }
+.symptoms-action-bar .sab-info strong { display: block; font-size: 13px; font-weight: 900; }
+.symptoms-action-bar .sab-info small { font-size: 10.5px; opacity: 0.9; font-weight: 700; }
+.symptoms-action-bar button {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ── Result Section ── */
+.result-hero {
+  background: linear-gradient(135deg, #064E3B, #059669 55%, #10B981);
+  color: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.result-hero i.result-icon {
+  font-size: 44px;
+  margin-bottom: 10px;
+}
+.result-hero h2 { font-size: 18px; font-weight: 900; margin-bottom: 4px; }
+.result-hero p { font-size: 12px; opacity: 0.9; font-weight: 700; }
+
+.suggested-specialty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-default);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.suggested-specialty:active { transform: scale(0.98); }
+.suggested-specialty:hover { border-color: var(--sector-medical); }
+.suggested-specialty-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: var(--sector-medical-soft);
+  color: var(--sector-medical);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.suggested-specialty-info { flex: 1; }
+.suggested-specialty-name { font-size: 13.5px; font-weight: 900; color: var(--text-primary); margin-bottom: 2px; }
+.suggested-specialty-doctors { font-size: 10.5px; color: var(--text-muted); font-weight: 700; }
+
+/* ── Urgent Warning ── */
+.urgent-warning {
+  background: linear-gradient(135deg, #FEF2F2, #FEE2E2);
+  border: 1.5px solid rgba(225, 29, 72, 0.3);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.urgent-warning i { font-size: 20px; color: var(--color-danger); flex-shrink: 0; margin-top: 2px; }
+.urgent-warning div { flex: 1; font-size: 11.5px; color: #991B1B; font-weight: 700; line-height: 1.6; }
+.urgent-warning strong { font-weight: 900; }
+
+/* ── Loading Spinner ── */
+.symptom-loading {
+  text-align: center;
+  padding: 40px 20px;
+}
+.symptom-loading i {
+  font-size: 40px;
+  color: var(--sector-medical);
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+(function WASLA_PART_5_5_SYMPTOMS() {
+  'use strict';
+
+  if (!window.WaslaCore || !window.Auth || !window.Router) {
+    console.error('❌ PART 5.5 requires PART 2, 3');
+    return;
+  }
+
+  const { Utils, UI, Store, EventLog } = window.WaslaCore;
+
+  console.log('%c🩺 [PART 5.5] Symptom Checker loading...', 'color:#059669;font-weight:900');
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 1: SCHEMA EXTENSION (more doctors + symptoms data)
+  // ══════════════════════════════════════════════════════════════
+  function extendSchema() {
+    const db = Store.load();
+    if (!db) return;
+    let changed = false;
+
+    const schedule = () => ({
+      saturday: { active: true, start: '17:00', end: '21:00', duration: 20 },
+      sunday: { active: true, start: '17:00', end: '21:00', duration: 20 },
+      monday: { active: false },
+      tuesday: { active: true, start: '17:00', end: '21:00', duration: 20 },
+      wednesday: { active: true, start: '17:00', end: '21:00', duration: 20 },
+      thursday: { active: false }, friday: { active: false }
+    });
+
+    // Add more doctors to cover all specialties
+    const existingSpecs = (db.doctors || []).map(d => d.spec);
+    const extraDoctors = [
+      { id: 'd6', userId: null, name: 'د. هالة محمود', spec: 'جلدية', bio: 'أخصائية جلدية وتجميل', area: 'شارع الجيش', price: 220, avgTime: 15, rating: 4.8, reviewsCount: 156, status: 'available', acceptedInsurances: ['ins1', 'ins3'], services: [], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 6 },
+      { id: 'd7', userId: null, name: 'د. خالد سمير', spec: 'عيون', bio: 'استشاري طب وجراحة العيون', area: 'ميدان المحطة', price: 250, avgTime: 20, rating: 4.9, reviewsCount: 187, status: 'available', acceptedInsurances: ['ins2', 'ins4'], services: [], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 5 },
+      { id: 'd8', userId: null, name: 'د. نادية فؤاد', spec: 'أنف وأذن وحنجرة', bio: 'أخصائية أنف وأذن وحنجرة', area: 'شارع بورسعيد', price: 230, avgTime: 18, rating: 4.7, reviewsCount: 134, status: 'available', acceptedInsurances: ['ins1', 'ins5'], services: [], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 4 },
+      { id: 'd9', userId: null, name: 'د. عمر حسن', spec: 'مسالك بولية', bio: 'استشاري مسالك بولية', area: 'شارع المستشفى', price: 280, avgTime: 20, rating: 4.8, reviewsCount: 112, status: 'available', acceptedInsurances: ['ins3', 'ins4'], services: [], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 3 },
+      { id: 'd10', userId: null, name: 'د. مروة علي', spec: 'نفسية', bio: 'أخصائية الطب النفسي', area: 'ميدان المحطة', price: 300, avgTime: 45, rating: 4.9, reviewsCount: 178, status: 'available', acceptedInsurances: ['ins2', 'ins6'], services: [], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 2 },
+      { id: 'd11', userId: null, name: 'د. طارق إبراهيم', spec: 'صدر', bio: 'استشاري أمراض صدرية', area: 'شارع الجيش', price: 240, avgTime: 20, rating: 4.7, reviewsCount: 145, status: 'available', acceptedInsurances: ['ins1', 'ins4'], services: [], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 7 },
+      { id: 'd12', userId: null, name: 'د. سامي عبد الله', spec: 'أسنان', bio: 'أخصائي طب وجراحة الأسنان', area: 'شارع بورسعيد', price: 200, avgTime: 30, rating: 4.8, reviewsCount: 203, status: 'available', acceptedInsurances: ['ins3'], services: [], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 8 },
+      { id: 'd13', userId: null, name: 'د. ليلى رشدي', spec: 'مخ وأعصاب', bio: 'استشارية مخ وأعصاب', area: 'شارع المستشفى', price: 320, avgTime: 25, rating: 4.9, reviewsCount: 98, status: 'available', acceptedInsurances: ['ins2', 'ins5'], services: [], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 9 },
+      { id: 'd14', userId: null, name: 'د. ياسر عبد الفتاح', spec: 'جراحة عامة', bio: 'استشاري جراحة عامة', area: 'شارع الجيش', price: 350, avgTime: 25, rating: 4.8, reviewsCount: 87, status: 'available', acceptedInsurances: ['ins1', 'ins4'], services: [], schedule: schedule(), verified: true, createdAt: Date.now() - 86400000 * 10 }
+    ];
+
+    extraDoctors.forEach(doc => {
+      if (!(db.doctors || []).find(d => d.id === doc.id)) {
+        db.doctors.push(doc);
+        changed = true;
+      }
+    });
+
+    // Symptoms data
+    if (!db.symptoms || db.symptoms.length < 20) {
+      db.symptoms = [
+        { id: 's1', name: 'صداع متكرر', icon: 'fa-head-side-virus', specialties: ['باطنة وكبد', 'باطنة', 'مخ وأعصاب'], urgency: 'normal' },
+        { id: 's2', name: 'ألم في الصدر', icon: 'fa-heart-pulse', specialties: ['قلب', 'باطنة وكبد'], urgency: 'high' },
+        { id: 's3', name: 'ألم في البطن', icon: 'fa-stomach', specialties: ['باطنة وكبد', 'باطنة', 'جراحة عامة'], urgency: 'normal' },
+        { id: 's4', name: 'كحة مستمرة', icon: 'fa-lungs', specialties: ['صدر', 'باطنة وكبد'], urgency: 'normal' },
+        { id: 's5', name: 'حمى وحرارة', icon: 'fa-thermometer-full', specialties: ['باطنة وكبد', 'أطفال'], urgency: 'normal' },
+        { id: 's6', name: 'ألم في المفاصل', icon: 'fa-bone', specialties: ['عظام', 'باطنة وكبد'], urgency: 'normal' },
+        { id: 's7', name: 'طفح جلدي', icon: 'fa-hand-dots', specialties: ['جلدية'], urgency: 'normal' },
+        { id: 's8', name: 'ألم في الأسنان', icon: 'fa-tooth', specialties: ['أسنان'], urgency: 'normal' },
+        { id: 's9', name: 'مشاكل في الرؤية', icon: 'fa-eye', specialties: ['عيون'], urgency: 'normal' },
+        { id: 's10', name: 'ألم في الأذن', icon: 'fa-ear-listen', specialties: ['أنف وأذن وحنجرة'], urgency: 'normal' },
+        { id: 's11', name: 'أعراض حمل', icon: 'fa-baby', specialties: ['نساء وتوليد'], urgency: 'normal' },
+        { id: 's12', name: 'مشاكل في التبول', icon: 'fa-toilet', specialties: ['مسالك بولية'], urgency: 'normal' },
+        { id: 's13', name: 'إسهال أو إمساك', icon: 'fa-toilet-paper', specialties: ['باطنة وكبد'], urgency: 'normal' },
+        { id: 's14', name: 'أرق واضطراب نوم', icon: 'fa-moon', specialties: ['نفسية', 'مخ وأعصاب'], urgency: 'normal' },
+        { id: 's15', name: 'قلق وتوتر', icon: 'fa-brain', specialties: ['نفسية'], urgency: 'normal' },
+        { id: 's16', name: 'ضيق في التنفس', icon: 'fa-lungs-virus', specialties: ['صدر', 'قلب'], urgency: 'high' },
+        { id: 's17', name: 'ألم في العضلات', icon: 'fa-dumbbell', specialties: ['عظام', 'باطنة وكبد'], urgency: 'normal' },
+        { id: 's18', name: 'حساسية', icon: 'fa-allergies', specialties: ['جلدية', 'أنف وأذن وحنجرة'], urgency: 'normal' },
+        { id: 's19', name: 'دوخة ودوار', icon: 'fa-meh-rolling-eyes', specialties: ['باطنة وكبد', 'أنف وأذن وحنجرة'], urgency: 'normal' },
+        { id: 's20', name: 'سعال جاف', icon: 'fa-head-side-cough', specialties: ['صدر'], urgency: 'normal' }
+      ];
+      changed = true;
+    }
+
+    // Suggest labs mapping (basic)
+    if (!db.symptomLabs) {
+      db.symptomLabs = {
+        s1: ['صورة دم كاملة', 'سكر صائم'],
+        s2: ['رسم قلب', 'إنزيمات القلب', 'دهون كاملة'],
+        s3: ['صورة دم كاملة', 'وظائف كبد', 'موجات صوتية بطن'],
+        s4: ['صورة دم كاملة', 'أشعة صدر'],
+        s5: ['صورة دم كاملة', 'CRP'],
+        s6: ['عامل روماتيزم', 'حمض يوريك'],
+        s7: ['IgE كلي'],
+        s8: [],
+        s9: [],
+        s10: [],
+        s11: ['هرمون حمل HCG', 'موجات صوتية'],
+        s12: ['تحليل بول', 'وظائف كلى'],
+        s13: ['صورة دم كاملة', 'تحليل براز'],
+        s14: ['فيتامين د', 'وظائف غدة درقية'],
+        s15: ['فيتامين د'],
+        s16: ['أشعة صدر', 'رسم قلب'],
+        s17: ['CK', 'فيتامين د'],
+        s18: ['IgE كلي'],
+        s19: ['صورة دم كاملة', 'سكر صائم', 'ضغط'],
+        s20: ['أشعة صدر']
+      };
+      changed = true;
+    }
+
+    if (changed) {
+      Store.save(db);
+      EventLog.log('symptom_schema_extended', { ts: Date.now() });
+    }
+  }
+  extendSchema();
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 2: MEDICAL NAVIGATION (unified across pages)
+  // ══════════════════════════════════════════════════════════════
+  const MEDICAL_NAV = [
+    { id: 'doctors', label: 'الأطباء', icon: 'fa-user-doctor', route: 'medical' },
+    { id: 'symptoms', label: 'أعراضي', icon: 'fa-stethoscope', route: 'symptom-checker' },
+    { id: 'nursing', label: 'التمريض', icon: 'fa-user-nurse', route: 'nursing' },
+    { id: 'pharmacy', label: 'الصيدلية', icon: 'fa-mortar-pestle', route: 'pharmacy' },
+    { id: 'labs', label: 'التحاليل', icon: 'fa-vial', route: 'labs' },
+    { id: 'radiology', label: 'الأشعة', icon: 'fa-x-ray', route: 'radiology' },
+    { id: 'consult', label: 'استشارة', icon: 'fa-video', route: 'online-consult' }
+  ];
+
+  window.__renderMedicalNav = function (active) {
+    return `
+      <div class="med-nav-scroll">
+        ${MEDICAL_NAV.map(c => `
+          <button class="med-nav-chip ${active === c.id ? 'active' : ''}" onclick="Router.go('${c.route}')">
+            <i class="fa-solid ${c.icon}"></i> ${c.label}
+          </button>
+        `).join('')}
+      </div>
+    `;
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 3: SYMPTOM CHECKER VIEW
+  // ══════════════════════════════════════════════════════════════
+  const state = {
+    selectedSymptoms: new Set(),
+    showResults: false
+  };
+
+  window.Router.register('symptom-checker', (el) => {
+    state.selectedSymptoms = new Set();
+    state.showResults = false;
+    renderSymptomChecker(el);
+  });
+
+  function renderSymptomChecker(el) {
+    const db = Store.load();
+    const symptoms = db.symptoms || [];
+
+    el.innerHTML = `
+      <div class="sector-hero" data-sector="medical" style="background:linear-gradient(120deg,#0C4A6E,#0369A1 55%,#0EA5E9);">
+        <span class="sector-hero-badge"><i class="fa-solid fa-stethoscope"></i> فحص الأعراض</span>
+        <h1>اختار أعراضك.. وهنقولك تكشف عند مين</h1>
+        <p>حدد الأعراض اللي بتحس بيها، وهيظهرلك التخصص والأطباء المناسبين</p>
+      </div>
+
+      ${window.__renderMedicalNav('symptoms')}
+
+      <div class="card" style="background:linear-gradient(135deg,#E0F2FE,#BAE6FD);border-color:#7DD3FC;">
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <i class="fa-solid fa-lightbulb" style="color:#0284C7;font-size:20px;flex-shrink:0;margin-top:2px;"></i>
+          <div>
+            <div style="font-size:12.5px;font-weight:900;color:#0C4A6E;margin-bottom:4px;">إزاي تستخدم الأداة؟</div>
+            <p style="font-size:11px;color:#075985;font-weight:700;line-height:1.6;margin:0;">
+              اختار عرض أو أكتر من اللي بتحس بيهم. النظام هيقترح التخصص المناسب والتحاليل الأولية (لو محتاجة).
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div id="symptoms-area">
+        <h2 class="section-title"><i class="fa-solid fa-list-check"></i> اختار أعراضك (${symptoms.length} عرض)</h2>
+        <div class="symptom-grid" id="symptom-grid">
+          ${symptoms.map(s => `
+            <div class="symptom-card" data-symptom-id="${s.id}" onclick="window.__toggleSymptom('${s.id}')">
+              ${s.urgency === 'high' ? '<span class="symptom-urgent-badge">⚠️ حرج</span>' : ''}
+              <div class="symptom-icon"><i class="fa-solid ${s.icon}"></i></div>
+              <div class="symptom-name">${Utils.escape(s.name)}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div id="symptoms-result-area"></div>
+
+      <div id="symptoms-action-bar-container"></div>
+    `;
+
+    updateActionBar();
+  }
+
+  window.__toggleSymptom = (symptomId) => {
+    if (state.showResults) {
+      // Reset and start over
+      state.showResults = false;
+      state.selectedSymptoms = new Set();
+      const area = document.getElementById('symptoms-area');
+      const resultArea = document.getElementById('symptoms-result-area');
+      if (resultArea) resultArea.innerHTML = '';
+      if (area) area.style.display = '';
+    }
+
+    if (state.selectedSymptoms.has(symptomId)) {
+      state.selectedSymptoms.delete(symptomId);
+    } else {
+      state.selectedSymptoms.add(symptomId);
+    }
+
+    document.querySelectorAll('.symptom-card').forEach(card => {
+      const id = card.dataset.symptomId;
+      card.classList.toggle('selected', state.selectedSymptoms.has(id));
+    });
+
+    updateActionBar();
+  };
+
+  function updateActionBar() {
+    const container = document.getElementById('symptoms-action-bar-container');
+    if (!container) return;
+
+    const count = state.selectedSymptoms.size;
+
+    if (count === 0 || state.showResults) {
+      container.innerHTML = '';
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="symptoms-action-bar">
+        <div class="sab-info">
+          <strong>${count} ${count === 1 ? 'عرض' : 'أعراض'} مختارة</strong>
+          <small>اضغط لتشوف التخصص المناسب</small>
+        </div>
+        <button onclick="window.__analyzeSymptoms()">
+          <i class="fa-solid fa-arrow-left"></i> اعرف احتياجك
+        </button>
+      </div>
+    `;
+  }
+
+  window.__analyzeSymptoms = () => {
+    if (state.selectedSymptoms.size === 0) return;
+
+    const db = Store.load();
+    const allSymptoms = db.symptoms || [];
+    const selected = allSymptoms.filter(s => state.selectedSymptoms.has(s.id));
+
+    // Collect unique specialties
+    const specialtySet = new Set();
+    selected.forEach(s => (s.specialties || []).forEach(spec => specialtySet.add(spec)));
+    const specialties = Array.from(specialtySet);
+
+    // Check for urgency
+    const hasUrgent = selected.some(s => s.urgency === 'high');
+
+    // Find matching doctors
+    const doctors = (db.doctors || []).filter(d =>
+      specialties.some(spec =>
+        d.spec && (d.spec.includes(spec) || spec.includes(d.spec))
+      )
+    );
+
+    // Suggested labs
+    const labSet = new Set();
+    selected.forEach(s => {
+      const labs = (db.symptomLabs || {})[s.id] || [];
+      labs.forEach(lab => labSet.add(lab));
+    });
+    const suggestedLabs = Array.from(labSet);
+
+    state.showResults = true;
+
+    const area = document.getElementById('symptoms-area');
+    if (area) area.style.display = 'none';
+
+    const resultArea = document.getElementById('symptoms-result-area');
+    if (!resultArea) return;
+
+    resultArea.innerHTML = `
+      <div class="result-hero">
+        <i class="fa-solid fa-clipboard-check result-icon"></i>
+        <h2>بناءً على أعراضك</h2>
+        <p>اكتشفنا ${specialties.length} ${specialties.length === 1 ? 'تخصص' : 'تخصصات'} مناسبين ليك</p>
+      </div>
+
+      ${hasUrgent ? `
+        <div class="urgent-warning">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <div>
+            <strong>⚠️ بعض الأعراض اللي اخترتها تستاهل استشارة عاجلة</strong><br>
+            لو الأعراض جديدة وحادة، يُنصح بالكشف فوراً أو التوجه لأقرب مستشفى.
+          </div>
+        </div>
+      ` : ''}
+
+      <h3 class="section-title"><i class="fa-solid fa-user-doctor"></i> التخصصات الموصى بها</h3>
+      <div style="margin-bottom:16px;">
+        ${specialties.map(spec => {
+          const specDoctors = doctors.filter(d => d.spec && (d.spec.includes(spec) || spec.includes(d.spec)));
+          return `
+            <div class="suggested-specialty" onclick="window.__filterDoctorsBySpec('${Utils.escape(spec)}')">
+              <div class="suggested-specialty-icon"><i class="fa-solid fa-stethoscope"></i></div>
+              <div class="suggested-specialty-info">
+                <div class="suggested-specialty-name">${Utils.escape(spec)}</div>
+                <div class="suggested-specialty-doctors">${specDoctors.length} ${specDoctors.length === 1 ? 'طبيب متاح' : 'أطباء متاحين'}</div>
+              </div>
+              <i class="fa-solid fa-chevron-left" style="color:var(--text-muted);"></i>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      ${doctors.length > 0 ? `
+        <h3 class="section-title" style="margin-top:16px;"><i class="fa-solid fa-user-md"></i> الأطباء الموصى بهم (${doctors.length})</h3>
+        <div style="margin-bottom:16px;">
+          ${doctors.slice(0, 5).map(d => `
+            <div class="suggested-specialty" onclick="window.__openDoctorProfile('${d.id}')">
+              <div class="suggested-specialty-icon" style="background:linear-gradient(135deg,#059669,#10B981);color:#fff;">
+                <i class="fa-solid fa-user-doctor"></i>
+              </div>
+              <div class="suggested-specialty-info">
+                <div class="suggested-specialty-name">${Utils.escape(d.name)}</div>
+                <div class="suggested-specialty-doctors">
+                  ${Utils.escape(d.spec)} · ⭐ ${d.rating} · ${d.price} ج.م
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-left" style="color:var(--text-muted);"></i>
+            </div>
+          `).join('')}
+          ${doctors.length > 5 ? `
+            <button class="btn btn-ghost btn-block" style="margin-top:8px;" onclick="Router.go('medical')">
+              <i class="fa-solid fa-list"></i> عرض كل الأطباء (${doctors.length})
+            </button>
+          ` : ''}
+        </div>
+      ` : `
+        <div class="empty-state" style="padding:24px 16px;">
+          <i class="fa-solid fa-user-doctor empty-state-icon"></i>
+          <p class="empty-state-title">لا يوجد أطباء متاحين لهذا التخصص حالياً</p>
+          <p class="empty-state-desc">جرّب تصفح كل الأطباء</p>
+          <button class="btn btn-primary" style="margin-top:12px;" onclick="Router.go('medical')">
+            <i class="fa-solid fa-list"></i> كل الأطباء
+          </button>
+        </div>
+      `}
+
+      ${suggestedLabs.length > 0 ? `
+        <h3 class="section-title" style="margin-top:16px;"><i class="fa-solid fa-vial"></i> تحاليل مقترحة (${suggestedLabs.length})</h3>
+        <div class="card" style="background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border-color:#FDBA74;">
+          <p style="font-size:11.5px;color:#9A3412;font-weight:700;line-height:1.6;margin-bottom:12px;">
+            <i class="fa-solid fa-info-circle"></i> دي مجرد اقتراحات بناءً على الأعراض. الطبيب هو اللي يحدد التحاليل النهائية.
+          </p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${suggestedLabs.map(lab => `
+              <span style="background:#fff;color:#9A3412;padding:6px 12px;border-radius:99px;font-size:11px;font-weight:900;border:1px solid #FDBA74;">
+                <i class="fa-solid fa-vial" style="font-size:9px;"></i> ${Utils.escape(lab)}
+              </span>
+            `).join('')}
+          </div>
+          <button class="btn btn-block" style="background:linear-gradient(135deg,#EA580C,#F59E0B);color:#fff;font-weight:900;margin-top:12px;" onclick="Router.go('labs')">
+            <i class="fa-solid fa-flask"></i> احجز التحاليل
+          </button>
+        </div>
+      ` : ''}
+
+      <button class="btn btn-ghost btn-block" style="margin-top:16px;" onclick="window.__resetSymptoms()">
+        <i class="fa-solid fa-rotate-right"></i> ابدأ من جديد
+      </button>
+    `;
+
+    // Update action bar to hide
+    updateActionBar();
+
+    // Scroll to results
+    setTimeout(() => {
+      resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+
+    EventLog.log('symptoms_analyzed', {
+      actorId: window.Auth.getCurrentUser()?.id,
+      payload: { symptomCount: selected.length, specialtyCount: specialties.length, doctorCount: doctors.length }
+    });
+  };
+
+  window.__resetSymptoms = () => {
+    state.selectedSymptoms = new Set();
+    state.showResults = false;
+    document.querySelectorAll('.symptom-card').forEach(c => c.classList.remove('selected'));
+    const area = document.getElementById('symptoms-area');
+    if (area) area.style.display = '';
+    const resultArea = document.getElementById('symptoms-result-area');
+    if (resultArea) resultArea.innerHTML = '';
+    updateActionBar();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.__filterDoctorsBySpec = (spec) => {
+    window.Router.go('medical');
+    // After medical page renders, set the filter
+    setTimeout(() => {
+      const specSelect = document.getElementById('med-spec');
+      if (specSelect) {
+        for (let i = 0; i < specSelect.options.length; i++) {
+          const opt = specSelect.options[i];
+          if (opt.value && (opt.value.includes(spec) || spec.includes(opt.value))) {
+            specSelect.value = opt.value;
+            specSelect.dispatchEvent(new Event('change'));
+            break;
+          }
+        }
+      }
+    }, 300);
+  };
+
+  window.__openDoctorProfile = (doctorId) => {
+    window.Router.go('doctor-profile', { doctorId });
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 4: UPDATE OTHER MEDICAL PAGES — Use unified nav
+  // ══════════════════════════════════════════════════════════════
+  function patchMedicalPages() {
+    // Replace medical-sector-tabs in medical, nursing, pharmacy
+    const pages = ['medical', 'nursing', 'pharmacy'];
+    pages.forEach(pageName => {
+      const orig = window.Router.registry[pageName];
+      if (!orig) return;
+
+      window.Router.register(pageName, (el, params) => {
+        orig.call(window.Router, el, params);
+
+        setTimeout(() => {
+          // Remove old medical-sector-tabs if exists
+          const oldTabs = el.querySelector('.medical-sector-tabs');
+          if (oldTabs) {
+            const activeMap = { medical: 'doctors', nursing: 'nursing', pharmacy: 'pharmacy' };
+            const active = activeMap[pageName];
+            oldTabs.outerHTML = window.__renderMedicalNav(active);
+          }
+        }, 30);
+      });
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 5: TEST PANEL INTEGRATION
+  // ══════════════════════════════════════════════════════════════
+  function addTestPanelSection() {
+    const checkInterval = setInterval(() => {
+      const panel = document.getElementById('test-panel');
+      if (!panel) return;
+      clearInterval(checkInterval);
+
+      const observer = new MutationObserver(() => {
+        const content = panel.querySelector('.test-panel-content');
+        if (!content || content.querySelector('#test-symptom-section')) return;
+
+        const section = document.createElement('div');
+        section.id = 'test-symptom-section';
+        section.className = 'test-section';
+        section.innerHTML = `
+          <div class="test-section-title"><i class="fa-solid fa-stethoscope"></i> فحص الأعراض (PART 5.5)</div>
+          <div class="test-section-body">
+            <div class="test-row">
+              <span class="test-row-label">إجمالي الأعراض</span>
+              <span class="test-row-value">${(Store.load().symptoms || []).length}</span>
+            </div>
+            <div class="test-row">
+              <span class="test-row-label">إجمالي الأطباء</span>
+              <span class="test-row-value">${(Store.load().doctors || []).length}</span>
+            </div>
+            <div class="test-actions" style="margin-top:10px;">
+              <button class="test-btn primary" onclick="window.__testOpenSymptoms()"><i class="fa-solid fa-stethoscope"></i> فحص الأعراض</button>
+              <button class="test-btn" onclick="window.__testRandomSymptoms()"><i class="fa-solid fa-dice"></i> أعراض عشوائية</button>
+            </div>
+          </div>
+        `;
+
+        const priorSections = content.querySelectorAll('.test-section');
+        let inserted = false;
+        for (const sec of priorSections) {
+          if (sec.querySelector('.test-section-title')?.textContent.includes('قاعدة البيانات')) {
+            sec.parentNode.insertBefore(section, sec);
+            inserted = true;
+            break;
+          }
+        }
+        if (!inserted) content.appendChild(section);
+      });
+      observer.observe(panel, { childList: true, subtree: true });
+    }, 500);
+  }
+
+  window.__testOpenSymptoms = () => {
+    document.getElementById('test-panel').classList.remove('open');
+    document.body.style.overflow = '';
+    window.Router.go('symptom-checker');
+  };
+
+  window.__testRandomSymptoms = () => {
+    const db = Store.load();
+    const symptoms = db.symptoms || [];
+    if (symptoms.length === 0) return alert('لا توجد أعراض');
+    const count = 2 + Math.floor(Math.random() * 2);
+    const shuffled = [...symptoms].sort(() => Math.random() - 0.5).slice(0, count);
+
+    document.getElementById('test-panel').classList.remove('open');
+    document.body.style.overflow = '';
+    window.Router.go('symptom-checker');
+
+    setTimeout(() => {
+      state.selectedSymptoms = new Set();
+      state.showResults = false;
+      shuffled.forEach(s => window.__toggleSymptom(s.id));
+      setTimeout(() => window.__analyzeSymptoms(), 300);
+    }, 200);
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 6: BOOT
+  // ══════════════════════════════════════════════════════════════
+  function boot() {
+    try {
+      patchMedicalPages();
+      addTestPanelSection();
+
+      EventLog.log('patch_5_5_applied', {
+        features: ['symptom_checker', 'symptom_to_specialty', 'extended_doctors', 'unified_medical_nav'],
+        ts: Date.now()
+      });
+
+      console.log('%c🩺 [PART 5.5] Symptom Checker READY', 'background:#059669;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:12px');
+      console.log('%c✅ 20 عرض + 14 طبيب + 7 تخصصات', 'color:#059669;font-weight:900');
+      console.log('%c✅ التابات الموحدة (7 أقسام طبية) جاهزة', 'color:#059669;font-weight:900');
+      console.log('%c🧪 للتجربة: افتح لوحة الاختبار (🧪)', 'color:#0284C7;font-weight:900');
+
+    } catch (e) {
+      console.error('[PART 5.5] Failed:', e);
+    }
+  }
+
+  setTimeout(boot, 2900);
+
+})();
+</script>
 </body>
 </html>
