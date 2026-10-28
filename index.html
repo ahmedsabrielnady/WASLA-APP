@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#0B1220" />
+<link rel="manifest" href="./manifest.webmanifest" />
 <title>منصة وصلة | WASLA</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -434,6 +435,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   <div class="top-bar" id="top-bar">
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
       <span class="top-bar-chip"><i class="fa-solid fa-bolt" style="color:#FBBF24;"></i> منصة وصلة — شبين القناطر</span>
+      <span class="top-bar-chip" style="border-color:rgba(251,191,36,.35);color:#FDE68A;"><i class="fa-solid fa-flask"></i> نسخة تجريبية — الدفع وواتساب غير متصلين تلقائيًا</span>
       <span class="top-bar-chip" id="topbar-live-counter"><i class="fa-solid fa-users" style="color:#34D399;"></i> <span id="topbar-users-count">...</span> مستخدم</span>
     </div>
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -543,7 +545,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     id: (prefix = 'id') => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
     money: (n) => `${Number(n || 0).toLocaleString('ar-EG')} ج.م`,
     number: (n) => Number(n || 0).toLocaleString('ar-EG'),
-    today: () => new Date().toISOString().split('T')[0],
+    today: () => { const d = new Date(); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); return `${y}-${m}-${day}`; },
     now: () => Date.now(),
     fmtDate: (iso) => {
       if (!iso) return '—';
@@ -1043,7 +1045,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   });
 })();
 </script>
-   </script>
+<script>
 /* ══════════════════════════════════════════════════════════════════
    PART 3/15: AUTH + ROUTER + HEADER + CONTEXT SWITCHER + VIEWS
 ══════════════════════════════════════════════════════════════════ */
@@ -1066,7 +1068,16 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       if (!db) return { ok: false, msg: 'قاعدة البيانات غير متاحة' };
       const user = db.users.find(u => u.phone === phone);
       if (!user) { EventLog.log('login_failed', { phone, reason: 'not_found' }); return { ok: false, msg: 'رقم الموبايل غير مسجل' }; }
-      if (user.status === 'suspended') return { ok: false, msg: 'الحساب موقوف — تواصل مع الإدارة' };
+      if (user.status === 'suspended') {
+        if (Number.isFinite(user.suspendedUntil) && Date.now() >= user.suspendedUntil) {
+          user.status = 'active';
+          delete user.suspendedUntil;
+          if (!Store.save(db)) return { ok: false, msg: 'تعذر تحديث حالة الحساب، حاول مرة أخرى' };
+        } else {
+          return { ok: false, msg: 'الحساب موقوف مؤقتًا بسبب الغياب — تواصل مع الإدارة عند الحاجة' };
+        }
+      }
+      if (['blocked', 'rejected'].includes(user.status)) return { ok: false, msg: user.status === 'blocked' ? 'الحساب محجوب — تواصل مع الإدارة' : 'الحساب موقوف — تواصل مع الإدارة' };
       if (!Crypto.verify(password, user.passHash, user.salt)) { EventLog.log('login_failed', { phone, reason: 'wrong_password', actorId: user.id }); return { ok: false, msg: 'كلمة السر غير صحيحة' }; }
       
       const session = { userId: user.id, context: user.currentContext || (user.contexts && user.contexts[0]) || 'citizen', loginAt: Date.now() };
@@ -1105,12 +1116,28 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     getSession() { 
       try { const raw = sessionStorage.getItem(SESSION_KEY); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } 
     },
-    getCurrentUser() { 
-      const session = this.getSession(); 
-      if (!session) return null; 
-      const db = Store.load(); 
-      if (!db) return null; 
-      return db.users.find(u => u.id === session.userId) || null; 
+    getCurrentUser() {
+      const session = this.getSession();
+      if (!session || !session.userId) return null;
+      const db = Store.load();
+      if (!db || !Array.isArray(db.users)) return null;
+      const user = db.users.find(u => u.id === session.userId) || null;
+      if (!user) { sessionStorage.removeItem(SESSION_KEY); return null; }
+      if (user.status === 'suspended') {
+        if (Number.isFinite(user.suspendedUntil) && Date.now() >= user.suspendedUntil) {
+          user.status = 'active';
+          delete user.suspendedUntil;
+          if (!Store.save(db)) return null;
+        } else {
+          sessionStorage.removeItem(SESSION_KEY);
+          return null;
+        }
+      }
+      if (['blocked', 'rejected'].includes(user.status)) {
+        sessionStorage.removeItem(SESSION_KEY);
+        return null;
+      }
+      return user;
     },
     getCurrentContext() { 
       const session = this.getSession(); return session ? session.context : null; 
@@ -2451,6 +2478,9 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     state: { doctor: null, date: null, slot: null, paymentMethod: 'cash', selectedInsurance: null, forWhom: 'self' },
 
     open(doctor) {
+      const user = window.Auth.getCurrentUser();
+      if (!user) { window.AuthUI.open('login'); return; }
+      if (!doctor || !doctor.id) return UI.toast('بيانات الطبيب غير مكتملة', 'error');
       this.state = { doctor, date: Utils.today(), slot: null, paymentMethod: 'cash', selectedInsurance: null, forWhom: 'self' };
       this._render();
       UI.modal('modal-booking', { open: true });
@@ -2465,7 +2495,9 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       const availableSlots = slots.filter(s => !s.booked);
 
       const user = window.Auth.getCurrentUser();
+      if (!user) { UI.modal('modal-booking', { open: false }); UI.toast('سجّل الدخول أولًا', 'warning'); window.AuthUI.open('login'); return; }
       const db = Store.load();
+      if (!db) { UI.toast('قاعدة البيانات غير متاحة', 'error'); return; }
       const familyMembers = (db.familyMembers || []).filter(f => f.ownerId === user.id);
       const acceptedIns = doctor.acceptedInsurances || [];
       const noShows = user.noShowCount || 0;
@@ -2544,7 +2576,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         ${deposit > 0 ? `
           <div class="deposit-notice">
             <h4><i class="fa-solid fa-shield-halved"></i> عربون جدية ${Utils.money(deposit)}</h4>
-            <p>يُسترد كاملًا عند الإلغاء قبل 12 ساعة من الموعد. بعد ذلك يُحتفظ بالعربون كتعويض عن الوقت الضائع.</p>
+            <p>سياسة النسخة التجريبية: استرداد محسوب بالكامل قبل الموعد بأكثر من 12 ساعة، و50% عند الإلغاء قبل الموعد بأكثر من 4 ساعات، ولا يُحسب استرداد إذا بقيت 4 ساعات أو أقل. لا يتم تحصيل العربون أو تحويل الاسترداد إلكترونيًا من هذه الصفحة.</p>
           </div>
         ` : ''}
 
@@ -2554,7 +2586,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         </label>
 
         <button class="btn btn-primary btn-block btn-lg" ${!slot ? 'disabled' : ''} onclick="BookingFlow.submit()">
-          <i class="fa-solid fa-calendar-check"></i> ${deposit > 0 ? `ادفع ${Utils.money(deposit)} واحجز` : 'تأكيد الحجز'}
+          <i class="fa-solid fa-calendar-check"></i> ${deposit > 0 ? `تسجيل طلب الحجز — عربون ${Utils.money(deposit)}` : 'تأكيد الحجز'}
         </button>
       `;
     },
@@ -2569,11 +2601,21 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       const { doctor, date, slot, paymentMethod, selectedInsurance, forWhom } = this.state;
       const user = window.Auth.getCurrentUser();
 
-      if (!slot) return UI.toast('اختر موعداً أولاً', 'error');
-      if (!Utils.$('#bk-agree').checked) return UI.toast('يجب الموافقة على سياسة الإلغاء', 'error');
-      if (paymentMethod === 'insurance' && !selectedInsurance) return UI.toast('اختر شركة التأمين', 'error');
-
+      if (!user) { UI.toast('انتهت الجلسة — سجّل الدخول مرة أخرى', 'warning'); window.AuthUI.open('login'); return; }
+      if (!doctor || !doctor.id || !date || !slot) return UI.toast('اختر الطبيب والتاريخ والموعد أولاً', 'error');
       const db = Store.load();
+      if (!db) return UI.toast('قاعدة البيانات غير متاحة', 'error');
+      const agreement = Utils.$('#bk-agree');
+      if (!agreement || !agreement.checked) return UI.toast('يجب الموافقة على سياسة الإلغاء', 'error');
+      if (date < Utils.today()) return UI.toast('لا يمكن الحجز في تاريخ مضى', 'error');
+      const slotTime = new Date(`${date}T${slot}`).getTime();
+      if (!Number.isFinite(slotTime) || slotTime <= Date.now()) return UI.toast('هذا الموعد مضى بالفعل', 'error');
+      const validSlot = generateSlots(doctor, date).some(s => s.time === slot && !s.booked);
+      if (!validSlot) return UI.toast('الموعد غير متاح أو خارج مواعيد الطبيب', 'error');
+      if (forWhom !== 'self' && !(db.familyMembers || []).some(f => f.id === forWhom && f.ownerId === user.id)) return UI.toast('اختر فردًا صحيحًا من أفراد الأسرة', 'error');
+      if (paymentMethod === 'insurance' && !selectedInsurance) return UI.toast('اختر شركة التأمين', 'error');
+      if (paymentMethod === 'insurance' && !(doctor.acceptedInsurances || []).includes(selectedInsurance)) return UI.toast('شركة التأمين المختارة غير معتمدة لدى هذا الطبيب', 'error');
+
       const conflict = (db.appointments || []).some(a => a.doctorId === doctor.id && a.date === date && a.slot === slot && a.status !== 'canceled');
       if (conflict) return UI.toast('هذا الموعد محجوز بالفعل', 'error');
 
@@ -2597,7 +2639,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         date, slot,
         price: doctor.price,
         deposit,
-        depositStatus: deposit > 0 ? 'held' : 'not_required',
+        depositStatus: deposit > 0 ? 'pending_verification' : 'not_required',
         paymentMethod,
         insuranceId: paymentMethod === 'insurance' ? selectedInsurance : null,
         status: 'waiting',
@@ -2607,25 +2649,21 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
       db.appointments.push(appointment);
 
-      // Update user stats
-      const userInDb = db.users.find(u => u.id === user.id);
-      if (userInDb) userInDb.successfulOrders = (userInDb.successfulOrders || 0) + 1;
-
-      // Award points
-      if (window.Gamification && window.Gamification.addPoints) {
-        window.Gamification.addPoints(user.id, 20, 'booking_created');
-      }
-
       // Notification
       db.notifications = db.notifications || [];
       db.notifications.push({
         id: Utils.id('notif'),
         userId: user.id,
-        text: `✅ تم تأكيد حجزك مع ${doctor.name} — ${Utils.fmtDate(date)} الساعة ${slot}`,
+        text: deposit > 0 ? `⏳ تم تسجيل طلب حجزك مع ${doctor.name} — ${Utils.fmtDate(date)} الساعة ${slot}. العربون بانتظار التحقق.` : `✅ تم تأكيد حجزك مع ${doctor.name} — ${Utils.fmtDate(date)} الساعة ${slot}`,
         read: false, ts: Date.now()
       });
 
-      Store.save(db);
+      if (!Store.save(db)) return UI.toast('تعذر حفظ الحجز محليًا. تحقق من مساحة التخزين ثم أعد المحاولة.', 'error', 5000);
+
+      // Award booking points only after the appointment data was saved.
+      if (window.Gamification && window.Gamification.addPoints) {
+        window.Gamification.addPoints(user.id, 20, 'booking_created');
+      }
 
       EventLog.log('appointment_created', {
         actorId: user.id, targetId: doctor.id,
@@ -2633,7 +2671,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       });
 
       UI.modal('modal-booking', { open: false });
-      UI.toast(`✅ تم الحجز! دورك رقم ${queueNumber}`, 'success', 4000);
+      UI.toast(deposit > 0 ? `تم تسجيل طلب الحجز التجريبي — دورك ${queueNumber}. العربون غير محصل آليًا ويحتاج تحققًا يدويًا.` : `✅ تم الحجز! دورك رقم ${queueNumber}`, deposit > 0 ? 'warning' : 'success', 5000);
 
       // Show WhatsApp reminder prompt
       setTimeout(() => {
@@ -2766,30 +2804,42 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       UI.toast('تم تجهيز التذكير على واتساب');
     },
     async cancelAppointment(appointmentId) {
+      const initialDb = Store.load();
+      if (!initialDb) return UI.toast('قاعدة البيانات غير متاحة', 'error');
+      const initialUser = window.Auth.getCurrentUser();
+      const initialAppt = (initialDb.appointments || []).find(a => a.id === appointmentId);
+      if (!initialAppt) return UI.toast('الحجز غير موجود', 'error');
+      if (!initialUser || (initialUser.role !== 'founder' && initialAppt.patientId !== initialUser.id)) return UI.toast('لا يمكنك إلغاء حجز لا يخص حسابك', 'error');
       const ok = await UI.confirm(
-        'سيتم تطبيق سياسة الإلغاء. الإلغاء قبل 12 ساعة = استرداد كامل. بعد ذلك = خصم من العربون.',
+        'سياسة النسخة التجريبية: استرداد محسوب بالكامل قبل الموعد بأكثر من 12 ساعة، و50% عند الإلغاء قبل الموعد بأكثر من 4 ساعات، ولا استرداد محسوب عند 4 ساعات أو أقل. لا يتم تحويل أموال من هذه الصفحة.',
         { title: 'تأكيد الإلغاء', confirmText: 'نعم، إلغاء', cancelText: 'رجوع', danger: true }
       );
       if (!ok) return;
 
       const db = Store.load();
+      if (!db) return UI.toast('قاعدة البيانات غير متاحة', 'error');
+      const currentUser = window.Auth.getCurrentUser();
       const appt = (db.appointments || []).find(a => a.id === appointmentId);
-      if (!appt) return;
+      if (!appt) return UI.toast('الحجز غير موجود', 'error');
+      if (!currentUser || (currentUser.role !== 'founder' && appt.patientId !== currentUser.id)) return UI.toast('لا يمكنك إلغاء حجز لا يخص حسابك', 'error');
+      if (['canceled', 'completed', 'no-show'].includes(appt.status)) return UI.toast('لا يمكن إلغاء حجز بهذه الحالة', 'warning');
 
       const hoursToAppt = (new Date(`${appt.date}T${appt.slot.split(':')[0]}:${appt.slot.split(':')[1]}`).getTime() - Date.now()) / 3600000;
+      if (!Number.isFinite(hoursToAppt) || hoursToAppt <= 0) return UI.toast('لا يمكن إلغاء موعد بدأ أو انتهى', 'error');
       let refund = 0;
-      if (hoursToAppt > 12) refund = appt.deposit;
-      else if (hoursToAppt > 4) refund = appt.deposit * 0.5;
+      if (hoursToAppt > 12) refund = Number(appt.deposit || 0);
+      else if (hoursToAppt > 4) refund = Number(appt.deposit || 0) * 0.5;
 
       appt.status = 'canceled';
       appt.refundAmount = refund;
-      appt.depositStatus = refund === appt.deposit ? 'refunded' : refund > 0 ? 'partial_refunded' : 'forfeited';
+      appt.depositStatus = !appt.deposit ? 'not_required' : refund === appt.deposit ? 'refund_due' : refund > 0 ? 'partial_refund_due' : 'forfeiture_simulated';
+      appt.refundSimulationOnly = true;
       appt.canceledAt = Date.now();
 
-      Store.save(db);
-      EventLog.log('appointment_canceled', { actorId: appt.patientId, targetId: appointmentId, payload: { refund, hoursToAppt } });
+      if (!Store.save(db)) return UI.toast('تعذر حفظ الإلغاء محليًا', 'error');
+      EventLog.log('appointment_canceled', { actorId: appt.patientId, targetId: appointmentId, payload: { refund, hoursToAppt, simulated: true } });
 
-      UI.toast(`تم الإلغاء — مُسترد ${Utils.money(refund)}`, 'info');
+      UI.toast(appt.deposit ? `تم إلغاء الحجز. قيمة الاسترداد المحسوبة ${Utils.money(refund)} — محاكاة فقط، لم يتم تحويل أموال.` : 'تم إلغاء الحجز بنجاح', 'info', 5000);
       window.Router.go('orders');
     }
   };
@@ -2924,8 +2974,13 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
     callPatient(apptId) {
       const db = Store.load();
+      if (!db) return UI.toast('قاعدة البيانات غير متاحة', 'error');
+      const user = window.Auth.getCurrentUser();
       const appt = (db.appointments || []).find(a => a.id === apptId);
-      if (!appt) return;
+      if (!appt) return UI.toast('الحجز غير موجود', 'error');
+      const assignedDoctor = (db.doctors || []).find(d => d.id === appt.doctorId);
+      if (!user || !(user.role === 'founder' || (user.role === 'doctor' && assignedDoctor?.userId === user.id))) return UI.toast('غير مصرح لك بإدارة هذا الحجز', 'error');
+      if (['canceled', 'completed', 'no-show'].includes(appt.status)) return UI.toast('لا يمكن استدعاء حجز مغلق', 'warning');
 
       // Unset any current next
       db.appointments.forEach(a => {
@@ -2941,7 +2996,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         text: `🔔 دورك الآن عند ${appt.doctorName} — توجه للعيادة`,
         read: false, ts: Date.now()
       });
-      Store.save(db);
+      if (!Store.save(db)) return UI.toast('تعذر حفظ حالة الاستدعاء', 'error');
 
       EventLog.log('patient_called', { actorId: appt.doctorId, targetId: appt.patientId, payload: { appointmentId: appt.id } });
       UI.toast('تم استدعاء المريض ✓');
@@ -2949,6 +3004,13 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     },
 
     markNoShow(apptId) {
+      const currentDb = Store.load();
+      if (!currentDb) return UI.toast('قاعدة البيانات غير متاحة', 'error');
+      const currentUser = window.Auth.getCurrentUser();
+      const currentAppt = (currentDb.appointments || []).find(a => a.id === apptId);
+      const currentDoctor = currentAppt && (currentDb.doctors || []).find(d => d.id === currentAppt.doctorId);
+      if (!currentAppt) return UI.toast('الحجز غير موجود', 'error');
+      if (!currentUser || !(currentUser.role === 'founder' || (currentUser.role === 'doctor' && currentDoctor?.userId === currentUser.id))) return UI.toast('غير مصرح لك بإدارة هذا الحجز', 'error');
       UI.confirm('تأكيد أن المريض لم يحضر؟', {
         title: 'تسجيل غياب',
         confirmText: 'نعم، لم يحضر',
@@ -2957,8 +3019,15 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       }).then(ok => {
         if (!ok) return;
         const db = Store.load();
+        if (!db) return UI.toast('قاعدة البيانات غير متاحة', 'error');
+        const user = window.Auth.getCurrentUser();
         const appt = (db.appointments || []).find(a => a.id === apptId);
-        if (!appt) return;
+        if (!appt) return UI.toast('الحجز غير موجود', 'error');
+        const assignedDoctor = (db.doctors || []).find(d => d.id === appt.doctorId);
+        if (!user || !(user.role === 'founder' || (user.role === 'doctor' && assignedDoctor?.userId === user.id))) return UI.toast('غير مصرح لك بإدارة هذا الحجز', 'error');
+        if (['no-show', 'completed', 'canceled'].includes(appt.status)) return UI.toast('تم إغلاق هذا الحجز بالفعل', 'info');
+        const scheduledAt = new Date(`${appt.date}T${appt.slot}`).getTime();
+        if (!Number.isFinite(scheduledAt) || Date.now() < scheduledAt) return UI.toast('لا يمكن تسجيل الغياب قبل موعد الحجز', 'warning');
         appt.status = 'no-show';
         appt.noShowAt = Date.now();
 
@@ -2978,7 +3047,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
           }
         }
 
-        Store.save(db);
+        if (!Store.save(db)) return UI.toast('تعذر حفظ حالة الغياب', 'error');
         EventLog.log('patient_no_show', { actorId: appt.doctorId, targetId: appt.patientId, payload: { appointmentId: appt.id } });
         UI.toast('تم تسجيل الغياب', 'info');
         window.Router.go('clinic');
@@ -2987,11 +3056,19 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
     markComplete(apptId) {
       const db = Store.load();
+      if (!db) return UI.toast('قاعدة البيانات غير متاحة', 'error');
+      const user = window.Auth.getCurrentUser();
       const appt = (db.appointments || []).find(a => a.id === apptId);
-      if (!appt) return;
+      if (!appt) return UI.toast('الحجز غير موجود', 'error');
+      const assignedDoctor = (db.doctors || []).find(d => d.id === appt.doctorId);
+      if (!user || !(user.role === 'founder' || (user.role === 'doctor' && assignedDoctor?.userId === user.id))) return UI.toast('غير مصرح لك بإدارة هذا الحجز', 'error');
+      if (appt.status === 'completed') return UI.toast('تم تسجيل إتمام هذه الزيارة بالفعل', 'info');
+      if (['canceled', 'no-show'].includes(appt.status)) return UI.toast('لا يمكن إتمام زيارة ملغاة أو مسجلة كغياب', 'error');
+      const patient = (db.users || []).find(u => u.id === appt.patientId);
+      if (patient) patient.successfulOrders = (patient.successfulOrders || 0) + 1;
       appt.status = 'completed';
       appt.completedAt = Date.now();
-      Store.save(db);
+      if (!Store.save(db)) return UI.toast('تعذر حفظ إتمام الزيارة', 'error');
 
       // Award points to patient
       if (window.Gamification && window.Gamification.addPoints) {
@@ -3153,16 +3230,12 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     Utils.$$('.doctor-card-med').forEach(card => {
       if (!card.querySelector('.doctor-social-proof')) {
         const name = card.querySelector('.doctor-name-med')?.textContent.trim() || 'doc';
-        let hash = 0; const str = String(name);
-        for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        const viewers = 5 + (Math.abs(hash) % 15);
-
         const info = card.querySelector('.doctor-info-med');
         if (info) {
           const el = document.createElement('div');
           el.className = 'live-viewers-badge doctor-social-proof';
           el.style.cssText = 'margin-top:6px;';
-          el.innerHTML = `<span class="pulse"></span> ${viewers} يتصفحون العيادة الآن`;
+          el.innerHTML = '<span class="pulse"></span> معاينة تجريبية — لا يتوفر عدد زوار حقيقي';
           info.appendChild(el);
         }
       }
@@ -4209,11 +4282,18 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     return db;
   }
 
-  // Bootstrap on load
-  (function () {
-    const db = ensureSchema(Store.load());
-    Store.save(db);
-  })();
+  // Bootstrap after PART 2 has created or migrated the local database.
+  function bootstrapMedicalSchema() {
+    const db = Store.load();
+    if (!db) { console.warn('[PART 6] Database is not ready yet; schema bootstrap skipped.'); return false; }
+    ensureSchema(db);
+    return Store.save(db);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrapMedicalSchema, { once: true });
+  } else {
+    bootstrapMedicalSchema();
+  }
 
   const Helpers = {
     getDoctor(id) {
@@ -4415,7 +4495,9 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
       const appt = Helpers.getAppt(appointmentId);
       if (!appt) return UI.toast('الموعد غير موجود', 'error');
-      if (appt.doctorId !== user.doctorId && appt.doctorId !== user.id) {
+      const assignedDoctor = Helpers.getDoctor(appt.doctorId);
+      const ownsAppointment = appt.doctorId === user.doctorId || appt.doctorId === user.id || (assignedDoctor && assignedDoctor.userId === user.id);
+      if (!ownsAppointment) {
         return UI.toast('هذا ليس موعدك', 'error');
       }
 
@@ -4449,7 +4531,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       if (idx >= 0 && db.appointments[idx].status !== 'in-progress') {
         db.appointments[idx].status = 'in-progress';
         Store.save(db);
-      }
       }
     },
 
@@ -5404,7 +5485,14 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   const { Utils, UI, Store, EventLog } = window.WaslaCore;
 
   function ensureSchema(db) { db.payments = db.payments || []; db.messageLog = db.messageLog || []; db.emergencyQueue = db.emergencyQueue || []; db.settings = db.settings || {}; if (!db.settings.lang) db.settings.lang = 'ar'; return db; }
-  (function () { Store.save(ensureSchema(Store.load())); })();
+  function bootstrapCommunicationSchema() {
+    const db = Store.load();
+    if (!db) { console.warn('[PART 7] Database is not ready yet; schema bootstrap skipped.'); return false; }
+    ensureSchema(db);
+    return Store.save(db);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootstrapCommunicationSchema, { once: true });
+  else bootstrapCommunicationSchema();
 
   const H = { appt: (id) => (Store.load().appointments || []).find(a => a.id === id), patient: (id) => (Store.load().users || []).find(u => u.id === id), doctor: (id) => (Store.load().doctors || []).find(d => d.id === id), record: (apptId) => (Store.load().medicalRecords || []).find(r => r.appointmentId === apptId) };
 
@@ -5683,7 +5771,14 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
   const { Utils, UI, Store, EventLog } = window.WaslaCore;
 
   function ensureSchema(db) { db.settings = db.settings || {}; db.settings.specialties = db.settings.specialties || ['باطنة', 'أطفال', 'قلب', 'جلدية', 'عظام', 'أسنان']; db.settings.areas = db.settings.areas || ['المعادي', 'مدينة نصر', 'المهندسين', 'الدقي', 'شبرا', 'المنصورة']; (db.doctors || []).forEach(d => { if (!d.status) d.status = 'active'; }); return db; }
-  (function() { Store.save(ensureSchema(Store.load())); })();
+  function bootstrapAdminSchema() {
+    const db = Store.load();
+    if (!db) { console.warn('[PART 8] Database is not ready yet; schema bootstrap skipped.'); return false; }
+    ensureSchema(db);
+    return Store.save(db);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootstrapAdminSchema, { once: true });
+  else bootstrapAdminSchema();
 
   const Analytics = {
     getStats() {
@@ -5692,17 +5787,56 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     }
   };
 
+  function requireFounder() {
+    const actor = window.Auth.getCurrentUser();
+    if (!actor || actor.role !== 'founder') { UI.toast('هذه العملية متاحة للمؤسس فقط', 'error'); return null; }
+    return actor;
+  }
+
   const UserManager = {
-    toggleBlock(userId, actorId) { const db = Store.load(); const user = (db.users || []).find(u => u.id === userId); if (!user) return; user.status = user.status === 'blocked' ? 'active' : 'blocked'; Store.save(db); (window.Audit || { log: () => {} }).log?.('admin_user_block_toggle', { actorId, patientId: userId, meta: { newStatus: user.status } }); UI.toast(user.status === 'blocked' ? '🚫 تم حجب المستخدم' : '✅ تم تفعيل المستخدم'); AdminPage.render('users'); }
+    toggleBlock(userId) {
+      const actor = requireFounder(); if (!actor) return;
+      const db = Store.load(); if (!db) return UI.toast('قاعدة البيانات غير متاحة', 'error');
+      const user = (db.users || []).find(u => u.id === userId && u.role === 'patient');
+      if (!user) return UI.toast('المريض غير موجود', 'error');
+      user.status = user.status === 'blocked' ? 'active' : 'blocked';
+      if (!Store.save(db)) return UI.toast('تعذر حفظ التغيير', 'error');
+      (window.Audit || { log: () => {} }).log?.('admin_user_block_toggle', { actorId: actor.id, patientId: userId, meta: { newStatus: user.status } });
+      UI.toast(user.status === 'blocked' ? '🚫 تم حجب المستخدم' : '✅ تم تفعيل المستخدم'); AdminPage.render('users');
+    }
   };
 
   const DoctorApproval = {
-    approve(doctorId, actorId) { const db = Store.load(); const doc = db.doctors.find(d => d.id === doctorId); if (!doc) return; doc.status = 'active'; Store.save(db); const docUser = db.users.find(u => u.doctorId === doctorId || u.id === doc.userId); if (docUser && window.WaslaNotificationManager) { window.WaslaNotificationManager.push({ userId: docUser.id, text: `✅ تمت الموافقة على حسابك كطبيب في منصة وصلة. أهلاً بك!`, type: 'system', priority: 'high' }); } (window.Audit || { log: () => {} }).log?.('admin_doctor_approve', { actorId, meta: { doctorId } }); UI.toast('✅ تم قبول الطبيب'); AdminPage.render('doctors'); },
-    reject(doctorId, actorId) { const db = Store.load(); const doc = db.doctors.find(d => d.id === doctorId); if (!doc) return; doc.status = 'rejected'; Store.save(db); (window.Audit || { log: () => {} }).log?.('admin_doctor_reject', { actorId, meta: { doctorId } }); UI.toast('❌ تم رفض الطبيب'); AdminPage.render('doctors'); }
+    approve(doctorId) {
+      const actor = requireFounder(); if (!actor) return;
+      const db = Store.load(); if (!db) return UI.toast('قاعدة البيانات غير متاحة', 'error');
+      const doc = (db.doctors || []).find(d => d.id === doctorId); if (!doc) return UI.toast('الطبيب غير موجود', 'error');
+      doc.status = 'active'; if (!Store.save(db)) return UI.toast('تعذر حفظ حالة الطبيب', 'error');
+      const docUser = (db.users || []).find(u => u.doctorId === doctorId || u.id === doc.userId);
+      if (docUser && window.WaslaNotificationManager) window.WaslaNotificationManager.push({ userId: docUser.id, text: '✅ تمت الموافقة على حسابك كطبيب في منصة وصلة. أهلاً بك!', type: 'system', priority: 'high' });
+      (window.Audit || { log: () => {} }).log?.('admin_doctor_approve', { actorId: actor.id, meta: { doctorId } }); UI.toast('✅ تم قبول الطبيب'); AdminPage.render('doctors');
+    },
+    reject(doctorId) {
+      const actor = requireFounder(); if (!actor) return;
+      const db = Store.load(); if (!db) return UI.toast('قاعدة البيانات غير متاحة', 'error');
+      const doc = (db.doctors || []).find(d => d.id === doctorId); if (!doc) return UI.toast('الطبيب غير موجود', 'error');
+      doc.status = 'rejected'; if (!Store.save(db)) return UI.toast('تعذر حفظ حالة الطبيب', 'error');
+      (window.Audit || { log: () => {} }).log?.('admin_doctor_reject', { actorId: actor.id, meta: { doctorId } }); UI.toast('❌ تم رفض الطبيب'); AdminPage.render('doctors');
+    }
   };
 
   const Broadcast = {
-    send(target, text, actorId) { if (!text.trim()) return UI.toast('اكتب نص الرسالة أولاً', 'error'); const db = Store.load(); let users = db.users || []; if (target === 'patients') users = users.filter(u => u.role === 'patient'); else if (target === 'doctors') users = users.filter(u => u.role === 'doctor'); if (users.length === 0) return UI.toast('لا يوجد مستخدمين', 'warning'); const notifManager = window.WaslaNotificationManager; let count = 0; users.forEach(u => { if (notifManager) { notifManager.push({ userId: u.id, text: `📢 إعلان إداري: ${text}`, type: 'admin_broadcast', priority: 'high' }); count++; } }); (window.Audit || { log: () => {} }).log?.('admin_broadcast_sent', { actorId, meta: { target, textLength: text.length, count } }); UI.toast(`📢 تم إرسال الرسالة لـ ${count} مستخدم`); AdminPage.render('broadcast'); }
+    send(target, text, actorId) {
+      const actor = requireFounder(); if (!actor) return;
+      if (!String(text || '').trim()) return UI.toast('اكتب نص الرسالة أولاً', 'error');
+      const db = Store.load(); if (!db) return UI.toast('قاعدة البيانات غير متاحة', 'error');
+      let users = db.users || []; if (target === 'patients') users = users.filter(u => u.role === 'patient'); else if (target === 'doctors') users = users.filter(u => u.role === 'doctor');
+      if (users.length === 0) return UI.toast('لا يوجد مستخدمين', 'warning');
+      const notifManager = window.WaslaNotificationManager; let count = 0;
+      users.forEach(u => { if (notifManager) { notifManager.push({ userId: u.id, text: `📢 إعلان إداري: ${text}`, type: 'admin_broadcast', priority: 'high' }); count++; } });
+      (window.Audit || { log: () => {} }).log?.('admin_broadcast_sent', { actorId: actor.id, meta: { target, textLength: text.length, count } });
+      UI.toast(`📢 تم إرسال الرسالة لـ ${count} مستخدم`); AdminPage.render('broadcast');
+    }
   };
 
   const AdminPage = {
@@ -5724,24 +5858,43 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     },
     _renderUsers() {
       const db = Store.load(); const users = (db.users || []).filter(u => u.role === 'patient');
-      return `<div class="admin-table-container"><table class="admin-table"><thead><tr><th>الاسم</th><th>الهاتف</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>${users.length === 0 ? '<tr><td colspan="4" style="text-align:center;padding:20px;">لا يوجد مرضى</td></tr>' : users.map(u => `<tr><td>${Utils.escape(u.name)}</td><td>${Utils.escape(u.phone)}</td><td><span class="status-badge ${u.status === 'blocked' ? 'blocked' : 'active'}">${u.status === 'blocked' ? 'محجوب' : 'نشط'}</span></td><td><button class="admin-btn ${u.status === 'blocked' ? 'success' : 'danger'}" onclick="WaslaAdmin.UserManager.toggleBlock('${u.id}', '${window.Auth.getCurrentUser().id}')">${u.status === 'blocked' ? 'تفعيل' : 'حجب'}</button></td></tr>`).join('')}</tbody></table></div>`;
+      return `<div class="admin-table-container"><table class="admin-table"><thead><tr><th>الاسم</th><th>الهاتف</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>${users.length === 0 ? '<tr><td colspan="4" style="text-align:center;padding:20px;">لا يوجد مرضى</td></tr>' : users.map(u => `<tr><td>${Utils.escape(u.name)}</td><td>${Utils.escape(u.phone)}</td><td><span class="status-badge ${u.status === 'blocked' ? 'blocked' : 'active'}">${u.status === 'blocked' ? 'محجوب' : 'نشط'}</span></td><td><button class="admin-btn ${u.status === 'blocked' ? 'success' : 'danger'}" onclick="WaslaAdmin.UserManager.toggleBlock('${u.id}')">${u.status === 'blocked' ? 'تفعيل' : 'حجب'}</button></td></tr>`).join('')}</tbody></table></div>`;
     },
     _renderDoctors() {
       const db = Store.load(); const doctors = db.doctors || [];
-      return `<div class="admin-table-container"><table class="admin-table"><thead><tr><th>الطبيب</th><th>التخصص</th><th>المنطقة</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>${doctors.length === 0 ? '<tr><td colspan="5" style="text-align:center;padding:20px;">لا يوجد أطباء</td></tr>' : doctors.map(d => `<tr><td>${Utils.escape(d.name)}</td><td>${Utils.escape(d.specialty || '-')}</td><td>${Utils.escape(d.area || '-')}</td><td><span class="status-badge ${d.status}">${d.status === 'active' ? 'نشط' : d.status === 'pending' ? 'بانتظار' : 'مرفوض'}</span></td><td>${d.status === 'pending' ? `<button class="admin-btn success" onclick="WaslaAdmin.DoctorApproval.approve('${d.id}', '${window.Auth.getCurrentUser().id}')">قبول</button><button class="admin-btn danger" onclick="WaslaAdmin.DoctorApproval.reject('${d.id}', '${window.Auth.getCurrentUser().id}')">رفض</button>` : '-'}</td></tr>`).join('')}</tbody></table></div>`;
+      return `<div class="admin-table-container"><table class="admin-table"><thead><tr><th>الطبيب</th><th>التخصص</th><th>المنطقة</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>${doctors.length === 0 ? '<tr><td colspan="5" style="text-align:center;padding:20px;">لا يوجد أطباء</td></tr>' : doctors.map(d => { const displayStatus = ['active', 'available', 'busy'].includes(d.status) ? 'active' : d.status === 'pending' ? 'pending' : d.status === 'rejected' ? 'rejected' : 'unknown'; const displayLabel = displayStatus === 'active' ? (d.status === 'busy' ? 'مشغول' : d.status === 'available' ? 'متاح' : 'نشط') : displayStatus === 'pending' ? 'بانتظار' : displayStatus === 'rejected' ? 'مرفوض' : 'غير محدد'; return `<tr><td>${Utils.escape(d.name)}</td><td>${Utils.escape(d.spec || d.specialty || '-')}</td><td>${Utils.escape(d.area || '-')}</td><td><span class="status-badge ${displayStatus}">${displayLabel}</span></td><td>${d.status === 'pending' ? `<button class="admin-btn success" onclick="WaslaAdmin.DoctorApproval.approve('${d.id}')">قبول</button><button class="admin-btn danger" onclick="WaslaAdmin.DoctorApproval.reject('${d.id}')">رفض</button>` : '-'}</td></tr>`; }).join('')}</tbody></table></div>`;
     },
     _renderAudit() {
       const db = Store.load(); const logs = (db.auditLog || []).slice(0, 50);
       return `<div class="admin-table-container"><table class="admin-table"><thead><tr><th>العملية</th><th>المستخدم (ID)</th><th>الوقت</th></tr></thead><tbody>${logs.length === 0 ? '<tr><td colspan="3" style="text-align:center;padding:20px;">لا يوجد سجل</td></tr>' : logs.map(l => `<tr><td><strong>${Utils.escape(l.action)}</strong></td><td><small>${Utils.escape(l.actorId?.slice(-6) || 'System')}</small></td><td><small>${new Date(l.ts).toLocaleString('ar-EG')}</small></td></tr>`).join('')}</tbody></table></div>`;
     },
     _renderBroadcast() {
-      return `<div class="broadcast-form"><h3 style="font-size:14px;font-weight:900;margin-bottom:10px;">📢 إرسال إشعار جماعي</h3><select id="broadcast-target"><option value="all">كل المستخدمين</option><option value="patients">المرضى فقط</option><option value="doctors">الأطباء فقط</option></select><textarea id="broadcast-text" placeholder="اكتب نص الرسالة هنا..."></textarea><button class="admin-btn primary" style="width:100%;padding:10px;justify-content:center;" onclick="WaslaAdmin.Broadcast.send(document.getElementById('broadcast-target').value, document.getElementById('broadcast-text').value, '${window.Auth.getCurrentUser().id}')"><i class="fa-solid fa-paper-plane"></i> إرسال للجميع</button></div>`;
+      return `<div class="broadcast-form"><h3 style="font-size:14px;font-weight:900;margin-bottom:10px;">📢 إرسال إشعار جماعي</h3><select id="broadcast-target"><option value="all">كل المستخدمين</option><option value="patients">المرضى فقط</option><option value="doctors">الأطباء فقط</option></select><textarea id="broadcast-text" placeholder="اكتب نص الرسالة هنا..."></textarea><button class="admin-btn primary" style="width:100%;padding:10px;justify-content:center;" onclick="WaslaAdmin.Broadcast.send(document.getElementById('broadcast-target').value, document.getElementById('broadcast-text').value)"><i class="fa-solid fa-paper-plane"></i> إرسال للجميع</button></div>`;
     }
   };
 
   window.WaslaAdmin = {
     render: (tab) => AdminPage.render(tab), UserManager, DoctorApproval, Broadcast,
-    loginAsAdmin: function() { const db = Store.load(); const admin = db.users.find(u => u.role === 'admin'); if (admin) { localStorage.setItem('wasla_v5_session', admin.id); UI.toast('✅ تم الدخول كمسؤول.'); setTimeout(() => location.reload(), 1000); } else { UI.toast('لا يوجد حساب مسؤول', 'error'); } }
+    // Diagnostic helper: authenticates with the founder's demo password, rather than bypassing Auth.
+    loginAsAdmin: function() {
+      const db = Store.load();
+      if (!db || !Array.isArray(db.users)) return UI.toast('قاعدة البيانات غير متاحة', 'error');
+      const founder = db.users.find(u => u.role === 'founder' && u.status === 'active');
+      if (!founder) return UI.toast('لا يوجد حساب مؤسس نشط', 'error');
+      const current = window.Auth.getCurrentUser();
+      if (current && current.id === founder.id) {
+        if (window.Auth.getCurrentContext() !== 'founder') window.Auth.switchContext('founder');
+        window.Router.go('founder');
+        return UI.toast('أنت مسجل بالفعل بحساب المؤسس');
+      }
+      const password = window.prompt('أدخل كلمة مرور حساب المؤسس التجريبي:');
+      if (password == null) return;
+      const result = window.Auth.login(founder.phone, password);
+      if (!result.ok) return UI.toast(result.msg || 'تعذر تسجيل الدخول', 'error');
+      if ((founder.contexts || []).includes('founder')) window.Auth.switchContext('founder');
+      UI.toast('✅ تم تسجيل الدخول بحساب المؤسس.');
+      setTimeout(() => location.reload(), 500);
+    }
   };
 
   function registerRoutes() {
@@ -5828,34 +5981,20 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
     },
 
     injectManifest() {
-      const oldLink = document.querySelector('link[rel="manifest"]'); if (oldLink) oldLink.remove();
-      const manifest = this.buildManifest(); const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }); const url = URL.createObjectURL(blob);
-      const link = document.createElement('link'); link.rel = 'manifest'; link.href = url; document.head.appendChild(link);
+      let link = document.querySelector('link[rel="manifest"]');
+      if (!link) { link = document.createElement('link'); link.rel = 'manifest'; link.href = './manifest.webmanifest'; document.head.appendChild(link); }
       let themeMeta = document.querySelector('meta[name="theme-color"]'); if (!themeMeta) { themeMeta = document.createElement('meta'); themeMeta.name = 'theme-color'; document.head.appendChild(themeMeta); } themeMeta.content = '#059669';
       let appleLink = document.querySelector('link[rel="apple-touch-icon"]'); if (!appleLink) { appleLink = document.createElement('link'); appleLink.rel = 'apple-touch-icon'; document.head.appendChild(appleLink); } appleLink.href = this.generateIcon(180);
       [['apple-mobile-web-app-capable', 'yes'], ['apple-mobile-web-app-status-bar-style', 'black-translucent'], ['apple-mobile-web-app-title', 'وصلة'], ['mobile-web-app-capable', 'yes']].forEach(([name, content]) => { let meta = document.querySelector(`meta[name="${name}"]`); if (!meta) { meta = document.createElement('meta'); meta.name = name; document.head.appendChild(meta); } meta.content = content; });
     },
 
     async registerServiceWorker() {
-      if (!('serviceWorker' in navigator) || location.protocol !== 'https:') return;
-      const swCode = `
-        self.addEventListener('install', (event) => { self.skipWaiting(); });
-        self.addEventListener('activate', (event) => { event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => !key.endsWith('v1')).map(key => caches.delete(key)))).then(() => self.clients.claim())); });
-        self.addEventListener('fetch', (event) => {
-          const request = event.request;
-          if (request.method !== 'GET' || !request.url.startsWith('http') || request.url.includes('__vite') || request.url.includes('chrome-extension')) return;
-          event.respondWith(caches.match(request).then((cached) => {
-            const fetchPromise = fetch(request).then((response) => { if (response && response.status === 200 && response.type !== 'opaque') { const clone = response.clone(); caches.open('wasla-runtime-v1').then((cache) => { cache.put(request, clone).catch(() => {}); }); } return response; }).catch(() => cached || new Response('<!DOCTYPE html><html><body style="font-family:sans-serif;text-align:center;padding:40px;background:#F4F6FB;"><h1 style="color:#059669;">📡 لا يوجد اتصال</h1><p style="color:#64748B;">تعذر تحميل الصفحة. تحقق من الإنترنت وأعد المحاولة.</p><button onclick="location.reload()" style="background:#059669;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-weight:900;cursor:pointer;">إعادة المحاولة</button></body></html>', { headers: { 'Content-Type': 'text/html; charset=utf-8' } }));
-            return cached || fetchPromise;
-          }));
-        });
-        self.addEventListener('message', (event) => { if (event.data && event.data.type === 'SKIP_WAITING') { self.skipWaiting(); } });
-      `;
+      const secureContext = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+      if (!('serviceWorker' in navigator) || !secureContext) return;
       try {
-        const blob = new Blob([swCode], { type: 'application/javascript' }); const swUrl = URL.createObjectURL(blob);
-        this.swRegistration = await navigator.serviceWorker.register(swUrl, { scope: './', updateViaCache: 'none' });
+        this.swRegistration = await navigator.serviceWorker.register('./service-worker.js', { scope: './', updateViaCache: 'none' });
         this.swRegistration.addEventListener('updatefound', () => { const newWorker = this.swRegistration.installing; if (!newWorker) return; newWorker.addEventListener('statechange', () => { if (newWorker.state === 'installed' && navigator.serviceWorker.controller) { this.showUpdateToast(); } }); });
-      } catch (e) { console.error(e); }
+      } catch (e) { console.error('[PWA] تعذر تسجيل Service Worker. تأكد من نشر service-worker.js بجوار index.html عبر HTTPS:', e); }
     },
 
     setupInstallPrompt() {
@@ -5956,7 +6095,9 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
   const panel = document.createElement('div'); panel.className = 'test-panel-overlay'; document.body.appendChild(panel);
 
   fab.onclick = () => {
-    const db = window.WaslaCore.Store.load(); const user = window.Auth.getCurrentUser();
+    if (!window.WaslaCore || !window.Auth) { alert('النظام لم يكتمل تحميله. افتح Console لمعرفة السبب.'); return; }
+    const db = window.WaslaCore.Store.load() || { doctors: [], appointments: [] }; const user = window.Auth.getCurrentUser();
+    const safe = value => window.WaslaCore.Utils.escape(value == null ? '' : String(value));
     panel.innerHTML = `
       <div class="test-panel-header"><h2 style="font-size:16px;font-weight:900;">🧪 لوحة الاختبار</h2><button onclick="document.querySelector('.test-panel-overlay').classList.remove('open')" style="background:none;border:none;color:#fff;font-size:20px;">✕</button></div>
       <div class="test-panel-body">
@@ -5966,15 +6107,15 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
           <button class="test-btn gray" onclick="window.__testLogin('01000000002', '123456')">🩺 دخول كـ طبيب</button>
         </div></div>
         <div class="test-section"><div class="test-title">معلومات</div>
-          <div class="test-row"><span>المستخدم:</span><span>${user ? user.name : 'لا يوجد'}</span></div>
-          <div class="test-row"><span>الصلاحية:</span><span>${user ? user.role : '-'}</span></div>
+          <div class="test-row"><span>المستخدم:</span><span>${user ? safe(user.name) : 'لا يوجد'}</span></div>
+          <div class="test-row"><span>الصلاحية:</span><span>${user ? safe(user.role) : '-'}</span></div>
           <div class="test-row"><span>الأطباء:</span><span>${db.doctors.length}</span></div>
           <div class="test-row"><span>المواعيد:</span><span>${db.appointments.length}</span></div>
         </div>
-        <div class="test-section"><div class="test-title">الأخطاء (${errors.length})</div><div style="padding:12px;font-size:10px;color:#F87171;max-height:100px;overflow-y:auto;">${errors.length > 0 ? errors.map(e => `<div>${e}</div>`).join('') : '✅ لا توجد أخطاء'}</div></div>
+        <div class="test-section"><div class="test-title">الأخطاء (${errors.length})</div><div style="padding:12px;font-size:10px;color:#F87171;max-height:100px;overflow-y:auto;">${errors.length > 0 ? errors.map(e => `<div>${safe(e)}</div>`).join('') : '✅ لا توجد أخطاء'}</div></div>
         <div class="test-section"><div class="test-title">إجراءات</div><div style="padding:12px;">
           <button class="test-btn gray" onclick="location.reload()">🔄 إعادة تحميل</button>
-          <button class="test-btn gray" onclick="localStorage.clear(); location.reload()" style="color:#F87171;">🗑️ مسح وإعادة تهيئة</button>
+          <button class="test-btn gray" onclick="if(confirm('حذف بيانات وصلة التجريبية فقط؟')){['wasla_v5_db','wasla_v5_events','wasla_v5_session','wasla_v5_migrated','wasla_med_v4','wasla_pwa_dismissed'].forEach(k=>localStorage.removeItem(k));sessionStorage.removeItem('wasla_v5_session');location.reload();}" style="color:#F87171;">🗑️ مسح بيانات وصلة التجريبية فقط</button>
         </div></div>
       </div>
     `;
