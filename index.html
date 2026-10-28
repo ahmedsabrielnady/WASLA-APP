@@ -5986,5 +5986,952 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
   };
 })();
 </script>
+       <!-- ═════════════════════════════════════════════════════════════
+     PART 10/15: REAL FEATURES (Chat + Ratings + Family + Wallet + Medical History + Global Search)
+═════════════════════════════════════════════════════════════ -->
+<style>
+/* ── Chat Styles ── */
+.chat-container { display: flex; flex-direction: column; height: calc(100vh - 200px); background: var(--bg-page); }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.chat-msg { max-width: 75%; padding: 10px 14px; border-radius: 16px; font-size: 13px; font-weight: 700; line-height: 1.5; word-wrap: break-word; animation: msg-in 0.2s ease; }
+@keyframes msg-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.chat-msg.me { align-self: flex-start; background: linear-gradient(135deg, var(--sector-medical), #10B981); color: #fff; border-bottom-right-radius: 4px; }
+.chat-msg.them { align-self: flex-end; background: #fff; border: 1px solid var(--border-default); color: var(--text-primary); border-bottom-left-radius: 4px; }
+.chat-msg small { display: block; font-size: 9px; opacity: 0.7; margin-top: 4px; font-weight: 700; }
+.chat-input-bar { display: flex; gap: 8px; padding: 12px; background: #fff; border-top: 1px solid var(--border-default); }
+.chat-input-bar input { flex: 1; padding: 10px 14px; border: 1.5px solid var(--border-default); border-radius: 24px; font-family: inherit; font-size: 13px; font-weight: 700; }
+.chat-input-bar input:focus { outline: none; border-color: var(--sector-medical); }
+.chat-send-btn { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--sector-medical), #10B981); color: #fff; border: none; display: grid; place-items: center; font-size: 18px; cursor: pointer; box-shadow: 0 4px 12px rgba(5,150,105,0.3); }
+
+/* ── Chat List ── */
+.chat-list-item { display: flex; align-items: center; gap: 12px; padding: 14px; background: #fff; border-bottom: 1px solid var(--border-default); cursor: pointer; }
+.chat-list-item:active { background: var(--bg-muted); }
+.chat-list-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--sector-medical), #10B981); color: #fff; display: grid; place-items: center; font-size: 18px; font-weight: 900; flex-shrink: 0; position: relative; }
+.chat-list-avatar .unread-dot { position: absolute; top: -2px; right: -2px; width: 18px; height: 18px; background: #DC2626; color: #fff; border-radius: 50%; font-size: 10px; display: grid; place-items: center; border: 2px solid #fff; }
+.chat-list-info { flex: 1; min-width: 0; }
+.chat-list-name { font-size: 13.5px; font-weight: 900; color: var(--text-primary); margin-bottom: 2px; }
+.chat-list-preview { font-size: 11.5px; color: var(--text-muted); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-list-time { font-size: 10px; color: var(--text-disabled); font-weight: 700; }
+
+/* ── Ratings ── */
+.rating-stars { display: flex; gap: 6px; justify-content: center; padding: 12px 0; }
+.rating-star { font-size: 40px; color: var(--border-strong); cursor: pointer; transition: all 0.15s ease; }
+.rating-star:hover, .rating-star.active { color: #F59E0B; transform: scale(1.1); }
+
+/* ── Wallet ── */
+.wallet-hero { background: linear-gradient(135deg, #064E3B, #059669 55%, #10B981); color: #fff; border-radius: 20px; padding: 28px 20px; margin-bottom: 16px; position: relative; overflow: hidden; text-align: center; }
+.wallet-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), transparent 60%); pointer-events: none; }
+.wallet-balance { font-size: 42px; font-weight: 900; line-height: 1; margin: 8px 0; }
+.wallet-transaction { display: flex; align-items: center; gap: 10px; padding: 12px; background: #fff; border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--border-default); }
+.wallet-tx-icon { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-size: 16px; flex-shrink: 0; }
+.wallet-tx-icon.in { background: #D1FAE5; color: #059669; }
+.wallet-tx-icon.out { background: #FEE2E2; color: #DC2626; }
+
+/* ── Family Members ── */
+.family-card { display: flex; align-items: center; gap: 12px; padding: 14px; background: #fff; border: 1px solid var(--border-default); border-radius: 12px; margin-bottom: 10px; }
+.family-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--sector-cars), #0EA5E9); color: #fff; display: grid; place-items: center; font-size: 18px; font-weight: 900; flex-shrink: 0; }
+
+/* ── Medical History (Patient) ── */
+.history-card { background: #fff; border: 1px solid var(--border-default); border-radius: 12px; padding: 14px; margin-bottom: 10px; border-right: 4px solid var(--sector-medical); }
+.history-date { font-size: 11px; color: var(--sector-medical); font-weight: 900; margin-bottom: 6px; }
+.history-diagnosis { font-size: 14px; font-weight: 900; color: var(--text-primary); margin-bottom: 8px; }
+.history-meds { font-size: 11px; color: var(--text-muted); font-weight: 700; line-height: 1.6; }
+
+/* ── Global Search ── */
+.global-search-overlay { position: fixed; inset: 0; background: rgba(11,18,32,0.95); z-index: 9990; display: none; flex-direction: column; animation: fade-in 0.2s; }
+.global-search-overlay.open { display: flex; }
+.global-search-bar { padding: 16px; background: #fff; display: flex; gap: 8px; align-items: center; border-bottom: 1px solid var(--border-default); }
+.global-search-bar input { flex: 1; padding: 12px 16px; border: 1.5px solid var(--border-default); border-radius: 24px; font-family: inherit; font-size: 14px; font-weight: 700; }
+.global-search-bar input:focus { outline: none; border-color: var(--sector-medical); }
+.global-search-bar button { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-muted); border: none; font-size: 18px; cursor: pointer; }
+.global-search-results { flex: 1; overflow-y: auto; padding: 16px; background: var(--bg-page); }
+.search-result-item { display: flex; align-items: center; gap: 12px; padding: 14px; background: #fff; border-radius: 12px; margin-bottom: 8px; cursor: pointer; border: 1px solid var(--border-default); }
+.search-result-icon { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
+</style>
+
+<script>
+(function WASLA_PART_10_REAL_FEATURES() {
+  'use strict';
+
+  if (!window.WaslaCore || !window.Auth || !window.Router) {
+    console.error('❌ PART 10 requires PART 2, 3');
+    return;
+  }
+
+  const { Utils, UI, Store, EventLog } = window.WaslaCore;
+
+  console.log('%c🚀 [PART 10] Real Features (Chat + Ratings + Wallet + Family + History + Search)', 'color:#DC2626;font-weight:900');
+
+  // ══════════════════════════════════════════════════════════════
+  // SCHEMA EXTENSION
+  // ══════════════════════════════════════════════════════════════
+  function extendSchema() {
+    const db = Store.load();
+    if (!db) return;
+    let changed = false;
+    if (!db.chats) { db.chats = []; changed = true; }
+    if (!db.chatMessages) { db.chatMessages = []; changed = true; }
+    if (!db.walletTransactions) { db.walletTransactions = []; changed = true; }
+    if (!db.familyMembers) { db.familyMembers = []; changed = true; }
+    if (!db.doctorRatings) { db.doctorRatings = []; changed = true; }
+    if (changed) Store.save(db);
+  }
+  extendSchema();
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 1: CHAT SYSTEM
+  // ══════════════════════════════════════════════════════════════
+  const Chat = {
+    getOrCreateConversation(userA, userB, context = 'general') {
+      const db = Store.load();
+      db.chats = db.chats || [];
+      const sorted = [userA, userB].sort();
+      let chat = db.chats.find(c =>
+        c.participants.includes(userA) &&
+        c.participants.includes(userB) &&
+        c.context === context
+      );
+      if (!chat) {
+        chat = {
+          id: Utils.id('chat'),
+          participants: sorted,
+          context,
+          createdAt: Date.now(),
+          lastMessageAt: Date.now()
+        };
+        db.chats.push(chat);
+        Store.save(db);
+      }
+      return chat;
+    },
+
+    sendMessage(chatId, senderId, text) {
+      if (!text.trim()) return;
+      const db = Store.load();
+      db.chatMessages = db.chatMessages || [];
+      const msg = {
+        id: Utils.id('msg'),
+        chatId,
+        senderId,
+        text: text.trim(),
+        ts: Date.now(),
+        read: false
+      };
+      db.chatMessages.push(msg);
+      // Update chat lastMessageAt
+      const chat = db.chats.find(c => c.id === chatId);
+      if (chat) chat.lastMessageAt = Date.now();
+      Store.save(db);
+
+      // Notify recipient
+      if (chat) {
+        const recipientId = chat.participants.find(p => p !== senderId);
+        const sender = db.users.find(u => u.id === senderId);
+        if (recipientId && window.WaslaNotificationManager) {
+          window.WaslaNotificationManager.push({
+            userId: recipientId,
+            text: `💬 رسالة جديدة من ${sender?.name || 'مستخدم'}: ${text.slice(0, 40)}...`,
+            type: 'chat_message',
+            priority: 'normal'
+          });
+        }
+      }
+
+      EventLog.log('chat_message_sent', { actorId: senderId, payload: { chatId } });
+      return msg;
+    },
+
+    getMessages(chatId) {
+      const db = Store.load();
+      return (db.chatMessages || [])
+        .filter(m => m.chatId === chatId)
+        .sort((a, b) => a.ts - b.ts);
+    },
+
+    markRead(chatId, userId) {
+      const db = Store.load();
+      let changed = false;
+      (db.chatMessages || []).forEach(m => {
+        if (m.chatId === chatId && m.senderId !== userId && !m.read) {
+          m.read = true;
+          changed = true;
+        }
+      });
+      if (changed) Store.save(db);
+    },
+
+    getUnreadCount(userId) {
+      const db = Store.load();
+      const myChats = (db.chats || []).filter(c => c.participants.includes(userId));
+      let count = 0;
+      myChats.forEach(c => {
+        count += (db.chatMessages || []).filter(m =>
+          m.chatId === c.id && m.senderId !== userId && !m.read
+        ).length;
+      });
+      return count;
+    }
+  };
+
+  window.WaslaChat = Chat;
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 2: CHAT LIST PAGE
+  // ══════════════════════════════════════════════════════════════
+  window.Router.register('chats', (el) => {
+    const user = window.Auth.getCurrentUser();
+    if (!user) { el.innerHTML = '<div class="empty-state"><p>سجل دخول أولاً</p></div>'; return; }
+
+    const db = Store.load();
+    const myChats = (db.chats || [])
+      .filter(c => c.participants.includes(user.id))
+      .sort((a, b) => (b.lastMessageAt || 0) - (a.lastMessageAt || 0));
+
+    el.innerHTML = `
+      <div class="sector-hero" data-sector="medical" style="padding: 20px;">
+        <span class="sector-hero-badge"><i class="fa-solid fa-comments"></i> المحادثات</span>
+        <h1>تواصل مع الأطباء والصيدليات</h1>
+      </div>
+
+      ${myChats.length === 0 ? `
+        <div class="empty-state">
+          <i class="fa-solid fa-comments empty-state-icon"></i>
+          <p class="empty-state-title">لا توجد محادثات بعد</p>
+          <p class="empty-state-desc">ابدأ محادثة من صفحة الطبيب أو الصيدلية</p>
+        </div>
+      ` : myChats.map(chat => {
+        const otherId = chat.participants.find(p => p !== user.id);
+        const other = (db.users || []).find(u => u.id === otherId) ||
+                     (db.doctors || []).find(d => d.userId === otherId);
+        const lastMsg = (db.chatMessages || [])
+          .filter(m => m.chatId === chat.id)
+          .sort((a, b) => b.ts - a.ts)[0];
+        const unread = (db.chatMessages || []).filter(m =>
+          m.chatId === chat.id && m.senderId !== user.id && !m.read
+        ).length;
+
+        return `
+          <div class="chat-list-item" onclick="Router.go('chat-room', { chatId: '${chat.id}' })">
+            <div class="chat-list-avatar">
+              ${Utils.escape((other?.name || '؟').charAt(0))}
+              ${unread > 0 ? `<span class="unread-dot">${unread}</span>` : ''}
+            </div>
+            <div class="chat-list-info">
+              <div class="chat-list-name">${Utils.escape(other?.name || 'مستخدم')}</div>
+              <div class="chat-list-preview">${lastMsg ? Utils.escape(lastMsg.text) : 'ابدأ المحادثة'}</div>
+            </div>
+            <div class="chat-list-time">${lastMsg ? Utils.timeAgo(lastMsg.ts) : ''}</div>
+          </div>
+        `;
+      }).join('')}
+    `;
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 3: CHAT ROOM
+  // ══════════════════════════════════════════════════════════════
+  window.Router.register('chat-room', (el, params) => {
+    const user = window.Auth.getCurrentUser();
+    if (!user) return;
+
+    const db = Store.load();
+    const chat = (db.chats || []).find(c => c.id === params.chatId);
+    if (!chat) { el.innerHTML = '<div class="empty-state"><p>المحادثة غير موجودة</p></div>'; return; }
+
+    Chat.markRead(chat.id, user.id);
+    const otherId = chat.participants.find(p => p !== user.id);
+    const other = (db.users || []).find(u => u.id === otherId) ||
+                 (db.doctors || []).find(d => d.userId === otherId);
+
+    el.innerHTML = `
+      <div style="display: flex; flex-direction: column; height: calc(100vh - 180px); margin: -16px;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #fff; border-bottom: 1px solid var(--border-default);">
+          <button onclick="Router.go('chats')" style="background: var(--bg-muted); border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 14px; cursor: pointer;">
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+          <div class="chat-list-avatar" style="width: 40px; height: 40px; font-size: 16px;">
+            ${Utils.escape((other?.name || '؟').charAt(0))}
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 14px; font-weight: 900;">${Utils.escape(other?.name || 'مستخدم')}</div>
+            <div style="font-size: 10.5px; color: var(--text-muted); font-weight: 700;">
+              ${other?.role === 'doctor' ? '🩺 طبيب' : other?.role === 'patient' ? '🧑 مريض' : 'مستخدم'}
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages"></div>
+
+        <div class="chat-input-bar">
+          <input type="text" id="chat-input" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter') window.__sendChatMsg('${chat.id}')" />
+          <button class="chat-send-btn" onclick="window.__sendChatMsg('${chat.id}')">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    `;
+
+    const renderMessages = () => {
+      const messages = Chat.getMessages(chat.id);
+      const container = document.getElementById('chat-messages');
+      if (!container) return;
+      container.innerHTML = messages.map(m => `
+        <div class="chat-msg ${m.senderId === user.id ? 'me' : 'them'}">
+          ${Utils.escape(m.text)}
+          <small>${new Date(m.ts).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</small>
+        </div>
+      `).join('');
+      container.scrollTop = container.scrollHeight;
+    };
+
+    renderMessages();
+    window.__sendChatMsg = (chatId) => {
+      const input = document.getElementById('chat-input');
+      if (!input || !input.value.trim()) return;
+      Chat.sendMessage(chatId, user.id, input.value);
+      input.value = '';
+      renderMessages();
+    };
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 4: RATINGS SYSTEM
+  // ══════════════════════════════════════════════════════════════
+  window.__openRatingModal = function(appointmentId) {
+    const user = window.Auth.getCurrentUser();
+    if (!user) return;
+    const db = Store.load();
+    const appt = (db.appointments || []).find(a => a.id === appointmentId);
+    if (!appt) return;
+
+    // Check if already rated
+    const existing = (db.doctorRatings || []).find(r =>
+      r.appointmentId === appointmentId && r.patientId === user.id
+    );
+    if (existing) { UI.toast('قيّمت هذه الزيارة بالفعل', 'info'); return; }
+
+    let rating = 0;
+    const body = Utils.$('#modal-generic-body');
+    body.innerHTML = `
+      <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align: center;">
+        <h3 style="font-size: 17px; font-weight: 900; margin-bottom: 4px;">قيّم تجربتك</h3>
+        <p style="font-size: 12px; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;">
+          مع ${Utils.escape(appt.doctorName)}
+        </p>
+        <div class="rating-stars">
+          ${[1, 2, 3, 4, 5].map(i => `<i class="fa-solid fa-star rating-star" data-rating="${i}" onclick="window.__setRating(${i})"></i>`).join('')}
+        </div>
+        <textarea id="rating-comment" placeholder="اكتب تعليقك (اختياري)..." style="width: 100%; min-height: 80px; padding: 12px; border: 1.5px solid var(--border-default); border-radius: 10px; font-family: inherit; font-size: 12px; font-weight: 700; resize: vertical; margin-bottom: 16px;"></textarea>
+        <button class="btn btn-primary btn-block" id="rating-submit" disabled onclick="window.__submitRating('${appointmentId}')">
+          <i class="fa-solid fa-paper-plane"></i> إرسال التقييم
+        </button>
+      </div>
+    `;
+    UI.modal('modal-generic', { open: true });
+
+    window.__setRating = (r) => {
+      rating = r;
+      document.querySelectorAll('.rating-star').forEach((star, idx) => {
+        star.classList.toggle('active', idx < r);
+      });
+      const btn = document.getElementById('rating-submit');
+      if (btn) btn.disabled = false;
+    };
+
+    window.__submitRating = (apptId) => {
+      if (rating === 0) return UI.toast('اختر تقييم أولاً', 'warning');
+      const comment = document.getElementById('rating-comment').value.trim();
+      const db = Store.load();
+      db.doctorRatings = db.doctorRatings || [];
+      db.doctorRatings.push({
+        id: Utils.id('rating'),
+        appointmentId: apptId,
+        patientId: user.id,
+        patientName: user.name,
+        doctorId: appt.doctorId,
+        rating,
+        comment,
+        createdAt: Date.now()
+      });
+
+      // Update doctor's rating
+      const doc = (db.doctors || []).find(d => d.id === appt.doctorId);
+      if (doc) {
+        const allRatings = db.doctorRatings.filter(r => r.doctorId === doc.id);
+        const avg = allRatings.reduce((s, r) => s + r.rating, 0) / allRatings.length;
+        doc.rating = parseFloat(avg.toFixed(1));
+        doc.reviewsCount = allRatings.length;
+      }
+      Store.save(db);
+      UI.modal('modal-generic', { open: false });
+      UI.toast('⭐ شكراً على تقييمك!');
+      EventLog.log('doctor_rated', { actorId: user.id, targetId: appt.doctorId, payload: { rating } });
+    };
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 5: FAMILY MEMBERS MANAGEMENT
+  // ══════════════════════════════════════════════════════════════
+  window.Router.register('family', (el) => {
+    const user = window.Auth.getCurrentUser();
+    if (!user) { el.innerHTML = '<div class="empty-state"><p>سجل دخول أولاً</p></div>'; return; }
+    const db = Store.load();
+    const members = (db.familyMembers || []).filter(f => f.ownerId === user.id);
+
+    el.innerHTML = `
+      <div class="sector-hero" data-sector="cars" style="padding: 20px;">
+        <span class="sector-hero-badge"><i class="fa-solid fa-users"></i> أفراد العائلة</span>
+        <h1>أضف أفراد عائلتك</h1>
+      </div>
+
+      <button class="btn btn-primary btn-block" onclick="window.__openAddFamily()" style="margin-bottom: 16px;">
+        <i class="fa-solid fa-plus"></i> إضافة فرد جديد
+      </button>
+
+      ${members.length === 0 ? `
+        <div class="empty-state">
+          <i class="fa-solid fa-users empty-state-icon"></i>
+          <p class="empty-state-title">لم تضيف أفراد بعد</p>
+          <p class="empty-state-desc">أضف أفراد عائلتك لحجز المواعيد لهم</p>
+        </div>
+      ` : members.map(f => `
+        <div class="family-card">
+          <div class="family-avatar">${Utils.escape(f.name.charAt(0))}</div>
+          <div style="flex: 1;">
+            <div style="font-size: 13.5px; font-weight: 900;">${Utils.escape(f.name)}</div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">
+              ${Utils.escape(f.relation)} · ${f.age} سنة · ${f.gender === 'male' ? 'ذكر' : 'أنثى'}
+              ${f.blood ? ` · 🩸 ${Utils.escape(f.blood)}` : ''}
+            </div>
+          </div>
+          <button onclick="window.__editFamily('${f.id}')" style="background: var(--bg-muted); border: none; width: 34px; height: 34px; border-radius: 8px; font-size: 14px; cursor: pointer;">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button onclick="window.__deleteFamily('${f.id}')" style="background: #FEE2E2; color: #DC2626; border: none; width: 34px; height: 34px; border-radius: 8px; font-size: 14px; cursor: pointer; margin-right: 4px;">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `).join('')}
+    `;
+  });
+
+  window.__openAddFamily = function(editId = null) {
+    const user = window.Auth.getCurrentUser();
+    if (!user) return;
+    const db = Store.load();
+    const existing = editId ? (db.familyMembers || []).find(f => f.id === editId) : null;
+
+    const body = Utils.$('#modal-generic-body');
+    body.innerHTML = `
+      <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="font-size: 17px; font-weight: 900; margin-bottom: 16px;">
+        ${editId ? 'تعديل' : 'إضافة'} فرد من العائلة
+      </h3>
+
+      <label class="label">الاسم الكامل</label>
+      <input type="text" id="fam-name" class="input" placeholder="مثال: فاطمة أحمد" value="${existing ? Utils.escape(existing.name) : ''}" style="margin-bottom: 12px;">
+
+      <label class="label">صلة القرابة</label>
+      <select id="fam-relation" class="input" style="margin-bottom: 12px;">
+        ${['الزوجة', 'الزوج', 'الابن', 'الابنة', 'الأب', 'الأم', 'الأخ', 'الأخت', 'أخرى']
+          .map(r => `<option ${existing?.relation === r ? 'selected' : ''}>${r}</option>`).join('')}
+      </select>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+        <div>
+          <label class="label">العمر</label>
+          <input type="number" id="fam-age" class="input" placeholder="32" value="${existing?.age || ''}">
+        </div>
+        <div>
+          <label class="label">الجنس</label>
+          <select id="fam-gender" class="input">
+            <option value="male" ${existing?.gender === 'male' ? 'selected' : ''}>ذكر</option>
+            <option value="female" ${existing?.gender === 'female' ? 'selected' : ''}>أنثى</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="label">فصيلة الدم</label>
+      <select id="fam-blood" class="input" style="margin-bottom: 12px;">
+        <option value="">غير محدد</option>
+        ${['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(b => `<option value="${b}" ${existing?.blood === b ? 'selected' : ''}>${b}</option>`).join('')}
+      </select>
+
+      <label class="label">الحساسية (اختياري)</label>
+      <input type="text" id="fam-allergies" class="input" placeholder="مثال: بنسلين، فول" value="${existing?.allergies?.map(a => a.name).join(', ') || ''}" style="margin-bottom: 16px;">
+
+      <button class="btn btn-primary btn-block" onclick="window.__saveFamily('${editId || ''}')">
+        <i class="fa-solid fa-check"></i> ${editId ? 'حفظ التعديلات' : 'إضافة'}
+      </button>
+    `;
+    UI.modal('modal-generic', { open: true });
+  };
+
+  window.__editFamily = function(id) { window.__openAddFamily(id); };
+
+  window.__saveFamily = function(editId) {
+    const user = window.Auth.getCurrentUser();
+    const name = document.getElementById('fam-name').value.trim();
+    const relation = document.getElementById('fam-relation').value;
+    const age = parseInt(document.getElementById('fam-age').value) || 0;
+    const gender = document.getElementById('fam-gender').value;
+    const blood = document.getElementById('fam-blood').value;
+    const allergiesInput = document.getElementById('fam-allergies').value.trim();
+
+    if (!name || name.length < 2) return UI.toast('أدخل اسم صحيح', 'error');
+    if (!age || age < 1 || age > 120) return UI.toast('أدخل عمر صحيح', 'error');
+
+    const allergies = allergiesInput ? allergiesInput.split(',').map(a => ({ name: a.trim(), severity: 'medium' })) : [];
+    const db = Store.load();
+    db.familyMembers = db.familyMembers || [];
+
+    if (editId) {
+      const existing = db.familyMembers.find(f => f.id === editId);
+      if (existing) {
+        Object.assign(existing, { name, relation, age, gender, blood, allergies });
+      }
+    } else {
+      db.familyMembers.push({
+        id: Utils.id('fam'),
+        ownerId: user.id,
+        name, relation, age, gender, blood, allergies,
+        createdAt: Date.now()
+      });
+    }
+    Store.save(db);
+    UI.modal('modal-generic', { open: false });
+    UI.toast(editId ? '✅ تم تعديل البيانات' : '✅ تمت الإضافة');
+    window.Router.go('family');
+  };
+
+  window.__deleteFamily = async function(id) {
+    const ok = await UI.confirm('حذف هذا الفرد من العائلة؟', { title: 'تأكيد الحذف', confirmText: 'حذف', danger: true });
+    if (!ok) return;
+    const db = Store.load();
+    db.familyMembers = (db.familyMembers || []).filter(f => f.id !== id);
+    Store.save(db);
+    UI.toast('تم الحذف', 'info');
+    window.Router.go('family');
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 6: WALLET
+  // ══════════════════════════════════════════════════════════════
+  window.Router.register('wallet', (el) => {
+    const user = window.Auth.getCurrentUser();
+    if (!user) { el.innerHTML = '<div class="empty-state"><p>سجل دخول أولاً</p></div>'; return; }
+    const db = Store.load();
+    const transactions = (db.walletTransactions || [])
+      .filter(t => t.userId === user.id)
+      .sort((a, b) => b.ts - a.ts);
+
+    el.innerHTML = `
+      <div class="wallet-hero">
+        <div style="font-size: 12px; opacity: 0.9; font-weight: 700;">رصيدك الحالي</div>
+        <div class="wallet-balance">${Utils.money(user.wallet || 0)}</div>
+        <div style="font-size: 11px; opacity: 0.8;">🆔 ${Utils.escape(user.waslaId || '')}</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+        <button class="btn btn-primary" onclick="window.__openChargeWallet()">
+          <i class="fa-solid fa-plus"></i> شحن
+        </button>
+        <button class="btn btn-ghost" onclick="UI.toast('قريباً - تحويل لأصدقاء', 'info')">
+          <i class="fa-solid fa-arrow-right-arrow-left"></i> تحويل
+        </button>
+      </div>
+
+      <h3 class="section-title"><i class="fa-solid fa-receipt"></i> سجل المعاملات (${transactions.length})</h3>
+
+      ${transactions.length === 0 ? `
+        <div class="empty-state">
+          <i class="fa-solid fa-receipt empty-state-icon"></i>
+          <p class="empty-state-desc">لا توجد معاملات بعد</p>
+        </div>
+      ` : transactions.map(t => `
+        <div class="wallet-transaction">
+          <div class="wallet-tx-icon ${t.type === 'in' ? 'in' : 'out'}">
+            <i class="fa-solid ${t.type === 'in' ? 'fa-plus' : 'fa-minus'}"></i>
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 12.5px; font-weight: 900;">${Utils.escape(t.description)}</div>
+            <div style="font-size: 10.5px; color: var(--text-muted); font-weight: 700;">${Utils.timeAgo(t.ts)}</div>
+          </div>
+          <div style="font-size: 14px; font-weight: 900; color: ${t.type === 'in' ? '#059669' : '#DC2626'};">
+            ${t.type === 'in' ? '+' : '-'}${Utils.money(t.amount)}
+          </div>
+        </div>
+      `).join('')}
+    `;
+  });
+
+  window.__openChargeWallet = function() {
+    const user = window.Auth.getCurrentUser();
+    const body = Utils.$('#modal-generic-body');
+    body.innerHTML = `
+      <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="font-size: 17px; font-weight: 900; margin-bottom: 16px;">شحن المحفظة</h3>
+
+      <label class="label">المبلغ</label>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;">
+        ${[100, 250, 500, 1000, 2500, 5000].map(amt => `
+          <button class="btn btn-ghost" onclick="window.__setChargeAmount(${amt})" style="padding: 12px;">
+            ${amt}
+          </button>
+        `).join('')}
+      </div>
+
+      <label class="label">أو أدخل مبلغ آخر</label>
+      <input type="number" id="charge-amount" class="input" placeholder="0" min="10" style="margin-bottom: 16px;">
+
+      <label class="label">طريقة الدفع</label>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; border: 1.5px solid var(--border-default); border-radius: 10px; cursor: pointer; font-weight: 900; font-size: 12.5px;">
+          <input type="radio" name="paymethod" value="visa" checked style="accent-color: var(--sector-medical);">
+          <i class="fa-solid fa-credit-card"></i> بطاقة بنكية / فيزا
+        </label>
+        <label style="display: flex; align-items: center; gap: 10px; padding: 12px; border: 1.5px solid var(--border-default); border-radius: 10px; cursor: pointer; font-weight: 900; font-size: 12.5px;">
+          <input type="radio" name="paymethod" value="fawry" style="accent-color: var(--sector-medical);">
+          <i class="fa-solid fa-mobile-screen"></i> فوري / محفظة موبايل
+        </label>
+      </div>
+
+      <button class="btn btn-primary btn-block btn-lg" onclick="window.__submitCharge()">
+        <i class="fa-solid fa-lock"></i> شحن آمن
+      </button>
+    `;
+    UI.modal('modal-generic', { open: true });
+  };
+
+  window.__setChargeAmount = function(amt) {
+    document.getElementById('charge-amount').value = amt;
+  };
+
+  window.__submitCharge = function() {
+    const user = window.Auth.getCurrentUser();
+    const amount = parseInt(document.getElementById('charge-amount').value) || 0;
+    if (amount < 10) return UI.toast('الحد الأدنى 10 ج.م', 'error');
+
+    const db = Store.load();
+    const u = db.users.find(x => x.id === user.id);
+    if (u) u.wallet = (u.wallet || 0) + amount;
+
+    db.walletTransactions = db.walletTransactions || [];
+    db.walletTransactions.push({
+      id: Utils.id('tx'),
+      userId: user.id,
+      type: 'in',
+      amount,
+      description: 'شحن المحفظة',
+      ts: Date.now()
+    });
+
+    Store.save(db);
+    UI.modal('modal-generic', { open: false });
+    UI.toast(`✅ تم شحن ${Utils.money(amount)}`, 'success');
+    window.Router.go('wallet');
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 7: PATIENT MEDICAL HISTORY
+  // ══════════════════════════════════════════════════════════════
+  window.Router.register('my-history', (el) => {
+    const user = window.Auth.getCurrentUser();
+    if (!user) { el.innerHTML = '<div class="empty-state"><p>سجل دخول أولاً</p></div>'; return; }
+    const db = Store.load();
+    const records = (db.medicalRecords || [])
+      .filter(r => r.patientId === user.id)
+      .sort((a, b) => b.ts - a.ts);
+
+    el.innerHTML = `
+      <div class="sector-hero" data-sector="medical" style="padding: 20px;">
+        <span class="sector-hero-badge"><i class="fa-solid fa-file-medical"></i> السجل الطبي</span>
+        <h1>تاريخك الطبي الكامل</h1>
+      </div>
+
+      ${records.length === 0 ? `
+        <div class="empty-state">
+          <i class="fa-solid fa-file-slash empty-state-icon"></i>
+          <p class="empty-state-title">لا يوجد سجل طبي بعد</p>
+          <p class="empty-state-desc">سيظهر هنا تاريخك الطبي بعد أول زيارة</p>
+        </div>
+      ` : records.map(r => {
+        const doc = (db.doctors || []).find(d => d.id === r.doctorId);
+        return `
+          <div class="history-card">
+            <div class="history-date">
+              <i class="fa-solid fa-calendar"></i> ${Utils.fmtDate(r.date)} · ${Utils.escape(doc?.name || 'طبيب')}
+            </div>
+            <div class="history-diagnosis">${Utils.escape(r.diagnosis || 'بدون تشخيص')}</div>
+            ${r.chiefComplaint ? `<div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 8px; font-weight: 700;">💬 ${Utils.escape(r.chiefComplaint)}</div>` : ''}
+            ${(r.prescription || []).length > 0 ? `
+              <div class="history-meds">
+                <strong>💊 الأدوية:</strong><br>
+                ${r.prescription.map(p => `• ${Utils.escape(p.drug)} (${Utils.escape(p.dose)})`).join('<br>')}
+              </div>
+            ` : ''}
+            ${r.vitals && Object.values(r.vitals).some(v => v) ? `
+              <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                ${r.vitals.bp ? `<span style="padding: 3px 8px; background: var(--bg-muted); border-radius: 99px; font-size: 10px; font-weight: 800;">ضغط: ${r.vitals.bp}</span>` : ''}
+                ${r.vitals.temp ? `<span style="padding: 3px 8px; background: var(--bg-muted); border-radius: 99px; font-size: 10px; font-weight: 800;">حرارة: ${r.vitals.temp}</span>` : ''}
+                ${r.vitals.sugar ? `<span style="padding: 3px 8px; background: var(--bg-muted); border-radius: 99px; font-size: 10px; font-weight: 800;">سكر: ${r.vitals.sugar}</span>` : ''}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('')}
+    `;
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 8: GLOBAL SEARCH
+  // ══════════════════════════════════════════════════════════════
+  window.__openGlobalSearch = function() {
+    const overlay = document.createElement('div');
+    overlay.className = 'global-search-overlay open';
+    overlay.id = 'global-search-overlay';
+    overlay.innerHTML = `
+      <div class="global-search-bar">
+        <input type="text" id="global-search-input" placeholder="ابحث في كل المنصة..." autofocus>
+        <button onclick="document.getElementById('global-search-overlay').remove()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="global-search-results" id="global-search-results">
+        <div class="empty-state">
+          <i class="fa-solid fa-search empty-state-icon"></i>
+          <p class="empty-state-desc">ابحث عن طبيب، دواء، منتج، أو خدمة</p>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const input = document.getElementById('global-search-input');
+    input.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      if (q.length < 2) {
+        document.getElementById('global-search-results').innerHTML = '<div class="empty-state"><i class="fa-solid fa-search empty-state-icon"></i><p class="empty-state-desc">ابحث عن طبيب، دواء، منتج، أو خدمة</p></div>';
+        return;
+      }
+      window.__performGlobalSearch(q);
+    });
+    input.focus();
+  };
+
+  window.__performGlobalSearch = function(query) {
+    const db = Store.load();
+    const results = [];
+
+    // Search doctors
+    (db.doctors || []).forEach(d => {
+      if ((d.name || '').toLowerCase().includes(query) || (d.spec || '').toLowerCase().includes(query)) {
+        results.push({ type: 'doctor', icon: 'fa-user-doctor', color: '#059669', bg: '#ECFDF5', title: d.name, subtitle: d.spec, route: 'doctor-profile', params: { doctorId: d.id } });
+      }
+    });
+
+    // Search pharmacies & medicines
+    (db.pharmacies || []).forEach(ph => {
+      if ((ph.name || '').toLowerCase().includes(query)) {
+        results.push({ type: 'pharmacy', icon: 'fa-mortar-pestle', color: '#1E40AF', bg: '#DBEAFE', title: ph.name, subtitle: 'صيدلية', route: 'pharmacy-store', params: { pharmacyId: ph.id } });
+      }
+      (ph.products || []).forEach(p => {
+        if ((p.name || '').toLowerCase().includes(query) || (p.brand || '').toLowerCase().includes(query)) {
+          results.push({ type: 'medicine', icon: 'fa-pills', color: '#1E40AF', bg: '#DBEAFE', title: p.name, subtitle: `${p.brand} · ${p.price} ج.م`, route: 'pharmacy-store', params: { pharmacyId: ph.id } });
+        }
+      });
+    });
+
+    // Search grocery products
+    (db.merchants || []).forEach(m => {
+      if ((m.name || '').toLowerCase().includes(query)) {
+        results.push({ type: 'store', icon: 'fa-store', color: '#EA580C', bg: '#FFF7ED', title: m.name, subtitle: 'متجر', route: 'grocery-store', params: { storeId: m.id } });
+      }
+      (m.products || []).forEach(p => {
+        if ((p.name || '').toLowerCase().includes(query)) {
+          results.push({ type: 'product', icon: 'fa-box', color: '#EA580C', bg: '#FFF7ED', title: p.name, subtitle: `${p.price} ج.م · ${m.name}`, route: 'grocery-store', params: { storeId: m.id } });
+        }
+      });
+    });
+
+    // Search nursing services
+    (db.nursingServices || []).forEach(s => {
+      if ((s.name || '').toLowerCase().includes(query)) {
+        results.push({ type: 'nursing', icon: 'fa-user-nurse', color: '#7C3AED', bg: '#F5F3FF', title: s.name, subtitle: `${s.price} ج.م`, route: 'nursing', params: {} });
+      }
+    });
+
+    // Search lab tests
+    (db.labTests || []).forEach(l => {
+      if ((l.name || '').toLowerCase().includes(query)) {
+        results.push({ type: 'lab', icon: 'fa-vial', color: '#D97706', bg: '#FEF3C7', title: l.name, subtitle: `${l.price} ج.م`, route: 'labs', params: {} });
+      }
+    });
+
+    const container = document.getElementById('global-search-results');
+    if (results.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-search empty-state-icon"></i><p class="empty-state-title">لا توجد نتائج</p><p class="empty-state-desc">جرّب كلمة بحث أخرى</p></div>';
+      return;
+    }
+
+    container.innerHTML = results.slice(0, 20).map(r => `
+      <div class="search-result-item" onclick="document.getElementById('global-search-overlay').remove(); Router.go('${r.route}', ${JSON.stringify(r.params).replace(/"/g, "'")})">
+        <div class="search-result-icon" style="background: ${r.bg}; color: ${r.color};">
+          <i class="fa-solid ${r.icon}"></i>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 13.5px; font-weight: 900;">${Utils.escape(r.title)}</div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">${Utils.escape(r.subtitle)}</div>
+        </div>
+        <i class="fa-solid fa-chevron-left" style="color: var(--text-disabled);"></i>
+      </div>
+    `).join('');
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 9: ADD CHAT BUTTONS TO EXISTING PAGES
+  // ══════════════════════════════════════════════════════════════
+  function enhanceExistingPages() {
+    // Patch doctor-profile to add chat button
+    const origDocProfile = window.Router.registry['doctor-profile'];
+    if (origDocProfile) {
+      window.Router.register('doctor-profile', (el, params) => {
+        origDocProfile.call(window.Router, el, params);
+        setTimeout(() => {
+          const actions = el.querySelector('div[style*="grid-template-columns:1fr 1fr"]');
+          if (!actions || actions.querySelector('.chat-doctor-btn')) return;
+          const user = window.Auth.getCurrentUser();
+          if (!user || user.role === 'doctor') return;
+          const chatBtn = document.createElement('button');
+          chatBtn.className = 'btn btn-ghost btn-lg chat-doctor-btn';
+          chatBtn.innerHTML = '<i class="fa-solid fa-comment-dots"></i> محادثة';
+          chatBtn.style.marginTop = '8px';
+          chatBtn.onclick = () => {
+            const db = Store.load();
+            const doc = db.doctors.find(d => d.id === params.doctorId);
+            if (!doc || !doc.userId) return UI.toast('الطبيب غير متاح للمحادثة حالياً', 'info');
+            const chat = Chat.getOrCreateConversation(user.id, doc.userId, 'doctor-chat');
+            Router.go('chat-room', { chatId: chat.id });
+          };
+          actions.parentNode.insertBefore(chatBtn, actions.nextSibling);
+        }, 100);
+      });
+    }
+  }
+  setTimeout(enhanceExistingPages, 3000);
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 10: ADD QUICK ACCESS BUTTONS IN HEADER
+  // ══════════════════════════════════════════════════════════════
+  function addHeaderButtons() {
+    const header = document.getElementById('header-actions');
+    if (!header) return;
+    const user = window.Auth.getCurrentUser();
+    if (!user) return;
+    if (header.querySelector('.global-search-btn')) return;
+
+    const searchBtn = document.createElement('button');
+    searchBtn.className = 'icon-btn global-search-btn';
+    searchBtn.innerHTML = '<i class="fa-solid fa-search"></i>';
+    searchBtn.title = 'بحث شامل';
+    searchBtn.onclick = () => window.__openGlobalSearch();
+    header.insertBefore(searchBtn, header.firstChild);
+
+    const chatBtn = document.createElement('button');
+    chatBtn.className = 'icon-btn chat-header-btn';
+    const unread = Chat.getUnreadCount(user.id);
+    chatBtn.innerHTML = `<i class="fa-solid fa-comments"></i>${unread > 0 ? `<span class="badge">${unread}</span>` : ''}`;
+    chatBtn.title = 'المحادثات';
+    chatBtn.onclick = () => Router.go('chats');
+    header.insertBefore(chatBtn, header.children[1] || header.firstChild);
+  }
+
+  setInterval(addHeaderButtons, 2000);
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 11: ENHANCE ACCOUNT PAGE
+  // ══════════════════════════════════════════════════════════════
+  function enhanceAccountPage() {
+    const accountView = document.getElementById('view-account');
+    if (!accountView) return;
+    if (accountView.querySelector('#family-settings')) return;
+
+    const sectionTitle = accountView.querySelector('.section-title');
+    if (!sectionTitle) return;
+
+    const items = document.createElement('div');
+    items.id = 'family-settings';
+    items.innerHTML = `
+      <div class="settings-item" onclick="Router.go('wallet')">
+        <div class="settings-icon" style="background: #D1FAE5; color: #059669;"><i class="fa-solid fa-wallet"></i></div>
+        <div style="flex: 1;"><div class="settings-title">المحفظة</div><div class="settings-desc">رصيد: ${Utils.money(window.Auth.getCurrentUser()?.wallet || 0)}</div></div>
+        <i class="fa-solid fa-chevron-left" style="color: var(--text-disabled);"></i>
+      </div>
+      <div class="settings-item" onclick="Router.go('family')">
+        <div class="settings-icon" style="background: #DBEAFE; color: #1E40AF;"><i class="fa-solid fa-users"></i></div>
+        <div style="flex: 1;"><div class="settings-title">أفراد العائلة</div><div class="settings-desc">إدارة أفراد عائلتك</div></div>
+        <i class="fa-solid fa-chevron-left" style="color: var(--text-disabled);"></i>
+      </div>
+      <div class="settings-item" onclick="Router.go('my-history')">
+        <div class="settings-icon" style="background: #FEF3C7; color: #D97706;"><i class="fa-solid fa-file-medical"></i></div>
+        <div style="flex: 1;"><div class="settings-title">السجل الطبي</div><div class="settings-desc">تاريخك الطبي الكامل</div></div>
+        <i class="fa-solid fa-chevron-left" style="color: var(--text-disabled);"></i>
+      </div>
+      <div class="settings-item" onclick="Router.go('chats')">
+        <div class="settings-icon" style="background: #F5F3FF; color: #7C3AED;"><i class="fa-solid fa-comments"></i></div>
+        <div style="flex: 1;"><div class="settings-title">المحادثات</div><div class="settings-desc">تواصل مع الأطباء والصيدليات</div></div>
+        <i class="fa-solid fa-chevron-left" style="color: var(--text-disabled);"></i>
+      </div>
+    `;
+    sectionTitle.parentNode.insertBefore(items, sectionTitle.nextSibling);
+  }
+
+  setInterval(() => {
+    if (window.Router.current === 'account') enhanceAccountPage();
+  }, 2000);
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 12: AUTO-RATE AFTER VISIT
+  // ══════════════════════════════════════════════════════════════
+  function checkForPendingRatings() {
+    const user = window.Auth.getCurrentUser();
+    if (!user) return;
+
+    const db = Store.load();
+    const unrated = (db.appointments || []).filter(a =>
+      a.patientId === user.id &&
+      a.status === 'completed' &&
+      !(db.doctorRatings || []).some(r => r.appointmentId === a.id)
+    );
+
+    if (unrated.length > 0 && !sessionStorage.getItem('rating_prompt_shown')) {
+      sessionStorage.setItem('rating_prompt_shown', 'true');
+      setTimeout(() => {
+        const appt = unrated[0];
+        const body = Utils.$('#modal-generic-body');
+        body.innerHTML = `
+          <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
+          <div style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 12px;">⭐</div>
+            <h3 style="font-size: 17px; font-weight: 900; margin-bottom: 8px;">قيّم زيارتك الأخيرة</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">مع ${Utils.escape(appt.doctorName)} - ${Utils.fmtDate(appt.date)}</p>
+            <button class="btn btn-primary btn-block" onclick="UI.modal('modal-generic', { open: false }); window.__openRatingModal('${appt.id}')">
+              <i class="fa-solid fa-star"></i> قيّم الآن
+            </button>
+            <button class="btn btn-ghost btn-block" onclick="UI.modal('modal-generic', { open: false })" style="margin-top: 8px;">
+              ليس الآن
+            </button>
+          </div>
+        `;
+        UI.modal('modal-generic', { open: true });
+      }, 3000);
+    }
+  }
+  setInterval(checkForPendingRatings, 60000);
+
+  console.log('%c✅ [PART 10] Real Features ready:', 'color:#059669;font-weight:900');
+  console.log('%c💬 Chat, ⭐ Ratings, 👨‍👩‍👧 Family, 💰 Wallet, 📋 History, 🔍 Global Search', 'color:#059669;font-weight:900');
+})();
+</script>
 </body>
 </html>
