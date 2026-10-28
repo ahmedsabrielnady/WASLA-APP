@@ -428,6 +428,47 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 }
 :focus-visible { outline: 2px solid var(--sector-medical); outline-offset: 2px; }
 </style>
+<style>
+
+/* ══════════════════════════════════════════════════════════════
+   WASLA HEALTH EXPANSION — professional service cards/forms
+══════════════════════════════════════════════════════════════ */
+.wasla-health-services { margin: 0 0 16px; }
+.wasla-health-services-head { display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin: 14px 0 10px; }
+.wasla-health-services-head h2 { font-size:16px; font-weight:900; color:var(--text-primary); }
+.wasla-health-services-head p { font-size:11px; font-weight:700; color:var(--text-muted); }
+.wasla-health-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.wasla-health-card { min-width:0; background:#fff; border:1px solid var(--border-default); border-radius:16px; padding:14px; display:flex; flex-direction:column; align-items:flex-start; gap:8px; text-align:right; box-shadow:var(--shadow-xs); cursor:pointer; transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease; }
+.wasla-health-card:hover { transform:translateY(-2px); border-color:#A7F3D0; box-shadow:var(--shadow-md); }
+.wasla-health-icon { width:42px; height:42px; display:grid; place-items:center; border-radius:13px; font-size:19px; flex-shrink:0; }
+.wasla-health-card strong { font-size:12.5px; line-height:1.5; font-weight:900; color:var(--text-primary); }
+.wasla-health-card span { font-size:10.5px; line-height:1.6; font-weight:700; color:var(--text-muted); }
+.wasla-health-card .wasla-health-link { margin-top:auto; font-size:10px; color:var(--sector-medical); font-weight:900; }
+.wasla-health-page-head { padding:20px; border-radius:20px; margin-bottom:14px; color:#fff; background:linear-gradient(120deg,#064E3B,#059669 58%,#10B981); box-shadow:var(--shadow-md); }
+.wasla-health-page-head h1 { font-size:21px; font-weight:900; line-height:1.4; margin:6px 0; }
+.wasla-health-page-head p { font-size:11.5px; line-height:1.8; color:rgba(255,255,255,.9); font-weight:700; }
+.wasla-health-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.wasla-health-field { min-width:0; }
+.wasla-health-field.full { grid-column:1/-1; }
+.wasla-health-field .label { margin-bottom:5px; }
+.wasla-health-note { border:1px solid #FCD34D; background:#FFFBEB; color:#92400E; padding:12px; border-radius:12px; font-size:11px; font-weight:700; line-height:1.8; margin:12px 0; }
+.wasla-health-info { border:1px solid #BFDBFE; background:#EFF6FF; color:#1E40AF; padding:12px; border-radius:12px; font-size:11px; font-weight:700; line-height:1.8; margin:12px 0; }
+.wasla-health-alert { border:1px solid #FDA4AF; background:#FFF1F2; color:#9F1239; padding:14px; border-radius:12px; font-size:12px; font-weight:800; line-height:1.8; margin:12px 0; }
+.wasla-health-product-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.wasla-health-product { background:#fff; border:1px solid var(--border-default); border-radius:14px; padding:13px; min-width:0; }
+.wasla-health-product .prod-icon { width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:#F0FDF4;color:#059669;font-size:21px;margin-bottom:9px; }
+.wasla-health-product h3 { font-size:12px;font-weight:900;line-height:1.6; }
+.wasla-health-product p { font-size:10.5px;color:var(--text-muted);line-height:1.7;margin:4px 0 8px; }
+.wasla-health-product .estimate { font-size:11px;font-weight:900;color:#047857;margin:5px 0 10px; }
+.wasla-health-list { display:flex; flex-direction:column; gap:9px; }
+.wasla-health-list-item { background:#fff;border:1px solid var(--border-default);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start; }
+.wasla-health-list-item .list-icon { width:38px;height:38px;display:grid;place-items:center;border-radius:11px;flex-shrink:0;background:#ECFDF5;color:#059669;font-size:16px; }
+.wasla-health-list-item h3 { font-weight:900;font-size:12px;margin-bottom:3px; }
+.wasla-health-list-item p { font-size:10.5px;color:var(--text-muted);line-height:1.7; }
+.wasla-health-pill {display:inline-flex;border-radius:999px;padding:3px 8px;background:#F1F5F9;color:#475569;font-size:9px;font-weight:900;}
+@media (max-width:520px) { .wasla-health-grid,.wasla-health-product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; } .wasla-health-card { padding:11px; } .wasla-health-form-grid { grid-template-columns:1fr; } .wasla-health-field.full { grid-column:auto; } .wasla-health-page-head h1 { font-size:18px; } }
+
+</style>
 </head>
 <body>
 
@@ -1473,9 +1514,11 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 
   function _renderOrderCard(order) {
     const sectorClass = order.sector === 'grocery' ? 'grocery' : order.sector === 'cars' ? 'cars' : order.sector === 'home' ? 'home-services' : 'medical';
-    const typeLabels = { grocery: 'سوبر ماركت', cars: 'سيارات', home: 'صيانة' };
-    const statusLabels = { pending: 'بانتظار', preparing: 'قيد التجهيز', on_way: 'في الطريق', delivered: 'تم التوصيل', canceled: 'ملغي' };
-    return `<div class="order-card ${sectorClass}"><div class="order-header"><div style="flex:1;min-width:0;"><span class="tag tag-${sectorClass === 'home-services' ? 'home' : sectorClass}" style="margin-bottom:6px;"><i class="fa-solid fa-receipt"></i> ${typeLabels[order.sector] || 'طلب'}</span><div class="order-title">${Utils.escape(order.storeName || order.service || 'طلب')}</div><div class="order-meta">${Utils.timeAgo(order.ts || order.createdAt)}</div></div><div style="text-align:left;"><div class="order-amount">${Utils.money(order.total || order.price || 0)}</div><div style="font-size:10px;font-weight:900;color:var(--text-muted);margin-top:2px;">${statusLabels[order.status] || order.status}</div></div></div></div>`;
+    const typeLabels = { grocery: 'سوبر ماركت', cars: 'سيارات', home: 'صيانة', medical: order.subSector === 'nursing' ? 'تمريض منزلي' : order.subSector === 'pharmacy' ? 'طلب صيدلية' : order.subSector === 'supplies' ? 'مستلزمات طبية' : 'خدمة طبية' };
+    const statusLabels = { pending: 'بانتظار قبول مقدم الخدمة', awaiting_pharmacy_confirmation: 'بانتظار تأكيد الصيدلية', accepted: 'تم قبول الطلب', preparing: 'قيد التجهيز', on_way: 'في الطريق', delivered: 'تم التوصيل', completed: 'مكتمل', canceled: 'ملغي' };
+    const amountLabel = Number(order.total || order.price || 0) > 0 ? Utils.money(order.total || order.price) : (Number(order.estimatedAmount || 0) > 0 ? `تقديري ${Utils.money(order.estimatedAmount)}` : (order.subSector ? 'يحدد بعد التأكيد' : Utils.money(0)));
+    const details = order.subSector === 'pharmacy' ? 'طلب تجريبي — ينتظر تأكيد الصيدلية' : order.subSector === 'nursing' ? 'طلب خدمة — يحتاج قبول مقدم خدمة' : order.subSector === 'supplies' ? 'استفسار/طلب — السعر والتوافر غير مؤكدين' : '';
+    return `<div class="order-card ${sectorClass}"><div class="order-header"><div style="flex:1;min-width:0;"><span class="tag tag-${sectorClass === 'home-services' ? 'home' : sectorClass}" style="margin-bottom:6px;"><i class="fa-solid fa-receipt"></i> ${typeLabels[order.sector] || 'طلب'}</span><div class="order-title">${Utils.escape(order.storeName || order.service || 'طلب')}</div><div class="order-meta">${Utils.timeAgo(order.ts || order.createdAt)}</div>${details ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">${details}</div>` : ''}</div><div style="text-align:left;"><div class="order-amount" style="font-size:12px;">${amountLabel}</div><div style="font-size:10px;font-weight:900;color:var(--text-muted);margin-top:2px;">${statusLabels[order.status] || order.status}</div></div></div></div>`;
   }
 
   function _renderApptCard(appt) {
@@ -1508,7 +1551,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
       </div>
       <h2 class="section-title"><i class="fa-solid fa-gear"></i> إدارة الحساب</h2>
       <div class="settings-item" onclick="Router.go('orders')"><div class="settings-icon" style="background:var(--sector-medical-soft);color:var(--sector-medical);"><i class="fa-solid fa-receipt"></i></div><div style="flex:1;"><div class="settings-title">طلباتي</div><div class="settings-desc">عرض كل طلباتك السابقة</div></div><i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i></div>
-      ${user.emr ? `<div class="settings-item" onclick="UI.toast('سيتم تفعيل الملف الطبي في PART 5','info')"><div class="settings-icon" style="background:var(--sector-cars-soft);color:var(--sector-cars);"><i class="fa-solid fa-file-medical"></i></div><div style="flex:1;"><div class="settings-title">ملفي الطبي</div><div class="settings-desc">القياسات، الروشتات، السجل الكامل</div></div><i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i></div>` : ''}
+      ${user.emr ? `<div class="settings-item" onclick="Router.go('my-health-record')"><div class="settings-icon" style="background:var(--sector-cars-soft);color:var(--sector-cars);"><i class="fa-solid fa-file-medical"></i></div><div style="flex:1;"><div class="settings-title">ملفي الطبي</div><div class="settings-desc">القياسات، الروشتات، السجل الكامل</div></div><i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i></div>` : ''}
       <div class="settings-item" onclick="UI.toast('سيتم تفعيل الإعدادات في PART 15','info')"><div class="settings-icon" style="background:var(--sector-home-soft);color:var(--sector-home);"><i class="fa-solid fa-shield-halved"></i></div><div style="flex:1;"><div class="settings-title">الخصوصية والأمان</div><div class="settings-desc">كلمة السر، الأجهزة المتصلة</div></div><i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i></div>
       <div class="settings-item" onclick="AuthUI._confirmLogout()" style="border-color:rgba(225,29,72,0.3);"><div class="settings-icon" style="background:var(--color-danger-soft);color:var(--color-danger);"><i class="fa-solid fa-right-from-bracket"></i></div><div style="flex:1;"><div class="settings-title" style="color:var(--color-danger);">تسجيل الخروج</div><div class="settings-desc">الخروج الآمن من الحساب</div></div><i class="fa-solid fa-chevron-left" style="color:var(--text-disabled);"></i></div>
     `;
@@ -5659,7 +5702,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div><h1 style="font-size:18px;font-weight:900;"><i class="fa-solid fa-file-prescription" style="color:var(--sector-medical);"></i> روشتاتي</h1><p style="font-size:11px;color:var(--text-muted);font-weight:700;">${records.length} روشتة محفوظة</p></div></div>
         ${records.length === 0 ? `<div class="empty-state" style="padding:40px 16px;text-align:center;"><i class="fa-solid fa-file-slash" style="font-size:38px;color:var(--text-muted);opacity:0.4;"></i><p style="margin-top:10px;font-weight:800;color:var(--text-muted);">لا يوجد روشتات بعد</p></div>` : records.map(r => {
           const appt = H.appt(r.appointmentId); const doc = H.doctor(r.doctorId); const pay = Payments.forAppointment(r.appointmentId);
-          return `<div class="rx-download-card"><div class="rx-dl-icon"><i class="fa-solid fa-prescription"></i></div><div class="rx-dl-info"><strong>${Utils.escape(doc?.name || appt?.doctorName || 'طبيب')}</strong><small>${Utils.fmtDate(r.date)} · ${(r.prescription || []).length} دواء</small><div style="margin-top:4px;">${pay ? `<span class="pay-badge ${pay.status}">${pay.status === 'paid' ? '✅ مدفوع' : pay.status === 'partial' ? '⚠️ جزئي' : '❌ غير مدفوع'}</span>` : ''}</div></div><button class="rx-dl-btn" onclick="WaslaPrescriptionPDF.generate('${r.appointmentId}')"><i class="fa-solid fa-download"></i> PDF</button></div>`;
+          return `<div class="rx-download-card"><div class="rx-dl-icon"><i class="fa-solid fa-prescription"></i></div><div class="rx-dl-info"><strong>${Utils.escape(doc?.name || appt?.doctorName || 'طبيب')}</strong><small>${Utils.fmtDate(r.date)} · ${(r.prescription || []).length} دواء</small><div style="margin-top:4px;">${pay ? `<span class="pay-badge ${pay.status}">${pay.status === 'paid' ? '✅ مدفوع' : pay.status === 'partial' ? '⚠️ جزئي' : '❌ غير مدفوع'}</span>` : ''}</div></div><div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="rx-dl-btn" onclick="WaslaPrescriptionPDF.generate('${r.appointmentId}')"><i class="fa-solid fa-download"></i> PDF</button><button class="rx-dl-btn" style="background:#059669;color:#fff;" onclick="Router.go('pharmacies', { recordId: '${Utils.escape(r.id)}' })"><i class="fa-solid fa-paper-plane"></i> إرسال للصيدلية</button></div></div>`;
         }).join('')}
       `;
     }
@@ -6126,6 +6169,353 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
     const res = window.Auth.login(phone, pass);
     if (res.ok) { alert('تم الدخول: ' + res.user.name); window.location.reload(); } else { alert('فشل: ' + res.msg); }
   };
+})();
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   WASLA HEALTH EXPANSION v1.0 (local prototype)
+   Adds home nursing, pharmacies, medical supplies, symptom triage,
+   and a patient-only health-record view without removing existing routes.
+   Requests are stored locally; they are NOT transmitted to real providers.
+══════════════════════════════════════════════════════════════ */
+(function WASLA_HEALTH_EXPANSION() {
+  'use strict';
+  if (!window.WaslaCore || !window.Router || !window.Auth) {
+    console.error('[WASLA Health] Core modules are unavailable; expansion not loaded.');
+    return;
+  }
+
+  const { Utils, UI, Store, EventLog } = window.WaslaCore;
+  const ROUTES = ['health-services', 'symptom-checker', 'nursing', 'pharmacies', 'medical-supplies', 'my-health-record'];
+  const nursingCatalog = [
+    { id: 'nurse-home-visit', name: 'زيارة تمريض منزلي', desc: 'تقييم الاحتياج وتقديم الرعاية التمريضية المسموح بها حسب الحالة', icon: 'fa-house-medical' },
+    { id: 'wound-dressing', name: 'تغيير غيار جرح', desc: 'يشترط تقييم الحالة وتوافر ممرض مؤهل', icon: 'fa-bandage' },
+    { id: 'elder-care', name: 'رعاية كبار السن', desc: 'مساعدة ومتابعة منزلية حسب الخطة المتفق عليها', icon: 'fa-person-cane' },
+    { id: 'post-discharge', name: 'متابعة بعد الخروج من المستشفى', desc: 'متابعة تعليمات الخروج ولا تحل محل مراجعة الطبيب', icon: 'fa-hospital-user' },
+    { id: 'sample-collection', name: 'جمع عينات منزلية', desc: 'عند توافر مقدم خدمة مؤهل ومعمل متعاون', icon: 'fa-vial' },
+    { id: 'nursing-followup', name: 'متابعة قياسات منزلية', desc: 'قياس وتوثيق المؤشرات وفق توجيه مقدم الرعاية', icon: 'fa-heart-pulse' }
+  ];
+  const pharmacies = [
+    { id: 'demo-pharmacy-1', name: 'صيدلية تجريبية — 1', area: 'شبّين القناطر', hours: 'بيانات تجريبية', delivery: 'تأكيد التوصيل مطلوب' },
+    { id: 'demo-pharmacy-2', name: 'صيدلية تجريبية — 2', area: 'شبّين القناطر', hours: 'بيانات تجريبية', delivery: 'تأكيد التوصيل مطلوب' },
+    { id: 'demo-pharmacy-3', name: 'صيدلية تجريبية — 3', area: 'محيط المدينة', hours: 'بيانات تجريبية', delivery: 'تأكيد التوصيل مطلوب' }
+  ];
+  const supplies = [
+    { id: 'air-mattress', name: 'مرتبة هوائية طبية', desc: 'للتقليل من ضغط الفراش؛ اختيار النوع حسب توصية مقدم الرعاية', icon: 'fa-bed', buy: 3200, rent: 120, rentable: true },
+    { id: 'wheelchair', name: 'كرسي متحرك', desc: 'تأكد من المقاس والوزن الأقصى ونوع الاستخدام قبل الطلب', icon: 'fa-wheelchair', buy: 2800, rent: 100, rentable: true },
+    { id: 'walker', name: 'مشاية طبية', desc: 'قد تحتاج لضبط الارتفاع وفق طول المستخدم', icon: 'fa-person-walking-with-cane', buy: 900, rent: 45, rentable: true },
+    { id: 'crutches', name: 'عكازات طبية', desc: 'اختر المقاس المناسب وتأكد من تعليمات الاستخدام', icon: 'fa-crutch', buy: 550, rent: 30, rentable: true },
+    { id: 'bp-monitor', name: 'جهاز قياس ضغط', desc: 'تأكد من مقاس الكُفّ وطريقة الاستخدام الصحيحة', icon: 'fa-heart-pulse', buy: 950, rent: 0, rentable: false },
+    { id: 'glucose-meter', name: 'جهاز قياس سكر', desc: 'تحقق من توافق الشرائط وتوافرها', icon: 'fa-droplet', buy: 650, rent: 0, rentable: false },
+    { id: 'nebulizer', name: 'جهاز جلسات استنشاق', desc: 'يُستخدم حسب وصفة وتعليمات مختص الرعاية', icon: 'fa-lungs', buy: 1100, rent: 0, rentable: false },
+    { id: 'pulse-oximeter', name: 'مقياس أكسجين الإصبع', desc: 'القراءة لا تغني عن تقييم الطبيب عند وجود أعراض خطرة', icon: 'fa-wave-square', buy: 500, rent: 0, rentable: false }
+  ];
+  const state = { selectedRecordId: null, lastSymptomResult: null };
+
+  function esc(value) { return Utils.escape(value == null ? '' : String(value)); }
+  function todayLocal() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  function toast(message, type = 'info', duration = 4500) { UI.toast(message, type, duration); }
+  function currentPatient() {
+    const user = window.Auth.getCurrentUser();
+    if (!user) { toast('سجّل الدخول بحساب المريض أولًا.', 'warning'); window.AuthUI?.open('login'); return null; }
+    if (user.role !== 'patient') { toast('هذه الخدمة متاحة من حساب المريض في النسخة التجريبية.', 'warning'); return null; }
+    return user;
+  }
+  function readField(id) { return document.getElementById(id)?.value?.trim() || ''; }
+  function makeId(prefix) { return Utils.id(prefix); }
+  function pushNotification(userId, text, orderId, subSector) {
+    if (window.WaslaNotificationManager?.push) {
+      window.WaslaNotificationManager.push({ userId, text, type: 'medical_service', priority: 'normal', meta: { orderId, subSector } });
+      return;
+    }
+    const db = Store.load();
+    db.notifications = db.notifications || [];
+    db.notifications.unshift({ id: makeId('notif'), userId, text, type: 'medical_service', read: false, ts: Date.now(), meta: { orderId, subSector } });
+    Store.save(db);
+  }
+  function createOrder({ user, subSector, service, storeName, address, date, note, price = null, estimatedAmount = null, items = [], extra = {} }) {
+    if (!user || user.role !== 'patient') return { ok: false, error: 'patient_required' };
+    if (!address || address.trim().length < 5) return { ok: false, error: 'address_required' };
+    const db = Store.load();
+    if (!db) return { ok: false, error: 'database_unavailable' };
+    db.orders = db.orders || [];
+    const order = {
+      id: makeId('medorder'), userId: user.id, sector: 'medical', subSector,
+      service, storeName: storeName || 'وصلة الطبية', address: address.trim(),
+      date: date || '', note: (note || '').trim(), items,
+      status: subSector === 'pharmacy' ? 'awaiting_pharmacy_confirmation' : 'pending',
+      price: price, total: price, estimatedAmount: estimatedAmount,
+      createdAt: Date.now(), ts: Date.now(), demoOnly: true,
+      externalDispatch: false, ...extra
+    };
+    db.orders.unshift(order);
+    if (!Store.save(db)) return { ok: false, error: 'save_failed' };
+    try { EventLog.log('medical_service_request_created', { actorId: user.id, targetId: order.id, payload: { subSector, service, itemCount: items.length, demoOnly: true } }); } catch (_) {}
+    pushNotification(user.id, `تم حفظ طلبك التجريبي (${service}) في وصلة. لم يُرسل إلى مقدم خدمة خارجي بعد.`, order.id, subSector);
+    return { ok: true, order };
+  }
+
+  function analyzeSymptoms(input = {}) {
+    const symptom = String(input.symptom || 'other');
+    const age = Number(input.age);
+    const severity = String(input.severity || 'moderate');
+    const redFlags = Array.isArray(input.redFlags) ? input.redFlags : [];
+    const labels = {
+      abdominal_pain: 'ألم بالبطن', fever_cough: 'حرارة أو كحة', headache: 'صداع',
+      joint_pain: 'ألم بالمفاصل أو العظام', skin_rash: 'طفح أو مشكلة جلدية',
+      urinary_symptoms: 'أعراض بولية', pregnancy_issue: 'أعراض مرتبطة بالحمل', other: 'أعراض أخرى'
+    };
+    const emergencyFlags = new Set(['chest_breathing', 'fainting_confusion', 'severe_sudden', 'heavy_bleeding', 'pregnancy_bleeding']);
+    const emergency = redFlags.some(flag => emergencyFlags.has(flag)) || (symptom === 'pregnancy_issue' && redFlags.includes('pregnancy_bleeding'));
+    const veryYoungFever = symptom === 'fever_cough' && Number.isFinite(age) && age >= 0 && age < 0.25;
+    const highSeverity = severity === 'severe';
+    let specialty = 'طب الأسرة أو الطبيب العام';
+    if (age >= 0 && age < 18) specialty = 'طب الأطفال';
+    else if (symptom === 'abdominal_pain' || symptom === 'fever_cough' || symptom === 'urinary_symptoms') specialty = 'الباطنة أو طب الأسرة';
+    else if (symptom === 'headache') specialty = 'الباطنة أو طب الأسرة، بحسب الأعراض المصاحبة';
+    else if (symptom === 'joint_pain') specialty = 'العظام أو الروماتيزم، وفق التقييم';
+    else if (symptom === 'skin_rash') specialty = 'الجلدية';
+    else if (symptom === 'pregnancy_issue') specialty = 'النساء والتوليد';
+    let level = 'routine', title = 'يمكنك طلب تقييم طبي مجدول', message = `قد يكون التخصص المبدئي الأنسب: ${specialty}. هذه إشارة تنظيمية فقط ولا تحدد سبب الأعراض.`;
+    if (emergency || veryYoungFever) {
+      level = 'emergency'; title = 'اطلب المساعدة الطبية العاجلة الآن';
+      message = 'توجد علامة تحذيرية أو حالة عمرية تستلزم تقييمًا عاجلًا. لا تنتظر موعدًا من خلال وصلة ولا تعتمد على هذه الأداة؛ تواصل مع خدمات الطوارئ المحلية أو توجّه إلى أقرب قسم طوارئ.';
+    } else if (highSeverity || redFlags.includes('dehydration') || redFlags.includes('worsening')) {
+      level = 'urgent'; title = 'اطلب تقييمًا طبيًا عاجلًا اليوم';
+      message = `لا يمكن تحديد السبب عن طريق هذه الأداة. اطلب تقييمًا طبيًا اليوم، وقد يكون ${specialty} نقطة بداية مناسبة إذا لم توجد علامات طوارئ.`;
+    }
+    return { level, title, message, specialty, symptomLabel: labels[symptom] || labels.other, emergency, educationalOnly: true, disclaimer: 'هذه الأداة لا تشخّص المرض ولا تصف علاجًا، وقد تخطئ. عند الشك أو التدهور اطلب تقييمًا طبيًا مباشرًا.' };
+  }
+
+  function submitNursingRequest(data = {}) {
+    const user = currentPatient(); if (!user) return { ok: false, error: 'patient_required' };
+    const service = nursingCatalog.find(item => item.id === data.serviceId);
+    if (!service) return { ok: false, error: 'invalid_service' };
+    if (data.date && data.date < todayLocal()) return { ok: false, error: 'invalid_date' };
+    return createOrder({ user, subSector: 'nursing', service: service.name, storeName: 'طلب تمريض منزلي', address: data.address, date: data.date, note: data.note, items: [{ serviceId: service.id, name: service.name }], extra: { providerQualificationCheckRequired: true, providerAccepted: false } });
+  }
+
+  function submitSupplyRequest(data = {}) {
+    const user = currentPatient(); if (!user) return { ok: false, error: 'patient_required' };
+    const product = supplies.find(item => item.id === data.productId);
+    if (!product) return { ok: false, error: 'invalid_product' };
+    const mode = data.mode === 'rent' ? 'rent' : 'buy';
+    if (mode === 'rent' && !product.rentable) return { ok: false, error: 'not_rentable' };
+    const quantity = Math.floor(Number(data.quantity || 1));
+    if (!Number.isFinite(quantity) || quantity < 1 || quantity > 10) return { ok: false, error: 'invalid_quantity' };
+    const estimate = (mode === 'rent' ? product.rent : product.buy) * quantity;
+    return createOrder({ user, subSector: 'supplies', service: `${mode === 'rent' ? 'استئجار' : 'شراء/استفسار'} ${product.name}`, storeName: 'طلب مستلزم طبي', address: data.address, note: data.note, estimatedAmount: estimate, items: [{ productId: product.id, name: product.name, mode, quantity, indicativeUnitEstimate: mode === 'rent' ? product.rent : product.buy }], extra: { availabilityConfirmed: false, priceConfirmed: false, quoteOnly: true } });
+  }
+
+  function submitPharmacyRequest(data = {}) {
+    const user = currentPatient(); if (!user) return { ok: false, error: 'patient_required' };
+    if (data.consent !== true) return { ok: false, error: 'consent_required' };
+    const pharmacy = pharmacies.find(item => item.id === data.pharmacyId);
+    if (!pharmacy) return { ok: false, error: 'invalid_pharmacy' };
+    const db = Store.load();
+    const record = (db.medicalRecords || []).find(item => item.id === data.recordId && item.patientId === user.id);
+    if (!record || !Array.isArray(record.prescription) || record.prescription.length === 0) return { ok: false, error: 'prescription_not_found' };
+    const dup = (db.orders || []).find(order => order.userId === user.id && order.subSector === 'pharmacy' && order.prescriptionRecordId === record.id && order.pharmacyId === pharmacy.id && !['delivered', 'completed', 'canceled'].includes(order.status));
+    if (dup) return { ok: false, error: 'duplicate_request', order: dup };
+    const items = record.prescription.map(item => ({ drug: String(item.drug || item.name || '').trim(), dose: String(item.dose || '').trim(), frequency: String(item.freq || item.frequency || '').trim(), duration: String(item.dur || item.duration || '').trim() })).filter(item => item.drug);
+    if (!items.length) return { ok: false, error: 'prescription_not_found' };
+    return createOrder({ user, subSector: 'pharmacy', service: 'طلب صرف روشتة معتمدة', storeName: pharmacy.name, address: data.address || 'لم يحدد عنوان توصيل — يلزم التواصل/الاستلام', note: data.note, items, extra: { pharmacyId: pharmacy.id, prescriptionRecordId: record.id, appointmentId: record.appointmentId, patientConsentAt: Date.now(), prescriptionSnapshot: items, pharmacistConfirmationRequired: true, externalDispatch: false } });
+  }
+
+  function renderPageHead(title, description, icon = 'fa-heart-pulse') {
+    return `<div class="wasla-health-page-head"><span class="sector-hero-badge"><i class="fa-solid ${icon}"></i> وصلة الطبية</span><h1>${esc(title)}</h1><p>${esc(description)}</p></div>`;
+  }
+  function backButton(route = 'medical', label = 'العودة للقطاع الطبي') {
+    return `<button class="btn btn-ghost btn-sm" onclick="Router.go('${route}')" style="margin-bottom:12px;"><i class="fa-solid fa-arrow-right"></i> ${esc(label)}</button>`;
+  }
+  function serviceCard(route, title, description, icon, bg, color) {
+    return `<button type="button" class="wasla-health-card" onclick="Router.go('${route}')"><span class="wasla-health-icon" style="background:${bg};color:${color};"><i class="fa-solid ${icon}"></i></span><strong>${esc(title)}</strong><span>${esc(description)}</span><span class="wasla-health-link">فتح الخدمة <i class="fa-solid fa-arrow-left"></i></span></button>`;
+  }
+  function medicalServiceCards() {
+    return `<section class="wasla-health-services"><div class="wasla-health-services-head"><div><h2>خدمات الرعاية الصحية</h2><p>خدمات مترابطة تبدأ من الحجز وتستمر بعد الزيارة</p></div><span class="wasla-health-pill">نسخة تجريبية</span></div><div class="wasla-health-grid">
+      ${serviceCard('symptom-checker','اعرف أعراضك','توجيه مبدئي للتخصص والخطوة التالية','fa-stethoscope','#ECFDF5','#059669')}
+      ${serviceCard('nursing','تمريض منزلي','طلب خدمة منزلية مع تحديد الاحتياج والعنوان','fa-house-medical','#F5F3FF','#7C3AED')}
+      ${serviceCard('pharmacies','الصيدليات والروشتات','اختيار روشتة محفوظة وإعداد طلب للصيدلية','fa-prescription-bottle-medical','#FFF7ED','#EA580C')}
+      ${serviceCard('medical-supplies','المستلزمات الطبية','شراء أو طلب استئجار أجهزة ومستلزمات','fa-wheelchair','#F0F9FF','#0284C7')}
+      ${serviceCard('my-health-record','ملفي الصحي','الزيارات والروشتات والحساسية والتاريخ الطبي','fa-file-medical','#ECFDF5','#059669')}
+      ${serviceCard('health-services','كل الخدمات الطبية','استعرض جميع وحدات القطاع الطبي','fa-grid-2','#F8FAFC','#334155')}
+    </div><div class="wasla-health-info">تنبيه: هذه نسخة عرض محلية. طلبات التمريض والصيدليات والمستلزمات لا تصل إلى جهات حقيقية حتى يتم ربط المنصة بالخادم ومقدمي الخدمة.</div></section>`;
+  }
+
+  function renderHealthServices(el) {
+    el.innerHTML = `${backButton()}${renderPageHead('رعاية صحية متصلة','اختَر الخدمة المناسبة، مع وضوح حالة كل طلب ومن المسؤول عن الخطوة التالية.')}<div class="wasla-health-grid">
+      ${serviceCard('medical','الأطباء والعيادات','استكشف التخصصات، المواعيد، والحجز','fa-user-doctor','#ECFDF5','#059669')}
+      ${serviceCard('symptom-checker','اعرف أعراضك','توجيه أولي غير تشخيصي','fa-stethoscope','#EFF6FF','#2563EB')}
+      ${serviceCard('nursing','التمريض المنزلي','زيارة أو رعاية منزلية عند توافر مقدم مؤهل','fa-house-medical','#F5F3FF','#7C3AED')}
+      ${serviceCard('pharmacies','الصيدليات والروشتات','إعداد طلب متعلق بروشتة محفوظة','fa-prescription-bottle-medical','#FFF7ED','#EA580C')}
+      ${serviceCard('medical-supplies','المستلزمات والأجهزة','مرتبة هوائية، كرسي متحرك، أجهزة قياس وغيرها','fa-wheelchair','#F0F9FF','#0284C7')}
+      ${serviceCard('my-health-record','ملفي الصحي','السجل والروشتات الخاصة بحسابك','fa-file-medical','#ECFDF5','#059669')}
+    </div><div class="card" style="margin-top:14px;"><h2 class="section-title"><i class="fa-solid fa-shield-heart"></i> ضوابط الخدمة</h2><p style="font-size:11.5px;line-height:1.9;color:var(--text-secondary);font-weight:700;">لا يقدم فاحص الأعراض تشخيصًا أو علاجًا. توافر الصيدليات ومقدمي التمريض والمستلزمات وأسعارها غير مؤكد في هذه النسخة. مشاركة السجل الطبي تتطلب موافقة المريض ولا تنفّذ تلقائيًا إلى طرف خارجي.</p></div>`;
+  }
+
+  function renderSymptomChecker(el) {
+    el.innerHTML = `${backButton()}${renderPageHead('اعرف الخطوة التالية','أجب عن أسئلة عامة لتوجيهك إلى مستوى الرعاية المناسب. هذه الأداة لا تشخّص المرض.','fa-stethoscope')}
+      <div class="wasla-health-alert"><i class="fa-solid fa-triangle-exclamation"></i> إذا كان لديك الآن ألم شديد مفاجئ، صعوبة تنفس، ألم بالصدر، إغماء أو نزيف شديد، لا تنتظر هذه الأداة؛ اطلب مساعدة طبية عاجلة.</div>
+      <div class="card"><div class="wasla-health-form-grid">
+        <div class="wasla-health-field full"><label class="label" for="wh-symptom">ما العرض الرئيسي؟</label><select id="wh-symptom" class="input"><option value="abdominal_pain">ألم بالبطن</option><option value="fever_cough">حرارة أو كحة</option><option value="headache">صداع</option><option value="joint_pain">ألم بالمفاصل أو العظام</option><option value="skin_rash">طفح أو مشكلة جلدية</option><option value="urinary_symptoms">أعراض بولية</option><option value="pregnancy_issue">أعراض مرتبطة بالحمل</option><option value="other">أعراض أخرى</option></select></div>
+        <div class="wasla-health-field"><label class="label" for="wh-age">العمر بالسنوات (اكتب 0.1 للرضيع)</label><input id="wh-age" class="input" type="number" min="0" max="120" step="0.1" placeholder="مثال: 35"></div>
+        <div class="wasla-health-field"><label class="label" for="wh-severity">شدة الأعراض</label><select id="wh-severity" class="input"><option value="mild">خفيفة</option><option value="moderate" selected>متوسطة</option><option value="severe">شديدة</option></select></div>
+        <div class="wasla-health-field full"><label class="label" for="wh-duration">منذ متى بدأت؟ (اختياري)</label><input id="wh-duration" class="input" maxlength="100" placeholder="مثال: منذ 6 ساعات"></div>
+        <div class="wasla-health-field full"><label class="label">هل يوجد أي مما يلي الآن؟</label>
+          <label style="display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:11px;font-weight:700;"><input type="checkbox" name="wh-redflag" value="chest_breathing" style="margin-top:4px;"> ألم بالصدر أو صعوبة في التنفس</label>
+          <label style="display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:11px;font-weight:700;"><input type="checkbox" name="wh-redflag" value="fainting_confusion" style="margin-top:4px;"> إغماء أو ارتباك مفاجئ أو ضعف شديد مفاجئ</label>
+          <label style="display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:11px;font-weight:700;"><input type="checkbox" name="wh-redflag" value="severe_sudden" style="margin-top:4px;"> ألم شديد مفاجئ أو يزداد بسرعة</label>
+          <label style="display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:11px;font-weight:700;"><input type="checkbox" name="wh-redflag" value="heavy_bleeding" style="margin-top:4px;"> نزيف شديد</label>
+          <label style="display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:11px;font-weight:700;"><input type="checkbox" name="wh-redflag" value="pregnancy_bleeding" style="margin-top:4px;"> حمل مع ألم شديد أو نزيف</label>
+          <label style="display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:11px;font-weight:700;"><input type="checkbox" name="wh-redflag" value="dehydration" style="margin-top:4px;"> عدم القدرة على شرب السوائل أو علامات جفاف ملحوظة</label>
+          <label style="display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:11px;font-weight:700;"><input type="checkbox" name="wh-redflag" value="worsening" style="margin-top:4px;"> الحالة تتدهور أو تشعر بقلق شديد بشأنها</label>
+        </div>
+      </div><button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="WaslaHealth.runSymptomCheck()"><i class="fa-solid fa-list-check"></i> اعرض التوجيه المبدئي</button>
+      <div id="wh-symptom-result" aria-live="polite"></div></div>`;
+  }
+
+  function runSymptomCheck() {
+    const ageText = readField('wh-age');
+    const age = ageText === '' ? NaN : Number(ageText);
+    if (ageText && (!Number.isFinite(age) || age < 0 || age > 120)) return toast('تحقق من العمر المدخل.', 'error');
+    const redFlags = Array.from(document.querySelectorAll('input[name="wh-redflag"]:checked')).map(el => el.value);
+    const result = analyzeSymptoms({ symptom: readField('wh-symptom'), age, severity: readField('wh-severity'), redFlags });
+    state.lastSymptomResult = result;
+    const box = document.getElementById('wh-symptom-result'); if (!box) return result;
+    const urgentClass = result.level === 'emergency' ? 'wasla-health-alert' : result.level === 'urgent' ? 'wasla-health-note' : 'wasla-health-info';
+    box.innerHTML = `<div class="${urgentClass}" style="margin-top:14px;"><strong style="font-size:14px;display:block;margin-bottom:5px;">${esc(result.title)}</strong><div>${esc(result.message)}</div>${result.level === 'routine' ? `<div style="margin-top:8px;">التخصص المبدئي: <strong>${esc(result.specialty)}</strong></div><button class="btn btn-primary" style="margin-top:12px;" onclick="Router.go('medical')">استعرض الأطباء</button>` : ''}<p style="margin-top:8px;font-size:10px;">${esc(result.disclaimer)}</p></div>`;
+    try { EventLog.log('symptom_triage_viewed', { actorId: window.Auth.getCurrentUser()?.id || null, payload: { symptom: result.symptomLabel, level: result.level, persisted: false } }); } catch (_) {}
+    return result;
+  }
+
+  function renderNursing(el) {
+    const options = nursingCatalog.map(item => `<option value="${item.id}">${esc(item.name)}</option>`).join('');
+    el.innerHTML = `${backButton()}${renderPageHead('التمريض والرعاية المنزلية','أرسل طلبًا أوليًا لتحديد احتياجك. الطلب لا يصبح حجزًا مؤكدًا إلا بعد مراجعة مقدم خدمة مؤهل.','fa-house-medical')}
+      <div class="wasla-health-grid" style="margin-bottom:14px;">${nursingCatalog.map(item => `<div class="wasla-health-card" style="cursor:default;"><span class="wasla-health-icon" style="background:#F5F3FF;color:#7C3AED;"><i class="fa-solid ${item.icon}"></i></span><strong>${esc(item.name)}</strong><span>${esc(item.desc)}</span></div>`).join('')}</div>
+      <div class="card"><h2 class="section-title"><i class="fa-solid fa-clipboard-list"></i> طلب خدمة منزلية</h2><div class="wasla-health-form-grid">
+        <div class="wasla-health-field full"><label class="label" for="wh-nursing-service">الخدمة المطلوبة</label><select id="wh-nursing-service" class="input">${options}</select></div>
+        <div class="wasla-health-field"><label class="label" for="wh-nursing-date">التاريخ المفضل</label><input id="wh-nursing-date" class="input" type="date" min="${todayLocal()}"></div>
+        <div class="wasla-health-field"><label class="label" for="wh-nursing-address">العنوان بالتفصيل</label><input id="wh-nursing-address" class="input" maxlength="300" placeholder="المنطقة والشارع ورقم العقار"></div>
+        <div class="wasla-health-field full"><label class="label" for="wh-nursing-note">ملاحظات عن الاحتياج (اختياري)</label><textarea id="wh-nursing-note" class="input" rows="3" maxlength="1000" placeholder="اكتب ما يلزم مقدم الخدمة معرفته، دون بيانات غير ضرورية"></textarea></div>
+      </div><div class="wasla-health-note">الأسعار والمواعيد غير محددة حتى الآن. لن يتم إرسال ممرض أو تحصيل أموال من هذه النسخة. يجب التحقق من المؤهل والتوافر قبل تأكيد أي زيارة.</div><button class="btn btn-primary btn-block" onclick="WaslaHealth.submitNursingFromPage()"><i class="fa-solid fa-paper-plane"></i> حفظ الطلب التجريبي</button></div>`;
+  }
+  function submitNursingFromPage() {
+    const result = submitNursingRequest({ serviceId: readField('wh-nursing-service'), date: readField('wh-nursing-date'), address: readField('wh-nursing-address'), note: readField('wh-nursing-note') });
+    if (!result.ok) return toast(({ address_required:'اكتب العنوان بالتفصيل.', invalid_date:'اختر تاريخًا غير سابق لليوم.', invalid_service:'اختر خدمة صحيحة.', patient_required:'سجّل الدخول بحساب المريض.', save_failed:'تعذر حفظ الطلب محليًا.' })[result.error] || 'تعذر إنشاء الطلب.', 'error');
+    toast('تم حفظ طلب التمريض في النسخة التجريبية فقط؛ لم يُرسل لمقدم خدمة.', 'warning', 6000); window.Router.go('orders'); return result;
+  }
+
+  function renderPharmacies(el, params = {}) {
+    const user = window.Auth.getCurrentUser();
+    const records = user?.role === 'patient' ? (Store.load().medicalRecords || []).filter(r => r.patientId === user.id && Array.isArray(r.prescription) && r.prescription.some(p => String(p.drug || p.name || '').trim())) : [];
+    const preferred = params.recordId || state.selectedRecordId || '';
+    const recordOptions = records.map(r => `<option value="${esc(r.id)}" ${r.id === preferred ? 'selected' : ''}>${esc(r.date || 'زيارة')} — ${esc(((r.prescription || []).map(x => x.drug || x.name).filter(Boolean).slice(0,2)).join('، ') || 'روشتة')} (${(r.prescription || []).length} دواء)</option>`).join('');
+    el.innerHTML = `${backButton()}${renderPageHead('الصيدليات والروشتات','اختر روشتة محفوظة من زيارة طبية ثم جهّز طلبًا للصيدلية. لن يتم إرسال أي بيانات خارج هذا المتصفح في النسخة الحالية.','fa-prescription-bottle-medical')}
+      <div class="wasla-health-list" style="margin-bottom:14px;">${pharmacies.map(p => `<div class="wasla-health-list-item"><div class="list-icon"><i class="fa-solid fa-prescription-bottle-medical"></i></div><div style="flex:1;"><h3>${esc(p.name)} <span class="wasla-health-pill">تجريبي</span></h3><p>${esc(p.area)} · ${esc(p.hours)}<br>${esc(p.delivery)}</p></div></div>`).join('')}</div>
+      <div class="card"><h2 class="section-title"><i class="fa-solid fa-paper-plane"></i> إرسال طلب صرف روشتة</h2>
+        ${records.length ? `<div class="wasla-health-form-grid"><div class="wasla-health-field full"><label class="label" for="wh-rx-record">الروشتة المعتمدة</label><select id="wh-rx-record" class="input">${recordOptions}</select></div><div class="wasla-health-field full"><label class="label" for="wh-pharmacy">الصيدلية</label><select id="wh-pharmacy" class="input">${pharmacies.map(p => `<option value="${p.id}">${esc(p.name)} — بيانات تجريبية</option>`).join('')}</select></div><div class="wasla-health-field full"><label class="label" for="wh-pharmacy-address">عنوان التوصيل (اختياري)</label><input id="wh-pharmacy-address" class="input" maxlength="300" placeholder="اتركه فارغًا إذا كنت ستستفسر عن الاستلام"></div><div class="wasla-health-field full"><label class="label" for="wh-pharmacy-note">ملاحظة للصيدلية (اختياري)</label><textarea id="wh-pharmacy-note" class="input" rows="2" maxlength="500" placeholder="معلومة لوجستية فقط؛ لا تعدّل وصفة الطبيب"></textarea></div><div class="wasla-health-field full"><label style="display:flex;gap:8px;align-items:flex-start;font-size:11px;line-height:1.8;font-weight:700;"><input id="wh-pharmacy-consent" type="checkbox" style="margin-top:4px;"> أوافق على تجهيز طلب تجريبي يتضمن بيانات الروشتة المختارة. لا تُرسل البيانات إلى صيدلية حقيقية في هذه النسخة.</label></div></div><button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="WaslaHealth.submitPharmacyFromPage()"><i class="fa-solid fa-paper-plane"></i> حفظ طلب الصيدلية</button>` : `<div class="empty-state" style="padding:22px 10px;"><i class="fa-solid fa-file-prescription empty-state-icon"></i><p class="empty-state-title">لا توجد روشتة محفوظة قابلة للإرسال</p><p class="empty-state-desc">يجب أن يحفظ الطبيب روشتة داخل سجل زيارة أولًا. بعد ذلك ستظهر هنا لاختيار الصيدلية.</p><button class="btn btn-ghost" style="margin-top:12px;" onclick="Router.go('my-prescriptions')">عرض روشتاتي</button></div>`}
+      </div><div class="wasla-health-note">لا توجد صيدليات حقيقية متصلة بعد؛ أسماء الصيدليات في الشاشة بيانات توضيحية. تأكيد توفر الأدوية والسعر والبدائل مسؤولية الصيدلية والطبيب الواصف بحسب الحالة.</div>`;
+  }
+  function submitPharmacyFromPage() {
+    const consent = !!document.getElementById('wh-pharmacy-consent')?.checked;
+    const result = submitPharmacyRequest({ recordId: readField('wh-rx-record'), pharmacyId: readField('wh-pharmacy'), address: readField('wh-pharmacy-address'), note: readField('wh-pharmacy-note'), consent });
+    if (!result.ok) return toast(({ consent_required:'يجب الموافقة على تجهيز الطلب التجريبي.', prescription_not_found:'الروشتة غير موجودة أو لا تحتوي أدوية.', invalid_pharmacy:'اختر صيدلية من القائمة.', duplicate_request:'يوجد طلب قائم لهذه الروشتة لدى الصيدلية نفسها.', patient_required:'سجّل الدخول بحساب المريض.', save_failed:'تعذر الحفظ محليًا.' })[result.error] || 'تعذر حفظ الطلب.', 'error');
+    toast('تم حفظ طلب الصيدلية محليًا. لم يتم إرسال الروشتة خارج المتصفح.', 'warning', 6500); window.Router.go('orders'); return result;
+  }
+
+  function renderSupplies(el) {
+    el.innerHTML = `${backButton()}${renderPageHead('الأجهزة والمستلزمات الطبية','اطلب استفسارًا عن شراء أو استئجار مستلزم. الأسعار المعروضة للتجربة فقط وليست عروض أسعار حالية.','fa-wheelchair')}
+      <div class="wasla-health-product-grid">${supplies.map(p => `<div class="wasla-health-product"><div class="prod-icon"><i class="fa-solid ${p.icon}"></i></div><h3>${esc(p.name)}</h3><p>${esc(p.desc)}</p><div class="estimate">سعر شراء توضيحي: ${Utils.money(p.buy)}</div>${p.rentable ? `<div class="wasla-health-pill">يتوفر خيار طلب استئجار تجريبي</div>` : `<div class="wasla-health-pill">شراء / استفسار</div>`}</div>`).join('')}</div>
+      <div class="card" style="margin-top:14px;"><h2 class="section-title"><i class="fa-solid fa-cart-plus"></i> جهّز طلبًا</h2><div class="wasla-health-form-grid">
+        <div class="wasla-health-field full"><label class="label" for="wh-supply-product">المستلزم</label><select id="wh-supply-product" class="input" onchange="WaslaHealth.updateSupplyEstimate()">${supplies.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
+        <div class="wasla-health-field"><label class="label" for="wh-supply-mode">نوع الطلب</label><select id="wh-supply-mode" class="input" onchange="WaslaHealth.updateSupplyEstimate()"><option value="buy">شراء / استفسار</option><option value="rent">استئجار</option></select></div>
+        <div class="wasla-health-field"><label class="label" for="wh-supply-quantity">الكمية</label><input id="wh-supply-quantity" class="input" type="number" min="1" max="10" value="1" onchange="WaslaHealth.updateSupplyEstimate()"></div>
+        <div class="wasla-health-field full"><label class="label" for="wh-supply-address">عنوان التوصيل أو منطقة الاستلام</label><input id="wh-supply-address" class="input" maxlength="300" placeholder="المنطقة والشارع"></div>
+        <div class="wasla-health-field full"><label class="label" for="wh-supply-note">ملاحظات (اختياري)</label><textarea id="wh-supply-note" class="input" rows="2" maxlength="500" placeholder="المقاس أو تفاصيل الطلب"></textarea></div>
+      </div><div id="wh-supply-estimate" class="wasla-health-info">السعر توضيحي ويحتاج تأكيدًا من المورد.</div><button class="btn btn-primary btn-block" onclick="WaslaHealth.submitSupplyFromPage()"><i class="fa-solid fa-paper-plane"></i> حفظ طلب المستلزم</button></div>
+      <div class="wasla-health-note">هذه ليست واجهة متجر متصل. لا يوجد تحقق مباشر من المخزون، ولا دفع أو شحن فعلي. اطلب توجيهًا طبيًا بشأن اختيار الجهاز إذا كانت ملاءمته الصحية غير واضحة.</div>`;
+    updateSupplyEstimate();
+  }
+  function updateSupplyEstimate() {
+    const product = supplies.find(p => p.id === readField('wh-supply-product')) || supplies[0];
+    const mode = readField('wh-supply-mode') || 'buy';
+    const quantity = Math.min(10, Math.max(1, Math.floor(Number(readField('wh-supply-quantity') || 1))));
+    const box = document.getElementById('wh-supply-estimate'); if (!box || !product) return;
+    if (mode === 'rent' && !product.rentable) {
+      box.className = 'wasla-health-note'; box.textContent = 'المنتج غير مهيأ للاستئجار في النموذج؛ اختر الشراء أو منتجًا آخر.'; return;
+    }
+    box.className = 'wasla-health-info';
+    const amount = (mode === 'rent' ? product.rent : product.buy) * quantity;
+    box.textContent = `تقدير توضيحي غير ملزم: ${Utils.money(amount)} — ${mode === 'rent' ? 'للاستئجار (تحتاج المدة والسعر النهائي إلى تأكيد)' : 'للشراء'}. لا يمثل عرض سعر أو مخزونًا حقيقيًا.`;
+  }
+  function submitSupplyFromPage() {
+    const result = submitSupplyRequest({ productId: readField('wh-supply-product'), mode: readField('wh-supply-mode'), quantity: readField('wh-supply-quantity'), address: readField('wh-supply-address'), note: readField('wh-supply-note') });
+    if (!result.ok) return toast(({ address_required:'اكتب عنوان التوصيل أو منطقة الاستلام.', invalid_product:'اختر مستلزمًا صحيحًا.', not_rentable:'هذا المستلزم غير متاح للاستئجار في النموذج.', invalid_quantity:'الكمية يجب أن تكون من 1 إلى 10.', patient_required:'سجّل الدخول بحساب المريض.', save_failed:'تعذر حفظ الطلب محليًا.' })[result.error] || 'تعذر حفظ الطلب.', 'error');
+    toast('تم حفظ الطلب محليًا كتجربة؛ التوافر والسعر والشحن لم يتم تأكيدهم.', 'warning', 6000); window.Router.go('orders'); return result;
+  }
+
+  function renderHealthRecord(el) {
+    const user = currentPatient();
+    if (!user) { el.innerHTML = `${backButton()}<div class="empty-state"><i class="fa-solid fa-lock empty-state-icon"></i><p class="empty-state-title">سجّل الدخول بحساب المريض</p><p class="empty-state-desc">لا يمكن عرض الملف الصحي دون حساب المريض الصحيح.</p></div>`; return; }
+    const db = Store.load();
+    const records = (db.medicalRecords || []).filter(r => r.patientId === user.id).sort((a,b) => (b.ts || 0) - (a.ts || 0));
+    const profile = user.emr || {};
+    const allergies = (profile.allergies || []).map(x => typeof x === 'string' ? x : `${x.name || 'حساسية'}${x.severity ? ` — ${x.severity === 'high' ? 'شديدة' : esc(x.severity)}` : ''}`);
+    const chronic = (profile.chronic || []).map(x => typeof x === 'string' ? x : `${x.name || 'حالة مزمنة'}${x.since ? ` — منذ ${x.since}` : ''}`);
+    const meds = (profile.currentMeds || []).filter(m => m.active !== false);
+    el.innerHTML = `${backButton()}${renderPageHead('ملفي الصحي','ملخص محلي لبيانات الحساب وسجلات الزيارات التي أُنشئت في النموذج.','fa-file-medical')}
+      <div class="wasla-health-note"><strong>تنبيه للخصوصية:</strong> هذا نموذج محلي محفوظ في المتصفح وليس سجلًا طبيًا مستضافًا أو معتمدًا. لا تستخدمه بديلًا عن ملف طبي رسمي ولا تُدخل بيانات مرضى حقيقية على رابط عام.</div>
+      <div class="card"><h2 class="section-title"><i class="fa-solid fa-id-card"></i> بيانات المريض</h2><div class="wasla-health-list-item"><div class="list-icon"><i class="fa-solid fa-user"></i></div><div><h3>${esc(user.name)}</h3><p>معرّف وصلة: ${esc(user.waslaId || '—')}<br>رقم الحساب: ${esc(user.phone || '—')}</p></div></div>
+        <div class="wasla-health-form-grid" style="margin-top:12px;"><div class="wasla-health-field"><label class="label">فصيلة الدم (إن كانت موثقة)</label><div class="input" style="background:#fff;">${esc(profile.blood || 'غير مسجلة')}</div></div><div class="wasla-health-field"><label class="label">عدد الزيارات المسجلة</label><div class="input" style="background:#fff;">${records.length}</div></div></div>
+      </div>
+      <div class="card"><h2 class="section-title"><i class="fa-solid fa-triangle-exclamation"></i> الحساسية</h2>${allergies.length ? allergies.map(item => `<div class="wasla-health-list-item"><div class="list-icon" style="background:#FFF1F2;color:#BE123C;"><i class="fa-solid fa-ban"></i></div><div><h3>${esc(item)}</h3><p>تحقق من هذه المعلومة مع الطبيب قبل أي علاج.</p></div></div>`).join('') : '<p class="wasla-health-info">لا توجد حساسية مسجلة في بيانات النموذج.</p>'}</div>
+      <div class="card"><h2 class="section-title"><i class="fa-solid fa-heart-pulse"></i> الحالات المزمنة</h2>${chronic.length ? chronic.map(item => `<div class="wasla-health-list-item"><div class="list-icon"><i class="fa-solid fa-notes-medical"></i></div><div><h3>${esc(item)}</h3></div></div>`).join('') : '<p class="wasla-health-info">لا توجد حالات مزمنة مسجلة في بيانات النموذج.</p>'}</div>
+      <div class="card"><h2 class="section-title"><i class="fa-solid fa-pills"></i> الأدوية الحالية المسجلة</h2>${meds.length ? meds.map(item => `<div class="wasla-health-list-item"><div class="list-icon"><i class="fa-solid fa-capsules"></i></div><div><h3>${esc(item.name || 'دواء')}</h3><p>${esc(item.dose || 'لا توجد جرعة مسجلة')}</p></div></div>`).join('') : '<p class="wasla-health-info">لا توجد أدوية حالية في هذا الملف.</p>'}</div>
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;"><h2 class="section-title" style="margin:0;"><i class="fa-solid fa-timeline"></i> سجل الزيارات</h2><span class="wasla-health-pill">${records.length} زيارة</span></div>
+        ${records.length ? records.map(r => { const rx = Array.isArray(r.prescription) ? r.prescription : []; return `<div class="wasla-health-list-item" style="margin-bottom:8px;"><div class="list-icon"><i class="fa-solid fa-file-medical"></i></div><div style="flex:1;min-width:0;"><h3>${esc(r.diagnosis || 'زيارة مسجلة دون تشخيص نصي')}</h3><p>${esc(r.date || '')} · ${esc(r.chiefComplaint || 'لا توجد شكوى مسجلة')}<br>${rx.length} دواء في الروشتة</p>${rx.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="Router.go('pharmacies',{recordId:'${esc(r.id)}'})">إعداد طلب صيدلية</button><button class="btn btn-ghost btn-sm" onclick="Router.go('my-prescriptions')">روشتاتي</button></div>` : ''}</div></div>`; }).join('') : '<div class="empty-state" style="padding:22px 10px;"><i class="fa-solid fa-file-circle-question empty-state-icon"></i><p class="empty-state-title">لا توجد زيارات معتمدة محفوظة بعد</p><p class="empty-state-desc">تظهر الزيارة هنا بعد أن يحفظ الطبيب سجل الكشف والروشتة من بوابة العيادة.</p></div>'}
+      </div><button class="btn btn-ghost btn-block" onclick="Router.go('my-prescriptions')">عرض كل الروشتات</button>`;
+  }
+
+  function enableNotifications() {
+    if (!window.WaslaBrowserNotifier) return toast('وحدة إشعارات المتصفح غير متاحة.', 'error');
+    window.WaslaBrowserNotifier.requestPermission().then(ok => toast(ok ? 'تم السماح بإشعارات المتصفح. يلزم إبقاء التطبيق مفتوحًا للتنبيهات المحلية.' : 'لم يتم منح إذن الإشعارات. يمكنك تفعيله من إعدادات المتصفح.', ok ? 'success' : 'warning', 6000));
+  }
+  function goDoctorsForSymptom() { window.Router.go('medical'); }
+
+  // Register new views without replacing/removing any original route.
+  window.Router.register('health-services', renderHealthServices);
+  window.Router.register('symptom-checker', renderSymptomChecker);
+  window.Router.register('nursing', renderNursing);
+  window.Router.register('pharmacies', renderPharmacies);
+  window.Router.register('medical-supplies', renderSupplies);
+  window.Router.register('my-health-record', renderHealthRecord);
+
+  // Add service shortcut cards to the existing medical sector after its hero.
+  const originalMedicalRoute = window.Router.registry.medical;
+  if (typeof originalMedicalRoute === 'function') {
+    window.Router.register('medical', function (el, params) {
+      originalMedicalRoute(el, params || {});
+      const hero = el.querySelector?.('.sector-hero');
+      if (hero && typeof hero.insertAdjacentHTML === 'function') hero.insertAdjacentHTML('afterend', medicalServiceCards());
+    });
+  }
+
+  window.WaslaHealth = {
+    version: '1.0.0-demo', nursingCatalog, pharmacies, supplies,
+    analyzeSymptoms,
+    createNursingRequest(data) { const user = window.Auth.getCurrentUser(); if (!user || user.role !== 'patient') return { ok: false, error: 'patient_required' }; return submitNursingRequest(data); },
+    createSupplyRequest(data) { const user = window.Auth.getCurrentUser(); if (!user || user.role !== 'patient') return { ok: false, error: 'patient_required' }; return submitSupplyRequest(data); },
+    createPharmacyRequest(data) { const user = window.Auth.getCurrentUser(); if (!user || user.role !== 'patient') return { ok: false, error: 'patient_required' }; return submitPharmacyRequest(data); },
+    runSymptomCheck, submitNursingFromPage, submitPharmacyFromPage, submitSupplyFromPage,
+    updateSupplyEstimate, enableNotifications, goDoctorsForSymptom,
+    requestStatus(orderId) { const db = Store.load(); const user = window.Auth.getCurrentUser(); return (db.orders || []).find(o => o.id === orderId && o.userId === user?.id) || null; },
+    diagnostics() { return { version: this.version, routes: ROUTES.filter(route => typeof window.Router.registry[route] === 'function'), nursingServices: nursingCatalog.length, pharmaciesAreDemo: true, supplyProducts: supplies.length, requestsAreLocalOnly: true, symptomDataIsPersisted: false }; }
+  };
+
+  console.log('%c🏥 [WASLA Health Expansion] Services, symptom triage, patient record and pharmacy-request demo loaded.', 'background:#047857;color:#fff;padding:6px 12px;font-weight:900');
 })();
 </script>
 </body>
