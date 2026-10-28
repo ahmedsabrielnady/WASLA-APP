@@ -463,6 +463,14 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 .wasla-health-list { display:flex; flex-direction:column; gap:9px; }
 .wasla-health-list-item { background:#fff;border:1px solid var(--border-default);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start; }
 .wasla-health-list-item .list-icon { width:38px;height:38px;display:grid;place-items:center;border-radius:11px;flex-shrink:0;background:#ECFDF5;color:#059669;font-size:16px; }
+.wasla-gps-panel { background:#F8FAFC;border:1px solid #CBD5E1;border-radius:12px;padding:12px;margin:10px 0; }
+.wasla-gps-actions { display:flex;gap:7px;flex-wrap:wrap;margin-top:8px; }
+.wasla-gps-status { color:#475569;font-size:10.5px;font-weight:800;line-height:1.8;margin-top:6px; }
+.wasla-gps-link { display:inline-flex;align-items:center;gap:6px;background:#ECFDF5;border:1px solid #A7F3D0;color:#047857;padding:7px 10px;border-radius:9px;font-size:10.5px;font-weight:900;margin-top:7px; }
+.wasla-gps-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px; }
+.wasla-gps-grid input { min-width:0; }
+@media(max-width:520px){.wasla-gps-grid{grid-template-columns:1fr 1fr}.wasla-gps-actions .btn{flex:1;white-space:normal;}}
+
 .wasla-health-list-item h3 { font-weight:900;font-size:12px;margin-bottom:3px; }
 .wasla-health-list-item p { font-size:10.5px;color:var(--text-muted);line-height:1.7; }
 .wasla-health-pill {display:inline-flex;border-radius:999px;padding:3px 8px;background:#F1F5F9;color:#475569;font-size:9px;font-weight:900;}
@@ -1523,11 +1531,16 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
     const quoteNote = quoted > 0 ? `<div style="font-size:10px;color:var(--text-secondary);margin-top:5px;">عرض السعر توضيحي وغير مدفوع. الموافقة لا تعني الدفع أو تأكيد التوافر.</div>` : '';
     const viewer = Auth.getCurrentUser();
     const quoteAction = viewer?.role === 'patient' && viewer.id === order.userId && order.subSector === 'supplies' && order.status === 'quote_ready' ? `<button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="WaslaHealth.acceptSupplyQuote('${Utils.escape(order.id)}');Router.go('orders')">أوافق على عرض السعر التجريبي</button>` : '';
-    return `<div class="order-card ${sectorClass}"><div class="order-header"><div style="flex:1;min-width:0;"><span class="tag tag-${sectorClass === 'home-services' ? 'home' : sectorClass}" style="margin-bottom:6px;"><i class="fa-solid fa-receipt"></i> ${typeLabels[order.sector] || 'طلب'}</span><div class="order-title">${Utils.escape(order.storeName || order.service || 'طلب')}</div><div class="order-meta">${Utils.timeAgo(order.ts || order.createdAt)}</div>${details ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">${details}</div>` : ''}${statusNote}${quoteNote}${quoteAction}</div><div style="text-align:left;"><div class="order-amount" style="font-size:12px;">${amountLabel}</div><div style="font-size:10px;font-weight:900;color:var(--text-muted);margin-top:2px;">${statusLabels[order.status] || order.status}</div></div></div></div>`;
+    const deliveryGeoLink = order.deliveryGeo && window.WaslaGPS?.hasCoordinates(order.deliveryGeo) ? `<a class="wasla-gps-link" target="_blank" rel="noopener noreferrer" href="${Utils.escape(window.WaslaGPS.directionsUrl(order.deliveryGeo, window.WaslaGPS.getSavedUserGeo(), order.address))}"><i class="fa-solid fa-location-arrow"></i> موقع / اتجاهات التوصيل</a>` : (order.subSector && ['nursing','pharmacy','supplies'].includes(order.subSector) ? `<div style="font-size:10px;color:var(--text-muted);margin-top:6px;"><i class="fa-solid fa-location-dot"></i> لم يتم إرفاق إحداثيات GPS بهذا الطلب.</div>` : '');
+    return `<div class="order-card ${sectorClass}"><div class="order-header"><div style="flex:1;min-width:0;"><span class="tag tag-${sectorClass === 'home-services' ? 'home' : sectorClass}" style="margin-bottom:6px;"><i class="fa-solid fa-receipt"></i> ${typeLabels[order.sector] || 'طلب'}</span><div class="order-title">${Utils.escape(order.storeName || order.service || 'طلب')}</div><div class="order-meta">${Utils.timeAgo(order.ts || order.createdAt)}</div>${details ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">${details}</div>` : ''}${statusNote}${quoteNote}${quoteAction}${deliveryGeoLink}</div><div style="text-align:left;"><div class="order-amount" style="font-size:12px;">${amountLabel}</div><div style="font-size:10px;font-weight:900;color:var(--text-muted);margin-top:2px;">${statusLabels[order.status] || order.status}</div></div></div></div>`;
   }
 
   function _renderApptCard(appt) {
-    return `<div class="order-card medical"><div class="order-header"><div style="flex:1;min-width:0;"><span class="tag tag-medical" style="margin-bottom:6px;"><i class="fa-solid fa-stethoscope"></i> طبي</span><div class="order-title">${Utils.escape(appt.doctorName || 'موعد')}</div><div class="order-meta">${appt.slot || ''} • ${Utils.fmtDate(appt.date)}</div></div><div style="text-align:left;"><div class="order-amount">${Utils.money(appt.price || 0)}</div></div></div></div>`;
+    const db = Store.load();
+    const doctor = (db?.doctors || []).find(item => item.id === appt.doctorId);
+    const routeUrl = doctor ? (window.WaslaGPS?.directionsUrl(doctor.geo, window.WaslaGPS.getSavedUserGeo(), `${doctor.name || appt.doctorName || 'العيادة'} ${doctor.area || ''} شبين القناطر`) || '') : '';
+    const routeAction = routeUrl ? `<a class="wasla-gps-link" target="_blank" rel="noopener noreferrer" href="${Utils.escape(routeUrl)}"><i class="fa-solid fa-map-location-dot"></i> ${doctor?.geo ? 'الاتجاهات إلى العيادة' : 'بحث عن العيادة على الخريطة'}</a>` : '';
+    return `<div class="order-card medical"><div class="order-header"><div style="flex:1;min-width:0;"><span class="tag tag-medical" style="margin-bottom:6px;"><i class="fa-solid fa-stethoscope"></i> طبي</span><div class="order-title">${Utils.escape(appt.doctorName || 'موعد')}</div><div class="order-meta">${appt.slot || ''} • ${Utils.fmtDate(appt.date)}</div>${routeAction}</div><div style="text-align:left;"><div class="order-amount">${Utils.money(appt.price || 0)}</div></div></div></div>`;
   }
 
   Router.register('account', (el) => {
@@ -2943,6 +2956,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
         </div>
       </div>
 
+      <div id="wasla-clinic-gps-slot"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
         <button class="btn btn-primary" onclick="ClinicView.manageInsurances()">
           <i class="fa-solid fa-shield-halved"></i> إدارة التأمينات
@@ -6243,13 +6257,15 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
   }
   function createOrder({ user, subSector, service, storeName, address, date, note, price = null, estimatedAmount = null, items = [], extra = {} }) {
     if (!user || user.role !== 'patient') return { ok: false, error: 'patient_required' };
-    if (!address || address.trim().length < 5) return { ok: false, error: 'address_required' };
+    const deliveryGeo = normalizeGeo(extra.deliveryGeo);
+    const normalizedAddress = String(address || '').trim();
+    if (normalizedAddress.length < 5 && !deliveryGeo) return { ok: false, error: 'address_required' };
     const db = Store.load();
     if (!db) return { ok: false, error: 'database_unavailable' };
     db.orders = db.orders || [];
     const order = {
       id: makeId('medorder'), userId: user.id, sector: 'medical', subSector,
-      service, storeName: storeName || 'وصلة الطبية', address: address.trim(),
+      service, storeName: storeName || 'وصلة الطبية', address: normalizedAddress || 'موقع GPS مرفق — راجع الإحداثيات',
       date: date || '', note: (note || '').trim(), items,
       status: subSector === 'pharmacy' ? 'awaiting_pharmacy_confirmation' : 'pending',
       price: price, total: price, estimatedAmount: estimatedAmount,
@@ -6300,7 +6316,7 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
     const service = nursingCatalog.find(item => item.id === data.serviceId);
     if (!service) return { ok: false, error: 'invalid_service' };
     if (data.date && data.date < todayLocal()) return { ok: false, error: 'invalid_date' };
-    return createOrder({ user, subSector: 'nursing', service: service.name, storeName: 'طلب تمريض منزلي', address: data.address, date: data.date, note: data.note, items: [{ serviceId: service.id, name: service.name }], extra: { providerQualificationCheckRequired: true, providerAccepted: false } });
+    return createOrder({ user, subSector: 'nursing', service: service.name, storeName: 'طلب تمريض منزلي', address: data.address, date: data.date, note: data.note, items: [{ serviceId: service.id, name: service.name }], extra: { providerQualificationCheckRequired: true, providerAccepted: false, deliveryGeo: normalizeGeo(data.deliveryGeo) } });
   }
 
   function submitSupplyRequest(data = {}) {
@@ -6312,7 +6328,7 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
     const quantity = Math.floor(Number(data.quantity || 1));
     if (!Number.isFinite(quantity) || quantity < 1 || quantity > 10) return { ok: false, error: 'invalid_quantity' };
     const estimate = (mode === 'rent' ? product.rent : product.buy) * quantity;
-    return createOrder({ user, subSector: 'supplies', service: `${mode === 'rent' ? 'استئجار' : 'شراء/استفسار'} ${product.name}`, storeName: 'طلب مستلزم طبي', address: data.address, note: data.note, estimatedAmount: estimate, items: [{ productId: product.id, name: product.name, mode, quantity, indicativeUnitEstimate: mode === 'rent' ? product.rent : product.buy }], extra: { availabilityConfirmed: false, priceConfirmed: false, quoteOnly: true } });
+    return createOrder({ user, subSector: 'supplies', service: `${mode === 'rent' ? 'استئجار' : 'شراء/استفسار'} ${product.name}`, storeName: 'طلب مستلزم طبي', address: data.address, note: data.note, estimatedAmount: estimate, items: [{ productId: product.id, name: product.name, mode, quantity, indicativeUnitEstimate: mode === 'rent' ? product.rent : product.buy }], extra: { availabilityConfirmed: false, priceConfirmed: false, quoteOnly: true, deliveryGeo: normalizeGeo(data.deliveryGeo) } });
   }
 
   function submitPharmacyRequest(data = {}) {
@@ -6327,7 +6343,7 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
     if (dup) return { ok: false, error: 'duplicate_request', order: dup };
     const items = record.prescription.map(item => ({ drug: String(item.drug || item.name || '').trim(), dose: String(item.dose || '').trim(), frequency: String(item.freq || item.frequency || '').trim(), duration: String(item.dur || item.duration || '').trim() })).filter(item => item.drug);
     if (!items.length) return { ok: false, error: 'prescription_not_found' };
-    return createOrder({ user, subSector: 'pharmacy', service: 'طلب صرف روشتة معتمدة', storeName: pharmacy.name, address: data.address || 'لم يحدد عنوان توصيل — يلزم التواصل/الاستلام', note: data.note, items, extra: { pharmacyId: pharmacy.id, prescriptionRecordId: record.id, appointmentId: record.appointmentId, patientConsentAt: Date.now(), prescriptionSnapshot: items, pharmacistConfirmationRequired: true, externalDispatch: false } });
+    return createOrder({ user, subSector: 'pharmacy', service: 'طلب صرف روشتة معتمدة', storeName: pharmacy.name, address: data.address || 'لم يحدد عنوان توصيل — يلزم التواصل/الاستلام', note: data.note, items, extra: { pharmacyId: pharmacy.id, prescriptionRecordId: record.id, appointmentId: record.appointmentId, patientConsentAt: Date.now(), prescriptionSnapshot: items, pharmacistConfirmationRequired: true, externalDispatch: false, deliveryGeo: normalizeGeo(data.deliveryGeo) } });
   }
 
   // Operations workflow for demo medical-service orders. This remains local-only.
@@ -6427,8 +6443,9 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
       const history = (order.statusHistory || []).slice(-3).reverse();
       const actionButtons = steps.map(status => `<button class="btn ${['unavailable','canceled'].includes(status) ? 'btn-danger' : 'btn-primary'} btn-sm" style="white-space:normal;" onclick="WaslaHealth.transitionMedicalOrderFromUI('${escText(order.id)}','${status}')">${medicalOrderActionLabels[status] || medicalOrderStatusLabels[status] || status}</button>`).join('');
       const quote = Number(order.quotedAmount || 0) > 0 ? `<div class="wasla-health-info">عرض السعر المسجل: <strong>${Utils.money(order.quotedAmount)}</strong> — غير محصل ماليًا</div>` : '';
+      const gpsAction = order.deliveryGeo && hasCoordinates(order.deliveryGeo) ? `<a class="wasla-gps-link" target="_blank" rel="noopener noreferrer" href="${escText(directionsUrl(order.deliveryGeo, null, order.address))}"><i class="fa-solid fa-location-arrow"></i> فتح موقع التوصيل</a>` : `<div style="font-size:10px;color:var(--text-muted);margin-top:5px;">لا توجد إحداثيات GPS مرفقة بالطلب.</div>`;
       const hist = history.length ? `<div style="border-top:1px solid var(--border-default);margin-top:10px;padding-top:8px;font-size:10.5px;color:var(--text-secondary);">${history.map(h => `<div style="margin:3px 0;">${escText(medicalOrderStatusLabels[h.to] || h.to)} · ${new Date(h.changedAt).toLocaleString('ar-EG')}${h.note ? ` · ${escText(h.note)}` : ''}</div>`).join('')}</div>` : '';
-      return `<article class="card" style="margin-bottom:12px;"><div style="display:flex;gap:10px;align-items:flex-start;"><div class="wasla-health-icon" style="background:#ECFDF5;color:#047857;flex-shrink:0;"><i class="fa-solid ${order.subSector === 'pharmacy' ? 'fa-prescription-bottle-medical' : order.subSector === 'nursing' ? 'fa-house-medical' : 'fa-wheelchair'}"></i></div><div style="flex:1;min-width:0;"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"><strong style="font-size:13px;">${escText(labels[order.subSector] || order.service)}</strong><span class="wasla-health-pill">${escText(medicalOrderStatusLabels[order.status] || order.status)}</span></div><p style="font-size:11px;color:var(--text-secondary);margin-top:4px;line-height:1.8;">الطلب: ${escText(order.service)}<br>المريض: ${escText(customer?.name || 'حساب غير موجود')} · ${escText(customer?.phone || '')}<br>العنوان: ${escText(order.address || 'غير محدد')}<br>التاريخ: ${escText(order.date || 'غير محدد')}</p>${order.note ? `<p style="font-size:11px;margin-top:4px;">ملاحظات: ${escText(order.note)}</p>` : ''}${quote}${actionButtons ? `<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;">${actionButtons}</div>` : '<p style="font-size:11px;color:var(--text-muted);margin-top:10px;">لا توجد إجراءات تالية متاحة لهذا الطلب.</p>'}${hist}</div></div></article>`;
+      return `<article class="card" style="margin-bottom:12px;"><div style="display:flex;gap:10px;align-items:flex-start;"><div class="wasla-health-icon" style="background:#ECFDF5;color:#047857;flex-shrink:0;"><i class="fa-solid ${order.subSector === 'pharmacy' ? 'fa-prescription-bottle-medical' : order.subSector === 'nursing' ? 'fa-house-medical' : 'fa-wheelchair'}"></i></div><div style="flex:1;min-width:0;"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"><strong style="font-size:13px;">${escText(labels[order.subSector] || order.service)}</strong><span class="wasla-health-pill">${escText(medicalOrderStatusLabels[order.status] || order.status)}</span></div><p style="font-size:11px;color:var(--text-secondary);margin-top:4px;line-height:1.8;">الطلب: ${escText(order.service)}<br>المريض: ${escText(customer?.name || 'حساب غير موجود')} · ${escText(customer?.phone || '')}<br>العنوان: ${escText(order.address || 'غير محدد')}<br>التاريخ: ${escText(order.date || 'غير محدد')}</p>${gpsAction}${order.note ? `<p style="font-size:11px;margin-top:4px;">ملاحظات: ${escText(order.note)}</p>` : ''}${quote}${actionButtons ? `<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;">${actionButtons}</div>` : '<p style="font-size:11px;color:var(--text-muted);margin-top:10px;">لا توجد إجراءات تالية متاحة لهذا الطلب.</p>'}${hist}</div></div></article>`;
     }).join('');
     el.innerHTML = `${backButton()}${renderPageHead('تشغيل طلبات الرعاية','لوحة تجريبية لتحديث حالة طلبات التمريض والصيدليات والمستلزمات. التغييرات محلية ولا تصل لمقدمي خدمة حقيقيين.','fa-list-check')}
       <div class="admin-stats-grid"><div class="admin-stat-card blue"><div class="icon"><i class="fa-solid fa-inbox"></i></div><div class="value">${orders.length}</div><div class="label">إجمالي الطلبات الطبية</div></div><div class="admin-stat-card orange"><div class="icon"><i class="fa-solid fa-clock"></i></div><div class="value">${openCount}</div><div class="label">طلبات تحتاج متابعة</div></div></div>
@@ -6467,6 +6484,7 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
   function medicalServiceCards() {
     const user = window.Auth.getCurrentUser();
     const operationsCard = user?.role === 'founder' ? serviceCard('medical-operations','تشغيل طلبات الرعاية','متابعة طلبات التمريض والصيدليات والمستلزمات وتحديث حالاتها','fa-list-check','#FEF3C7','#92400E') : '';
+    const clinicLocationsCard = user?.role === 'founder' ? serviceCard('clinic-locations','مواقع العيادات GPS','تسجيل المواقع الدقيقة للعيادات وتفعيل اتجاهات الوصول','fa-map-location-dot','#EFF6FF','#1D4ED8') : '';
     return `<section class="wasla-health-services"><div class="wasla-health-services-head"><div><h2>خدمات الرعاية الصحية</h2><p>خدمات مترابطة تبدأ من الحجز وتستمر بعد الزيارة</p></div><span class="wasla-health-pill">نسخة تجريبية</span></div><div class="wasla-health-grid">
       ${serviceCard('symptom-checker','اعرف أعراضك','توجيه مبدئي للتخصص والخطوة التالية','fa-stethoscope','#ECFDF5','#059669')}
       ${serviceCard('nursing','تمريض منزلي','طلب خدمة منزلية مع تحديد الاحتياج والعنوان','fa-house-medical','#F5F3FF','#7C3AED')}
@@ -6475,12 +6493,14 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
       ${serviceCard('my-health-record','ملفي الصحي','الزيارات والروشتات والحساسية والتاريخ الطبي','fa-file-medical','#ECFDF5','#059669')}
       ${serviceCard('health-services','كل الخدمات الطبية','استعرض جميع وحدات القطاع الطبي','fa-grid-2','#F8FAFC','#334155')}
       ${operationsCard}
+      ${clinicLocationsCard}
     </div><div class="wasla-health-info">تنبيه: هذه نسخة عرض محلية. طلبات التمريض والصيدليات والمستلزمات لا تصل إلى جهات حقيقية حتى يتم ربط المنصة بالخادم ومقدمي الخدمة.</div></section>`;
   }
 
   function renderHealthServices(el) {
     const currentUser = window.Auth.getCurrentUser();
     const operationsCard = currentUser?.role === 'founder' ? serviceCard('medical-operations','تشغيل طلبات الرعاية','مراجعة وتحديث حالات طلبات الخدمات الطبية التجريبية','fa-list-check','#FEF3C7','#92400E') : '';
+    const clinicLocationsCard = currentUser?.role === 'founder' ? serviceCard('clinic-locations','مواقع العيادات GPS','إضافة إحداثيات العيادات وإتاحة الاتجاهات للمرضى','fa-map-location-dot','#EFF6FF','#1D4ED8') : '';
     el.innerHTML = `${backButton()}${renderPageHead('رعاية صحية متصلة','اختَر الخدمة المناسبة، مع وضوح حالة كل طلب ومن المسؤول عن الخطوة التالية.')}<div class="wasla-health-grid">
       ${serviceCard('medical','الأطباء والعيادات','استكشف التخصصات، المواعيد، والحجز','fa-user-doctor','#ECFDF5','#059669')}
       ${serviceCard('symptom-checker','اعرف أعراضك','توجيه أولي غير تشخيصي','fa-stethoscope','#EFF6FF','#2563EB')}
@@ -6489,6 +6509,7 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
       ${serviceCard('medical-supplies','المستلزمات والأجهزة','مرتبة هوائية، كرسي متحرك، أجهزة قياس وغيرها','fa-wheelchair','#F0F9FF','#0284C7')}
       ${serviceCard('my-health-record','ملفي الصحي','السجل والروشتات الخاصة بحسابك','fa-file-medical','#ECFDF5','#059669')}
       ${operationsCard}
+      ${clinicLocationsCard}
     </div><div class="card" style="margin-top:14px;"><h2 class="section-title"><i class="fa-solid fa-shield-heart"></i> ضوابط الخدمة</h2><p style="font-size:11.5px;line-height:1.9;color:var(--text-secondary);font-weight:700;">لا يقدم فاحص الأعراض تشخيصًا أو علاجًا. توافر الصيدليات ومقدمي التمريض والمستلزمات وأسعارها غير مؤكد في هذه النسخة. مشاركة السجل الطبي تتطلب موافقة المريض ولا تنفّذ تلقائيًا إلى طرف خارجي.</p></div>`;
   }
 
@@ -6539,8 +6560,8 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
       </div><div class="wasla-health-note">الأسعار والمواعيد غير محددة حتى الآن. لن يتم إرسال ممرض أو تحصيل أموال من هذه النسخة. يجب التحقق من المؤهل والتوافر قبل تأكيد أي زيارة.</div><button class="btn btn-primary btn-block" onclick="WaslaHealth.submitNursingFromPage()"><i class="fa-solid fa-paper-plane"></i> حفظ الطلب التجريبي</button></div>`;
   }
   function submitNursingFromPage() {
-    const result = submitNursingRequest({ serviceId: readField('wh-nursing-service'), date: readField('wh-nursing-date'), address: readField('wh-nursing-address'), note: readField('wh-nursing-note') });
-    if (!result.ok) return toast(({ address_required:'اكتب العنوان بالتفصيل.', invalid_date:'اختر تاريخًا غير سابق لليوم.', invalid_service:'اختر خدمة صحيحة.', patient_required:'سجّل الدخول بحساب المريض.', save_failed:'تعذر حفظ الطلب محليًا.' })[result.error] || 'تعذر إنشاء الطلب.', 'error');
+    const result = submitNursingRequest({ serviceId: readField('wh-nursing-service'), date: readField('wh-nursing-date'), address: readField('wh-nursing-address'), note: readField('wh-nursing-note'), deliveryGeo: readFormGeo('nursing') });
+    if (!result.ok) return toast(({ address_required:'اكتب العنوان أو حدد موقع GPS للتوصيل.', invalid_date:'اختر تاريخًا غير سابق لليوم.', invalid_service:'اختر خدمة صحيحة.', patient_required:'سجّل الدخول بحساب المريض.', save_failed:'تعذر حفظ الطلب محليًا.' })[result.error] || 'تعذر إنشاء الطلب.', 'error');
     toast('تم حفظ طلب التمريض في النسخة التجريبية فقط؛ لم يُرسل لمقدم خدمة.', 'warning', 6000); window.Router.go('orders'); return result;
   }
 
@@ -6557,7 +6578,7 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
   }
   function submitPharmacyFromPage() {
     const consent = !!document.getElementById('wh-pharmacy-consent')?.checked;
-    const result = submitPharmacyRequest({ recordId: readField('wh-rx-record'), pharmacyId: readField('wh-pharmacy'), address: readField('wh-pharmacy-address'), note: readField('wh-pharmacy-note'), consent });
+    const result = submitPharmacyRequest({ recordId: readField('wh-rx-record'), pharmacyId: readField('wh-pharmacy'), address: readField('wh-pharmacy-address'), note: readField('wh-pharmacy-note'), consent, deliveryGeo: readFormGeo('pharmacy') });
     if (!result.ok) return toast(({ consent_required:'يجب الموافقة على تجهيز الطلب التجريبي.', prescription_not_found:'الروشتة غير موجودة أو لا تحتوي أدوية.', invalid_pharmacy:'اختر صيدلية من القائمة.', duplicate_request:'يوجد طلب قائم لهذه الروشتة لدى الصيدلية نفسها.', patient_required:'سجّل الدخول بحساب المريض.', save_failed:'تعذر الحفظ محليًا.' })[result.error] || 'تعذر حفظ الطلب.', 'error');
     toast('تم حفظ طلب الصيدلية محليًا. لم يتم إرسال الروشتة خارج المتصفح.', 'warning', 6500); window.Router.go('orders'); return result;
   }
@@ -6588,8 +6609,8 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
     box.textContent = `تقدير توضيحي غير ملزم: ${Utils.money(amount)} — ${mode === 'rent' ? 'للاستئجار (تحتاج المدة والسعر النهائي إلى تأكيد)' : 'للشراء'}. لا يمثل عرض سعر أو مخزونًا حقيقيًا.`;
   }
   function submitSupplyFromPage() {
-    const result = submitSupplyRequest({ productId: readField('wh-supply-product'), mode: readField('wh-supply-mode'), quantity: readField('wh-supply-quantity'), address: readField('wh-supply-address'), note: readField('wh-supply-note') });
-    if (!result.ok) return toast(({ address_required:'اكتب عنوان التوصيل أو منطقة الاستلام.', invalid_product:'اختر مستلزمًا صحيحًا.', not_rentable:'هذا المستلزم غير متاح للاستئجار في النموذج.', invalid_quantity:'الكمية يجب أن تكون من 1 إلى 10.', patient_required:'سجّل الدخول بحساب المريض.', save_failed:'تعذر حفظ الطلب محليًا.' })[result.error] || 'تعذر حفظ الطلب.', 'error');
+    const result = submitSupplyRequest({ productId: readField('wh-supply-product'), mode: readField('wh-supply-mode'), quantity: readField('wh-supply-quantity'), address: readField('wh-supply-address'), note: readField('wh-supply-note'), deliveryGeo: readFormGeo('supplies') });
+    if (!result.ok) return toast(({ address_required:'اكتب عنوان التوصيل أو حدد موقع GPS.', invalid_product:'اختر مستلزمًا صحيحًا.', not_rentable:'هذا المستلزم غير متاح للاستئجار في النموذج.', invalid_quantity:'الكمية يجب أن تكون من 1 إلى 10.', patient_required:'سجّل الدخول بحساب المريض.', save_failed:'تعذر حفظ الطلب محليًا.' })[result.error] || 'تعذر حفظ الطلب.', 'error');
     toast('تم حفظ الطلب محليًا كتجربة؛ التوافر والسعر والشحن لم يتم تأكيدهم.', 'warning', 6000); window.Router.go('orders'); return result;
   }
 
@@ -6639,6 +6660,318 @@ body.modal-open .pwa-install-banner, body.modal-open .pwa-update-toast { display
       if (hero && typeof hero.insertAdjacentHTML === 'function') hero.insertAdjacentHTML('afterend', medicalServiceCards());
     });
   }
+
+  // ══════════════════════════════════════════════════════════════
+  // GPS / MAPS MODULE — explicit permission, no background tracking.
+  // Locations stay in this browser prototype until a real backend is connected.
+  // ══════════════════════════════════════════════════════════════
+  let lastGpsForSession = null;
+
+  function normalizeGeo(value) {
+    if (!value || typeof value !== 'object') return null;
+    const rawLatitude = value.latitude ?? value.lat;
+    const rawLongitude = value.longitude ?? value.lon ?? value.lng;
+    if (rawLatitude == null || rawLongitude == null || String(rawLatitude).trim() === '' || String(rawLongitude).trim() === '') return null;
+    const latitude = Number(rawLatitude);
+    const longitude = Number(rawLongitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
+    const accuracy = Number(value.accuracy);
+    return { latitude: Math.round(latitude * 1e6) / 1e6, longitude: Math.round(longitude * 1e6) / 1e6, accuracy: Number.isFinite(accuracy) && accuracy >= 0 ? Math.round(accuracy) : null, capturedAt: Number(value.capturedAt || value.timestamp || Date.now()) };
+  }
+  function hasCoordinates(value) { return !!normalizeGeo(value); }
+  function haversineKm(a, b) {
+    const A = normalizeGeo(a), B = normalizeGeo(b);
+    if (!A || !B) return null;
+    const rad = n => n * Math.PI / 180;
+    const dLat = rad(B.latitude - A.latitude), dLon = rad(B.longitude - A.longitude);
+    const q = Math.sin(dLat / 2) ** 2 + Math.cos(rad(A.latitude)) * Math.cos(rad(B.latitude)) * Math.sin(dLon / 2) ** 2;
+    return 6371.0088 * 2 * Math.atan2(Math.sqrt(q), Math.sqrt(Math.max(0, 1 - q)));
+  }
+  function getSavedUserGeo() {
+    const actor = window.Auth.getCurrentUser();
+    return actor ? normalizeGeo(actor.gpsLocation) : null;
+  }
+  function searchMapUrl(geo, label = '') {
+    const pos = normalizeGeo(geo);
+    const query = pos ? `${pos.latitude},${pos.longitude}` : String(label || '').trim();
+    if (!query) return '';
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  }
+  function directionsUrl(destination, origin = null, fallbackLabel = '', useSavedOrigin = true) {
+    const dest = normalizeGeo(destination);
+    const query = dest ? `${dest.latitude},${dest.longitude}` : String(fallbackLabel || '').trim();
+    if (!query) return '';
+    const url = new URL('https://www.google.com/maps/dir/');
+    url.searchParams.set('api', '1'); url.searchParams.set('destination', query); url.searchParams.set('travelmode', 'driving');
+    const from = normalizeGeo(origin) || normalizeGeo(lastGpsForSession) || (useSavedOrigin ? getSavedUserGeo() : null);
+    if (from) url.searchParams.set('origin', `${from.latitude},${from.longitude}`);
+    return url.toString();
+  }
+  function getBrowserGeo() {
+    return new Promise((resolve, reject) => {
+      const nav = window.navigator || (typeof navigator !== 'undefined' ? navigator : null);
+      const loc = window.location || (typeof location !== 'undefined' ? location : null);
+      const secure = !!window.isSecureContext || loc?.protocol === 'https:' || loc?.hostname === 'localhost' || loc?.hostname === '127.0.0.1';
+      if (!secure) return reject(new Error('GPS يحتاج فتح الموقع عبر HTTPS أو localhost؛ لن يعمل غالبًا عند فتح ملف HTML مباشرة.'));
+      if (!nav?.geolocation?.getCurrentPosition) return reject(new Error('المتصفح لا يدعم تحديد الموقع أو أن الميزة غير متاحة.'));
+      nav.geolocation.getCurrentPosition(pos => {
+        const geo = normalizeGeo({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy, capturedAt: Date.now() });
+        if (!geo) return reject(new Error('الإحداثيات المستلمة غير صالحة.'));
+        lastGpsForSession = geo;
+        resolve(geo);
+      }, err => {
+        const msg = err?.code === 1 ? 'لم تسمح بإذن الموقع. فعّل إذن Location من المتصفح ثم أعد المحاولة.' : err?.code === 2 ? 'تعذر تحديد الموقع. تحقق من تشغيل GPS وإشارة الجهاز.' : err?.code === 3 ? 'انتهت مهلة تحديد الموقع. أعد المحاولة في مكان مفتوح.' : 'تعذر تحديد الموقع الحالي.';
+        reject(new Error(msg));
+      }, { enableHighAccuracy: true, timeout: 18000, maximumAge: 45000 });
+    });
+  }
+  function setStatus(id, message, isError = false) {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = message; el.style.color = isError ? '#BE123C' : '#475569'; }
+  }
+  function readFormGeo(prefix) {
+    return normalizeGeo({ latitude: readField(`wasla-gps-${prefix}-lat`), longitude: readField(`wasla-gps-${prefix}-lon`), accuracy: readField(`wasla-gps-${prefix}-accuracy`) });
+  }
+  function fillFormGeo(prefix, geo) {
+    const pos = normalizeGeo(geo);
+    const lat = document.getElementById(`wasla-gps-${prefix}-lat`);
+    const lon = document.getElementById(`wasla-gps-${prefix}-lon`);
+    const acc = document.getElementById(`wasla-gps-${prefix}-accuracy`);
+    if (!lat || !lon) return false;
+    lat.value = pos ? String(pos.latitude) : '';
+    lon.value = pos ? String(pos.longitude) : '';
+    if (acc) acc.value = pos?.accuracy == null ? '' : String(pos.accuracy);
+    return !!pos;
+  }
+  async function captureForRequest(prefix) {
+    setStatus(`wasla-gps-status-${prefix}`, 'جارٍ طلب الموقع من الجهاز…');
+    try {
+      const geo = await getBrowserGeo();
+      fillFormGeo(prefix, geo);
+      setStatus(`wasla-gps-status-${prefix}`, `تم تحديد الموقع: ${geo.latitude.toFixed(6)}, ${geo.longitude.toFixed(6)} · دقة تقريبية ${geo.accuracy == null ? 'غير معروفة' : `${geo.accuracy} متر`}. سيُرفق هذا الموقع بالطلب عند حفظه.`);
+      const remember = document.getElementById(`wasla-gps-${prefix}-remember`)?.checked;
+      if (remember) {
+        const saved = saveUserCoordinates(geo);
+        if (saved.ok) setStatus(`wasla-gps-status-${prefix}`, `تم تحديد الموقع وإضافته إلى حسابك بناءً على اختيارك. ${geo.latitude.toFixed(6)}, ${geo.longitude.toFixed(6)} · دقة تقريبية ${geo.accuracy ?? 'غير معروفة'} متر.`);
+      }
+      return { ok: true, geo };
+    } catch (error) {
+      setStatus(`wasla-gps-status-${prefix}`, error.message || 'تعذر تحديد الموقع.', true);
+      return { ok: false, error: error.message };
+    }
+  }
+  function useSavedForRequest(prefix) {
+    const geo = getSavedUserGeo();
+    if (!geo) { setStatus(`wasla-gps-status-${prefix}`, 'لا يوجد موقع محفوظ في حسابك. استخدم زر GPS أو احفظ موقعك من صفحة حسابي.', true); return false; }
+    fillFormGeo(prefix, geo);
+    setStatus(`wasla-gps-status-${prefix}`, `تم اختيار الموقع المحفوظ من حسابك: ${geo.latitude.toFixed(6)}, ${geo.longitude.toFixed(6)}.`);
+    return true;
+  }
+  function saveUserCoordinates(rawGeo) {
+    const actor = window.Auth.getCurrentUser();
+    if (!actor) return { ok: false, error: 'login_required' };
+    const geo = normalizeGeo(rawGeo);
+    if (!geo) return { ok: false, error: 'invalid_coordinates' };
+    const db = Store.load();
+    const user = db?.users?.find(item => item.id === actor.id);
+    if (!user) return { ok: false, error: 'user_not_found' };
+    user.gpsLocation = { ...geo, consentAt: Date.now(), source: 'browser-geolocation' };
+    if (!Store.save(db)) return { ok: false, error: 'save_failed' };
+    try { EventLog.log('user_gps_location_saved', { actorId: actor.id, targetId: actor.id, payload: { accuracy: geo.accuracy, explicitlyRequested: true } }); } catch (_) {}
+    return { ok: true, geo: user.gpsLocation };
+  }
+  function clearUserCoordinates() {
+    const actor = window.Auth.getCurrentUser();
+    if (!actor) return { ok: false, error: 'login_required' };
+    const db = Store.load(); const user = db?.users?.find(item => item.id === actor.id);
+    if (!user) return { ok: false, error: 'user_not_found' };
+    delete user.gpsLocation;
+    if (!Store.save(db)) return { ok: false, error: 'save_failed' };
+    try { EventLog.log('user_gps_location_removed', { actorId: actor.id, targetId: actor.id, payload: { explicitlyRequested: true } }); } catch (_) {}
+    return { ok: true };
+  }
+  function saveClinicCoordinates(doctorId, rawGeo) {
+    const actor = window.Auth.getCurrentUser();
+    if (!actor || !['founder', 'doctor'].includes(actor.role)) return { ok: false, error: 'clinic_permission_required' };
+    const geo = normalizeGeo(rawGeo);
+    if (!geo) return { ok: false, error: 'invalid_coordinates' };
+    const db = Store.load();
+    const doctor = db?.doctors?.find(item => item.id === doctorId);
+    if (!doctor) return { ok: false, error: 'doctor_not_found' };
+    if (actor.role !== 'founder' && doctor.userId !== actor.id) return { ok: false, error: 'clinic_permission_required' };
+    doctor.geo = { ...geo, updatedAt: Date.now(), updatedBy: actor.id, source: 'manual-or-device-confirmed' };
+    if (!Store.save(db)) return { ok: false, error: 'save_failed' };
+    try { EventLog.log('clinic_gps_location_saved', { actorId: actor.id, targetId: doctor.id, payload: { accuracy: geo.accuracy, explicitlyRequested: true } }); } catch (_) {}
+    return { ok: true, doctor };
+  }
+  async function captureClinicLocation(doctorId) {
+    const actor = window.Auth.getCurrentUser();
+    if (!actor || !['founder','doctor'].includes(actor.role)) return toast('تحديد موقع العيادة متاح للطبيب صاحب العيادة أو للمؤسس فقط.', 'error');
+    if (actor.role !== 'founder') {
+      const db = Store.load(); const doc = db?.doctors?.find(item => item.id === doctorId);
+      if (!doc || doc.userId !== actor.id) return toast('لا يمكنك تعديل موقع عيادة لا تخص حسابك.', 'error');
+    }
+    const ok = window.confirm('استخدم هذه الخطوة فقط إذا كان الجهاز موجودًا فعليًا داخل العيادة أو عند مدخلها. هل تريد حفظ موقع الجهاز كموقع للعيادة؟');
+    if (!ok) return;
+    try {
+      const geo = await getBrowserGeo(); const result = saveClinicCoordinates(doctorId, geo);
+      if (!result.ok) return toast('تعذر حفظ موقع العيادة.', 'error');
+      toast('تم حفظ إحداثيات العيادة. ستظهر الاتجاهات للمرضى.', 'success');
+      if (window.Router.current === 'clinic-locations') window.Router.go('clinic-locations');
+      else if (window.Router.current === 'clinic') window.Router.go('clinic');
+      else window.Router.go('doctor-profile', { doctorId });
+      return result;
+    } catch (error) { toast(error.message || 'تعذر تحديد موقع العيادة.', 'error', 6000); return { ok: false, error: error.message }; }
+  }
+  function saveClinicManualFromPage(doctorId) {
+    const suffix = String(doctorId).replace(/[^A-Za-z0-9_-]/g, '_');
+    const latitude = document.getElementById(`wasla-clinic-lat-${suffix}`)?.value;
+    const longitude = document.getElementById(`wasla-clinic-lon-${suffix}`)?.value;
+    const result = saveClinicCoordinates(doctorId, { latitude, longitude });
+    if (!result.ok) return toast(({ invalid_coordinates: 'أدخل خط العرض والطول الصحيحين.', clinic_permission_required: 'ليس لديك صلاحية تعديل هذا الموقع.', doctor_not_found: 'لم يتم العثور على العيادة.', save_failed: 'تعذر حفظ الإحداثيات.' })[result.error] || 'تعذر حفظ موقع العيادة.', 'error');
+    toast('تم حفظ إحداثيات العيادة.', 'success');
+    if (window.Router.current === 'clinic-locations') window.Router.go('clinic-locations');
+    else if (window.Router.current === 'clinic') window.Router.go('clinic');
+    return result;
+  }
+  function locationFields(prefix) {
+    const saved = getSavedUserGeo();
+    return `<div class="wasla-gps-panel" id="wasla-gps-panel-${prefix}"><strong style="font-size:11.5px;display:block;"><i class="fa-solid fa-location-crosshairs" style="color:#059669;"></i> موقع GPS للتوصيل</strong><p style="font-size:10.5px;color:#64748B;line-height:1.7;margin-top:4px;">شارك موقع التسليم فقط إذا كان مفيدًا للتوصيل. لن نطلب الموقع دون ضغط الزر وموافقتك.</p><div class="wasla-gps-actions"><button type="button" class="btn btn-primary btn-sm" onclick="WaslaGPS.captureForRequest('${prefix}')"><i class="fa-solid fa-crosshairs"></i> استخدم موقعي الحالي</button>${saved ? `<button type="button" class="btn btn-ghost btn-sm" onclick="WaslaGPS.useSavedForRequest('${prefix}')"><i class="fa-solid fa-bookmark"></i> استخدم موقعي المحفوظ</button>` : ''}</div><label style="display:flex;gap:7px;align-items:flex-start;margin-top:9px;font-size:10px;font-weight:700;line-height:1.7;"><input type="checkbox" id="wasla-gps-${prefix}-remember" style="margin-top:4px;"> احفظ الإحداثيات في حسابي لاستخدامها لاحقًا</label><div class="wasla-gps-status" id="wasla-gps-status-${prefix}">${saved ? 'يوجد موقع محفوظ بالحساب، لكنه لن يُرفق بهذا الطلب إلا إذا اخترت استخدامه.' : 'لم تتم مشاركة موقع لهذا الطلب بعد.'}</div><input type="hidden" id="wasla-gps-${prefix}-lat"><input type="hidden" id="wasla-gps-${prefix}-lon"><input type="hidden" id="wasla-gps-${prefix}-accuracy"></div>`;
+  }
+  function injectLocationFields(el, prefix, addressId) {
+    const input = el.querySelector(`#${addressId}`);
+    if (!input || el.querySelector(`#wasla-gps-panel-${prefix}`)) return;
+    const field = input.closest('.wasla-health-field') || input.parentElement;
+    if (field?.insertAdjacentHTML) field.insertAdjacentHTML('afterend', locationFields(prefix));
+  }
+  function profileLocationCard() {
+    const user = window.Auth.getCurrentUser(); if (!user) return '';
+    const geo = normalizeGeo(user.gpsLocation);
+    const link = geo ? `<a class="wasla-gps-link" target="_blank" rel="noopener noreferrer" href="${esc(searchMapUrl(geo))}"><i class="fa-solid fa-map-location-dot"></i> عرض موقعي المحفوظ على الخريطة</a>` : '';
+    return `<div class="card wasla-user-gps-card" style="margin-top:14px;"><h2 class="section-title"><i class="fa-solid fa-location-dot"></i> موقعك للتوصيل والخدمات القريبة</h2><p style="font-size:11px;color:var(--text-secondary);line-height:1.8;">احفظ موقعًا بموافقتك لتسهيل طلبات التوصيل وإظهار الاتجاهات. لا تتم متابعة موقعك في الخلفية، ويمكنك حذفه في أي وقت.</p>${geo ? `<div class="wasla-health-info">الموقع المحفوظ: ${geo.latitude.toFixed(6)}, ${geo.longitude.toFixed(6)}${geo.accuracy != null ? ` · دقة تقريبية ${geo.accuracy} م` : ''}</div>` : '<div class="wasla-health-note">لا يوجد موقع محفوظ في الحساب.</div>'}${link}<div class="wasla-gps-actions"><button type="button" class="btn btn-primary btn-sm" onclick="WaslaGPS.captureAndSaveProfile()"><i class="fa-solid fa-crosshairs"></i> تحديد موقعي وحفظه</button>${geo ? '<button type="button" class="btn btn-ghost btn-sm" onclick="WaslaGPS.clearProfile()">حذف الموقع المحفوظ</button>' : ''}</div><div class="wasla-gps-status" id="wasla-profile-gps-status">لا يُحفظ الموقع إلا بعد الضغط والسماح من المتصفح.</div></div>`;
+  }
+  async function captureAndSaveProfile() {
+    setStatus('wasla-profile-gps-status', 'جارٍ تحديد موقع الجهاز…');
+    try {
+      const geo = await getBrowserGeo(); const result = saveUserCoordinates(geo);
+      if (!result.ok) throw new Error(result.error === 'save_failed' ? 'تعذر حفظ الموقع.' : 'سجّل الدخول أولًا.');
+      setStatus('wasla-profile-gps-status', `تم حفظ موقعك: ${geo.latitude.toFixed(6)}, ${geo.longitude.toFixed(6)} · دقة تقريبية ${geo.accuracy ?? 'غير معروفة'} م.`);
+      toast('تم حفظ موقعك في الحساب بناءً على طلبك.', 'success');
+      window.Router.go('account'); return result;
+    } catch (error) { setStatus('wasla-profile-gps-status', error.message || 'تعذر تحديد الموقع.', true); return { ok: false, error: error.message }; }
+  }
+  function clearProfile() {
+    if (!window.confirm('هل تريد حذف موقع GPS المحفوظ من حسابك؟')) return;
+    const result = clearUserCoordinates();
+    if (!result.ok) return toast('تعذر حذف الموقع.', 'error');
+    toast('تم حذف موقع GPS المحفوظ.', 'success'); window.Router.go('account');
+  }
+  function clinicGeoCard(doctor, adminMode = false) {
+    const geo = normalizeGeo(doctor?.geo);
+    const suffix = String(doctor?.id || '').replace(/[^A-Za-z0-9_-]/g, '_');
+    const route = geo ? `<a class="wasla-gps-link" target="_blank" rel="noopener noreferrer" href="${esc(searchMapUrl(geo, `${doctor.name} ${doctor.area || ''}`))}"><i class="fa-solid fa-map-location-dot"></i> عرض موقع العيادة على الخريطة</a>` : '<div class="wasla-gps-status">لم تُسجل إحداثيات مؤكدة لهذه العيادة بعد. لا يتم افتراض موقع دقيق من اسم الشارع وحده.</div>';
+    return `<div class="card wasla-clinic-gps-card" data-clinic-gps="${esc(doctor.id)}"><h2 class="section-title"><i class="fa-solid fa-location-dot"></i> ${adminMode ? 'إعداد موقع العيادة' : 'موقع العيادة على GPS'}</h2><p style="font-size:11px;color:var(--text-secondary);line-height:1.8;">${esc(doctor.name)} — ${esc(doctor.area || 'العنوان غير مكتمل')}</p>${geo ? `<div class="wasla-health-info">الإحداثيات: ${geo.latitude.toFixed(6)}, ${geo.longitude.toFixed(6)}${geo.accuracy != null ? ` · دقة التقاط ${geo.accuracy} م` : ''}</div>` : ''}${route}<div class="wasla-gps-grid"><div><label class="label" for="wasla-clinic-lat-${suffix}">خط العرض Latitude</label><input id="wasla-clinic-lat-${suffix}" class="input" type="number" step="any" min="-90" max="90" placeholder="مثال: 30.000000" value="${geo ? geo.latitude : ''}"></div><div><label class="label" for="wasla-clinic-lon-${suffix}">خط الطول Longitude</label><input id="wasla-clinic-lon-${suffix}" class="input" type="number" step="any" min="-180" max="180" placeholder="مثال: 31.000000" value="${geo ? geo.longitude : ''}"></div></div><div class="wasla-gps-actions"><button type="button" class="btn btn-primary btn-sm" onclick="WaslaGPS.saveClinicManual('${esc(doctor.id)}')"><i class="fa-solid fa-floppy-disk"></i> حفظ الإحداثيات</button><button type="button" class="btn btn-ghost btn-sm" onclick="WaslaGPS.captureClinicLocation('${esc(doctor.id)}')"><i class="fa-solid fa-crosshairs"></i> استخدام GPS من العيادة</button>${geo ? `<a class="wasla-gps-link" target="_blank" rel="noopener noreferrer" href="${esc(directionsUrl(geo, getSavedUserGeo(), `${doctor.name} ${doctor.area || ''} شبين القناطر`))}"><i class="fa-solid fa-route"></i> اتجاهات</a>` : ''}</div>${adminMode ? '<p style="font-size:10px;color:#92400E;margin-top:8px;line-height:1.7;">استخدم GPS فقط إذا كان الجهاز في مكان العيادة. يمكن إدخال الإحداثيات يدويًا من رابط خرائط موثوق.</p>' : ''}</div>`;
+  }
+  function renderClinicLocations(el) {
+    const actor = window.Auth.getCurrentUser();
+    if (!actor || actor.role !== 'founder') {
+      el.innerHTML = `${backButton('health-services','العودة للخدمات الطبية')}<div class="empty-state"><i class="fa-solid fa-lock empty-state-icon"></i><p class="empty-state-title">هذه الشاشة للمؤسس فقط</p><p class="empty-state-desc">إدارة مواقع العيادات متاحة لحساب المؤسس في النموذج التجريبي.</p></div>`; return;
+    }
+    const db = Store.load() || {}; const doctors = db.doctors || [];
+    el.innerHTML = `${backButton('health-services','العودة للخدمات الطبية')}${renderPageHead('إدارة مواقع العيادات GPS','أدخل إحداثيات كل عيادة أو التقطها من جهاز موجود فعليًا عند العيادة. الإحداثيات لا تُخمن تلقائيًا.','fa-map-location-dot')}<div class="wasla-health-note">لتحديد الموقع من الجهاز، افتح هذه الشاشة من هاتف أو جهاز موجود داخل العيادة ثم اضغط «استخدام GPS من العيادة». أما إذا كنت بعيدًا عنها، أدخل خط العرض والطول من خريطة موثوقة. لا تحفظ إحداثيات عيادة مختلفة بالخطأ.</div>${doctors.map(doctor => clinicGeoCard(doctor, true)).join('')}`;
+  }
+  function addClinicSortPanel(el) {
+    const hero = el.querySelector('.sector-hero');
+    if (hero && !el.querySelector('#wasla-nearby-clinics-panel')) hero.insertAdjacentHTML('afterend', `<div class="card" id="wasla-nearby-clinics-panel"><h2 class="section-title"><i class="fa-solid fa-location-arrow"></i> العيادات الأقرب إليك</h2><p style="font-size:11px;color:var(--text-secondary);line-height:1.8;">اسمح باستخدام موقعك لترتيب العيادات التي لديها إحداثيات مسجلة حسب المسافة التقريبية. لن يُحفظ موقعك في الحساب من هذه الخطوة.</p><button type="button" class="btn btn-primary btn-sm" onclick="WaslaGPS.sortClinicsByDistance()"><i class="fa-solid fa-crosshairs"></i> استخدم GPS ورتّب الأقرب</button><div class="wasla-gps-status" id="wasla-nearby-status">إحداثيات العيادات غير المسجلة لن تدخل في ترتيب المسافة.</div></div>`);
+    const cards = Array.from(el.querySelectorAll('.doctor-card-med'));
+    const db = Store.load() || {};
+    cards.forEach(card => {
+      if (card.querySelector('.wasla-clinic-route-action')) return;
+      const match = String(card.getAttribute('onclick') || '').match(/_openProfile\('([^']+)'\)/);
+      const doctor = match ? (db.doctors || []).find(item => item.id === match[1]) : null;
+      if (!doctor) return;
+      const action = document.createElement('div'); action.className = 'wasla-clinic-route-action'; action.style.cssText = 'grid-column:1/-1;display:flex;gap:7px;align-items:center;flex-wrap:wrap;';
+      if (normalizeGeo(doctor.geo)) {
+        action.innerHTML = `<a class="wasla-gps-link" style="margin:0;" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" href="${esc(directionsUrl(doctor.geo, getSavedUserGeo(), `${doctor.name} ${doctor.area || ''} شبين القناطر`))}"><i class="fa-solid fa-route"></i> الاتجاهات إلى العيادة</a><span class="wasla-gps-distance" style="font-size:10px;color:#64748B;" data-doctor-id="${esc(doctor.id)}"></span>`;
+      } else {
+        action.innerHTML = `<span class="wasla-health-pill"><i class="fa-solid fa-location-dot"></i> لم تُسجل إحداثيات العيادة بعد</span>`;
+      }
+      card.appendChild(action);
+    });
+  }
+  async function sortClinicsByDistance() {
+    const status = document.getElementById('wasla-nearby-status');
+    if (status) status.textContent = 'جارٍ تحديد موقعك…';
+    try {
+      const origin = await getBrowserGeo();
+      const db = Store.load() || {};
+      const container = document.getElementById('med-doctors-list');
+      if (!container) { if (status) status.textContent = 'تعذر العثور على قائمة الأطباء.'; return; }
+      const cards = Array.from(container.querySelectorAll('.doctor-card-med'));
+      if (!cards.length) { if (status) status.textContent = 'لا توجد عيادات ظاهرة للترتيب.'; return; }
+      const doctorById = new Map((db.doctors || []).map(doctor => [doctor.id, doctor]));
+      const rows = cards.map(card => {
+        const id = String(card.getAttribute('onclick') || '').match(/_openProfile\('([^']+)'\)/)?.[1];
+        const doctor = doctorById.get(id); const distance = doctor ? haversineKm(origin, doctor.geo) : null;
+        return { card, distance, doctor };
+      }).sort((a,b) => (a.distance == null ? Infinity : a.distance) - (b.distance == null ? Infinity : b.distance));
+      rows.forEach(row => { container.appendChild(row.card); const badge = row.card.querySelector('.wasla-gps-distance'); if (badge) badge.textContent = row.distance == null ? 'الموقع غير محدد' : `${row.distance.toFixed(1)} كم تقريبًا`; });
+      const mapped = rows.filter(row => row.distance != null).length;
+      if (status) status.textContent = mapped ? `تم ترتيب العيادات حسب المسافة التقريبية. ${mapped} عيادة لديها إحداثيات مسجلة؛ النتائج لا تمثل زمن القيادة أو المسار الفعلي.` : 'لم تُسجل إحداثيات للعيادات حتى الآن. افتح إدارة مواقع العيادات لإضافتها.';
+      return { ok: mapped > 0, mapped, origin };
+    } catch (error) { if (status) status.textContent = error.message || 'تعذر تحديد الموقع.'; if (status) status.style.color = '#BE123C'; return { ok: false, error: error.message }; }
+  }
+  function installRouteGpsWrappers() {
+    const wrap = (name, decorator) => {
+      const original = window.Router.registry[name];
+      if (typeof original !== 'function' || original.__waslaGpsWrapped) return;
+      const wrapped = function (el, params) {
+        const result = original.call(this, el, params || {});
+        try { decorator(el, params || {}); } catch (error) { console.warn('[WaslaGPS] route decorator failed:', name, error); }
+        return result;
+      };
+      wrapped.__waslaGpsWrapped = true;
+      window.Router.register(name, wrapped);
+    };
+    wrap('nursing', el => injectLocationFields(el, 'nursing', 'wh-nursing-address'));
+    wrap('pharmacies', el => injectLocationFields(el, 'pharmacy', 'wh-pharmacy-address'));
+    wrap('medical-supplies', el => injectLocationFields(el, 'supplies', 'wh-supply-address'));
+    wrap('account', el => {
+      if (el.querySelector('.wasla-user-gps-card')) return;
+      const profile = el.querySelector('.profile-header');
+      if (profile?.insertAdjacentHTML) profile.insertAdjacentHTML('afterend', profileLocationCard());
+    });
+    wrap('clinic', el => {
+      const actor = window.Auth.getCurrentUser(); if (!actor || actor.role !== 'doctor') return;
+      const db = Store.load() || {}; const doctor = (db.doctors || []).find(item => item.userId === actor.id);
+      if (!doctor || el.querySelector('.wasla-clinic-gps-card')) return;
+      const slot = el.querySelector('#wasla-clinic-gps-slot') || el.querySelector('.sector-hero');
+      if (slot?.insertAdjacentHTML) slot.insertAdjacentHTML(slot.id === 'wasla-clinic-gps-slot' ? 'beforeend' : 'afterend', clinicGeoCard(doctor, false));
+    });
+    wrap('medical', el => addClinicSortPanel(el));
+    wrap('doctor-profile', (el, params) => {
+      const db = Store.load() || {}; const doctor = (db.doctors || []).find(item => item.id === params.doctorId);
+      if (!doctor || el.querySelector('.wasla-doctor-location-card')) return;
+      const hero = el.querySelector('.doctor-profile-hero');
+      if (!hero?.insertAdjacentHTML) return;
+      const geo = normalizeGeo(doctor.geo);
+      const url = geo ? directionsUrl(geo, getSavedUserGeo(), `${doctor.name} ${doctor.area || ''} شبين القناطر`) : searchMapUrl(null, `${doctor.name} ${doctor.area || ''} شبين القناطر`);
+      hero.insertAdjacentHTML('afterend', `<div class="card wasla-doctor-location-card"><h2 class="section-title"><i class="fa-solid fa-map-location-dot"></i> الوصول إلى العيادة</h2><p style="font-size:11px;color:var(--text-secondary);line-height:1.8;">${geo ? `موقع GPS مسجل: ${geo.latitude.toFixed(6)}, ${geo.longitude.toFixed(6)}` : 'لا توجد إحداثيات GPS موثقة بعد؛ سيُفتح بحث بالاسم والعنوان التقريبي فقط.'}</p><a class="wasla-gps-link" target="_blank" rel="noopener noreferrer" href="${esc(url)}"><i class="fa-solid fa-route"></i> ${geo ? 'احصل على الاتجاهات' : 'ابحث عن العيادة على الخريطة'}</a>${geo && getSavedUserGeo() ? `<p style="font-size:10px;color:#64748B;margin-top:6px;">المسافة المباشرة التقريبية: ${haversineKm(getSavedUserGeo(), geo).toFixed(1)} كم. هذه ليست مسافة الطريق.</p>` : ''}</div>`);
+    });
+  }
+
+  window.Router.register('clinic-locations', renderClinicLocations);
+  installRouteGpsWrappers();
+
+  window.WaslaGPS = {
+    version: '1.0.0-demo', normalizeGeo, hasCoordinates, haversineKm, searchMapUrl, directionsUrl,
+    getCurrentPosition: getBrowserGeo, getSavedUserGeo,
+    captureForRequest, useSavedForRequest, readFormGeo,
+    saveProfileCoordinates: saveUserCoordinates, captureAndSaveProfile, clearProfile,
+    saveClinicCoordinates, saveClinicManual: saveClinicManualFromPage, captureClinicLocation,
+    sortClinicsByDistance, renderClinicLocations,
+    diagnostics() { return { version: this.version, route: typeof window.Router.registry['clinic-locations'] === 'function', secureContextRequired: true, apiKeyRequiredForDirections: false, userLocationExplicitOptIn: true, backgroundTracking: false, requestsStoreCoordinatesLocally: true }; }
+  };
 
   window.WaslaHealth = {
     version: '1.0.0-demo', nursingCatalog, pharmacies, supplies,
