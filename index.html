@@ -12,7 +12,22 @@
 /* ══════════════════════════════════════════════════════════════
    PART 1: DESIGN SYSTEM & CORE STYLES
 ══════════════════════════════════════════════════════════════ */
-/* تصفير الهيدر القديم عشان الجديد يشتغل صح */
+   /* تصفير الهيدر القديم عشان الجديد يشتغل صح */
+   /* 🚨 القناص: مسح الفراغ الأبيض من فوق نهائياً */
+html, body, .app-shell, .app-main {
+  margin: 0 !important;
+  padding-top: 0 !important;
+}
+.top-bar, #top-bar, .app-tabs-wrapper {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.app-header {
+  top: 0 !important;
+  margin-top: 0 !important;
+}
 .app-header {
   display: flex !important;
   flex-direction: column !important;
