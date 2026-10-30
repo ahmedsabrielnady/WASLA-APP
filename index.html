@@ -6814,5 +6814,36 @@ const run=()=>{
   .nav-item .label { display: none; font-weight: 800; font-size: 13px; color: #FFF; }
   .nav-item.active .label { display: block; }
 </style>
+   <style>
+  /* 🚨 كود القناص: مسح الفراغ الأبيض وتظبيط الشكل */
+  
+  /* إخفاء الشريط القديم والتبويبات القديمة نهائياً */
+  .top-bar, #top-bar, .app-tabs-wrapper, .app-tabs { 
+    display: none !important; 
+  }
+
+  /* تصفير أي مسافات من فوق في الصفحة كلها */
+  html, body, .app-shell, .app-main { 
+    margin: 0 !important; 
+    padding-top: 0 !important; 
+  }
+
+  /* تثبيت الهيدر الجديد فوق خالص */
+  .app-header {
+    position: sticky !important;
+    top: 0 !important;
+    margin-top: 0 !important;
+    z-index: 9999 !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid #E2E8F0 !important;
+  }
+
+  /* إبعاد المحتوى لتحت عشان ميتغطاش بالهيدر */
+  #main-container {
+    padding-top: 130px !important; 
+    padding-bottom: 120px !important; /* مساحة عشان الشريط اللي تحت */
+  }
+</style>
 </body>
 </html>
