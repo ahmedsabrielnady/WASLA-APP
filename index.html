@@ -12,7 +12,24 @@
 /* ══════════════════════════════════════════════════════════════
    PART 1: DESIGN SYSTEM & CORE STYLES
 ══════════════════════════════════════════════════════════════ */
-:root {
+/* تصفير الهيدر القديم عشان الجديد يشتغل صح */
+.app-header {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  padding: 12px 16px !important;
+  min-height: auto !important;
+}
+.app-header-inner {
+  display: contents !important;
+}
+.header-actions {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+}
+   :root {
   --brand-ink: #0B1220;
   --brand-ink-soft: #1E293B;
   --sector-medical: #059669;
@@ -525,16 +542,7 @@ html{scroll-behavior:auto;scroll-padding-top:12px} body{overscroll-behavior-y:co
 <body>
 
 <div class="app-shell">
-  <div class="top-bar" id="top-bar">
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-      <span class="top-bar-chip"><i class="fa-solid fa-bolt" style="color:#FBBF24;"></i> منصة وصلة — شبين القناطر</span>
-      <span class="top-bar-chip"><i class="fa-solid fa-sparkles" style="color:#34D399;"></i> تجربة أولية</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-      <span class="top-bar-chip"><i class="fa-solid fa-compass"></i> خدمات في مكان واحد</span>
-      <span class="top-bar-chip" id="topbar-status"><i class="fa-solid fa-circle-notch fa-spin" style="color:#FBBF24;"></i> جاري التحميل...</span>
-    </div>
-  </div>
+</div>
 
 <!-- الهيدر الجديد -->
 <header class="app-header" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 90; padding: 12px 16px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 12px;">
@@ -5657,7 +5665,7 @@ html{scroll-behavior:auto;scroll-padding-top:12px} body{overscroll-behavior-y:co
       { icon: '📋', label: 'كشف جديد (EMR)', action: () => window.WaslaTestEMR('open') },
       { icon: '👥', label: 'مرضاي', action: () => window.WaslaTestEMR('patients') },
       { icon: '📊', label: 'إحصائيات العيادة', action: () => window.WaslaTestEMR('stats') },
-      { icon: '🎥', label: 'استشارة فيديو', action: () => window.WaslaTestEMR('video') }
+      { icon: '🎥', label: 'استشارة فيديو', action: () => window.WaslaTestEMR('video') }للغة
     ];
     const toggle = document.createElement('button'); toggle.className = 'wasla-doc-btn toggle';
     toggle.innerHTML = '<span class="icon">🩺</span> أدوات الطبيب'; toggle.onclick = () => panel.classList.toggle('collapsed');
@@ -6662,8 +6670,7 @@ body{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
 #w7-fab{display:none!important}#w7-toast{display:none!important}
 #wasla-elite-orders-panel{position:fixed;inset:0;z-index:10005;background:#f5f8fc;display:none;overflow:auto;padding:calc(18px + env(safe-area-inset-top)) 14px calc(100px + env(safe-area-inset-bottom));}
 #wasla-elite-orders-panel.open{display:block}.elite-orders-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.elite-order-card{background:#fff;border:1px solid #e1e8f0;border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 4px 14px #07142608}.elite-order-card h3{font-size:15px;margin:0 0 7px;color:#0f172a}.elite-order-meta{font-size:12px;line-height:1.8;color:#64748b;overflow-wrap:anywhere}.elite-order-badge{display:inline-block;background:#fff7df;color:#875b00;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:900;margin-bottom:8px}.elite-empty{background:white;border:1px dashed #cbd5e1;border-radius:16px;padding:24px;text-align:center;color:#64748b;line-height:1.8}
-</style>
-<div id="wasla-elite-dock" aria-label="اختصارات وصلة">
+</style><div id="wasla-elite-dock" aria-label="اختصارات وصلة">
  <button id="wasla-elite-home" type="button"><span>✦</span> اطلبها ببساطة</button>
  <button id="wasla-elite-search" type="button" aria-label="ابحث في وصلة">⌕</button>
  <button id="wasla-elite-orders" type="button" aria-label="طلباتي">☷</button>
