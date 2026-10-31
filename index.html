@@ -7664,278 +7664,202 @@ body.modal-open * {
   console.log('✅ [WASLA UPGRADE] Features loaded successfully.');
 })();
 </script>
-<!-- WASLA ULTIMATE MASTER CONTROL V4 -->
-<style id="wasla-master-style">
-  /* 1. شريط الإعلانات المتحرك */
-  .wasla-ticker-wrap { background: #0B1220; color: #fff; overflow: hidden; white-space: nowrap; padding: 8px 0; position: relative; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center; }
-  .wasla-ticker-title { background: #FF3D68; color: #fff; padding: 4px 12px; font-size: 11px; font-weight: 900; border-radius: 6px; margin-right: 10px; z-index: 2; flex-shrink: 0; }
-  .wasla-ticker-content { display: inline-block; animation: ticker 20s linear infinite; font-size: 13px; font-weight: 700; }
-  .wasla-ticker-content:hover { animation-play-state: paused; }
-  @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+<!-- WASLA NUCLEAR OVERRIDE (V6) -->
+<style id="wasla-nuclear-style">
+  /* 1. شريط الإعلانات (مضمون) */
+  .wasla-ticker-container { 
+    background: #0B1220; 
+    border-radius: 12px; 
+    margin: 0 0 16px 0; 
+    display: flex; 
+    align-items: center; 
+    padding: 8px 0; 
+    overflow: hidden; 
+    position: relative; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    width: 100%;
+  }
+  .wasla-ticker-label { 
+    background: #FF3D68; 
+    color: #fff; 
+    padding: 4px 12px; 
+    font-size: 11px; 
+    font-weight: 900; 
+    border-radius: 6px; 
+    margin-right: 10px; 
+    z-index: 2; 
+    flex-shrink: 0; 
+    position: relative; 
+  }
+  .wasla-ticker-track { 
+    display: flex; 
+    white-space: nowrap; 
+    overflow: hidden;
+    width: 100%;
+  }
+  .wasla-ticker-text { 
+    display: inline-block; 
+    padding-right: 50px; 
+    font-size: 13px; 
+    font-weight: 700; 
+    color: #fff; 
+    animation: marquee 15s linear infinite; 
+  }
+  .wasla-ticker-container:hover .wasla-ticker-text { animation-play-state: paused; }
+  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
-  /* 2. تنسيقات الداش بورد */
-  .db-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
-  .db-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .db-stat { text-align: center; }
-  .db-stat-val { font-size: 24px; font-weight: 900; color: #0F172A; margin-bottom: 4px; }
-  .db-stat-lbl { font-size: 11px; color: #64748B; font-weight: 800; }
-  .db-bar-wrap { background: #F1F5F9; border-radius: 6px; height: 8px; overflow: hidden; margin-top: 6px; }
-  .db-bar-fill { background: #059669; height: 100%; border-radius: 6px; transition: width 1s ease; }
-
-  /* 3. إدارة الأسعار الشاملة */
-  .price-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #F1F5F9; }
-  .price-item-row:last-child { border-bottom: none; }
-  .price-input-box { width: 80px; padding: 6px; border: 1.5px solid #CBD5E1; border-radius: 8px; text-align: center; font-weight: 800; font-family: inherit; }
-  .save-price-btn { background: #059669; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 800; font-size: 11px; cursor: pointer; margin-right: 6px; }
-
-  /* 4. إصلاح الأزرار والنوافذ */
-  body.modal-open { overflow: hidden !important; }
-  .modal-overlay.open { pointer-events: auto !important; display: flex !important; }
-  .modal-close { cursor: pointer !important; }
+  /* 2. لوحة المؤسس */
+  .founder-force-header { background: linear-gradient(135deg, #0B1220, #1E293B); color: #fff; border-radius: 20px; padding: 20px; margin-bottom: 20px; }
+  .founder-force-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid #E2E8F0; }
+  .founder-force-tab { padding: 10px 16px; border-radius: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; font-weight: 800; font-size: 13px; color: #475569; cursor: pointer; white-space: nowrap; }
+  .founder-force-tab.active { background: #0B1220; color: #fff; border-color: #0B1220; }
+  
+  .force-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+  .force-stat { text-align: center; padding: 16px; }
+  .force-stat-val { font-size: 24px; font-weight: 900; color: #0F172A; }
+  .force-stat-lbl { font-size: 11px; color: #64748B; font-weight: 800; }
+  
+  /* 3. إجبار الكتابة في الخانات */
+  #admin-ticker-input { 
+    pointer-events: auto !important; 
+    touch-action: auto !important; 
+    z-index: 99999 !important; 
+    position: relative !important; 
+    background: #F8FAFC !important; 
+    border: 1.5px solid #E2E8F0 !important; 
+    width: 100% !important; 
+    box-sizing: border-box !important; 
+    padding: 12px !important;
+    font-family: inherit !important;
+  }
+  #view-founder { pointer-events: auto !important; touch-action: auto !important; }
 </style>
 
-<script id="wasla-master-script">
-(function WASLA_MASTER_V4() {
+<script id="wasla-nuclear-script">
+(function WASLA_NUCLEAR_V6() {
   'use strict';
-  if (!window.WaslaCore || !window.Auth || !window.Router) return;
   
-  window.UI = window.WaslaCore.UI;
-  window.Utils = window.WaslaCore.Utils;
-  const Store = window.WaslaCore.Store;
-
-  // ==========================================
-  // 1. تفعيل وإصلاح زرار X في كل النوافذ
-  // ==========================================
-  document.addEventListener('click', function(e) {
-    if (e.target.closest('.modal-close')) {
-      const overlay = e.target.closest('.modal-overlay');
-      if (overlay) window.UI.modal(overlay.id, { open: false });
+  // الانتظار حتى يتم تحميل النظام الأساسي
+  const initNuclear = () => {
+    if (!window.WaslaCore || !window.Auth || !window.Router) {
+      setTimeout(initNuclear, 300);
+      return;
     }
-  });
 
-  // ==========================================
-  // 2. إصلاح طلبات السيارات (حفظ وخروج)
-  // ==========================================
-  if (window.WaslaCars) {
-    const origSubmit = window.WaslaCars.submit;
-    window.WaslaCars.submit = function() {
-      try {
-        origSubmit.call(this);
-        // إغلاق المودال بعد الحفظ
-        setTimeout(() => window.UI.modal('modal-generic', { open: false }), 300);
-      } catch(e) {
-        console.error(e);
-        window.UI.toast('حدث خطأ أثناء الحفظ، حاول مرة أخرى', 'error');
+    window.UI = window.WaslaCore.UI;
+    window.Utils = window.WaslaCore.Utils;
+    const Store = window.WaslaCore.Store;
+
+    // 1. إصلاح زرار X في كل النوافذ
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.modal-close')) {
+        const overlay = e.target.closest('.modal-overlay');
+        if (overlay) window.UI.modal(overlay.id, { open: false });
       }
-    };
-  }
+    });
 
-  // ==========================================
-  // 3. حقن شريط الإعلانات في الصفحة الرئيسية
-  // ==========================================
-  if (window.Router.registry['home']) {
-    const origHome = window.Router.registry['home'];
-    window.Router.registry['home'] = function(el, params) {
-      origHome.call(this, el, params);
+    // 2. شريط الإعلانات (حقن قسري)
+    setInterval(() => {
+      const homeView = document.querySelector('#view-home');
+      if (!homeView) return;
       
       const db = Store.load();
       const announcements = db.announcements || ['مرحباً بكم في منصة وصلة! أي طلب توصيل مجاني اليوم.'];
-      const tickerText = announcements.join('   ⭐   ');
-
-      const tickerHTML = `
-        <div class="wasla-ticker-wrap" style="margin: 0 16px 16px;">
-          <div class="wasla-ticker-title">عروض اليوم</div>
-          <div class="wasla-ticker-content">${tickerText}</div>
-        </div>
-      `;
+      const tickerText = announcements.join(' ⭐ ');
       
-      // نضيفه فوق أول عنصر في الصفحة
-      const firstChild = el.querySelector('.wp-home');
-      if (firstChild) firstChild.insertAdjacentHTML('afterbegin', tickerHTML);
-    };
-  }
+      if (!homeView.querySelector('.wasla-ticker-container')) {
+        const tickerHTML = `
+          <div class="wasla-ticker-container" style="margin-top: 16px;">
+            <div class="wasla-ticker-label">عروض اليوم</div>
+            <div class="wasla-ticker-track">
+              <div class="wasla-ticker-text">${tickerText}</div>
+              <div class="wasla-ticker-text">${tickerText}</div> 
+            </div>
+          </div>
+        `;
+        // إجبار الشريط يظهر فوق أي حاجة
+        const mainWrap = homeView.querySelector('.wp-home') || homeView;
+        mainWrap.insertAdjacentHTML('afterbegin', tickerHTML);
+      }
+    }, 1000);
 
-  // ==========================================
-  // 4. لوحة تحكم المؤسس (الداش بورد)
-  // ==========================================
-  window.Router.registry['founder'] = function(el, params) {
-    let currentTab = 'dashboard';
-    let db = Store.load();
+    // 3. هيمنة على صفحة المؤسس (تدمير القديم وبناء الجديد)
+    setInterval(() => {
+      const founderView = document.querySelector('#view-founder');
+      if (!founderView) return;
+      
+      // لو لسه فيها التصميم الجديد بتاعنا، اخرج
+      if (founderView.querySelector('.founder-force-header')) return;
 
-    function renderTab() {
+      // مسح أي إيرور قديم
+      founderView.innerHTML = '';
+
+      let db = Store.load();
       const usersCount = (db.users || []).length;
       const orders = db.orders || [];
-      const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.total) || Number(o.price) || 0), 0);
       const feedbacks = db.feedback || [];
-      const customPricing = db.customPricing || {};
 
-      let content = '';
-
-      // --- 1. تاب الداش بورد ---
-      if (currentTab === 'dashboard') {
-        content = `
-          <div class="db-grid">
-            <div class="db-card db-stat">
-              <div class="db-stat-val">${usersCount}</div>
-              <div class="db-stat-lbl">إجمالي المستخدمين</div>
-            </div>
-            <div class="db-card db-stat">
-              <div class="db-stat-val">${orders.length}</div>
-              <div class="db-stat-lbl">إجمالي الطلبات</div>
-            </div>
-            <div class="db-card db-stat">
-              <div class="db-stat-val">${totalRevenue.toLocaleString()} <span style="font-size:12px">ج.م</span></div>
-              <div class="db-stat-lbl">حجم المبيعات</div>
-            </div>
-          </div>
-          
-          <div class="db-card" style="margin-bottom:16px;">
-            <h3 style="font-size:14px; font-weight:900; margin-bottom:12px;">معدل إنجاز الطلبات</h3>
-            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:#475569; margin-bottom:4px;">
-              <span>الطلبات المكتملة</span>
-              <span>${orders.filter(o => o.status === 'completed' || o.status === 'delivered').length} / ${orders.length}</span>
-            </div>
-            <div class="db-bar-wrap"><div class="db-bar-fill" style="width:${orders.length ? (orders.filter(o => o.status === 'completed' || o.status === 'delivered').length / orders.length * 100) : 0}%"></div></div>
-          </div>
-
-          <div class="db-card">
-            <h3 style="font-size:14px; font-weight:900; margin-bottom:12px;">شريط الإعلانات التفاعلي</h3>
-            <textarea id="admin-ticker-input" class="input" rows="2" placeholder="اكتب إعلانك هنا... (اضغط Enter لإضافة إعلان آخر)" style="margin-bottom:10px; font-size:12px;">${(db.announcements || []).join('\n')}</textarea>
-            <button class="save-price-btn" style="width:100%; background:#0B1220; padding:10px;" onclick="window.WaslaFounderActions.saveTicker()">تحديث الإعلانات</button>
-          </div>
-        `;
-      }
-
-      // --- 2. تاب التحكم في الأسعار الشاملة ---
-      if (currentTab === 'pricing') {
-        // بنجمع كل الخدمات من الأقسام المختلفة
-        const allServices = [
-          ...(window.WaslaMedicalRequests?.catalog ? Object.keys(window.WaslaMedicalRequests.catalog).map(k => ({ id: k, name: window.WaslaMedicalRequests.catalog[k].title, default: window.WaslaMedicalRequests.catalog[k].price })) : []),
-          { id: 'car_battery', name: 'شحن بطارية سيارة', default: 150 },
-          { id: 'car_tire', name: 'تغيير إطار سيارة', default: 180 },
-          { id: 'car_tow', name: 'طلب ونش', default: 500 },
-          { id: 'grocery_delivery', name: 'رسوم توصيل السوبر ماركت', default: 15 }
-        ];
-
-        content = `
-          <div class="db-card">
-            <h3 style="font-size:14px; font-weight:900; margin-bottom:12px;"><i class="fa-solid fa-money-bill-trend-up" style="color:#059669;"></i> إدارة أسعار الخدمات</h3>
-            <p style="font-size:11px; color:#64748B; margin-bottom:16px;">أي تعديل هنا يتم حفظه فوراً ويطبق على المنصة.</p>
-            ${allServices.map(s => `
-              <div class="price-item-row">
-                <span style="font-size:12px; font-weight:800; color:#334155;">${s.name}</span>
-                <div style="display:flex; align-items:center;">
-                  <input type="number" id="price-${s.id}" class="price-input-box" value="${customPricing[s.id] || s.default}">
-                  <button class="save-price-btn" onclick="window.WaslaFounderActions.savePrice('${s.id}', 'price-${s.id}')">حفظ</button>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      }
-
-      // --- 3. تاب الطلبات ---
-      if (currentTab === 'orders') {
-        const revOrders = orders.slice().reverse();
-        content = `
-          <div class="db-card">
-            <h3 style="font-size:14px; font-weight:900; margin-bottom:12px;">أحدث الطلبات (${revOrders.length})</h3>
-            ${revOrders.length === 0 ? '<p style="font-size:12px; color:#64748B;">لا توجد طلبات بعد.</p>' : revOrders.map(o => `
-              <div style="border:1px solid #E2E8F0; border-radius:10px; padding:10px; margin-bottom:10px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                  <span style="font-size:12px; font-weight:900;">${o.service || o.orderType}</span>
-                  <span style="font-size:11px; color:#059669; font-weight:800;">${o.total || o.price || 0} ج.م</span>
-                </div>
-                <div style="font-size:10px; color:#64748B;">${new Date(o.ts || o.createdAt).toLocaleString('ar-EG')}</div>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      }
-
-      // --- 4. تاب الشكاوى ---
-      if (currentTab === 'feedback') {
-        const feedbacks = db.feedback || [];
-        content = `
-          <div class="db-card">
-            <h3 style="font-size:14px; font-weight:900; margin-bottom:12px;">الشكاوى والاقتراحات (${feedbacks.length})</h3>
-            ${feedbacks.length === 0 ? '<p style="font-size:12px; color:#64748B;">لا توجد شكاوى.</p>' : feedbacks.map((f, i) => `
-              <div style="border:1px solid #E2E8F0; border-radius:10px; padding:10px; margin-bottom:10px; ${f.resolved ? 'opacity:0.5; background:#F8FAFC;' : ''}">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                  <div>
-                    <div style="font-size:10px; font-weight:900; color:#E11D48; margin-bottom:4px;">${(f.tags || []).join(' • ')}</div>
-                    <p style="font-size:12px; color:#334155;">${f.text || 'بدون تفاصيل'}</p>
-                  </div>
-                  <button onclick="window.WaslaFounderActions.resolveFeedback(${i})" style="background:${f.resolved ? '#E2E8F0' : '#D1FAE5'}; color:${f.resolved ? '#475569' : '#059669'}; border:none; padding:6px 10px; border-radius:6px; font-size:10px; font-weight:900; cursor:pointer;">${f.resolved ? 'إرجاع' : 'تم الحل'}</button>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      }
-
-      el.innerHTML = `
-        <div style="background:linear-gradient(135deg, #0B1220, #1E293B); color:#fff; border-radius:20px; padding:20px; margin-bottom:20px;">
+      // بناء التصميم
+      founderView.innerHTML = `
+        <div class="founder-force-header">
           <h1 style="font-size:22px; font-weight:900; margin-bottom:4px;">مركز تحكم وصلة</h1>
-          <p style="font-size:12px; color:#94A3B8;">إدارة وتطوير المنصة</p>
+          <p style="font-size:12px; color:#94A3B8;">إدارة المنصة بالكامل</p>
         </div>
         
-        <div class="founder-tabs">
-          <div class="founder-tab ${currentTab === 'dashboard' ? 'active' : ''}" onclick="window.WaslaFounderActions.setTab('dashboard')">الداش بورد</div>
-          <div class="founder-tab ${currentTab === 'pricing' ? 'active' : ''}" onclick="window.WaslaFounderActions.setTab('pricing')">الأسعار</div>
-          <div class="founder-tab ${currentTab === 'orders' ? 'active' : ''}" onclick="window.WaslaFounderActions.setTab('orders')">الطلبات</div>
-          <div class="founder-tab ${currentTab === 'feedback' ? 'active' : ''}" onclick="window.WaslaFounderActions.setTab('feedback')">الشكاوى</div>
+        <div class="force-card">
+          <h3 style="font-size:15px; font-weight:900; margin-bottom:12px;">شريط الإعلانات التفاعلي</h3>
+          <textarea id="admin-ticker-input" rows="3" placeholder="اكتب كل إعلان في سطر منفصل..." style="margin-bottom:10px;">${(db.announcements || ['مرحباً بكم في منصة وصلة!']).join('\n')}</textarea>
+          <button style="background:#059669; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:800; width:100%;" onclick="window.WaslaNuclearActions.saveTicker()">تحديث الإعلانات</button>
         </div>
-        
-        <div id="founder-content">${content}</div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+          <div class="force-card force-stat">
+            <div class="force-stat-val">${usersCount}</div>
+            <div class="force-stat-lbl">مستخدم</div>
+          </div>
+          <div class="force-card force-stat">
+            <div class="force-stat-val">${orders.length}</div>
+            <div class="force-stat-lbl">طلب</div>
+          </div>
+        </div>
+
+        <div class="force-card">
+          <h3 style="font-size:15px; font-weight:900; margin-bottom:12px;">الشكاوى (${feedbacks.length})</h3>
+          ${feedbacks.length === 0 ? '<p style="font-size:12px; color:#64748B;">لا توجد شكاوى.</p>' : feedbacks.map((f, i) => `
+            <div style="border:1px solid #E2E8F0; padding:10px; border-radius:10px; margin-bottom:8px; ${f.resolved ? 'opacity:0.5;' : ''}">
+              <p style="font-size:12px; font-weight:700;">${f.text || 'بدون تفاصيل'}</p>
+              <button onclick="window.WaslaNuclearActions.resolveFeedback(${i})" style="margin-top:8px; background:#E2E8F0; border:none; padding:6px; border-radius:6px; font-size:11px; cursor:pointer;">${f.resolved ? 'إرجاع' : 'تم الحل'}</button>
+            </div>
+          `).join('')}
+        </div>
       `;
+    }, 1000);
 
-      db = Store.load();
-    }
+    // الأكشنز
+    window.WaslaNuclearActions = {
+      saveTicker: () => {
+        const input = document.getElementById('admin-ticker-input');
+        if (!input) return;
+        const lines = input.value.split('\n').filter(l => l.trim() !== '');
+        const db = Store.load();
+        db.announcements = lines;
+        Store.save(db);
+        window.UI.toast('✅ تم حفظ الإعلانات', 'success');
+        window.Router.go('home'); // عشان يشوف الشريط بيتحرك
+      },
+      resolveFeedback: (index) => {
+        const db = Store.load();
+        if (db.feedback && db.feedback[index]) {
+          db.feedback[index].resolved = !db.feedback[index].resolved;
+          Store.save(db);
+          document.querySelector('#view-founder').innerHTML = ''; // إجبار التحديث
+        }
+      }
+    };
 
-    window.WaslaFounderActions = window.WaslaFounderActions || {};
-    window.WaslaFounderActions.setTab = function(tab) { currentTab = tab; renderTab(); };
-    
-    renderTab();
+    console.log('✅ [WASLA V6] Nuclear Force Active.');
   };
 
-  // ==========================================
-  // 5. أكشنز لوحة التحكم
-  // ==========================================
-  window.WaslaFounderActions = Object.assign(window.WaslaFounderActions || {}, {
-    savePrice: function(id, inputId) {
-      const val = Number(document.getElementById(inputId).value);
-      if (val > 0) {
-        const db = Store.load();
-        if (!db.customPricing) db.customPricing = {};
-        db.customPricing[id] = val;
-        Store.save(db);
-        window.UI.toast('✅ تم تحديث السعر بنجاح', 'success');
-        
-        // تحديث الكتالوج لو كان موجود عشان يظهر للمستخدمين
-        if(id === 'home_nursing' && window.WaslaMedicalRequests?.catalog?.home_nursing) window.WaslaMedicalRequests.catalog.home_nursing.price = val;
-        if(id === 'home_visit' && window.WaslaMedicalRequests?.catalog?.home_visit) window.WaslaMedicalRequests.catalog.home_visit.price = val;
-      }
-    },
-    saveTicker: function() {
-      const text = document.getElementById('admin-ticker-input').value.trim();
-      const lines = text.split('\n').filter(l => l.trim() !== '');
-      const db = Store.load();
-      db.announcements = lines;
-      Store.save(db);
-      window.UI.toast('✅ تم تحديث شريط الإعلانات', 'success');
-      window.Router.go('home');
-    },
-    resolveFeedback: function(index) {
-      const db = Store.load();
-      if (db.feedback && db.feedback[index]) {
-        db.feedback[index].resolved = !db.feedback[index].resolved;
-        Store.save(db);
-        window.Router.go('founder');
-      }
-    }
-  });
-
-  console.log('✅ [WASLA V4] Master Control & Ticker System loaded.');
+  initNuclear();
 })();
 </script>
