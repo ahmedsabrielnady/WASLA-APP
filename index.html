@@ -12,39 +12,7 @@
 /* ══════════════════════════════════════════════════════════════
    PART 1: DESIGN SYSTEM & CORE STYLES
 ══════════════════════════════════════════════════════════════ */
-/* تعديل وإصلاح الفراغ الأبيض والهيدر */
-html, body, .app-shell {
-  margin: 0 !important;
-  padding: 0 !important;
-  width: 100% !important;
-}
 
-.app-header {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  width: 100% !important;
-  z-index: 9999 !important;
-  margin: 0 !important;
-  background: rgba(220, 255, 255, 0.95) !important;
-  backdrop-filter: blur(20px) !important;
-}
-
-#main-container {
-  padding-top: 130px !important; /* مساحة مقابل الـ بار الثابت أعلى الصفحة */
-  padding-bottom: 120px !important;
-}
-
-   html, body {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-}
-
-/* إخفاء أي عناصر قديمة */
-.top-bar, #top-bar, .app-tabs-wrapper {
-  display: none !important;
-}
    :root {
   --brand-ink: #0B1220;
   --brand-ink-soft: #1E293B;
@@ -127,27 +95,6 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--radius-full); }
 .hidden { display: none !important; }
 .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
-.top-bar {
-  background: linear-gradient(90deg, var(--brand-ink), var(--brand-ink-soft) 60%, #14213A);
-  color: #fff; font-size: var(--fs-xs); padding: 6px 16px;
-  display: flex; justify-content: space-between; align-items: center;
-  gap: 10px; flex-wrap: wrap; min-height: 32px;
-}
-.top-bar-chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  padding: 3px 9px; border-radius: var(--radius-full);
-  font-weight: 700; font-size: 10px;
-}
-.top-bar-chip i { font-size: 10px; }
-.app-header {
-  position: sticky; top: 0; z-index: 90;
-  background: rgba(11, 18, 32, 0.98);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  color: #fff; border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: var(--shadow-md);
-}
 .app-header-inner {
   max-width: var(--container-max); margin: 0 auto;
   padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;
@@ -170,33 +117,7 @@ h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
 }
 .brand-text p { font-size: 10px; color: rgba(255, 255, 255, 0.55); font-weight: 600; margin-top: 2px; }
 .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
-.app-tabs-wrapper {
-  background: #fff; border-bottom: 1px solid var(--border-default);
-  position: sticky; top: var(--header-height); z-index: 85;
-  box-shadow: 0 2px 8px rgba(11, 18, 32, 0.04);
-}
-.app-tabs {
-  max-width: var(--container-max); margin: 0 auto; padding: 0 8px;
-  display: flex; overflow-x: auto;
-  scrollbar-width: none; -ms-overflow-style: none;
-}
-.app-tabs::-webkit-scrollbar { display: none; }
 .app-tab {
-  flex-shrink: 0; padding: 14px 18px; border: none; background: transparent;
-  color: var(--text-muted); font-family: var(--font-family);
-  font-weight: 800; font-size: 12.5px;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  cursor: pointer; position: relative; transition: color 0.2s ease; min-width: 78px;
-}
-.app-tab i { font-size: 17px; }
-.app-tab::after {
-  content: ''; position: absolute; bottom: 0; left: 18px; right: 18px;
-  height: 3px; background: transparent;
-  border-radius: 3px 3px 0 0; transition: background 0.25s ease;
-}
-.app-tab:hover { color: var(--text-primary); }
-.app-tab.active { color: var(--brand-ink); }
-.app-tab.active::after { background: linear-gradient(90deg, var(--sector-medical), #10B981); }
 .context-switcher {
   background: linear-gradient(135deg, var(--brand-ink), var(--brand-ink-soft));
   color: #fff; padding: 10px 16px;
@@ -6818,36 +6739,42 @@ const run=()=>{
   .nav-item .label { display: none; font-weight: 800; font-size: 13px; color: #FFF; }
   .nav-item.active .label { display: block; }
 </style>
-   <style>
-  /* 🚨 كود القناص: مسح الفراغ الأبيض وتظبيط الشكل */
-  
-  /* إخفاء الشريط القديم والتبويبات القديمة نهائياً */
-  .top-bar, #top-bar, .app-tabs-wrapper, .app-tabs { 
-    display: none !important; 
-  }
 
-  /* تصفير أي مسافات من فوق في الصفحة كلها */
-  html, body, .app-shell, .app-main { 
-    margin: 0 !important; 
-    padding-top: 0 !important; 
-  }
+  <!-- ألصق الكود هنا -->
+  <style>
+    html, body, .app-shell {
+      margin: 0 !important;
+      padding: 0 !important;
+      padding-top: 0 !important;
+    }
 
-  /* تثبيت الهيدر الجديد فوق خالص */
-  .app-header {
-    position: sticky !important;
-    top: 0 !important;
-    margin-top: 0 !important;
-    z-index: 9999 !important;
-    background: rgba(255, 255, 255, 0.98) !important;
-    backdrop-filter: blur(20px) !important;
-    border-bottom: 1px solid #E2E8F0 !important;
-  }
+    .app-header {
+      position: -webkit-sticky !important;
+      position: sticky !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
+      z-index: 9999 !important;
+      margin: 0 !important;
+      padding: 12px 16px !important;
+      background: rgba(255, 255, 255, 0.98) !important;
+      backdrop-filter: blur(20px) !important;
+      -webkit-backdrop-filter: blur(20px) !important;
+      border-bottom: 1px solid #E2E8F0 !important;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04) !important;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
 
-  /* إبعاد المحتوى لتحت عشان ميتغطاش بالهيدر */
-  #main-container {
-    padding-top: 130px !important; 
-    padding-bottom: 120px !important; /* مساحة عشان الشريط اللي تحت */
-  }
-</style>
+    #main-container, .app-main {
+      margin: 0 !important;
+      padding-top: 20px !important; 
+      padding-bottom: 120px !important; 
+    }
+  </style>
+  <!-- نهاية الكود -->
+
 </body>
 </html>
