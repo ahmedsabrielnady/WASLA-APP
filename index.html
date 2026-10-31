@@ -6739,15 +6739,13 @@ const run=()=>{
 </style>
 
   <!-- ألصق الكود هنا -->
-  <style>
-    /* تصفير المسافات ومنع السكرول العرضي نهائياً */
+  /* تصفير المسافات بدون تعطيل السكرول */
 html, body, .app-shell {
   margin: 0 !important;
   padding: 0 !important;
   padding-top: 0 !important;
   width: 100% !important;
-  max-width: 100vw !important;
-  overflow-x: hidden !important;
+  /* شيلنا overflow-x من هنا عشان السكرول يشتغل */
 }
 
 /* تثبيت الهيدر */
@@ -6778,23 +6776,19 @@ html, body, .app-shell {
   padding-top: 20px !important;
   padding-bottom: 90px !important;
   width: 100% !important;
-  max-width: 100vw !important;
   box-sizing: border-box !important;
-  overflow-x: hidden !important;
 }
 
 /* إصلاح شريط الحالة (Context Switcher) */
 .context-switcher {
   width: 100% !important;
-  max-width: 100vw !important;
   box-sizing: border-box !important;
-  overflow: hidden !important;
-  padding: 10px 16px !important; /* مسافة جانبية للشريط */
+  padding: 10px 16px !important;
+  /* شيلنا overflow من هنا كمان */
 }
 
 .context-switcher-inner {
   width: 100% !important;
-  max-width: 100% !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-wrap: nowrap !important;
@@ -6806,7 +6800,6 @@ html, body, .app-shell {
 .context-info {
   flex: 1 1 0% !important;
   min-width: 0 !important;
-  overflow: hidden !important;
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
@@ -6815,13 +6808,12 @@ html, body, .app-shell {
 .context-text {
   flex: 1 1 auto !important;
   min-width: 0 !important;
-  overflow: hidden !important;
 }
 
 .context-label, .context-name {
   white-space: nowrap !important;
   overflow: hidden !important;
-  text-overflow: ellipsis !important; /* يحط ... لو النص طويل */
+  text-overflow: ellipsis !important;
   display: block !important;
   width: 100% !important;
 }
@@ -6830,7 +6822,6 @@ html, body, .app-shell {
   flex-shrink: 0 !important;
   white-space: nowrap !important;
 }
-  </style>
   <!-- نهاية الكود -->
   </div> <!-- ضيف السطر ده عشان تقفل الـ app-shell -->
 
