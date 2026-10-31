@@ -7664,7 +7664,7 @@ body.modal-open * {
   console.log('✅ [WASLA UPGRADE] Features loaded successfully.');
 })();
 </script>
-   <!-- WASLA MASTER FEATURES UPGRADE (V2) -->
+   <!-- WASLA ULTIMATE UPGRADE (FIXED) -->
 <style id="wasla-features-style">
   /* تنسيقات الأعراض */
   .symptom-card { background: #fff; border: 1.5px solid #E2E8F0; border-radius: 14px; padding: 14px; text-align: center; cursor: pointer; transition: all 0.2s; }
@@ -7678,23 +7678,23 @@ body.modal-open * {
   .feedback-home-btn { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #F8FAFC, #FFFFFF); border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px; margin: 16px 0; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: all 0.2s; }
   .feedback-home-btn:hover { border-color: #FF3D68; box-shadow: 0 4px 15px rgba(255,61,104,0.1); }
   
-  /* تنسيقات الأسعار */
+  /* تنسيقات لوحة المؤسس */
   .price-manager-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-
-  @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .founder-feedback-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+  .founder-feedback-card .tag { display: inline-block; background: #FFF1F2; color: #E11D48; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; margin-right: 4px; margin-bottom: 4px; }
 </style>
 
-<script id="wasla-master-features-script">
-(function WASLA_MASTER_UPGRADE() {
+<script id="wasla-ultimate-upgrade-script">
+(function WASLA_ULTIMATE_UPGRADE() {
   'use strict';
-  if (!window.WaslaCore || !window.Auth) return;
+  if (!window.WaslaCore || !window.Auth || !window.Router) return;
   
   window.UI = window.WaslaCore.UI;
   window.Utils = window.WaslaCore.Utils;
   const Store = window.WaslaCore.Store;
 
   // ==========================================
-  // 1. ميزة الأعراض الذكية (الموسعة)
+  // 1. إعدادات الأعراض (مع إصلاح الفلترة)
   // ==========================================
   const SYMPTOMS = [
     { id: 'headache', name: 'صداع مستمر', icon: 'fa-head-side-virus', spec: 'باطنة وكبد', advice: 'قد يحتاج كشف باطنة أو مخ وأعصاب.' },
@@ -7715,30 +7715,25 @@ body.modal-open * {
     const originalMedOpen = window.WaslaMedicalRequests.open;
     
     window.WaslaMedicalRequests.open = function(type, title) {
-      // أ) ميزة الأعراض الموسعة
       if (type === 'symptoms') {
         const body = Utils.$('#modal-generic-body');
         if(!body) return;
         
         body.innerHTML = `
           <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
-          
           <div style="text-align:center; margin-bottom: 20px;">
             <div style="width:56px;height:56px;background:#ECFDF5;color:#059669;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 10px;"><i class="fa-solid fa-notes-medical"></i></div>
             <h3 style="font-size:18px;font-weight:900;color:#0F172A;">ما هو العرض الذي تشعر به؟</h3>
             <p style="font-size:12px;color:#64748B;margin-top:4px;">اختر العرض لنقترح لك الطبيب المناسب.</p>
           </div>
-
           <div id="symptom-grid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; max-height: 45vh; overflow-y:auto; padding-bottom:10px;">
             ${SYMPTOMS.map(s => `
-              <div class="symptom-card" id="symp-${s.id}" onclick="WaslaActions.select('${s.id}')">
+              <div class="symptom-card" id="symp-${s.id}" onclick="WaslaUltimateActions.select('${s.id}')">
                 <i class="fa-solid ${s.icon} symptom-icon"></i>
                 <div class="symptom-name">${s.name}</div>
               </div>
             `).join('')}
           </div>
-
-          <!-- التاب التفاعلية -->
           <div id="symptom-result-tab" style="display:none; margin-top:16px; background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:14px; padding:16px; animation: fadeInUp 0.3s ease;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <div>
@@ -7746,7 +7741,7 @@ body.modal-open * {
                 <div style="font-size:18px; font-weight:900; color:#0F172A;" id="res-spec">---</div>
                 <div style="font-size:11px; font-weight:700; color:#059669; margin-top:4px;" id="res-advice">---</div>
               </div>
-              <button class="btn btn-primary" style="padding:10px 20px; border-radius:10px; box-shadow:0 4px 10px rgba(5,150,105,0.3);" onclick="WaslaActions.book()">
+              <button class="btn btn-primary" style="padding:10px 20px; border-radius:10px; box-shadow:0 4px 10px rgba(5,150,105,0.3);" onclick="WaslaUltimateActions.book()">
                 <i class="fa-solid fa-calendar-plus"></i> احجز الآن
               </button>
             </div>
@@ -7756,7 +7751,7 @@ body.modal-open * {
         return;
       }
 
-      // ب) التسعير المرن
+      // تطبيق الأسعار المرنة
       const db = Store.load();
       const prices = db.customPricing || {};
       if (type === 'home_nursing' && prices.home_nursing) window.WaslaMedicalRequests.catalog.home_nursing.price = prices.home_nursing;
@@ -7766,21 +7761,17 @@ body.modal-open * {
     };
   }
 
-  window.WaslaActions = {
+  window.WaslaUltimateActions = {
     select: function(id) {
       selectedSymptom = SYMPTOMS.find(s => s.id === id);
       if(!selectedSymptom) return;
 
       document.querySelectorAll('.symptom-card').forEach(c => {
-        c.style.borderColor = '#E2E8F0';
-        c.style.background = '#fff';
+        c.style.borderColor = '#E2E8F0'; c.style.background = '#fff';
       });
       
       const card = Utils.$('#symp-' + id);
-      if(card) {
-        card.style.borderColor = '#059669';
-        card.style.background = '#ECFDF5';
-      }
+      if(card) { card.style.borderColor = '#059669'; card.style.background = '#ECFDF5'; }
 
       const tab = Utils.$('#symptom-result-tab');
       if(tab) {
@@ -7791,18 +7782,37 @@ body.modal-open * {
     },
     book: function() {
       if(!selectedSymptom) return;
-      
       UI.modal('modal-generic', { open: false });
       
-      if (window.medicalFilters) {
-        window.medicalFilters.specialty = selectedSymptom.spec;
-        window.medicalFilters.search = '';
-        window.medicalFilters.insurance = '';
-        window.medicalFilters.payment = '';
-      }
+      // الانتقال لصفحة الأطباء
+      window.Router.go('medical');
       
-      UI.toast(`جاري عرض أطباء ${selectedSymptom.spec}`, 'success');
-      setTimeout(() => window.Router.go('medical'), 500);
+      // فلترة الأطباء أوتوماتيك
+      setTimeout(() => {
+        const select = document.querySelector('#med-spec');
+        if (select) {
+          let found = false;
+          for (let i = 0; i < select.options.length; i++) {
+            if (select.options[i].value.includes(selectedSymptom.spec) || select.options[i].text.includes(selectedSymptom.spec)) {
+              select.selectedIndex = i;
+              found = true;
+              break;
+            }
+          }
+          if (found) {
+            select.dispatchEvent(new Event('change'));
+            UI.toast(`تم فلترة أطباء ${selectedSymptom.spec}`, 'success');
+          } else {
+            // لو التخصص مش موجود بالظبط، نبحث بالاسم
+            const searchInput = document.querySelector('#med-search');
+            if (searchInput) {
+              searchInput.value = selectedSymptom.spec;
+              searchInput.dispatchEvent(new Event('input'));
+              UI.toast(`جاري البحث عن أطباء ${selectedSymptom.spec}`, 'info');
+            }
+          }
+        }
+      }, 500);
     },
     savePrice: function(key, inputId) {
       const val = Number(Utils.$('#' + inputId).value);
@@ -7818,62 +7828,7 @@ body.modal-open * {
   };
 
   // ==========================================
-  // 2. لوحة تحكم المؤسس (التسعير)
-  // ==========================================
-  if (window.Router && window.Router.registry['founder']) {
-    const originalFounderRender = window.Router.registry['founder'];
-    
-    window.Router.registry['founder'] = function(el, params) {
-      originalFounderRender.call(this, el, params);
-      
-      const db = Store.load();
-      const prices = db.customPricing || { home_nursing: 250, home_visit: 400 };
-      
-      const priceHTML = `
-        <div class="wv3-panel" style="margin-top:20px;">
-           <h3><i class="fa-solid fa-money-bill-trend-up"></i> التحكم في أسعار الخدمات</h3>
-           <p style="font-size:11px; color:#64748B; margin-bottom:12px;">أي تعديل هنا سيظهر فوراً للمستخدمين في الصفحة الرئيسية.</p>
-           <div class="price-manager-card">
-             <span style="font-weight:900;">التمريض المنزلي (ج.م)</span>
-             <div>
-               <input type="number" id="price-home_nursing" value="${prices.home_nursing}" style="width:80px; padding:6px; border:1px solid #ccc; border-radius:6px; text-align:center;">
-               <button class="wv3-btn primary" onclick="WaslaActions.savePrice('home_nursing', 'price-home_nursing')">حفظ</button>
-             </div>
-           </div>
-           <div class="price-manager-card">
-             <span style="font-weight:900;">زيارة طبيب منزلية (ج.م)</span>
-             <div>
-               <input type="number" id="price-home_visit" value="${prices.home_visit}" style="width:80px; padding:6px; border:1px solid #ccc; border-radius:6px; text-align:center;">
-               <button class="wv3-btn primary" onclick="WaslaActions.savePrice('home_visit', 'price-home_visit')">حفظ</button>
-             </div>
-           </div>
-        </div>
-      `;
-      el.insertAdjacentHTML('beforeend', priceHTML);
-    };
-  }
-
-  // ==========================================
-  // 3. إخفاء مساعد المدرس لغير المدرسين
-  // ==========================================
-  const hideTeacherTab = () => {
-    const user = window.Auth.getCurrentUser();
-    const isTeacher = user && (user.role === 'teacher' || (user.contexts && user.contexts.includes('teacher')));
-    
-    if (!isTeacher) {
-      const btns = document.querySelectorAll('.education-tabs button');
-      btns.forEach(btn => {
-        if (btn.innerText.includes('مساعد المدرس')) {
-          btn.style.display = 'none';
-        }
-      });
-    }
-  };
-  
-  setInterval(hideTeacherTab, 1000);
-
-  // ==========================================
-  // 4. نظام الشكاوى والاقتراحات
+  // 2. الشكاوى والاقتراحات (منع التكرار)
   // ==========================================
   window.WaslaFeedback = {
     open: function() {
@@ -7904,47 +7859,117 @@ body.modal-open * {
     submit: function() {
       const selectedTags = Array.from(document.querySelectorAll('#feedback-tags .selected')).map(t => t.innerText);
       const text = Utils.$('#feedback-text').value.trim();
-      if (selectedTags.length === 0 && !text) {
-        return UI.toast('اختر موضوع الشكوى أو اكتب التفاصيل', 'error');
-      }
+      if (selectedTags.length === 0 && !text) return UI.toast('اختر موضوع الشكوى أو اكتب التفاصيل', 'error');
+      
       const db = Store.load();
       db.feedback = db.feedback || [];
       db.feedback.push({ id: Utils.id('fb'), tags: selectedTags, text, ts: Date.now() });
       Store.save(db);
+      
       UI.modal('modal-generic', { open: false });
       UI.toast('✅ تم استلام شكواك وسيتم مراجعتها قريباً', 'success');
     }
   };
 
-  // إضافة زر الشكاوى في الصفحة الرئيسية
-  if (window.Router && window.Router.registry['home']) {
+  // إضافة زر الشكوى للرئيسية (بذكاء بدون تكرار)
+  if (window.Router.registry['home']) {
     const originalHomeRender = window.Router.registry['home'];
     window.Router.registry['home'] = function(el, params) {
       originalHomeRender.call(this, el, params);
       
-      const feedbackBtn = `
-        <div class="feedback-home-btn" onclick="WaslaFeedback.open()">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <div style="width:40px; height:40px; background:#FFF1F2; color:#FF3D68; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px;">
-              <i class="fa-solid fa-comment-dots"></i>
+      // التأكد إن الزرار مش موجود عشان ميتكررش
+      if (!el.querySelector('.feedback-home-btn')) {
+        const feedbackBtn = `
+          <div class="feedback-home-btn" onclick="WaslaFeedback.open()">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div style="width:40px; height:40px; background:#FFF1F2; color:#FF3D68; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px;"><i class="fa-solid fa-comment-dots"></i></div>
+              <div>
+                <div style="font-size:14px; font-weight:900; color:#0F172A;">لديك شكوى أو اقتراح؟</div>
+                <div style="font-size:11px; color:#64748B;">ساعدنا نكون أفضل، رأيك يهمنا</div>
+              </div>
             </div>
-            <div>
-              <div style="font-size:14px; font-weight:900; color:#0F172A;">لديك شكوى أو اقتراح؟</div>
-              <div style="font-size:11px; color:#64748B;">ساعدنا نكون أفضل، رأيك يهمنا</div>
-            </div>
+            <i class="fa-solid fa-chevron-left" style="color:#CBD5E1;"></i>
           </div>
-          <i class="fa-solid fa-chevron-left" style="color:#CBD5E1;"></i>
-        </div>
-      `;
-      const sharePanel = el.querySelector('.wp-share-panel');
-      if(sharePanel) {
-        sharePanel.insertAdjacentHTML('beforebegin', feedbackBtn);
+        `;
+        const sharePanel = el.querySelector('.wp-share-panel');
+        if(sharePanel) sharePanel.insertAdjacentHTML('beforebegin', feedbackBtn);
       }
     };
   }
 
-  console.log('✅ [WASLA MASTER UPGRADE] All features merged and loaded.');
+  // ==========================================
+  // 3. إصلاح لوحة المؤسس وإضافة الأقسام الجديدة
+  // ==========================================
+  const originalRouterGo = window.Router.go;
+  window.Router.go = function(viewName, params) {
+    originalRouterGo.call(this, viewName, params);
+    
+    // إصلاح صفحة المؤسس وإضافة الأقسام
+    if (viewName === 'founder') {
+      setTimeout(() => {
+        const container = document.querySelector('#view-founder');
+        if (container && !container.dataset.hasPricing) {
+          container.dataset.hasPricing = 'true';
+          
+          const db = Store.load();
+          const prices = db.customPricing || { home_nursing: 250, home_visit: 400 };
+          const feedbacks = db.feedback || [];
+          
+          // قسم التحكم في الأسعار
+          const pricingHTML = `
+            <div class="wv3-panel" style="margin-top:20px;">
+               <h3><i class="fa-solid fa-money-bill-trend-up"></i> التحكم في أسعار الخدمات</h3>
+               <p style="font-size:11px; color:#64748B; margin-bottom:12px;">أي تعديل هنا سيظهر فوراً للمستخدمين في الصفحة الرئيسية.</p>
+               <div class="price-manager-card">
+                 <span style="font-weight:900;">التمريض المنزلي (ج.م)</span>
+                 <div>
+                   <input type="number" id="price-home_nursing" value="${prices.home_nursing}" style="width:80px; padding:6px; border:1px solid #ccc; border-radius:6px; text-align:center;">
+                   <button class="wv3-btn primary" onclick="WaslaUltimateActions.savePrice('home_nursing', 'price-home_nursing')">حفظ</button>
+                 </div>
+               </div>
+               <div class="price-manager-card">
+                 <span style="font-weight:900;">زيارة طبيب منزلية (ج.م)</span>
+                 <div>
+                   <input type="number" id="price-home_visit" value="${prices.home_visit}" style="width:80px; padding:6px; border:1px solid #ccc; border-radius:6px; text-align:center;">
+                   <button class="wv3-btn primary" onclick="WaslaUltimateActions.savePrice('home_visit', 'price-home_visit')">حفظ</button>
+                 </div>
+               </div>
+            </div>
+          `;
+          
+          // قسم الشكاوى
+          const feedbackHTML = `
+            <div class="wv3-panel" style="margin-top:20px;">
+               <h3><i class="fa-solid fa-comments"></i> الشكاوى والاقتراحات</h3>
+               ${feedbacks.length === 0 ? '<div class="wv3-empty">لا توجد شكاوى حتى الآن.</div>' : feedbacks.map(f => `
+                 <div class="founder-feedback-card">
+                   <div>${f.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+                   ${f.text ? `<p style="font-size:12px; margin-top:6px; color:#334155;">${f.text}</p>` : ''}
+                   <small style="display:block; margin-top:8px; color:#94A3B8; font-size:10px;">${new Date(f.ts).toLocaleString('ar-EG')}</small>
+                 </div>
+               `).join('')}
+            </div>
+          `;
+          
+          container.insertAdjacentHTML('beforeend', pricingHTML + feedbackHTML);
+        }
+      }, 300);
+    }
+  };
+
+  // ==========================================
+  // 4. إخفاء مساعد المدرس لغير المدرسين
+  // ==========================================
+  setInterval(() => {
+    const user = window.Auth.getCurrentUser();
+    const isTeacher = user && (user.role === 'teacher' || (user.contexts && user.contexts.includes('teacher')));
+    if (!isTeacher) {
+      document.querySelectorAll('.education-tabs button').forEach(btn => {
+        if (btn.innerText.includes('مساعد المدرس')) btn.style.display = 'none';
+      });
+    }
+  }, 1000);
+
+  console.log('✅ [WASLA ULTIMATE UPGRADE] All features fixed and loaded.');
 })();
 </script>
-</body>
-</html>
