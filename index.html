@@ -7359,5 +7359,72 @@ body.modal-open * {
   console.log('✅ تم تحديث شاشة الدخول وإصلاح الكيبورد');
 })();
 </script>
+   <!-- WASLA GLOBAL GLOW EFFECT -->
+<style id="wasla-glow-style">
+  /* 1. الشكل العام للهالة اللي هتظهر */
+  .wasla-click-glow {
+    position: relative;
+    transition: all 0.15s ease !important;
+    /* هالة حمراء زي شعار وصلة */
+    box-shadow: 0 0 0 4px rgba(255, 61, 104, 0.15), 0 0 25px rgba(255, 138, 0, 0.4) !important;
+    border-color: #FF3D68 !important;
+    transform: scale(0.98) !important; /* ضغطة خفيفة عشان يتفاعل */
+    z-index: 10 !important;
+  }
+
+  /* 2. حلقة إضافية حوالين الزرار عشان تبقى أوضح */
+  .wasla-click-glow::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    border: 2px solid rgba(255, 61, 104, 0.6);
+    pointer-events: none;
+    animation: glowPulse 1s infinite alternate;
+  }
+
+  @keyframes glowPulse {
+    from { opacity: 0.5; transform: scale(1); }
+    to { opacity: 0; transform: scale(1.05); }
+  }
+</style>
+
+<script id="wasla-glow-script">
+(function WASLA_GLOBAL_GLOW() {
+  'use strict';
+  
+  // تحديد كل العناصر اللي ليها تفاعل في المنصة
+  const interactiveSelectors = [
+    'button', 'a', '.sector-card', '.wp-service-card', '.nav-item', 
+    '.local-provider', '.wg-product', '.wcars-card', '.education-card', 
+    '.patient-card', '.doctor-card-med', '.elite-choice', '.elite-shortcut',
+    '[onclick]', '[role="button"]'
+  ].join(',');
+
+  // إضافة كلاس الهالة لما ندوس
+  document.addEventListener('pointerdown', (e) => {
+    // لو المستخدم بيسحب سكرول أو بيعمل زووم، منعملش هالة
+    if (e.pointerType === 'touch' && e.isPrimary === false) return;
+
+    const target = e.target.closest(interactiveSelectors);
+    if (target && !target.closest('.modal-overlay') && target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+      // إضافة الهالة
+      target.classList.add('wasla-click-glow');
+      
+      // مسح الهالة بعد ما المستخدم يشيل إيده (أو بعد نص ثانية)
+      const removeGlow = () => {
+        setTimeout(() => target.classList.remove('wasla-click-glow'), 150);
+        document.removeEventListener('pointerup', removeGlow);
+        document.removeEventListener('pointercancel', removeGlow);
+      };
+      
+      document.addEventListener('pointerup', removeGlow);
+      document.addEventListener('pointercancel', removeGlow);
+    }
+  });
+
+  console.log('✨ [WASLA] Global Glow Effect Activated');
+})();
+</script>
 </body>
 </html>
