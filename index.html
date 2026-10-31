@@ -7863,3 +7863,235 @@ body.modal-open * {
   initNuclear();
 })();
 </script>
+<!-- WASLA SYMPTOMS & TICKER FINAL FIX -->
+<style id="wasla-final-symptoms-style">
+  /* 1. شريط الإعلانات (تصميم احترافي وسريع) */
+  .wasla-ticker-container { 
+    background: linear-gradient(90deg, #0B1220, #1E293B); 
+    border: 1px solid #334155;
+    border-radius: 12px; 
+    margin: 0 0 16px 0; 
+    display: flex; 
+    align-items: center; 
+    padding: 10px 0; 
+    overflow: hidden; 
+    position: relative; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+    width: 100%;
+  }
+  .wasla-ticker-label { 
+    background: #FF3D68; 
+    color: #fff; 
+    padding: 6px 14px; 
+    font-size: 12px; 
+    font-weight: 900; 
+    border-radius: 8px; 
+    margin-right: 12px; 
+    z-index: 2; 
+    flex-shrink: 0; 
+    position: relative; 
+    box-shadow: 0 2px 8px rgba(255,61,104,0.4);
+  }
+  .wasla-ticker-track { 
+    display: flex; 
+    white-space: nowrap; 
+    overflow: hidden;
+    width: 100%;
+    align-items: center;
+  }
+  .wasla-ticker-text { 
+    display: inline-block; 
+    padding-right: 60px; 
+    font-size: 14px; 
+    font-weight: 700; 
+    color: #F8FAFC; 
+    animation: marqueeSmooth 10s linear infinite; /* سرعة أسرع وحركة ناعمة */
+  }
+  .wasla-ticker-container:hover .wasla-ticker-text { animation-play-state: paused; }
+  @keyframes marqueeSmooth { 
+    0% { transform: translateX(0); } 
+    100% { transform: translateX(-50%); } 
+  }
+
+  /* 2. تصميم شاشة الأعراض */
+  .symptom-card { 
+    background: #fff; 
+    border: 1.5px solid #E2E8F0; 
+    border-radius: 14px; 
+    padding: 16px; 
+    text-align: center; 
+    cursor: pointer; 
+    transition: all 0.2s; 
+  }
+  .symptom-card:hover { border-color: #059669; background: #F0FDF4; }
+  .symptom-card.active { border-color: #059669; background: #ECFDF5; box-shadow: 0 0 0 3px rgba(5,150,105,0.15); }
+  .symptom-icon { font-size: 28px; color: #059669; margin-bottom: 10px; display: block; }
+  .symptom-name { font-size: 14px; font-weight: 900; color: #0F172A; }
+  
+  .symptom-result-panel { 
+    display: none; 
+    margin-top: 20px; 
+    background: #F8FAFC; 
+    border: 1.5px solid #CBD5E1; 
+    border-radius: 16px; 
+    padding: 16px; 
+    animation: slideUp 0.3s ease; 
+  }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<script id="wasla-final-symptoms-script">
+(function WASLA_FINAL_SYMPTOMS() {
+  'use strict';
+  
+  const initSymptoms = () => {
+    if (!window.WaslaCore || !window.Auth) {
+      setTimeout(initSymptoms, 300);
+      return;
+    }
+    const { Utils, UI } = window.WaslaCore;
+    window.UI = UI;
+
+    // 1. قائمة الأعراض
+    const SYMPTOMS = [
+      { id: 'headache', name: 'صداع مستمر', icon: 'fa-head-side-virus', spec: 'باطنة وكبد', advice: 'قد يحتاج كشف باطنة أو مخ وأعصاب.' },
+      { id: 'chest', name: 'ألم في الصدر', icon: 'fa-heart-pulse', spec: 'قلب', advice: 'يُنصح باستشارة طبيب قلب فوراً.' },
+      { id: 'stomach', name: 'ألم في المعدة', icon: 'fa-stomach', spec: 'باطنة وكبد', advice: 'قد يحتاج كشف باطنة أو جهاز هضمي.' },
+      { id: 'bone', name: 'ألم في المفاصل', icon: 'fa-bone', spec: 'عظام', advice: 'يُنصح بكشف عظام.' },
+      { id: 'fever', name: 'حرارة مرتفعة', icon: 'fa-thermometer-high', spec: 'باطنة وكبد', advice: 'كشف باطنة أو أطفال (حسب العمر).' },
+      { id: 'skin', name: 'طفح جلدي', icon: 'fa-allergies', spec: 'جلدية', advice: 'يُنصح بكشف جلدية.' },
+      { id: 'eye', name: 'احمرار العين', icon: 'fa-eye', spec: 'رمد', advice: 'يحتاج كشف رمد أو عيون.' },
+      { id: 'teeth', name: 'ألم الأسنان', icon: 'fa-tooth', spec: 'أسنان', advice: 'يحتاج كشف أسنان.' }
+    ];
+
+    let currentSelectedSymptom = null;
+
+    // 2. اعتراض دالة فتح الأعراض
+    if (window.WaslaMedicalRequests) {
+      const originalOpen = window.WaslaMedicalRequests.open;
+      
+      window.WaslaMedicalRequests.open = function(type, title) {
+        if (type === 'symptoms') {
+          const body = Utils.$('#modal-generic-body');
+          if (!body) return;
+          
+          body.innerHTML = `
+            <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
+            <div style="text-align:center; margin-bottom: 20px;">
+              <div style="width:56px;height:56px;background:#ECFDF5;color:#059669;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 10px;"><i class="fa-solid fa-notes-medical"></i></div>
+              <h3 style="font-size:18px;font-weight:900;color:#0F172A;">ما هو العرض الذي تشعر به؟</h3>
+              <p style="font-size:12px;color:#64748B;margin-top:4px;">اختر العرض لنقترح لك الطبيب المناسب.</p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; max-height: 45vh; overflow-y:auto; padding-bottom:10px;">
+              ${SYMPTOMS.map(s => `
+                <div class="symptom-card" id="symp-${s.id}" onclick="WaslaFinalSymptomAction.select('${s.id}')">
+                  <i class="fa-solid ${s.icon} symptom-icon"></i>
+                  <div class="symptom-name">${s.name}</div>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- التاب التفاعلية اللي هتظهر تحت -->
+            <div id="symptom-result-panel" class="symptom-result-panel">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div style="font-size:11px; font-weight:800; color:#64748B; margin-bottom:2px;">التخصص المطلوب:</div>
+                  <div style="font-size:18px; font-weight:900; color:#0F172A;" id="res-spec">---</div>
+                  <div style="font-size:11px; font-weight:700; color:#059669; margin-top:4px;" id="res-advice">---</div>
+                </div>
+                <button style="background:#059669; color:#fff; border:none; padding:10px 20px; border-radius:10px; font-weight:900; cursor:pointer; box-shadow:0 4px 12px rgba(5,150,105,0.3);" onclick="WaslaFinalSymptomAction.book()">
+                  احجز الآن
+                </button>
+              </div>
+            </div>
+          `;
+          
+          UI.modal('modal-generic', { open: true });
+          return;
+        }
+        
+        return originalOpen.call(this, type, title);
+      };
+    }
+
+    // 3. أكشنز الأعراض
+    window.WaslaFinalSymptomAction = {
+      select: function(id) {
+        currentSelectedSymptom = SYMPTOMS.find(s => s.id === id);
+        if (!currentSelectedSymptom) return;
+
+        // إزالة التحديد من الكل
+        document.querySelectorAll('.symptom-card').forEach(c => c.classList.remove('active'));
+        
+        // تحديد الكارت اللي اتضغط
+        const card = document.getElementById('symp-' + id);
+        if (card) card.classList.add('active');
+
+        // إظهار التاب
+        const panel = document.getElementById('symptom-result-panel');
+        if (panel) {
+          panel.style.display = 'block';
+          document.getElementById('res-spec').innerText = currentSelectedSymptom.spec;
+          document.getElementById('res-advice').innerText = currentSelectedSymptom.advice;
+        }
+      },
+      book: function() {
+        if (!currentSelectedSymptom) return;
+        
+        UI.modal('modal-generic', { open: false });
+        UI.toast(`جاري عرض أطباء ${currentSelectedSymptom.spec}`, 'success');
+        
+        // فلترة الأطباء
+        window.Router.go('medical');
+        setTimeout(() => {
+          const select = document.querySelector('#med-spec');
+          if (select) {
+            for (let i = 0; i < select.options.length; i++) {
+              if (select.options[i].value.includes(currentSelectedSymptom.spec) || select.options[i].text.includes(currentSelectedSymptom.spec)) {
+                select.selectedIndex = i;
+                select.dispatchEvent(new Event('change'));
+                break;
+              }
+            }
+          }
+        }, 400);
+      }
+    };
+
+    // 4. شريط الإعلانات (تحديث مستمر)
+    setInterval(() => {
+      const homeView = document.querySelector('#view-home');
+      if (!homeView) return;
+      
+      const db = window.WaslaCore.Store.load();
+      const announcements = db.announcements || ['مرحباً بكم في منصة وصلة!'];
+      const tickerText = announcements.join('   ⭐   ');
+      
+      // لو الشريط مش موجود، نضيفه
+      if (!homeView.querySelector('.wasla-ticker-container')) {
+        const tickerHTML = `
+          <div class="wasla-ticker-container" style="margin: 16px;">
+            <div class="wasla-ticker-label">عروض اليوم</div>
+            <div class="wasla-ticker-track">
+              <div class="wasla-ticker-text">${tickerText} &nbsp;&nbsp;&nbsp;&nbsp; ${tickerText}</div>
+            </div>
+          </div>
+        `;
+        const mainWrap = homeView.querySelector('.wp-home') || homeView;
+        mainWrap.insertAdjacentHTML('afterbegin', tickerHTML);
+      } else {
+        // تحديث النص لو اتغير
+        const textEl = homeView.querySelector('.wasla-ticker-text');
+        if (textEl && !textEl.innerText.includes(announcements[0])) {
+          textEl.innerHTML = `${tickerText} &nbsp;&nbsp;&nbsp;&nbsp; ${tickerText}`;
+        }
+      }
+    }, 1000);
+
+    console.log('✅ [WASLA FINAL] Symptoms Tab & Smooth Ticker Active.');
+  };
+
+  initSymptoms();
+})();
+</script>
