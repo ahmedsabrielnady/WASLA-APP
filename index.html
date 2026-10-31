@@ -7426,5 +7426,243 @@ body.modal-open * {
   console.log('✨ [WASLA] Global Glow Effect Activated');
 })();
 </script>
+   <!-- WASLA FOUNDER & UX UPGRADE -->
+<style id="wasla-custom-features-style">
+  /* تنسيقات الشكاوى والأعراض */
+  .symptom-card { background: #fff; border: 1.5px solid #E2E8F0; border-radius: 14px; padding: 14px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .symptom-card:hover { border-color: #059669; background: #F0FDF4; transform: translateY(-2px); }
+  .symptom-icon { font-size: 24px; color: #059669; margin-bottom: 8px; display: block; }
+  .symptom-name { font-size: 13px; font-weight: 900; color: #0F172A; }
+  
+  .feedback-tag { display: inline-block; padding: 8px 14px; border-radius: 20px; background: #F1F5F9; border: 1px solid #E2E8F0; font-size: 12px; font-weight: 800; color: #475569; cursor: pointer; margin: 4px; transition: all 0.2s; }
+  .feedback-tag.selected { background: #ECFDF5; border-color: #059669; color: #059669; }
+  
+  .feedback-home-btn { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #F8FAFC, #FFFFFF); border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px; margin: 16px 0; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: all 0.2s; }
+  .feedback-home-btn:hover { border-color: #FF3D68; box-shadow: 0 4px 15px rgba(255,61,104,0.1); }
+  
+  .price-manager-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+</style>
+
+<script id="wasla-custom-features-script">
+(function WASLA_FEATURES_UPGRADE() {
+  'use strict';
+  if (!window.WaslaCore || !window.Auth) return;
+  const { Utils, UI, Store } = window.WaslaCore;
+
+  // ==========================================
+  // 1. ميزة الأعراض الذكية (Medical Symptoms)
+  // ==========================================
+  const SYMPTOMS = [
+    { id: 'headache', name: 'صداع مستمر', icon: 'fa-head-side-virus', spec: 'باطنة', advice: 'قد يحتاج كشف باطنة أو مخ وأعصاب.' },
+    { id: 'chest', name: 'ألم في الصدر', icon: 'fa-heart-pulse', spec: 'قلب', advice: 'يُنصح باستشارة طبيب قلب فوراً.' },
+    { id: 'stomach', name: 'ألم في المعدة', icon: 'fa-stomach', spec: 'باطنة', advice: 'قد يحتاج كشف باطنة أو جهاز هضمي.' },
+    { id: 'bone', name: 'ألم في المفاصل', icon: 'fa-bone', spec: 'عظام', advice: 'يُنصح بكشف عظام.' },
+    { id: 'fever', name: 'حرارة مرتفعة', icon: 'fa-thermometer-high', spec: 'باطنة', advice: 'كشف باطنة أو أطفال (حسب العمر).' },
+    { id: 'skin', name: 'طفح جلدي', icon: 'fa-allergies', spec: 'جلدية', advice: 'كشف جلدية.' }
+  ];
+
+  const originalMedOpen = window.WaslaMedicalRequests.open;
+  window.WaslaMedicalRequests.open = function(type, title) {
+    if (type === 'symptoms') {
+      const body = Utils.$('#modal-generic-body');
+      if(!body) return;
+      body.innerHTML = `
+        <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
+        <div style="text-align:center; margin-bottom: 20px;">
+          <div style="width:56px;height:56px;background:#ECFDF5;color:#059669;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 10px;"><i class="fa-solid fa-notes-medical"></i></div>
+          <h3 style="font-size:18px;font-weight:900;">ما هو العرض الذي تشعر به؟</h3>
+          <p style="font-size:12px;color:#64748B;margin-top:4px;">اختر العرض لنقترح لك الطبيب المناسب.</p>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;">
+          ${SYMPTOMS.map(s => `
+            <div class="symptom-card" onclick="WaslaFeatureActions.selectSymptom('${s.id}')">
+              <i class="fa-solid ${s.icon} symptom-icon"></i>
+              <div class="symptom-name">${s.name}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      UI.modal('modal-generic', { open: true });
+      return;
+    }
+    return originalMedOpen.call(this, type, title);
+  };
+
+  window.WaslaFeatureActions = {
+    selectSymptom: function(id) {
+      const s = SYMPTOMS.find(x => x.id === id);
+      if(!s) return;
+      UI.modal('modal-generic', { open: false });
+      UI.toast(`💡 ${s.advice}`, 'info', 4000);
+      // فلترة الأطباء
+      if (window.medicalFilters) {
+        window.medicalFilters.specialty = s.spec;
+      }
+      setTimeout(() => window.Router.go('medical'), 1000);
+    }
+  };
+
+  // ==========================================
+  // 2. تقييد مساعد المدرس (Education Fix)
+  // ==========================================
+  const originalEduRender = window.WaslaEducation.render;
+  window.WaslaEducation.render = function(el) {
+    originalEduRender.call(this, el);
+    const user = window.Auth.getCurrentUser();
+    const isTeacher = user && (user.role === 'teacher' || Auth.getCurrentContext() === 'teacher');
+    const isFounder = user && (user.role === 'founder' || Auth.getCurrentContext() === 'founder');
+    
+    // إخفاء زر مساعد المدرس لو مش مدرس أو مؤسس
+    const adminBtns = el.querySelectorAll('button[onclick*="setView(\'admin\')"]');
+    if (!isTeacher && !isFounder) {
+      adminBtns.forEach(btn => btn.style.display = 'none');
+    }
+  };
+
+  // ==========================================
+  // 3. نظام التسعير المرن (Dynamic Pricing)
+  // ==========================================
+  window.WaslaPricing = {
+    getDefaultPrices: () => ({
+      home_nursing: 250,
+      home_visit: 400,
+      supplies: 75,
+      car_battery: 150,
+      car_tire: 180
+    }),
+    getPrice: function(key) {
+      const db = Store.load();
+      const prices = db.customPricing || this.getDefaultPrices();
+      return prices[key] || 0;
+    },
+    updatePrice: function(key, newPrice) {
+      const db = Store.load();
+      if (!db.customPricing) db.customPricing = this.getDefaultPrices();
+      db.customPricing[key] = newPrice;
+      Store.save(db);
+      UI.toast('✅ تم تحديث السعر بنجاح وسيظهر لجميع المستخدمين', 'success');
+    }
+  };
+
+  // ربط الأسعار بالواجهة (تعديل دالة العرض في الطبي)
+  if (window.WaslaMedicalRequests && window.WaslaMedicalRequests.catalog) {
+    const cat = window.WaslaMedicalRequests.catalog;
+    if(cat.home_nursing) cat.home_nursing.price = window.WaslaPricing.getPrice('home_nursing');
+    if(cat.home_visit) cat.home_visit.price = window.WaslaPricing.getPrice('home_visit');
+  }
+
+  // إضافة قسم التسعير في لوحة المؤسس
+  const originalFounderRender = window.WaslaFounderV3 ? window.WaslaFounderV3.setTab : null;
+  if (window.WaslaFounderV3) {
+    // اعتراض التبويبات عشان نضيف تبويب تسعير
+    const origRender = window.WaslaFounderV3.render; // Assuming render exists, otherwise use Router
+    window.Router.registry['founder'] = function(el) {
+       // بنستدعي الريندر الأصلي
+       window.WaslaFounderV3._renderOriginal.call(this, el);
+       
+       // نضيف قسم التسعير في نهاية الصفحة
+       const prices = Store.load().customPricing || window.WaslaPricing.getDefaultPrices();
+       const priceHTML = `
+         <div class="wv3-panel" style="margin-top:20px;">
+            <h3><i class="fa-solid fa-money-bill-trend-up"></i> التحكم في أسعار الخدمات</h3>
+            <p style="font-size:11px; color:#64748B; margin-bottom:12px;">أي تعديل هنا سيظهر فوراً للمستخدمين في الصفحة الرئيسية.</p>
+            <div class="price-manager-card">
+              <span style="font-weight:900;">التمريض المنزلي</span>
+              <div>
+                <input type="number" id="price-home_nursing" value="${prices.home_nursing}" style="width:80px; padding:6px; border:1px solid #ccc; border-radius:6px; text-align:center;">
+                <button class="wv3-btn primary" onclick="WaslaFeatureActions.savePrice('home_nursing')">حفظ</button>
+              </div>
+            </div>
+            <div class="price-manager-card">
+              <span style="font-weight:900;">زيارة طبيب منزلية</span>
+              <div>
+                <input type="number" id="price-home_visit" value="${prices.home_visit}" style="width:80px; padding:6px; border:1px solid #ccc; border-radius:6px; text-align:center;">
+                <button class="wv3-btn primary" onclick="WaslaFeatureActions.savePrice('home_visit')">حفظ</button>
+              </div>
+            </div>
+         </div>
+       `;
+       el.insertAdjacentHTML('beforeend', priceHTML);
+    };
+  }
+
+  window.WaslaFeatureActions.savePrice = function(key) {
+    const val = Number(Utils.$('#price-' + key).value);
+    if(val > 0) window.WaslaPricing.updatePrice(key, val);
+  };
+
+  // ==========================================
+  // 4. نظام الشكاوى والاقتراحات (Feedback)
+  // ==========================================
+  window.WaslaFeedback = {
+    open: function() {
+      const body = Utils.$('#modal-generic-body');
+      body.innerHTML = `
+        <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
+        <div style="text-align:center; margin-bottom:16px;">
+          <i class="fa-solid fa-headset" style="font-size:32px; color:#FF3D68; margin-bottom:8px;"></i>
+          <h3 style="font-size:18px; font-weight:900;">الشكاوى والاقتراحات</h3>
+          <p style="font-size:12px; color:#64748B;">رأيك يهمنا جداً لتطوير وصلة.</p>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label class="label">ما هو موضوع الشكوى؟</label>
+          <div style="display:flex; flex-wrap:wrap; gap:6px;" id="feedback-tags">
+             <div class="feedback-tag" onclick="this.classList.toggle('selected')">تأخر توصيل</div>
+             <div class="feedback-tag" onclick="this.classList.toggle('selected')">طلب مختلف</div>
+             <div class="feedback-tag" onclick="this.classList.toggle('selected')">سوء معاملة</div>
+             <div class="feedback-tag" onclick="this.classList.toggle('selected')">اقتراح جديد</div>
+             <div class="feedback-tag" onclick="this.classList.toggle('selected')">أخرى</div>
+          </div>
+        </div>
+        <label class="label">اكتب تفاصيل إضافية (اختياري)</label>
+        <textarea id="feedback-text" class="input" rows="3" placeholder="اشرح لنا ما حدث بالتفصيل..." style="margin-bottom:16px;"></textarea>
+        <button class="btn btn-primary btn-block" onclick="WaslaFeedback.submit()">إرسال الشكوى</button>
+      `;
+      UI.modal('modal-generic', { open: true });
+    },
+    submit: function() {
+      const selectedTags = Array.from(document.querySelectorAll('#feedback-tags .selected')).map(t => t.innerText);
+      const text = Utils.$('#feedback-text').value.trim();
+      if (selectedTags.length === 0 && !text) {
+        return UI.toast('اختر موضوع الشكوى أو اكتب التفاصيل', 'error');
+      }
+      const db = Store.load();
+      db.feedback = db.feedback || [];
+      db.feedback.push({ id: Utils.id('fb'), tags: selectedTags, text, ts: Date.now() });
+      Store.save(db);
+      UI.modal('modal-generic', { open: false });
+      UI.toast('✅ تم استلام شكواك وسيتم مراجعتها قريباً', 'success');
+    }
+  };
+
+  // إضافة زر الشكاوى في الصفحة الرئيسية
+  const originalHomeRender = window.Router.registry['home'];
+  window.Router.registry['home'] = function(el, params) {
+    originalHomeRender.call(this, el, params);
+    
+    // إضافة الزرار في نهاية الصفحة الرئيسية
+    const feedbackBtn = `
+      <div class="feedback-home-btn" onclick="WaslaFeedback.open()">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:40px; height:40px; background:#FFF1F2; color:#FF3D68; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px;">
+            <i class="fa-solid fa-comment-dots"></i>
+          </div>
+          <div>
+            <div style="font-size:14px; font-weight:900; color:#0F172A;">لديك شكوى أو اقتراح؟</div>
+            <div style="font-size:11px; color:#64748B;">ساعدنا نكون أفضل، رأيك يهمنا</div>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-left" style="color:#CBD5E1;"></i>
+      </div>
+    `;
+    const sharePanel = el.querySelector('.wp-share-panel');
+    if(sharePanel) {
+      sharePanel.insertAdjacentHTML('beforebegin', feedbackBtn);
+    }
+  };
+
+  console.log('✅ [WASLA UPGRADE] Features loaded successfully.');
+})();
+</script>
 </body>
 </html>
