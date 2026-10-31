@@ -12,7 +12,13 @@
 /* ══════════════════════════════════════════════════════════════
    PART 1: DESIGN SYSTEM & CORE STYLES
 ══════════════════════════════════════════════════════════════ */
-/* 🚨 الحل الجذري: تثبيت الهيدر فوق خالص */
+/* تعديل وإصلاح الفراغ الأبيض والهيدر */
+html, body, .app-shell {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+
 .app-header {
   position: fixed !important;
   top: 0 !important;
@@ -21,20 +27,13 @@
   width: 100% !important;
   z-index: 9999 !important;
   margin: 0 !important;
-  background: rgba(255, 255, 255, 0.95) !important;
+  background: rgba(220, 255, 255, 0.95) !important;
   backdrop-filter: blur(20px) !important;
 }
 
-/* إبعاد المحتوى لتحت عشان ميتغطاش بالهيدر */
 #main-container {
-  padding-top: 130px !important; 
-  padding-bottom: 120px !important; /* مساحة عشان الزرار اللي تحت */
-}
-
-/* تصفير أي مسافات من فوق */
-html, body, .app-shell {
-  margin: 0 !important;
-  padding-top: 0 !important;
+  padding-top: 130px !important; /* مساحة مقابل الـ بار الثابت أعلى الصفحة */
+  padding-bottom: 120px !important;
 }
 
 /* إخفاء أي عناصر قديمة */
