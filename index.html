@@ -7229,5 +7229,135 @@ body.modal-open * {
 </style> <!-- إغلاق الستايل -->
 
 </div> <!-- قفل الـ app-shell -->
+   <!-- WASLA AUTH UI UPGRADE & TOUCH FIX -->
+<script>
+(function WASLA_AUTH_UPGRADE() {
+  'use strict';
+  if (!window.AuthUI || !window.WaslaCore) return;
+
+  const { Utils, UI } = window.WaslaCore;
+
+  // 1. إصلاح مشكلة الكيبورد (إلغاء منع اللمس)
+  document.addEventListener('DOMContentLoaded', () => {
+    const style = document.createElement('style');
+    style.textContent = `
+      body.modal-open { 
+        touch-action: auto !important; 
+        overflow: hidden !important; 
+        position: fixed !important;
+        width: 100% !important;
+      }
+      .modal-overlay.open { 
+        pointer-events: auto !important; 
+        touch-action: auto !important; 
+      }
+      .modal input, .modal button {
+        pointer-events: auto !important;
+        touch-action: auto !important;
+      }
+    `;
+    document.head.appendChild(style);
+  });
+
+  // 2. تصميم جديد واحترافي لشاشة الدخول
+  window.AuthUI._loginForm = function() {
+    return `
+      <div style="text-align:center; margin-bottom: 24px;">
+        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #059669, #10B981); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; margin: 0 auto 16px; box-shadow: 0 10px 25px rgba(5,150,105,0.3);">
+          <i class="fa-solid fa-link"></i>
+        </div>
+        <h3 style="font-size: 22px; font-weight: 900; color: #0F172A; margin-bottom: 6px;">مرحباً بعودتك</h3>
+        <p style="font-size: 13px; color: #64748B; font-weight: 600;">سجل دخولك لمتابعة خدماتك في وصلة</p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); AuthUI._submitLogin();">
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 12px; font-weight: 800; color: #334155; margin-bottom: 8px; text-align: right;">رقم الموبايل</label>
+          <div style="position: relative;">
+            <i class="fa-solid fa-mobile-screen" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94A3B8; font-size: 16px;"></i>
+            <input type="tel" id="login-phone" placeholder="01xxxxxxxxx" maxlength="11" autocomplete="tel" style="width: 100%; padding: 14px 40px 14px 14px; border: 1.5px solid #E2E8F0; border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 700; color: #0F172A; background: #F8FAFC; outline: none; transition: all 0.2s;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; font-size: 12px; font-weight: 800; color: #334155; margin-bottom: 8px; text-align: right;">كلمة السر</label>
+          <div style="position: relative;">
+            <i class="fa-solid fa-lock" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94A3B8; font-size: 16px;"></i>
+            <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" style="width: 100%; padding: 14px 40px 14px 14px; border: 1.5px solid #E2E8F0; border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 700; color: #0F172A; background: #F8FAFC; outline: none; transition: all 0.2s;">
+          </div>
+        </div>
+
+        <button type="submit" style="width: 100%; padding: 16px; background: linear-gradient(135deg, #059669, #10B981); color: #fff; border: none; border-radius: 14px; font-family: inherit; font-size: 16px; font-weight: 900; cursor: pointer; box-shadow: 0 8px 20px rgba(5,150,105,0.3); display: flex; justify-content: center; align-items: center; gap: 8px; transition: transform 0.1s;">
+          دخول <i class="fa-solid fa-arrow-left"></i>
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 24px; border-top: 1px solid #E2E8F0; padding-top: 20px;">
+        <p style="font-size: 13px; color: #64748B; font-weight: 600; margin: 0;">
+          ليس لديك حساب؟ 
+          <a onclick="AuthUI.open('register')" style="color: #059669; font-weight: 900; cursor: pointer; margin-right: 4px; text-decoration: none;">سجل الآن مجاناً</a>
+        </p>
+      </div>
+    `;
+  };
+
+  // 3. تصميم جديد لشاشة إنشاء الحساب
+  window.AuthUI._registerForm = function() {
+    return `
+      <div style="text-align:center; margin-bottom: 24px;">
+        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #2563EB, #60A5FA); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; margin: 0 auto 16px; box-shadow: 0 10px 25px rgba(37,99,235,0.3);">
+          <i class="fa-solid fa-user-plus"></i>
+        </div>
+        <h3 style="font-size: 22px; font-weight: 900; color: #0F172A; margin-bottom: 6px;">حساب جديد</h3>
+        <p style="font-size: 13px; color: #64748B; font-weight: 600;">انضم لشبكة وصلة واستفد من كل الخدمات</p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); AuthUI._submitRegister();">
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12px; font-weight: 800; color: #334155; margin-bottom: 8px; text-align: right;">الاسم الثلاثي</label>
+          <input type="text" id="reg-name" placeholder="محمد أحمد علي" autocomplete="name" style="width: 100%; padding: 14px; border: 1.5px solid #E2E8F0; border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 700; color: #0F172A; background: #F8FAFC; outline: none; transition: all 0.2s;">
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12px; font-weight: 800; color: #334155; margin-bottom: 8px; text-align: right;">رقم الموبايل</label>
+          <input type="tel" id="reg-phone" placeholder="01xxxxxxxxx" maxlength="11" autocomplete="tel" style="width: 100%; padding: 14px; border: 1.5px solid #E2E8F0; border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 700; color: #0F172A; background: #F8FAFC; outline: none; transition: all 0.2s;">
+        </div>
+
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; font-size: 12px; font-weight: 800; color: #334155; margin-bottom: 8px; text-align: right;">كلمة السر</label>
+          <input type="password" id="reg-pass" placeholder="6 أحرف على الأقل" autocomplete="new-password" style="width: 100%; padding: 14px; border: 1.5px solid #E2E8F0; border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 700; color: #0F172A; background: #F8FAFC; outline: none; transition: all 0.2s;">
+        </div>
+
+        <button type="submit" style="width: 100%; padding: 16px; background: linear-gradient(135deg, #2563EB, #3B82F6); color: #fff; border: none; border-radius: 14px; font-family: inherit; font-size: 16px; font-weight: 900; cursor: pointer; box-shadow: 0 8px 20px rgba(37,99,235,0.3); display: flex; justify-content: center; align-items: center; gap: 8px;">
+          إنشاء الحساب <i class="fa-solid fa-check"></i>
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 24px; border-top: 1px solid #E2E8F0; padding-top: 20px;">
+        <p style="font-size: 13px; color: #64748B; font-weight: 600; margin: 0;">
+          لديك حساب بالفعل؟ 
+          <a onclick="AuthUI.open('login')" style="color: #2563EB; font-weight: 900; cursor: pointer; margin-right: 4px; text-decoration: none;">تسجيل الدخول</a>
+        </p>
+      </div>
+    `;
+  };
+  
+  // إضافة تأثير عند التركيز على الخانات
+  const inputStyle = document.createElement('style');
+  inputStyle.textContent = `
+    .modal input:focus {
+      border-color: #059669 !important;
+      background: #fff !important;
+      box-shadow: 0 0 0 4px rgba(5,150,105,0.1) !important;
+    }
+    .modal button:active {
+      transform: scale(0.98) !important;
+    }
+  `;
+  document.head.appendChild(inputStyle);
+
+  console.log('✅ تم تحديث شاشة الدخول وإصلاح الكيبورد');
+})();
+</script>
 </body>
 </html>
