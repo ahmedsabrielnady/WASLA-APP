@@ -7664,133 +7664,169 @@ body.modal-open * {
   console.log('✅ [WASLA UPGRADE] Features loaded successfully.');
 })();
 </script>
-<!-- WASLA ELITE CONTROL ROOM & FIXES -->
-<style id="wasla-control-room-style">
-  /* 1. تنسيقات غرفة العمليات (لوحة المؤسس) */
-  .founder-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid #E2E8F0; }
-  .founder-tab { padding: 10px 16px; border-radius: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; font-weight: 800; font-size: 13px; color: #475569; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
-  .founder-tab.active { background: #0B1220; color: #fff; border-color: #0B1220; }
-  
-  .control-panel { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
-  .price-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #F1F5F9; }
-  .price-row:last-child { border-bottom: none; }
-  .price-input { width: 80px; padding: 8px; border: 1.5px solid #CBD5E1; border-radius: 8px; text-align: center; font-weight: 800; font-family: inherit; }
-  .save-btn { background: #059669; color: #fff; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 800; cursor: pointer; font-family: inherit; margin-right: 8px; }
-  
-  .order-card-admin { border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; margin-bottom: 10px; background: #F8FAFC; }
-  .feedback-card-admin { border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
-  .feedback-card-admin.resolved { opacity: 0.6; background: #F8FAFC; }
+<!-- WASLA ULTIMATE MASTER CONTROL V4 -->
+<style id="wasla-master-style">
+  /* 1. شريط الإعلانات المتحرك */
+  .wasla-ticker-wrap { background: #0B1220; color: #fff; overflow: hidden; white-space: nowrap; padding: 8px 0; position: relative; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center; }
+  .wasla-ticker-title { background: #FF3D68; color: #fff; padding: 4px 12px; font-size: 11px; font-weight: 900; border-radius: 6px; margin-right: 10px; z-index: 2; flex-shrink: 0; }
+  .wasla-ticker-content { display: inline-block; animation: ticker 20s linear infinite; font-size: 13px; font-weight: 700; }
+  .wasla-ticker-content:hover { animation-play-state: paused; }
+  @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-  /* 2. إصلاح كروت السيارات */
-  .wcars-grid { display: grid !important; grid-template-columns: 1fr !important; gap: 16px !important; padding: 0 4px; }
-  .wcars-card { background: #fff !important; border: 1.5px solid #E2E8F0 !important; border-radius: 16px !important; padding: 16px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important; }
-  
-  /* 3. إصلاح النوافذ */
-  body.modal-open { overflow: hidden !important; touch-action: auto !important; }
-  .modal-overlay.open { pointer-events: auto !important; }
+  /* 2. تنسيقات الداش بورد */
+  .db-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+  .db-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .db-stat { text-align: center; }
+  .db-stat-val { font-size: 24px; font-weight: 900; color: #0F172A; margin-bottom: 4px; }
+  .db-stat-lbl { font-size: 11px; color: #64748B; font-weight: 800; }
+  .db-bar-wrap { background: #F1F5F9; border-radius: 6px; height: 8px; overflow: hidden; margin-top: 6px; }
+  .db-bar-fill { background: #059669; height: 100%; border-radius: 6px; transition: width 1s ease; }
+
+  /* 3. إدارة الأسعار الشاملة */
+  .price-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #F1F5F9; }
+  .price-item-row:last-child { border-bottom: none; }
+  .price-input-box { width: 80px; padding: 6px; border: 1.5px solid #CBD5E1; border-radius: 8px; text-align: center; font-weight: 800; font-family: inherit; }
+  .save-price-btn { background: #059669; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 800; font-size: 11px; cursor: pointer; margin-right: 6px; }
+
+  /* 4. إصلاح الأزرار والنوافذ */
+  body.modal-open { overflow: hidden !important; }
+  .modal-overlay.open { pointer-events: auto !important; display: flex !important; }
+  .modal-close { cursor: pointer !important; }
 </style>
 
-<script id="wasla-control-room-script">
-(function WASLA_ELITE_CONTROL() {
+<script id="wasla-master-script">
+(function WASLA_MASTER_V4() {
   'use strict';
   if (!window.WaslaCore || !window.Auth || !window.Router) return;
   
-  // تصدير الدوال للأهمية (لإصلاح زرار الإكس)
   window.UI = window.WaslaCore.UI;
   window.Utils = window.WaslaCore.Utils;
   const Store = window.WaslaCore.Store;
 
   // ==========================================
-  // 0. إصلاح زرار (X) في كل النوافذ بشكل جذري
+  // 1. تفعيل وإصلاح زرار X في كل النوافذ
   // ==========================================
   document.addEventListener('click', function(e) {
-    const closeBtn = e.target.closest('.modal-close');
-    if (closeBtn) {
-      const overlay = closeBtn.closest('.modal-overlay');
-      if (overlay) {
-        window.UI.modal(overlay.id, { open: false });
-      }
+    if (e.target.closest('.modal-close')) {
+      const overlay = e.target.closest('.modal-overlay');
+      if (overlay) window.UI.modal(overlay.id, { open: false });
     }
   });
 
   // ==========================================
-  // 1. إصلاح طلبات السيارات (الحفظ والخروج)
+  // 2. إصلاح طلبات السيارات (حفظ وخروج)
   // ==========================================
   if (window.WaslaCars) {
-    // إصلاح دالة الحفظ عشان تقفل المودال
-    const originalCarSubmit = window.WaslaCars.submit;
+    const origSubmit = window.WaslaCars.submit;
     window.WaslaCars.submit = function() {
-      // ننادي الدالة الأصلية
-      originalCarSubmit.call(this);
-      
-      // نتأكد إن المودال اتقفل بعد الحفظ (بعد مهلة صغيرة)
-      setTimeout(() => {
-        const modal = document.getElementById('modal-generic');
-        if (modal && modal.classList.contains('open')) {
-          window.UI.modal('modal-generic', { open: false });
-          window.UI.toast('✅ تم حفظ طلب السيارة بنجاح', 'success');
-        }
-      }, 500);
+      try {
+        origSubmit.call(this);
+        // إغلاق المودال بعد الحفظ
+        setTimeout(() => window.UI.modal('modal-generic', { open: false }), 300);
+      } catch(e) {
+        console.error(e);
+        window.UI.toast('حدث خطأ أثناء الحفظ، حاول مرة أخرى', 'error');
+      }
     };
   }
 
   // ==========================================
-  // 2. بناء غرفة العمليات للمؤسس (من الصفر)
+  // 3. حقن شريط الإعلانات في الصفحة الرئيسية
+  // ==========================================
+  if (window.Router.registry['home']) {
+    const origHome = window.Router.registry['home'];
+    window.Router.registry['home'] = function(el, params) {
+      origHome.call(this, el, params);
+      
+      const db = Store.load();
+      const announcements = db.announcements || ['مرحباً بكم في منصة وصلة! أي طلب توصيل مجاني اليوم.'];
+      const tickerText = announcements.join('   ⭐   ');
+
+      const tickerHTML = `
+        <div class="wasla-ticker-wrap" style="margin: 0 16px 16px;">
+          <div class="wasla-ticker-title">عروض اليوم</div>
+          <div class="wasla-ticker-content">${tickerText}</div>
+        </div>
+      `;
+      
+      // نضيفه فوق أول عنصر في الصفحة
+      const firstChild = el.querySelector('.wp-home');
+      if (firstChild) firstChild.insertAdjacentHTML('afterbegin', tickerHTML);
+    };
+  }
+
+  // ==========================================
+  // 4. لوحة تحكم المؤسس (الداش بورد)
   // ==========================================
   window.Router.registry['founder'] = function(el, params) {
-    let currentTab = 'overview';
+    let currentTab = 'dashboard';
     let db = Store.load();
 
     function renderTab() {
       const usersCount = (db.users || []).length;
-      const ordersCount = (db.orders || []).length;
+      const orders = db.orders || [];
+      const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.total) || Number(o.price) || 0), 0);
       const feedbacks = db.feedback || [];
       const customPricing = db.customPricing || {};
 
       let content = '';
 
-      // --- تاب 1: النظرة العامة ---
-      if (currentTab === 'overview') {
+      // --- 1. تاب الداش بورد ---
+      if (currentTab === 'dashboard') {
         content = `
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
-            <div class="control-panel" style="text-align:center; margin:0;">
-              <div style="font-size:24px; font-weight:900; color:#0F172A;">${usersCount}</div>
-              <div style="font-size:11px; color:#64748B; font-weight:800;">مستخدم مسجل</div>
+          <div class="db-grid">
+            <div class="db-card db-stat">
+              <div class="db-stat-val">${usersCount}</div>
+              <div class="db-stat-lbl">إجمالي المستخدمين</div>
             </div>
-            <div class="control-panel" style="text-align:center; margin:0;">
-              <div style="font-size:24px; font-weight:900; color:#0F172A;">${ordersCount}</div>
-              <div style="font-size:11px; color:#64748B; font-weight:800;">إجمالي الطلبات</div>
+            <div class="db-card db-stat">
+              <div class="db-stat-val">${orders.length}</div>
+              <div class="db-stat-lbl">إجمالي الطلبات</div>
+            </div>
+            <div class="db-card db-stat">
+              <div class="db-stat-val">${totalRevenue.toLocaleString()} <span style="font-size:12px">ج.م</span></div>
+              <div class="db-stat-lbl">حجم المبيعات</div>
             </div>
           </div>
-          <div class="control-panel">
-            <h3 style="font-size:15px; font-weight:900; margin-bottom:12px;"><i class="fa-solid fa-bullhorn" style="color:#FF3D68;"></i> إعلان سريع للمنصة</h3>
-            <textarea id="admin-broadcast" class="input" rows="2" placeholder="اكتب رسالة تظهر لكل المستخدمين..." style="margin-bottom:10px; font-size:12px;"></textarea>
-            <button class="save-btn" style="width:100%; background:#0B1220;" onclick="window.WaslaControlActions.broadcast()">إرسال الإعلان</button>
+          
+          <div class="db-card" style="margin-bottom:16px;">
+            <h3 style="font-size:14px; font-weight:900; margin-bottom:12px;">معدل إنجاز الطلبات</h3>
+            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:#475569; margin-bottom:4px;">
+              <span>الطلبات المكتملة</span>
+              <span>${orders.filter(o => o.status === 'completed' || o.status === 'delivered').length} / ${orders.length}</span>
+            </div>
+            <div class="db-bar-wrap"><div class="db-bar-fill" style="width:${orders.length ? (orders.filter(o => o.status === 'completed' || o.status === 'delivered').length / orders.length * 100) : 0}%"></div></div>
+          </div>
+
+          <div class="db-card">
+            <h3 style="font-size:14px; font-weight:900; margin-bottom:12px;">شريط الإعلانات التفاعلي</h3>
+            <textarea id="admin-ticker-input" class="input" rows="2" placeholder="اكتب إعلانك هنا... (اضغط Enter لإضافة إعلان آخر)" style="margin-bottom:10px; font-size:12px;">${(db.announcements || []).join('\n')}</textarea>
+            <button class="save-price-btn" style="width:100%; background:#0B1220; padding:10px;" onclick="window.WaslaFounderActions.saveTicker()">تحديث الإعلانات</button>
           </div>
         `;
       }
 
-      // --- تاب 2: التحكم في الأسعار (لكل المنصة) ---
+      // --- 2. تاب التحكم في الأسعار الشاملة ---
       if (currentTab === 'pricing') {
-        // قائمة بكل الخدمات اللي ممكن تتعدل
-        const services = [
-          { id: 'home_nursing', name: 'التمريض المنزلي', default: 250 },
-          { id: 'home_visit', name: 'زيارة طبيب منزلية', default: 400 },
+        // بنجمع كل الخدمات من الأقسام المختلفة
+        const allServices = [
+          ...(window.WaslaMedicalRequests?.catalog ? Object.keys(window.WaslaMedicalRequests.catalog).map(k => ({ id: k, name: window.WaslaMedicalRequests.catalog[k].title, default: window.WaslaMedicalRequests.catalog[k].price })) : []),
           { id: 'car_battery', name: 'شحن بطارية سيارة', default: 150 },
           { id: 'car_tire', name: 'تغيير إطار سيارة', default: 180 },
+          { id: 'car_tow', name: 'طلب ونش', default: 500 },
           { id: 'grocery_delivery', name: 'رسوم توصيل السوبر ماركت', default: 15 }
         ];
 
         content = `
-          <div class="control-panel">
-            <h3 style="font-size:15px; font-weight:900; margin-bottom:12px;"><i class="fa-solid fa-money-bill-trend-up" style="color:#059669;"></i> إدارة أسعار الخدمات</h3>
-            <p style="font-size:11px; color:#64748B; margin-bottom:12px;">أي تعديل هنا يتم حفظه فوراً ويطبق على شاشات المستخدمين.</p>
-            ${services.map(s => `
-              <div class="price-row">
-                <span style="font-size:13px; font-weight:800; color:#334155;">${s.name}</span>
+          <div class="db-card">
+            <h3 style="font-size:14px; font-weight:900; margin-bottom:12px;"><i class="fa-solid fa-money-bill-trend-up" style="color:#059669;"></i> إدارة أسعار الخدمات</h3>
+            <p style="font-size:11px; color:#64748B; margin-bottom:16px;">أي تعديل هنا يتم حفظه فوراً ويطبق على المنصة.</p>
+            ${allServices.map(s => `
+              <div class="price-item-row">
+                <span style="font-size:12px; font-weight:800; color:#334155;">${s.name}</span>
                 <div style="display:flex; align-items:center;">
-                  <input type="number" id="price-${s.id}" class="price-input" value="${customPricing[s.id] || s.default}">
-                  <button class="save-btn" onclick="window.WaslaControlActions.savePrice('${s.id}', 'price-${s.id}')">حفظ</button>
+                  <input type="number" id="price-${s.id}" class="price-input-box" value="${customPricing[s.id] || s.default}">
+                  <button class="save-price-btn" onclick="window.WaslaFounderActions.savePrice('${s.id}', 'price-${s.id}')">حفظ</button>
                 </div>
               </div>
             `).join('')}
@@ -7798,42 +7834,39 @@ body.modal-open * {
         `;
       }
 
-      // --- تاب 3: الطلبات ---
+      // --- 3. تاب الطلبات ---
       if (currentTab === 'orders') {
-        const orders = (db.orders || []).slice().reverse();
+        const revOrders = orders.slice().reverse();
         content = `
-          <div class="control-panel">
-            <h3 style="font-size:15px; font-weight:900; margin-bottom:12px;"><i class="fa-solid fa-box" style="color:#2563EB;"></i> سجل الطلبات (${orders.length})</h3>
-            ${orders.length === 0 ? '<p style="font-size:12px; color:#64748B;">لا توجد طلبات حتى الآن.</p>' : orders.map(o => `
-              <div class="order-card-admin">
-                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                  <span style="font-size:12px; font-weight:900; color:#0F172A;">${o.service || o.orderType || 'طلب'}</span>
-                  <span style="font-size:11px; font-weight:800; color:#059669;">${o.price || o.total || 0} ج.م</span>
+          <div class="db-card">
+            <h3 style="font-size:14px; font-weight:900; margin-bottom:12px;">أحدث الطلبات (${revOrders.length})</h3>
+            ${revOrders.length === 0 ? '<p style="font-size:12px; color:#64748B;">لا توجد طلبات بعد.</p>' : revOrders.map(o => `
+              <div style="border:1px solid #E2E8F0; border-radius:10px; padding:10px; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                  <span style="font-size:12px; font-weight:900;">${o.service || o.orderType}</span>
+                  <span style="font-size:11px; color:#059669; font-weight:800;">${o.total || o.price || 0} ج.م</span>
                 </div>
                 <div style="font-size:10px; color:#64748B;">${new Date(o.ts || o.createdAt).toLocaleString('ar-EG')}</div>
-                <div style="font-size:11px; font-weight:700; color:#475569; margin-top:4px;">الحالة: ${o.status || 'معلق'}</div>
               </div>
             `).join('')}
           </div>
         `;
       }
 
-      // --- تاب 4: الشكاوى ---
+      // --- 4. تاب الشكاوى ---
       if (currentTab === 'feedback') {
         const feedbacks = db.feedback || [];
         content = `
-          <div class="control-panel">
-            <h3 style="font-size:15px; font-weight:900; margin-bottom:12px;"><i class="fa-solid fa-comments" style="color:#FF3D68;"></i> الشكاوى والاقتراحات (${feedbacks.length})</h3>
+          <div class="db-card">
+            <h3 style="font-size:14px; font-weight:900; margin-bottom:12px;">الشكاوى والاقتراحات (${feedbacks.length})</h3>
             ${feedbacks.length === 0 ? '<p style="font-size:12px; color:#64748B;">لا توجد شكاوى.</p>' : feedbacks.map((f, i) => `
-              <div class="feedback-card-admin ${f.resolved ? 'resolved' : ''}">
+              <div style="border:1px solid #E2E8F0; border-radius:10px; padding:10px; margin-bottom:10px; ${f.resolved ? 'opacity:0.5; background:#F8FAFC;' : ''}">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                   <div>
-                    <div style="font-size:11px; font-weight:800; color:#E11D48; margin-bottom:4px;">${(f.tags || []).join(' • ')}</div>
+                    <div style="font-size:10px; font-weight:900; color:#E11D48; margin-bottom:4px;">${(f.tags || []).join(' • ')}</div>
                     <p style="font-size:12px; color:#334155;">${f.text || 'بدون تفاصيل'}</p>
                   </div>
-                  <button onclick="window.WaslaControlActions.resolveFeedback(${i})" style="background:${f.resolved ? '#E2E8F0' : '#D1FAE5'}; color:${f.resolved ? '#475569' : '#059669'}; border:none; padding:6px 10px; border-radius:6px; font-size:10px; font-weight:900; cursor:pointer;">
-                    ${f.resolved ? 'إرجاع' : 'تم الحل'}
-                  </button>
+                  <button onclick="window.WaslaFounderActions.resolveFeedback(${i})" style="background:${f.resolved ? '#E2E8F0' : '#D1FAE5'}; color:${f.resolved ? '#475569' : '#059669'}; border:none; padding:6px 10px; border-radius:6px; font-size:10px; font-weight:900; cursor:pointer;">${f.resolved ? 'إرجاع' : 'تم الحل'}</button>
                 </div>
               </div>
             `).join('')}
@@ -7841,42 +7874,35 @@ body.modal-open * {
         `;
       }
 
-      // الهيكل الأساسي للصفحة
       el.innerHTML = `
-        <div style="background:#0B1220; color:#fff; border-radius:20px; padding:20px; margin-bottom:20px; box-shadow:0 10px 30px rgba(11,18,32,0.3);">
-          <h1 style="font-size:22px; font-weight:900; margin-bottom:4px;">غرفة عمليات وصلة</h1>
-          <p style="font-size:12px; color:#94A3B8;">مرحباً بك، تحكم في المنصة من هنا.</p>
+        <div style="background:linear-gradient(135deg, #0B1220, #1E293B); color:#fff; border-radius:20px; padding:20px; margin-bottom:20px;">
+          <h1 style="font-size:22px; font-weight:900; margin-bottom:4px;">مركز تحكم وصلة</h1>
+          <p style="font-size:12px; color:#94A3B8;">إدارة وتطوير المنصة</p>
         </div>
         
         <div class="founder-tabs">
-          <div class="founder-tab ${currentTab === 'overview' ? 'active' : ''}" onclick="window.WaslaControlActions.setTab('overview')">الرئيسية</div>
-          <div class="founder-tab ${currentTab === 'pricing' ? 'active' : ''}" onclick="window.WaslaControlActions.setTab('pricing')">الأسعار</div>
-          <div class="founder-tab ${currentTab === 'orders' ? 'active' : ''}" onclick="window.WaslaControlActions.setTab('orders')">الطلبات</div>
-          <div class="founder-tab ${currentTab === 'feedback' ? 'active' : ''}" onclick="window.WaslaControlActions.setTab('feedback')">الشكاوى</div>
+          <div class="founder-tab ${currentTab === 'dashboard' ? 'active' : ''}" onclick="window.WaslaFounderActions.setTab('dashboard')">الداش بورد</div>
+          <div class="founder-tab ${currentTab === 'pricing' ? 'active' : ''}" onclick="window.WaslaFounderActions.setTab('pricing')">الأسعار</div>
+          <div class="founder-tab ${currentTab === 'orders' ? 'active' : ''}" onclick="window.WaslaFounderActions.setTab('orders')">الطلبات</div>
+          <div class="founder-tab ${currentTab === 'feedback' ? 'active' : ''}" onclick="window.WaslaFounderActions.setTab('feedback')">الشكاوى</div>
         </div>
         
         <div id="founder-content">${content}</div>
       `;
 
-      // تحديث الداتا
       db = Store.load();
     }
 
-    // إتاحة التبويبات للكود
-    window.WaslaControlActions = window.WaslaControlActions || {};
-    window.WaslaControlActions.setTab = function(tab) {
-      currentTab = tab;
-      renderTab();
-    };
-
-    // تشغيل العرض الأول
+    window.WaslaFounderActions = window.WaslaFounderActions || {};
+    window.WaslaFounderActions.setTab = function(tab) { currentTab = tab; renderTab(); };
+    
     renderTab();
   };
 
   // ==========================================
-  // 3. الدوال التفاعلية للوحة التحكم
+  // 5. أكشنز لوحة التحكم
   // ==========================================
-  window.WaslaControlActions = Object.assign(window.WaslaControlActions || {}, {
+  window.WaslaFounderActions = Object.assign(window.WaslaFounderActions || {}, {
     savePrice: function(id, inputId) {
       const val = Number(document.getElementById(inputId).value);
       if (val > 0) {
@@ -7884,46 +7910,32 @@ body.modal-open * {
         if (!db.customPricing) db.customPricing = {};
         db.customPricing[id] = val;
         Store.save(db);
-        window.UI.toast('✅ تم حفظ السعر وتطبيقه على المنصة', 'success');
+        window.UI.toast('✅ تم تحديث السعر بنجاح', 'success');
         
-        // لو السعر ده بيخص التمريض، نحدث الكتالوج فوراً
+        // تحديث الكتالوج لو كان موجود عشان يظهر للمستخدمين
         if(id === 'home_nursing' && window.WaslaMedicalRequests?.catalog?.home_nursing) window.WaslaMedicalRequests.catalog.home_nursing.price = val;
         if(id === 'home_visit' && window.WaslaMedicalRequests?.catalog?.home_visit) window.WaslaMedicalRequests.catalog.home_visit.price = val;
-      } else {
-        window.UI.toast('أدخل سعراً صحيحاً', 'error');
       }
+    },
+    saveTicker: function() {
+      const text = document.getElementById('admin-ticker-input').value.trim();
+      const lines = text.split('\n').filter(l => l.trim() !== '');
+      const db = Store.load();
+      db.announcements = lines;
+      Store.save(db);
+      window.UI.toast('✅ تم تحديث شريط الإعلانات', 'success');
+      window.Router.go('home');
     },
     resolveFeedback: function(index) {
       const db = Store.load();
       if (db.feedback && db.feedback[index]) {
         db.feedback[index].resolved = !db.feedback[index].resolved;
         Store.save(db);
-        // إعادة رسم الصفحة
         window.Router.go('founder');
       }
-    },
-    broadcast: function() {
-      const txt = document.getElementById('admin-broadcast').value.trim();
-      if (!txt) return window.UI.toast('اكتب رسالة أولاً', 'error');
-      
-      const db = Store.load();
-      db.notifications = db.notifications || [];
-      // نرسلها لكل المستخدمين
-      db.users.forEach(u => {
-        db.notifications.unshift({ id: Date.now()+Math.random(), userId: u.id, text: `📢 إعلان إداري: ${txt}`, read: false, ts: Date.now() });
-      });
-      Store.save(db);
-      window.UI.toast('✅ تم إرسال الإعلان للجميع', 'success');
-      document.getElementById('admin-broadcast').value = '';
     }
   });
 
-  // إعادة توجيه حدث التنقل في الراوتر عشان نضمن إن الصفحة بتترسم صح
-  const originalGo = window.Router.go;
-  window.Router.go = function(viewName, params) {
-    originalGo.call(this, viewName, params);
-  };
-
-  console.log('✅ [WASLA CONTROL ROOM] Founder Dashboard is now fully operational.');
+  console.log('✅ [WASLA V4] Master Control & Ticker System loaded.');
 })();
 </script>
