@@ -6946,6 +6946,117 @@ nav#app-tabs {
 #main-container, .app-main {
   padding-bottom: 100px !important; 
 }
+       /* ... الكود اللي قبله ... */
+  #main-container, .app-main {
+    padding-bottom: 100px !important;
+  }
+
+  /* ==========================================
+     الكود الجديد بتاع شاشة الدخول (انسخه من هنا)
+     ========================================== */
+
+  /* 1. إجبار المودال يكون في النص بالظبط */
+  .modal-overlay {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
+    z-index: 999999 !important;
+    background: rgba(11, 18, 32, 0.85) !important;
+  }
+
+  /* 2. إخفاء الشريط السفلي نهائياً لما المودال يفتح */
+  body:has(.modal-overlay.open) #app-tabs {
+    display: none !important;
+  }
+
+  /* 3. تظبيط شكل المربع الأبيض (المودال) */
+  #modal-auth .modal {
+    display: block !important;
+    width: 100% !important;
+    max-width: 400px !important;
+    margin: auto !important;
+    padding: 24px !important;
+    border-radius: 20px !important;
+    background: #fff !important;
+    position: relative !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+
+  /* 4. إجبار الخانات (Inputs) واللافتات (Labels) تكون فوق بعض */
+  #modal-auth .modal .label, 
+  #modal-auth .modal input {
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin-bottom: 12px !important;
+    text-align: right !important;
+  }
+
+  /* شكل الـ Input */
+  #modal-auth .modal input {
+    padding: 12px 14px !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+    background: #F8FAFC !important;
+  }
+
+  #modal-auth .modal input:focus {
+    border-color: #059669 !important;
+    outline: none !important;
+    background: #fff !important;
+  }
+
+  /* شكل الـ Label */
+  #modal-auth .modal .label {
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    color: #334155 !important;
+    margin-bottom: 6px !important;
+    margin-top: 10px !important;
+  }
+
+  /* 5. تظبيط زرار الإغلاق (X) */
+  #modal-auth .modal-close {
+    position: absolute !important;
+    top: 16px !important;
+    left: 16px !important;
+    right: auto !important;
+    width: 34px !important;
+    height: 34px !important;
+    background: #F1F5F9 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 16px !important;
+    color: #64748B !important;
+    z-index: 10 !important;
+  }
+
+  /* 6. تظبيط زرار الدخول */
+  #modal-auth .btn-primary {
+    width: 100% !important;
+    padding: 14px !important;
+    font-size: 16px !important;
+    border-radius: 12px !important;
+    margin-top: 10px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  /* ==========================================
+     نهاية الكود الجديد
+     ========================================== */
+</style> <!-- السطر ده هو اللي كان في 6949، خليه في الآخر -->
+<!-- نهاية الكود -->
+
+</div>
+</body>
+</html>
   <style>
   <!-- نهاية الكود -->
 
