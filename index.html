@@ -7192,6 +7192,40 @@ nav#app-tabs {
     border: none !important;
     cursor: pointer !important;
   }
+     /* ==========================================
+   إجبار المتصفح على فتح الكيبورد والسماح بالكتابة
+   ========================================== */
+
+body.modal-open,
+body.modal-open * {
+  touch-action: manipulation !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+.modal-overlay.open,
+.modal-overlay.open * {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+/* إجبار الخانات على استقبال اللمس */
+.modal input,
+.modal textarea,
+.modal select {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  z-index: 99999 !important;
+  position: relative !important;
+}
+
+/* تظبيط مقاس المودال عشان الكيبورد ميغطيش الخانات */
+.modal {
+  max-height: 85dvh !important; /* بياخد مساحة الشاشة المتاحة بعد الكيبورد */
+  height: auto !important;
+}
 </style> <!-- إغلاق الستايل -->
 
 </div> <!-- قفل الـ app-shell -->
