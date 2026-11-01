@@ -229,8 +229,8 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 </head>
 <body>
 
-<!-- الألارم الصوتي -->
-<audio id="alarm-sound" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
+<!-- الألارم الصوتي الاحترافي -->
+<audio id="alarm-sound" src="https://cdn.pixabay.com/audio/2021/08/04/audio_0625c1539c.mp3" preload="auto"></audio>
 
 <!-- شريط التنبيهات اللايف -->
 <div id="live-banner" class="live-banner">
@@ -448,8 +448,32 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         </div>
     </div>
 
+    <!-- تاب التمريض الموسع -->
     <div id="med-tab-nursing" class="other-med-services">
-        <div class="med-item-card"><div><h4>حقن وريدية ومحاليل</h4><p>زيارة منزلية - 150 ج.م</p></div><button class="book-btn" onclick="openNurseBooking(150)">احجز</button></div>
+        <div class="med-item-card">
+            <div><h4>حقن وريدية ومحاليل</h4><p>زيارة منزلية - 150 ج.م</p></div>
+            <button class="book-btn" onclick="openNurseBooking(150, 'حقن وريدية ومحاليل')">احجز</button>
+        </div>
+        <div class="med-item-card">
+            <div><h4>رعاية كبار السن (12 ساعة)</h4><p>زيارة منزلية - 400 ج.م</p></div>
+            <button class="book-btn" onclick="openNurseBooking(400, 'رعاية كبار السن')">احجز</button>
+        </div>
+        <div class="med-item-card">
+            <div><h4>تغيير غيار جروح</h4><p>زيارة منزلية - 200 ج.م</p></div>
+            <button class="book-btn" onclick="openNurseBooking(200, 'تغيير غيار جروح')">احجز</button>
+        </div>
+        <div class="med-item-card">
+            <div><h4>تركيب كانيولا</h4><p>زيارة منزلية - 100 ج.م</p></div>
+            <button class="book-btn" onclick="openNurseBooking(100, 'تركيب كانيولا')">احجز</button>
+        </div>
+        <div class="med-item-card">
+            <div><h4>جلسة علاج طبيعي</h4><p>زيارة منزلية - 250 ج.م</p></div>
+            <button class="book-btn" onclick="openNurseBooking(250, 'جلسة علاج طبيعي')">احجز</button>
+        </div>
+        <div class="med-item-card">
+            <div><h4>سحب عينات تحاليل</h4><p>زيارة منزلية - 80 ج.م</p></div>
+            <button class="book-btn" onclick="openNurseBooking(80, 'سحب عينات تحاليل')">احجز</button>
+        </div>
     </div>
 </div>
 
@@ -825,7 +849,7 @@ function switchMedTab(tabId, btn) {
 }
 
 // ==========================================
-// 6. الميزات الجديدة (ذكاء وصلة المطور)
+// 6. الميزات الجديدة (ذكاء وصلة المطور بالعامية)
 // ==========================================
 function askWaslaAI() {
     const input = document.getElementById('ai-input').value.toLowerCase();
@@ -837,29 +861,56 @@ function askWaslaAI() {
 
     setTimeout(() => {
         let suggestedSpec = 'باطنة'; // الافتراضي
+        let found = false;
         
-        if(input.includes('ركبة') || input.includes('عضم') || input.includes('خشونة') || input.includes('ظهر') || input.includes('مفاصل')) {
-            suggestedSpec = 'عظام';
-        } else if(input.includes('قلب') || input.includes('صدر') || input.includes('ضربات')) {
-            suggestedSpec = 'قلب';
-        } else if(input.includes('بول') || input.includes('كلى') || input.includes('حرقان')) {
-            suggestedSpec = 'مسالك';
-        } else if(input.includes('أذن') || input.includes('أنف') || input.includes('زور') || input.includes('حلق')) {
-            suggestedSpec = 'أنف وأذن';
-        } else if(input.includes('سن') || input.includes('ضرس') || input.includes('لثة')) {
-            suggestedSpec = 'أسنان';
-        } else if(input.includes('طفل') || input.includes('سخونية') || input.includes('برد') || input.includes('كحة')) {
-            suggestedSpec = 'أطفال';
-        } else if(input.includes('عين') || input.includes('نظر') || input.includes('زغللة')) {
-            suggestedSpec = 'عيون';
-        } else if(input.includes('جلد') || input.includes('حساسية') || input.includes('طفح')) {
-            suggestedSpec = 'جلدية';
+        // فهم العامية للعظام
+        if(input.match(/(ركبة|ركبتي|رقبة|رقبتي|ظهر|ضهر|ضهري|عضم|عظام|خشونة|مفاصل|كتف|كتفي|كعب|قدمي|إيدي)/)) {
+            suggestedSpec = 'عظام'; found = true;
+        } 
+        // فهم العامية للقلب
+        else if(input.match(/(قلب|قلبي|صدر|صدي|ضربات|خفقان)/)) {
+            suggestedSpec = 'قلب'; found = true;
         }
-        
-        resultDiv.innerHTML = `
-            بناءً على وصفك، الأفضل تزور دكتور <b>${suggestedSpec}</b>.<br><br>
-            <button class="book-btn" style="width:100%;" onclick="document.querySelectorAll('.med-service-btn')[0].click(); renderDoctors('all', '${suggestedSpec}');">عرض أطباء ${suggestedSpec} <i class="fa-solid fa-arrow-left"></i></button>
-        `;
+        // فهم العامية للأنف والأذن
+        else if(input.match(/(أذن|ودني|أنف|مناخيري|زور|زوري|حلق|حلقي|لوز)/)) {
+            suggestedSpec = 'أنف وأذن'; found = true;
+        }
+        // فهم العامية للمسالك
+        else if(input.match(/(بول|تبول|حرقان|كلى|كليتي|حجر|مسالك)/)) {
+            suggestedSpec = 'مسالك'; found = true;
+        }
+        // فهم العامية للأسنان
+        else if(input.match(/(سن|سناني|ضرس|ضروسي|لثة|لثتي|فم|فمي)/)) {
+            suggestedSpec = 'أسنان'; found = true;
+        }
+        // فهم العامية للأطفال
+        else if(input.match(/(طفل|طفلي|بيبي|رضيع|سخونية|سخونة|حرارة|برد|كحة|كحه|رشح|إسهال)/)) {
+            suggestedSpec = 'أطفال'; found = true;
+        }
+        // فهم العامية للعين
+        else if(input.match(/(عين|عيني|نظر|زغللة|رؤية)/)) {
+            suggestedSpec = 'عيون'; found = true;
+        }
+        // فهم العامية للجلد
+        else if(input.match(/(جلد|جلدي|حساسية|هرش|طفح|بقع|حبوب)/)) {
+            suggestedSpec = 'جلدية'; found = true;
+        }
+        // فهم العامية للباطنة
+        else if(input.match(/(بطن|بطني|معدة|معدتي|قولون|قولوني|صداع|صدع|دوخة|مغص|ترجيع)/)) {
+            suggestedSpec = 'باطنة'; found = true;
+        }
+
+        if(found) {
+            resultDiv.innerHTML = `
+                بناءً على وصفك، الأفضل تزور دكتور <b>${suggestedSpec}</b>.<br><br>
+                <button class="book-btn" style="width:100%;" onclick="document.querySelectorAll('.med-service-btn')[0].click(); renderDoctors('all', '${suggestedSpec}');">عرض أطباء ${suggestedSpec} <i class="fa-solid fa-arrow-left"></i></button>
+            `;
+        } else {
+            resultDiv.innerHTML = `
+                نعتذر، لم نتمكن من تحديد التخصص بدقة. ننصحك بزيارة دكتور <b>باطنة</b> لعمل فحص شامل.<br><br>
+                <button class="book-btn" style="width:100%;" onclick="document.querySelectorAll('.med-service-btn')[0].click(); renderDoctors('all', 'باطنة');">عرض أطباء باطنة <i class="fa-solid fa-arrow-left"></i></button>
+            `;
+        }
         document.getElementById('ai-input').value = '';
     }, 1500);
 }
@@ -942,8 +993,8 @@ function openBooking(id) {
     }
 }
 
-function openNurseBooking(price) {
-    currentDoctor = { name: 'تمريض منزلي', price: price };
+function openNurseBooking(price, serviceName) {
+    currentDoctor = { name: serviceName, price: price, isNurseService: true };
     isNurse = true; selectedSlot = 'زيارة منزلية'; nurseLocation = null;
     document.getElementById('slot-group').style.display = 'none';
     document.getElementById('nurse-gps-group').style.display = 'block';
@@ -980,7 +1031,8 @@ function submitBooking() {
         id: 'BK-' + Date.now(), patientName: name, patientPhone: phone, doctorId: currentDoctor.id || null,
         doctorName: currentDoctor.name, slot: selectedSlot, queueNumber: queue, date: today,
         price: currentDoctor.price || 0, 
-        status: 'pending', createdAt: new Date().toISOString(), meds: [], labs: []
+        status: 'pending', createdAt: new Date().toISOString(), meds: [], labs: [],
+        isNurse: isNurse // Save if it's a nurse booking
     };
     
     bookings.unshift(newBooking);
@@ -1139,17 +1191,31 @@ function cancelBooking(docId, date, slot) {
     const bookingDate = new Date(`${date}T${slot === 'زيارة منزلية' ? '00:00' : slot}:00`);
     const now = new Date();
     const diffHours = (bookingDate - now) / (1000 * 60 * 60);
+    const diffMinutes = (bookingDate - now) / (1000 * 60);
+
+    const bookings = getLocalBookings();
+    const bookingToCancel = bookings.find(b => b.id === docId);
+    const isNurseBooking = bookingToCancel ? bookingToCancel.isNurse : false;
 
     let msg = "";
-    if (diffHours < 12) {
-        msg = "تم إلغاء الحجز، وتم خصم العربون (أقل من 12 ساعة).";
+    if (isNurseBooking) {
+        // شرط التمريض: إلغاء قبل 30 دقيقة
+        if (diffMinutes < 30) {
+            msg = "تم إلغاء الحجز، وتم خصم العربون (أقل من 30 دقيقة).";
+        } else {
+            msg = "تم إلغاء الحجز، وتم استرداد العربون (أكثر من 30 دقيقة).";
+        }
     } else {
-        msg = "تم إلغاء الحجز، وتم استرداد العربون (أكثر من 12 ساعة).";
+        // شرط الأطباء: إلغاء قبل 12 ساعة
+        if (diffHours < 12) {
+            msg = "تم إلغاء الحجز، وتم خصم العربون (أقل من 12 ساعة).";
+        } else {
+            msg = "تم إلغاء الحجز، وتم استرداد العربون (أكثر من 12 ساعة).";
+        }
     }
 
-    let bookings = getLocalBookings();
-    bookings = bookings.map(b => b.id === docId ? {...b, status: 'cancelled'} : b);
-    localStorage.setItem('wasla_bookings', JSON.stringify(bookings));
+    let updatedBookings = bookings.map(b => b.id === docId ? {...b, status: 'cancelled'} : b);
+    localStorage.setItem('wasla_bookings', JSON.stringify(updatedBookings));
     
     showToast(msg); 
     listenToMyTicket();
