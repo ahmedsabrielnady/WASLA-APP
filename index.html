@@ -186,7 +186,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .pharmacy-price { font-weight: 900; color: var(--brand); font-size: 15px; }
 .pharmacy-actions { display: flex; gap: 5px; }
 .pharmacy-order-btn { background: var(--brand-gradient); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 800; font-size: 12px; }
-.whatsapp-btn { background: #25D366; color: white; padding: 8px 12px; border-radius: 8px; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.whatsapp-btn { background: #25D366; color: white; padding: 8px 12px; border-radius: 8px; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 5px; }
 
 /* التذكرة الحية */
 .live-ticket { background: var(--card); border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid var(--border); }
@@ -208,8 +208,11 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .time-slot { padding: 10px; border: 2px solid var(--border); border-radius: 10px; text-align: center; font-weight: 700; font-size: 13px; cursor: pointer; }
 .time-slot.selected { border-color: var(--brand); background: var(--brand-light); color: var(--brand); }
 .time-slot.disabled { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; text-decoration: line-through; border-color: transparent; }
-.doctor-fab { position: fixed; bottom: 100px; left: 20px; background: #0F172A; color: #FBBF24; border-radius: 30px; padding: 12px 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 999; border: 2px solid #FBBF24; }
-.doctor-fab:active { transform: scale(0.95); }
+
+/* الزرار العائم (تم تصغيره) */
+.doctor-fab { position: fixed; bottom: 90px; left: 15px; width: 50px; height: 50px; border-radius: 50%; background: #0F172A; color: #FBBF24; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 999; border: 2px solid #FBBF24; transition: 0.2s; }
+.doctor-fab:active { transform: scale(0.9); }
+
 .warning-box { background: #FFFBEB; border: 1px solid #FDE68A; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 12px; color: #B45309; font-weight: 700; display: flex; gap: 8px; align-items: flex-start; }
 .warning-box i { margin-top: 2px; }
 
@@ -490,6 +493,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         </div>
         <div id="emr-tab-labs" style="display:none;">
             <div id="labs-list"><p style="text-align:center; color:var(--muted);">لا توجد طلبات تحاليل حالياً.</p></div>
+            <button class="book-btn" style="width:100%; margin-top:15px; background:var(--bg); color:var(--text); border:1px solid var(--border); display:flex; justify-content:center; align-items:center; gap:5px;" onclick="window.open('https://maps.google.com/?q=30.3128,31.3234','_blank')"><i class="fa-solid fa-location-dot"></i> عرض المعامل القريبة</button>
         </div>
     </div>
 
@@ -589,7 +593,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 </div>
 
 <button class="doctor-fab" id="doctor-fab" style="display:none;" onclick="openDoctorModal()">
-    <i class="fa-solid fa-stethoscope"></i> وضع الطبيب (للتجربة)
+    <i class="fa-solid fa-stethoscope"></i>
 </button>
 
 <!-- مودال رفع النتيجة (للمريض) -->
@@ -611,8 +615,16 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
             <h3 id="review-patient-name" style="font-size:18px; font-weight:900;"></h3>
             <p id="review-test-name" style="font-size:13px; color:var(--muted);"></p>
         </div>
-        <button class="submit-btn" style="background:#10B981; margin-bottom:10px;" onclick="submitReview('healthy')"><i class="fa-solid fa-check"></i> سليم (لا يحتاج زيارة)</button>
+        
+        <label class="label" style="font-weight:800; font-size:13px; margin-bottom:5px; display:block;">ملاحظات وتعليمات للمريض</label>
+        <textarea id="doc-review-note" class="input-field" placeholder="مثال: النتائج سليمة، يرجى الاستمرار على الدواء..."></textarea>
+
+        <button class="submit-btn" style="background:#10B981; margin-top:10px; margin-bottom:10px;" onclick="submitReview('healthy')"><i class="fa-solid fa-check"></i> سليم (لا يحتاج زيارة)</button>
         <button class="submit-btn" style="background:#F59E0B;" onclick="submitReview('followup')"><i class="fa-solid fa-calendar-plus"></i> يحتاج متابعة وحجز زيارة</button>
+        
+        <div style="text-align:center; margin-top:20px;">
+            <a href="https://wa.me/201012345678?text=مرحباً، بخصوص نتيجتك..." target="_blank" style="color:#25D366; font-weight:800; text-decoration:none; font-size:14px;"><i class="fa-brands fa-whatsapp"></i> تواصل مع المريض واتساب</a>
+        </div>
     </div>
 </div>
 
@@ -1007,8 +1019,12 @@ function renderDoctorDashboard() {
     let uploadedLabs = [];
     getLocalBookings().forEach(b => {
         b.labs.forEach((l, index) => {
-            if(l.status === 'uploaded') {
-                uploadedLabs.push({ patientName: b.patientName, bookingId: b.id, labIndex: index, text: l.text });
+            // معالجة لو الداتا قديمة (نص بدل object)
+            const labStatus = typeof l === 'string' ? 'pending' : l.status;
+            const labText = typeof l === 'string' ? l : l.text;
+            
+            if(labStatus === 'uploaded') {
+                uploadedLabs.push({ patientName: b.patientName, bookingId: b.id, labIndex: index, text: labText });
             }
         });
     });
@@ -1042,13 +1058,15 @@ function callPatient(id) {
 function checkDoctorNotifications() {
     let pendingResults = 0;
     getLocalBookings().forEach(b => {
-        b.labs.forEach(l => { if(l.status === 'uploaded') pendingResults++; });
+        b.labs.forEach(l => { 
+            const labStatus = typeof l === 'string' ? 'pending' : l.status;
+            if(labStatus === 'uploaded') pendingResults++; 
+        });
     });
     
     const badge = document.getElementById('doc-badge');
     if(pendingResults > 0) {
         badge.style.display = 'block';
-        // ممكن نضيف رقم جوا البادج بس النقطة كفاية
     } else {
         badge.style.display = 'none';
     }
@@ -1059,23 +1077,34 @@ function openDoctorReview(bookingId, labIndex) {
     currentReviewBookingId = bookingId;
     currentReviewLabIndex = labIndex;
     const booking = getLocalBookings().find(b => b.id === bookingId);
+    const lab = booking.labs[labIndex];
+    const labText = typeof lab === 'string' ? lab : lab.text;
+    
     document.getElementById('review-patient-name').innerText = booking.patientName;
-    document.getElementById('review-test-name').innerText = booking.labs[labIndex].text;
+    document.getElementById('review-test-name').innerText = labText;
+    document.getElementById('doc-review-note').value = ''; // تفريغ الملاحظات
     openModal('doctor-review-modal');
 }
 
 function submitReview(action) {
     let bookings = getLocalBookings();
     const bIndex = bookings.findIndex(b => b.id === currentReviewBookingId);
+    const note = document.getElementById('doc-review-note').value;
     
     if(bIndex > -1) {
+        // تأكد إنها object
+        if(typeof bookings[bIndex].labs[currentReviewLabIndex] === 'string') {
+            bookings[bIndex].labs[currentReviewLabIndex] = { text: bookings[bIndex].labs[currentReviewLabIndex], status: 'pending' };
+        }
+        
         if(action === 'healthy') {
             bookings[bIndex].labs[currentReviewLabIndex].status = 'reviewed_healthy';
+            bookings[bIndex].labs[currentReviewLabIndex].note = note;
             showToast('تم تسجيل أن النتائج سليمة، وتم إبلاغ المريض.');
         } else {
             bookings[bIndex].labs[currentReviewLabIndex].status = 'reviewed_followup';
+            bookings[bIndex].labs[currentReviewLabIndex].note = note;
             showToast('تم طلب متابعة، يرجى التواصل مع المريض لحجز موعد.');
-            // هنا ممكن نفتح مودال حجز للمتابعة، بس للتبسيط هنكتفي بالإشعار
         }
         saveLocalBookings(bookings);
         closeModal('doctor-review-modal');
@@ -1099,6 +1128,10 @@ function submitUploadResult() {
     const bIndex = bookings.findIndex(b => b.id === currentUploadBookingId);
     
     if(bIndex > -1) {
+        // تأكد إنها object
+        if(typeof bookings[bIndex].labs[currentUploadLabIndex] === 'string') {
+            bookings[bIndex].labs[currentUploadLabIndex] = { text: bookings[bIndex].labs[currentUploadLabIndex], status: 'pending' };
+        }
         bookings[bIndex].labs[currentUploadLabIndex].status = 'uploaded';
         saveLocalBookings(bookings);
         closeModal('upload-result-modal');
@@ -1483,11 +1516,15 @@ function loadEMR() {
     }
 
     const labsList = document.getElementById('labs-list');
-    // تعديل: جلب معلومات الحجز مع التحاليل
+    // تعديل: جلب معلومات الحجز مع التحاليل وحل مشكلة undefined
     let labs = [];
     bookings.forEach(b => {
         b.labs.forEach((l, index) => {
-            labs.push({ ...l, doctor: b.doctorName, bookingId: b.id, labIndex: index });
+            const labStatus = typeof l === 'string' ? 'pending' : l.status;
+            const labText = typeof l === 'string' ? l : l.text;
+            const labNote = typeof l === 'object' && l.note ? l.note : '';
+            
+            labs.push({ text: labText, status: labStatus, note: labNote, doctor: b.doctorName, bookingId: b.id, labIndex: index });
         });
     });
     
@@ -1495,18 +1532,28 @@ function loadEMR() {
         labsList.innerHTML = '<p style="text-align:center; color:var(--muted);">لا توجد طلبات تحاليل.</p>';
     } else {
         labsList.innerHTML = labs.map(l => `
-            <div class="prescription-card">
+            <div class="prescription-card" style="border-right: 4px solid ${l.status === 'reviewed_healthy' ? '#10B981' : (l.status === 'reviewed_followup' ? '#F59E0B' : 'var(--border)')};">
                 <h4>طلب من ${l.doctor}</h4>
                 <div class="prescription-meds">${l.text}</div>
                 
                 ${l.status === 'pending' ? 
-                    `<button class="book-btn" style="width:100%; margin-top:10px; background:#F59E0B;" onclick="openUploadModal('${l.bookingId}', ${l.labIndex})"><i class="fa-solid fa-cloud-arrow-up"></i> رفع نتيجة الأشعة/التحليل</button>` :
+                    `<button class="book-btn" style="width:100%; margin-top:10px; background:#F59E0B; display:flex; justify-content:center; align-items:center; gap:5px;" onclick="openUploadModal('${l.bookingId}', ${l.labIndex})"><i class="fa-solid fa-cloud-arrow-up"></i> رفع نتيجة الأشعة/التحليل</button>` :
                     l.status === 'uploaded' ?
                     `<div style="background:#E0F2FE; color:#0369A1; padding:10px; border-radius:8px; font-size:12px; font-weight:bold; text-align:center; margin-top:10px;"><i class="fa-solid fa-clock"></i> النتيجة مرفوعة، في انتظار مراجعة الطبيب</div>` :
-                    `<div style="background:#ECFDF5; color:#059669; padding:10px; border-radius:8px; font-size:12px; font-weight:bold; text-align:center; margin-top:10px;"><i class="fa-solid fa-check-double"></i> تم مراجعة النتيجة من الطبيب (سليمة)</div>`
+                    l.status === 'reviewed_healthy' ?
+                    `<div style="background:#ECFDF5; color:#059669; padding:10px; border-radius:8px; font-size:12px; font-weight:bold; text-align:center; margin-top:10px;">
+                        <i class="fa-solid fa-check-double"></i> تم مراجعة النتيجة (سليمة)
+                        ${l.note ? `<div style="margin-top:5px; border-top:1px solid #A7F3D0; padding-top:5px; font-weight:normal; text-align:right;">ملاحظات الطبيب: ${l.note}</div>` : ''}
+                    </div>` :
+                    // followup
+                    `<div style="background:#FFF7ED; color:#EA580C; padding:10px; border-radius:8px; font-size:12px; font-weight:bold; text-align:center; margin-top:10px;">
+                        <i class="fa-solid fa-calendar-plus"></i> الطبيب يطلب متابعة
+                        ${l.note ? `<div style="margin-top:5px; border-top:1px solid #FED7AA; padding-top:5px; font-weight:normal; text-align:right; color:#9A3412;">ملاحظات الطبيب: ${l.note}</div>` : ''}
+                        <button class="book-btn" style="width:100%; margin-top:10px; background:#F59E0B;" onclick="document.querySelectorAll('.med-service-btn')[0].click();">احجز موعد متابعة الآن</button>
+                    </div>`
                 }
                 
-                <button class="book-btn" style="width:100%; margin-top:10px; background:var(--bg); color:var(--text); border:1px solid var(--border);" onclick="window.open('https://maps.google.com/?q=30.3128,31.3234','_blank')">عرض المعامل القريبة</button>
+                <a href="https://wa.me/201012345678?text=مرحباً، بخصوص نتيجة التحاليل" target="_blank" style="display:block; text-align:center; margin-top:10px; color:#25D366; font-weight:bold; font-size:13px; text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> تواصل مع المعمل واتساب</a>
             </div>
         `).join('');
     }
