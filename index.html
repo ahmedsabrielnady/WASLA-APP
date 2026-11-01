@@ -152,7 +152,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .age-btn { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid var(--border); background: var(--card); color: var(--muted); font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .age-btn.active { border-color: var(--brand); background: var(--brand-light); color: var(--brand); }
 
-/* الذكاء الاصطناعي (Ask Wasla AI) */
+/* الذكاء الاصطناعي */
 .ai-container { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); text-align: center; }
 .ai-icon { width: 60px; height: 60px; border-radius: 50%; background: var(--brand-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px; box-shadow: var(--shadow-glow); }
 .ai-input { width: 100%; padding: 15px; border: 2px solid var(--brand-light); border-radius: 15px; font-family: 'Cairo'; font-size: 14px; margin-bottom: 15px; outline: none; transition: 0.3s; text-align: right; }
@@ -228,6 +228,9 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 </style>
 </head>
 <body>
+
+<!-- الألارم الصوتي -->
+<audio id="alarm-sound" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
 
 <!-- شريط التنبيهات اللايف -->
 <div id="live-banner" class="live-banner">
@@ -421,7 +424,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <div class="symptoms-grid" id="symptoms-grid"></div>
     </div>
 
-    <!-- الذكاء الاصطناعي (Out of the box) -->
     <div id="med-tab-ai" class="other-med-services">
         <div class="ai-container">
             <div class="ai-icon"><i class="fa-solid fa-robot"></i></div>
@@ -597,7 +599,7 @@ function showToast(msg) {
     setTimeout(() => t.classList.remove('show'), 3000); 
 }
 
-// دالة فحص الإشعارات (الجرس)
+// دالة فحص الإشعارات (الجرس) مع تفعيل الصوت
 function checkNotifications() {
     const phone = localStorage.getItem('wasla_phone');
     if(!phone) return showToast('لا توجد إشعارات جديدة');
@@ -606,7 +608,10 @@ function checkNotifications() {
     if(bookings.length > 0) {
         const b = bookings[0];
         const casesAhead = Math.max(0, b.queueNumber - 1);
+        
         if(casesAhead === 0) {
+            // تشغيل الألارم
+            document.getElementById('alarm-sound').play().catch(e => console.log(e));
             showToast('🔔 تنبيه: حان دورك الآن! برجاء التوجه للعيادة.');
         } else {
             showToast(`🔔 إشعار: أنت رقم ${b.queueNumber}، قدامك ${casesAhead} حالات.`);
@@ -758,20 +763,33 @@ function calculateFinance() {
 }
 
 // ==========================================
-// 5. القسم الطبي الشامل
+// 5. القسم الطبي الشامل (الأطباء والأعراض الموسعة)
 // ==========================================
 const doctorsData = [
   { id: 1, name: "د. أحمد محمود", spec: "أسنان", price: 200, icon: "fa-tooth", startTime: 14, endTime: 18, slotMins: 30, days: "السبت - الخميس", clinicLat: 30.3128, clinicLng: 31.3234, insurances: ['bupa', 'misr', 'metlife'], targetAge: 'adult' },
   { id: 2, name: "د. سارة علي", spec: "باطنة", price: 150, icon: "fa-heart-pulse", startTime: 10, endTime: 14, slotMins: 20, days: "الأحد - الخميس", clinicLat: 30.3130, clinicLng: 31.3240, insurances: ['allianz', 'axa', 'gig'], targetAge: 'adult' },
-  { id: 3, name: "د. يوسف كمال", spec: "أطفال", price: 180, icon: "fa-baby", startTime: 16, endTime: 20, slotMins: 20, days: "السبت - الأربعاء", clinicLat: 30.3120, clinicLng: 31.3220, insurances: ['bupa', 'orient', 'royal'], targetAge: 'child' }
+  { id: 3, name: "د. يوسف كمال", spec: "أطفال", price: 180, icon: "fa-baby", startTime: 16, endTime: 20, slotMins: 20, days: "السبت - الأربعاء", clinicLat: 30.3120, clinicLng: 31.3220, insurances: ['bupa', 'orient', 'royal'], targetAge: 'child' },
+  { id: 4, name: "د. محمود العظام", spec: "عظام", price: 250, icon: "fa-bone", startTime: 12, endTime: 16, slotMins: 30, days: "الأحد - الخميس", clinicLat: 30.3110, clinicLng: 31.3210, insurances: ['bupa', 'axa', 'wethaq'], targetAge: 'adult' },
+  { id: 5, name: "د. هدى القلب", spec: "قلب", price: 300, icon: "fa-heart", startTime: 17, endTime: 21, slotMins: 20, days: "السبت - الأربعاء", clinicLat: 30.3140, clinicLng: 31.3250, insurances: ['misr', 'metlife', 'gig'], targetAge: 'adult' },
+  { id: 6, name: "د. كريم المسالك", spec: "مسالك", price: 200, icon: "fa-toilet", startTime: 15, endTime: 19, slotMins: 20, days: "الأحد - الخميس", clinicLat: 30.3150, clinicLng: 31.3260, insurances: ['allianz', 'mada'], targetAge: 'adult' },
+  { id: 7, name: "د. سمير الأنف والأذن", spec: "أنف وأذن", price: 220, icon: "fa-ear-listen", startTime: 10, endTime: 14, slotMins: 20, days: "السبت - الخميس", clinicLat: 30.3160, clinicLng: 31.3270, insurances: ['bupa', 'misr', 'royal'], targetAge: 'adult' }
 ];
 
 const symptomsData = [
+  // كبار
   { name: "ألم بالأسنان", spec: "أسنان", age: "adult", icon: "fa-tooth" },
   { name: "صداع مستمر", spec: "باطنة", age: "adult", icon: "fa-head-side-virus" },
   { name: "ألم في المعدة", spec: "باطنة", age: "adult", icon: "fa-stomach" },
+  { name: "ألم في الركبة أو الظهر", spec: "عظام", age: "adult", icon: "fa-bone" },
+  { name: "ألم في الصدر", spec: "قلب", age: "adult", icon: "fa-heart" },
+  { name: "حرقان في البول", spec: "مسالك", age: "adult", icon: "fa-toilet" },
+  { name: "ألم في الأذن أو الزور", spec: "أنف وأذن", age: "adult", icon: "fa-ear-listen" },
+  
+  // أطفال
   { name: "سخونية وبرد", spec: "أطفال", age: "child", icon: "fa-thermometer" },
-  { name: "كحة شديدة", spec: "أطفال", age: "child", icon: "fa-head-side-cough" }
+  { name: "كحة شديدة", spec: "أطفال", age: "child", icon: "fa-head-side-cough" },
+  { name: "إسهال وقيء", spec: "أطفال", age: "child", icon: "fa-baby" },
+  { name: "ألم في الأذن", spec: "أطفال", age: "child", icon: "fa-ear-listen" }
 ];
 
 const pharmaciesData = [
@@ -807,7 +825,7 @@ function switchMedTab(tabId, btn) {
 }
 
 // ==========================================
-// 6. الميزات الجديدة (ذكاء وصلة)
+// 6. الميزات الجديدة (ذكاء وصلة المطور)
 // ==========================================
 function askWaslaAI() {
     const input = document.getElementById('ai-input').value.toLowerCase();
@@ -819,10 +837,24 @@ function askWaslaAI() {
 
     setTimeout(() => {
         let suggestedSpec = 'باطنة'; // الافتراضي
-        if(input.includes('سن') || input.includes('ضرس')) suggestedSpec = 'أسنان';
-        else if(input.includes('طفل') || input.includes('سخونية') || input.includes('برد')) suggestedSpec = 'أطفال';
-        else if(input.includes('عين')) suggestedSpec = 'عيون';
-        else if(input.includes('جلد') || input.includes('حساسية')) suggestedSpec = 'جلدية';
+        
+        if(input.includes('ركبة') || input.includes('عضم') || input.includes('خشونة') || input.includes('ظهر') || input.includes('مفاصل')) {
+            suggestedSpec = 'عظام';
+        } else if(input.includes('قلب') || input.includes('صدر') || input.includes('ضربات')) {
+            suggestedSpec = 'قلب';
+        } else if(input.includes('بول') || input.includes('كلى') || input.includes('حرقان')) {
+            suggestedSpec = 'مسالك';
+        } else if(input.includes('أذن') || input.includes('أنف') || input.includes('زور') || input.includes('حلق')) {
+            suggestedSpec = 'أنف وأذن';
+        } else if(input.includes('سن') || input.includes('ضرس') || input.includes('لثة')) {
+            suggestedSpec = 'أسنان';
+        } else if(input.includes('طفل') || input.includes('سخونية') || input.includes('برد') || input.includes('كحة')) {
+            suggestedSpec = 'أطفال';
+        } else if(input.includes('عين') || input.includes('نظر') || input.includes('زغللة')) {
+            suggestedSpec = 'عيون';
+        } else if(input.includes('جلد') || input.includes('حساسية') || input.includes('طفح')) {
+            suggestedSpec = 'جلدية';
+        }
         
         resultDiv.innerHTML = `
             بناءً على وصفك، الأفضل تزور دكتور <b>${suggestedSpec}</b>.<br><br>
@@ -878,7 +910,7 @@ function renderDoctors(insuranceFilter = 'all', specFilter = 'all') {
                 <h3>${doc.name}</h3><div class="spec">${doc.spec}</div>
                 <div class="sched"><i class="fa-regular fa-clock"></i> ${doc.days} (${doc.startTime}:00 - ${doc.endTime}:00)</div>
                 <div class="doc-footer">
-                    <button class="btn-loc" onclick="window.open('https://maps.google.com/?q=${doc.clinicLat},${doc.clinicLng}', '_blank')"><i class="fa-solid fa-location-dot"></i> العيادة</button>
+                    <button class="btn-loc" onclick="window.open('https://maps.google.com/?q=${doc.clinicLat},${doc.clinicLng}', '_blank')"><i class="fa-solid fa-location-dot"></i> موقع العيادة</button>
                     <button class="book-btn" onclick="openBooking(${doc.id})">احجز (${doc.price} ج.م)</button>
                 </div>
             </div>
@@ -959,7 +991,7 @@ function submitBooking() {
     activeBookingForDoctor = newBooking;
 
     closeModal('booking-modal'); 
-    showToast('تم الحجز بنجاح! (تم خصم 50 ج.م من المحفظة كتأمين)');
+    showToast('تم الحجز بنجاح!');
     navigateTo('mybookings');
     
     btn.textContent = 'تأكيد الحجز'; btn.disabled = false;
@@ -1072,7 +1104,12 @@ function listenToMyTicket() {
 
         let statusText = `قدامك ${casesAhead} حالات.`;
         let statusClass = '';
-        if(casesAhead === 0) { statusText = 'حان دورك الآن!'; statusClass = 'alert'; }
+        if(casesAhead === 0) { 
+            statusText = 'حان دورك الآن!'; 
+            statusClass = 'alert'; 
+            // تشغيل صوت لو التذكرة اتفتحت وكان دوره
+            document.getElementById('alarm-sound').play().catch(e => console.log(e));
+        }
 
         container.innerHTML += `
             <div class="live-ticket">
