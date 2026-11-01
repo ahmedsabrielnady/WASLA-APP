@@ -6,7 +6,9 @@
 <meta name="theme-color" content="#059669">
 <title>وصلة | WASLA - منصة الخدمات الشاملة</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- استدعاء الخطوط الجديدة (Fredoka للوجو، Tajawal للكتابة) -->
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <style>
@@ -25,7 +27,10 @@
   --border: #E2E8F0;      
   --nav-bg: rgba(255, 255, 255, 0.95);
   
-  /* ظلال احترافية */
+  /* ألوان اللوجو الجديد */
+  --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366);
+  --logo-text-color: #FF3366;
+
   --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   --shadow-md: 0 10px 25px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
   --shadow-hover: 0 20px 25px -5px rgba(5, 150, 105, 0.15), 0 10px 10px -5px rgba(5, 150, 105, 0.04);
@@ -58,7 +63,7 @@ body {
 button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outline: none; }
 
 /* =========================================
-   2. الشريط العلوي واللوجو الجديد (Header & Logo)
+   2. الشريط العلوي (اللوجو الجديد)
    ========================================= */
 .top-header {
   background: var(--card); padding: 12px 20px;
@@ -67,26 +72,40 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
 }
-.brand { display: flex; align-items: center; gap: 10px; }
-/* اللوجو الاحترافي */
-.w-logo {
-  width: 45px; height: 45px;
-  background: var(--brand-gradient);
+.brand { display: flex; align-items: center; gap: 12px; }
+/* اللوجو المربع */
+.logo-box {
+  width: 48px; height: 48px;
+  background: var(--logo-gradient);
   border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: var(--shadow-glow);
+  box-shadow: 0 6px 15px rgba(255, 51, 102, 0.3);
   position: relative; overflow: hidden;
 }
-.w-logo::after {
+.logo-box::after {
   content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
   background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
-  transform: skewX(-25deg); animation: shine 3s infinite;
+  transform: skewX(-25deg); animation: shine 4s infinite;
 }
 @keyframes shine { 100% { left: 200%; } }
-.w-logo svg { width: 28px; height: 28px; fill: white; z-index: 1; }
-.brand-text { display: flex; flex-direction: column; }
-.brand-text h1 { font-size: 20px; font-weight: 900; color: var(--dark); line-height: 1.2; }
-.brand-text span { font-size: 10px; color: var(--brand); font-weight: 800; letter-spacing: 1px; }
+/* حرف W */
+.logo-w {
+  font-family: 'Fredoka One', cursive;
+  color: white; font-size: 32px; line-height: 1;
+  margin-top: -4px; /* ضبط بسيط للمحاذاة */
+}
+/* النصوص */
+.brand-text { display: flex; flex-direction: column; align-items: flex-start; }
+.brand-text h1 { 
+  font-family: 'Tajawal', sans-serif; 
+  font-size: 26px; font-weight: 900; color: var(--dark); 
+  line-height: 1; margin-bottom: 4px; letter-spacing: -0.5px;
+}
+.brand-text span { 
+  font-family: 'Tajawal', sans-serif; 
+  font-size: 11px; font-weight: 800; color: var(--logo-text-color); 
+  letter-spacing: 3px; line-height: 1;
+}
 
 .icon-btn {
   width: 42px; height: 42px; border-radius: 50%;
@@ -112,7 +131,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   color: white; position: relative; overflow: hidden;
   box-shadow: var(--shadow-md);
 }
-/* الهالة */
 .hero::before {
   content: ''; position: absolute; top: -50px; right: -50px;
   width: 200px; height: 200px; background: rgba(16, 185, 129, 0.4);
@@ -130,7 +148,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .search-bar input { flex: 1; background: transparent; border: none; padding: 10px 15px; color: white; font-family: 'Cairo'; outline: none; }
 .search-bar button { background: var(--brand-gradient); color: white; border-radius: 10px; padding: 0 20px; font-weight: bold; box-shadow: var(--shadow-glow); }
 
-/* --- الإعلان المتحرك (Slider) --- */
+/* --- الإعلان المتحرك --- */
 .slider-wrapper {
   margin: 0 20px 20px; border-radius: 18px; overflow: hidden;
   position: relative; box-shadow: var(--shadow-md); background: var(--card);
@@ -174,7 +192,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .cat-card p { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
 /* =========================================
-   5. الشريط السفلي (Bottom Navigation)
+   5. الشريط السفلي
    ========================================= */
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0;
@@ -206,7 +224,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
 
 /* =========================================
-   7. المودالات (Modals) والإشعارات
+   7. المودالات والإشعارات
    ========================================= */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7);
@@ -252,14 +270,11 @@ textarea.input-field { resize: vertical; min-height: 100px; }
 </head>
 <body>
 
-<!-- ==================== الشريط العلوي واللوجو ==================== -->
+<!-- ==================== الشريط العلوي (اللوجو الجديد) ==================== -->
 <header class="top-header">
   <div class="brand">
-    <div class="w-logo">
-      <!-- تصميم حرف W احترافي -->
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 6l4 12h3l2-6 2 6h3l4-12h-3.5l-2.5 8-2.5-8h-2l-2.5 8-2.5-8H3z"/>
-      </svg>
+    <div class="logo-box">
+      <div class="logo-w">W</div>
     </div>
     <div class="brand-text">
       <h1>وصلة</h1>
@@ -286,7 +301,7 @@ textarea.input-field { resize: vertical; min-height: 100px; }
 
   <div class="section-title">عروض وخصومات</div>
   
-  <!-- الإعلان المتحرك (Auto Slider) -->
+  <!-- الإعلان المتحرك -->
   <div class="slider-wrapper">
     <div class="slider-track" id="sliderTrack">
       <div class="promo-slide">
@@ -335,7 +350,7 @@ textarea.input-field { resize: vertical; min-height: 100px; }
   </div>
 </main>
 
-<!-- ==================== شاشات الأقسام الفاضية ==================== -->
+<!-- ==================== شاشات الأقسام ==================== -->
 <div id="view-medical" class="app-view">
   <button class="back-btn" onclick="navigateTo('view-home')"><i class="fa-solid fa-arrow-right"></i></button>
   <div class="service-placeholder"><i class="fa-solid fa-heart-pulse"></i><h2>القسم الطبي</h2><p>جاهز لتركيب كود الخدمة الطبية.</p></div>
@@ -430,14 +445,13 @@ function showToast(msg) {
 }
 
 // =========================================
-// 4. محرك الإعلانات المتحركة (Auto Slider)
+// 4. محرك الإعلانات
 // =========================================
 let currentSlide = 0;
 const track = document.getElementById('sliderTrack');
 const dotsContainer = document.getElementById('sliderDots');
 const totalSlides = document.querySelectorAll('.promo-slide').length;
 
-// إنشاء النقاط (Dots)
 for (let i = 0; i < totalSlides; i++) {
   const dot = document.createElement('div');
   dot.classList.add('dot');
@@ -446,30 +460,23 @@ for (let i = 0; i < totalSlides; i++) {
 }
 
 function updateSlider() {
-  // تحريك الشريط
   track.style.transform = `translateX(${currentSlide * 100}%)`;
-  // تحديث النقاط
   document.querySelectorAll('.dot').forEach((dot, index) => {
     dot.classList.toggle('active', index === currentSlide);
   });
 }
 
-// التحريك التلقائي كل 3 ثواني
 setInterval(() => {
   currentSlide = (currentSlide + 1) % totalSlides;
   updateSlider();
-}, 3500); // 3.5 ثانية
+}, 3500);
 
-// السماح بالسحب يدوياً (لمس الموبايل)
 let touchStartX = 0;
 track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
 track.addEventListener('touchend', e => {
   const touchEndX = e.changedTouches[0].clientX;
-  if (touchStartX - touchEndX > 50) { // سحب لليسار
-    currentSlide = (currentSlide + 1) % totalSlides; updateSlider();
-  } else if (touchEndX - touchStartX > 50) { // سحب لليمين
-    currentSlide = (currentSlide - 1 + totalSlides) % totalSlides; updateSlider();
-  }
+  if (touchStartX - touchEndX > 50) { currentSlide = (currentSlide + 1) % totalSlides; updateSlider(); } 
+  else if (touchEndX - touchStartX > 50) { currentSlide = (currentSlide - 1 + totalSlides) % totalSlides; updateSlider(); }
 });
 </script>
 
