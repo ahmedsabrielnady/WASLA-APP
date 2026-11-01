@@ -529,6 +529,7 @@ function navigateTo(viewId) {
     if(target) target.classList.add('active');
     window.scrollTo(0, 0);
     if(viewId === 'admin-finance') updateFinancialUI();
+   if(viewId === 'medical') renderDoctors();
 }
 
 function openModal(id) { document.getElementById(id).classList.add('open'); }
@@ -928,13 +929,6 @@ function loadEMR() {
     }
 }
 
-// إعدادات التنقل
-const originalNavigateTo = navigateTo;
-navigateTo = function(viewId) {
-    originalNavigateTo(viewId);
-    if(viewId === 'medical') renderDoctors();
-};
-   
 </script>
 </body>
 </html>
