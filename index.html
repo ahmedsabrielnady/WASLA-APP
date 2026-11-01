@@ -54,14 +54,14 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .btn-finance { background: #0F172A; color: #FBBF24; border-color: #0F172A; }
 [data-theme="dark"] .btn-finance { background: #1E293B; color: #FBBF24; border-color: #334155; }
 
-/* الشريط الإعلاني المتحرك (Ticker) */
+/* الشريط الإعلاني */
 .ticker-wrap { width: 100%; overflow: hidden; background: var(--ticker-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 8px 0; box-shadow: var(--shadow-sm); }
 .ticker-label { background: var(--ticker-text); color: white; padding: 2px 10px; font-size: 11px; font-weight: 800; border-radius: 0 10px 10px 0; margin-left: 10px; z-index: 2; flex-shrink: 0; }
 .ticker-content { display: flex; white-space: nowrap; animation: ticker 18s linear infinite; }
 .ticker-content span { color: var(--ticker-text); font-size: 13px; font-weight: 800; padding-left: 50px; }
 @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-/* الترحيب والبحث */
+/* الرئيسية */
 .welcome-area { padding: 20px 20px 10px; }
 .welcome-area p { font-size: 13px; color: var(--muted); margin-bottom: 5px; }
 .welcome-area h2 { font-size: 22px; font-weight: 900; color: var(--dark); }
@@ -70,8 +70,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .search-box input { width: 100%; border: none; background: transparent; padding: 15px 0; font-family: 'Cairo'; font-size: 14px; color: var(--text); outline: none; }
 .search-box i { color: var(--muted); font-size: 18px; }
 .mic-btn { width: 50px; height: 50px; border-radius: 15px; background: var(--brand-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: var(--shadow-sm); }
-
-/* البانر والأقسام */
 .hero { background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: 24px; margin: 0 20px 20px; padding: 30px 25px; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
 .hero::before { content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(16, 185, 129, 0.4); border-radius: 50%; filter: blur(50px); animation: pulseHalo 4s infinite alternate; }
 @keyframes pulseHalo { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0.2; } }
@@ -85,9 +83,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .cat-card h3 { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
 .cat-card p { font-size: 12px; color: var(--muted); }
 
-/* =========================================
-   شاشة التوصيل
-   ========================================= */
+/* التوصيل */
 .delivery-header { display: flex; align-items: center; gap: 15px; padding: 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 70px; z-index: 90; }
 .back-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 18px; }
 .delivery-header h2 { font-size: 20px; font-weight: 900; color: var(--dark); }
@@ -103,23 +99,19 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .gps-text { font-size: 11px; color: var(--muted); text-align: center; margin-top: -10px; margin-bottom: 15px; display: block; }
 .delivery-submit { width: 100%; padding: 16px; border-radius: 14px; background: var(--delivery-gradient); color: white; font-weight: 900; font-size: 16px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3); margin-top: 10px; }
 
-/* =========================================
-   لوحة التحكم المالية (Finance Dashboard)
-   ========================================= */
+/* المالية */
 #view-admin-finance { background: var(--bg); min-height: 100vh; }
 .fin-header { background: var(--dark); color: white; padding: 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; z-index: 100; }
 .fin-header h2 { font-size: 20px; font-weight: 900; }
 .fin-content { padding: 20px; max-width: 800px; margin: auto; }
 .fin-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
 .fin-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 15px; color: var(--brand); display: flex; align-items: center; gap: 8px; }
-
 .delivery-price-control { display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 15px; border-radius: 15px; margin-bottom: 10px; }
 .delivery-price-control span { font-size: 15px; font-weight: 700; }
 .price-controls { display: flex; align-items: center; gap: 15px; }
 .price-controls button { width: 40px; height: 40px; border-radius: 10px; font-size: 20px; font-weight: 900; background: var(--brand-light); color: var(--brand); display: flex; align-items: center; justify-content: center; }
 .price-controls button:disabled { opacity: 0.3; }
 .price-controls .val { font-size: 20px; font-weight: 900; color: var(--dark); min-width: 60px; text-align: center; }
-
 .calc-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .calc-row label { font-size: 13px; font-weight: 700; color: var(--text); }
 .calc-row input { width: 120px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; text-align: center; font-family: 'Cairo'; font-size: 14px; font-weight: bold; background: var(--bg); color: var(--text); outline: none; }
@@ -130,7 +122,74 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .text-green { color: #10B981; }
 .text-red { color: #E11D48; }
 
-/* الشريط السفلي والإشعارات */
+/* القسم الطبي */
+.medical-header { display: flex; align-items: center; gap: 15px; padding: 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 70px; z-index: 90; }
+.medical-tabs-wrapper { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 130px; z-index: 80; }
+.medical-services-tabs { display: flex; gap: 10px; overflow-x: auto; padding: 15px 20px; scrollbar-width: none; }
+.medical-services-tabs::-webkit-scrollbar { display: none; }
+.med-service-btn { padding: 10px 20px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); color: var(--muted); font-weight: 700; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+.med-service-btn.active { background: var(--brand-light); color: var(--brand); border-color: var(--brand); }
+.other-med-services { display: none; padding: 20px; }
+.other-med-services.active { display: block; }
+.doctors-list { display: flex; flex-direction: column; gap: 15px; }
+.doctor-card { background: var(--card); border-radius: 20px; padding: 15px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); display: flex; gap: 15px; flex-wrap: wrap; }
+.doc-img { width: 70px; height: 70px; border-radius: 15px; background: #E0F2FE; color: #0284C7; display: flex; align-items: center; justify-content: center; font-size: 30px; flex-shrink: 0; }
+.doc-info { flex: 1; min-width: 200px; }
+.doc-info h3 { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 3px; }
+.doc-info .spec { font-size: 12px; color: var(--brand); font-weight: 700; margin-bottom: 5px; }
+.doc-info .sched { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.doc-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 5px; width: 100%; flex-wrap: wrap; gap: 8px; }
+.btn-loc { background: #F8FAFC; color: #0C4A6E; border: 1px solid var(--border); padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; }
+.book-btn { background: var(--brand-gradient); color: white; border-radius: 10px; padding: 8px 15px; font-weight: 800; font-size: 12px; }
+.symptoms-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+.symptom-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px 15px; text-align: center; cursor: pointer; box-shadow: var(--shadow-sm); }
+.symptom-card i { font-size: 30px; color: var(--brand); margin-bottom: 10px; display: block; }
+.symptom-card span { font-size: 14px; font-weight: 800; color: var(--dark); }
+.med-item-card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
+.med-item-card h4 { font-size: 15px; font-weight: 800; }
+.med-item-card p { font-size: 12px; color: var(--muted); }
+.age-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
+.age-btn { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid var(--border); background: var(--card); color: var(--muted); font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.age-btn.active { border-color: var(--brand); background: var(--brand-light); color: var(--brand); }
+.emr-subtabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.emr-subtab { background: transparent; color: var(--muted); font-weight: 800; font-size: 14px; padding-bottom: 5px; border-bottom: 3px solid transparent; }
+.emr-subtab.active { color: var(--brand); border-bottom-color: var(--brand); }
+.prescription-card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); }
+.prescription-card h4 { color: var(--brand); margin-bottom: 5px; font-size: 15px; font-weight: 800; }
+.prescription-meds { background: var(--bg); padding: 10px; border-radius: 10px; margin: 10px 0; font-size: 13px; font-weight: bold; line-height: 1.8; }
+.pharmacy-card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid var(--border); margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; }
+.pharmacy-header { display: flex; justify-content: space-between; align-items: center; }
+.pharmacy-header h4 { font-size: 14px; font-weight: 800; color: var(--dark); }
+.badge-available { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+.badge-full { background: #ECFDF5; color: #059669; }
+.badge-partial { background: #FFF7ED; color: #EA580C; }
+.pharmacy-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; }
+.pharmacy-price { font-weight: 900; color: var(--brand); font-size: 15px; }
+.whatsapp-btn { background: #25D366; color: white; padding: 8px 15px; border-radius: 8px; font-weight: 800; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+.live-ticket { background: var(--card); border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid var(--border); }
+.ticket-header { background: linear-gradient(135deg, #0F172A, #1E293B); color: white; padding: 25px 20px; text-align: center; position: relative; }
+.ticket-header h3 { font-size: 18px; font-weight: 800; margin-bottom: 5px; }
+.ticket-header p { font-size: 13px; color: #94A3B8; }
+.ticket-number { font-size: 65px; font-weight: 900; color: white; line-height: 1; margin: 10px 0; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+.ticket-body { padding: 25px 20px; text-align: center; }
+.queue-status { font-size: 18px; font-weight: 900; color: var(--brand); margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.queue-status.alert { color: #E11D48; animation: pulseRed 1.5s infinite; }
+.progress-container { background: #E2E8F0; border-radius: 10px; height: 12px; margin-bottom: 20px; overflow: hidden; position: relative; }
+.progress-bar { height: 100%; background: var(--brand-gradient); width: 0%; transition: width 1s ease-in-out; border-radius: 10px; }
+.ticket-info { background: var(--bg); border-radius: 12px; padding: 15px; text-align: right; margin-bottom: 20px; font-size: 13px; }
+.ticket-info p { margin-bottom: 8px; display: flex; justify-content: space-between; }
+.ticket-info p:last-child { margin-bottom: 0; }
+.ticket-info span { font-weight: 800; color: var(--dark); }
+.map-btn { display: block; width: 100%; padding: 12px; background: #E0F2FE; color: #0369A1; text-align: center; border-radius: 12px; font-weight: 800; text-decoration: none; margin-bottom: 10px; }
+.cancel-btn { background: #FFF1F2; color: #E11D48; width: 100%; padding: 12px; border-radius: 12px; font-weight: 800; border: 1px solid #FECDD3; }
+.time-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+.time-slot { padding: 10px; border: 2px solid var(--border); border-radius: 10px; text-align: center; font-weight: 700; font-size: 13px; cursor: pointer; }
+.time-slot.selected { border-color: var(--brand); background: var(--brand-light); color: var(--brand); }
+.time-slot.disabled { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; text-decoration: line-through; border-color: transparent; }
+.doctor-fab { position: fixed; bottom: 100px; left: 20px; background: #0F172A; color: #FBBF24; border-radius: 30px; padding: 12px 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 999; border: 2px solid #FBBF24; }
+.doctor-fab:active { transform: scale(0.95); }
+
+/* الشريط السفلي والمودالات */
 .live-banner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; border-radius: 15px; padding: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 9999; transition: 0.5s; border-right: 5px solid var(--brand); }
 .live-banner.show { top: 20px; }
 .live-banner i { font-size: 28px; color: var(--brand); }
@@ -150,38 +209,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--brand-gradient); color: white; font-weight: 800; font-size: 15px; }
 .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--dark); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 3000; text-align:center; width: 85%; max-width: 400px; }
 .toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
-/* =========================================
-   تطويرات المنظومة الطبية (Symptoms, Doctor, Pharmacy)
-   ========================================= */
-/* اختيار العمر */
-.age-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
-.age-btn { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid var(--border); background: var(--card); color: var(--muted); font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.age-btn.active { border-color: var(--brand); background: var(--brand-light); color: var(--brand); }
-
-/* زرار الطبيب العائم */
-.doctor-fab { position: fixed; bottom: 100px; left: 20px; background: #0F172A; color: #FBBF24; border-radius: 30px; padding: 12px 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 999; border: 2px solid #FBBF24; }
-.doctor-fab:active { transform: scale(0.95); }
-
-/* تابات الملف الطبي */
-.emr-subtabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-.emr-subtab { background: transparent; color: var(--muted); font-weight: 800; font-size: 14px; padding-bottom: 5px; border-bottom: 3px solid transparent; }
-.emr-subtab.active { color: var(--brand); border-bottom-color: var(--brand); }
-
-/* كارت الروشتة */
-.prescription-card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); }
-.prescription-card h4 { color: var(--brand); margin-bottom: 5px; font-size: 15px; font-weight: 800; }
-.prescription-meds { background: var(--bg); padding: 10px; border-radius: 10px; margin: 10px 0; font-size: 13px; font-weight: bold; line-height: 1.8; }
-
-/* كارت الصيدلية */
-.pharmacy-card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid var(--border); margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; }
-.pharmacy-header { display: flex; justify-content: space-between; align-items: center; }
-.pharmacy-header h4 { font-size: 14px; font-weight: 800; color: var(--dark); }
-.badge-available { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
-.badge-full { background: #ECFDF5; color: #059669; }
-.badge-partial { background: #FFF7ED; color: #EA580C; }
-.pharmacy-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; }
-.pharmacy-price { font-weight: 900; color: var(--brand); font-size: 15px; }
-.whatsapp-btn { background: #25D366; color: white; padding: 8px 15px; border-radius: 8px; font-weight: 800; font-size: 12px; display: flex; align-items: center; gap: 5px; }
 </style>
 </head>
 <body>
@@ -202,18 +229,14 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <div class="brand-text"><h1>وصلة</h1><span>WASLA</span></div>
     </div>
     <div class="header-icons">
-        <!-- زرار الإشعارات (رجعناه) -->
         <button class="icon-btn" onclick="showToast('لا توجد إشعارات جديدة')" title="الإشعارات"><i class="fa-regular fa-bell"></i></button>
-        <!-- زرار لوحة التحكم المالية (للمؤسس) -->
         <button class="icon-btn btn-finance" onclick="navigateTo('admin-finance')" title="لوحة التحكم المالية"><i class="fa-solid fa-chart-line"></i></button>
-        <!-- زرار الجي بي إس -->
         <button class="icon-btn" id="gps-btn" onclick="toggleGPS()" title="تتبع الموقع"><i class="fa-solid fa-location-dot"></i></button>
-        <!-- زرار الوضع الليلي -->
         <button class="icon-btn" onclick="toggleTheme()" title="الوضع الليلي"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
     </div>
 </header>
 
-<!-- الشريط الإعلاني المتحرك (Ticker) -->
+<!-- الشريط الإعلاني -->
 <div class="ticker-wrap">
     <div class="ticker-label">عروض 📢</div>
     <div class="ticker-content">
@@ -272,63 +295,40 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </main>
 
-<!-- 🟢 مكان لصق شاشات الأقسام الجديدة (HTML) 🟢 -->
-<!-- ⬇️ هنلزق شاشات الأقسام الجديدة هنا ⬇️ -->
-
-
 <!-- ==================== شاشة التوصيل ==================== -->
 <div id="view-delivery" class="app-view">
     <div class="delivery-header">
         <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
         <h2>توصيل مجاني</h2>
     </div>
-
     <div class="delivery-form">
         <div class="delivery-banner">
             <h1>عايز توصل إيه؟ 🛵</h1>
             <p>إحنا بنوصل أي حاجة لأي حد في شبين القناطر <span id="delivery-price-text" style="font-weight:900; font-size:16px;">مجاناً!</span></p>
         </div>
-
-        <div class="input-group">
-            <label>نوع الشحنة / الحاجة اللي عايز توصلها</label>
-            <input type="text" id="delivery-item" class="input-field" placeholder="مثال: شنطة، فلوس، أوراق، هدية...">
-        </div>
-        <div class="input-group">
-            <label>رقم تليفونك</label>
-            <input type="tel" id="delivery-phone" class="input-field" placeholder="01xxxxxxxxx">
-        </div>
-
+        <div class="input-group"><label>نوع الشحنة</label><input type="text" id="delivery-item" class="input-field" placeholder="مثال: شنطة، فلوس..."></div>
+        <div class="input-group"><label>رقم تليفونك</label><input type="tel" id="delivery-phone" class="input-field" placeholder="01xxxxxxxxx"></div>
         <div class="input-group">
             <label>موقع الاستلام (من فين؟)</label>
-            <button class="location-btn" id="pickup-btn" onclick="getLocation('pickup')">
-                <span>تحديد موقع الاستلام</span>
-                <i class="fa-solid fa-location-crosshairs"></i>
-            </button>
+            <button class="location-btn" id="pickup-btn" onclick="getLocation('pickup')"><span>تحديد موقع الاستلام</span><i class="fa-solid fa-location-crosshairs"></i></button>
             <span class="gps-text" id="pickup-status">لم يتم تحديد الموقع بعد</span>
         </div>
-
         <div class="input-group">
             <label>موقع التسليم (لحد فين؟)</label>
-            <button class="location-btn" id="dropoff-btn" onclick="getLocation('dropoff')">
-                <span>تحديد موقع التسليم</span>
-                <i class="fa-solid fa-location-crosshairs"></i>
-            </button>
+            <button class="location-btn" id="dropoff-btn" onclick="getLocation('dropoff')"><span>تحديد موقع التسليم</span><i class="fa-solid fa-location-crosshairs"></i></button>
             <span class="gps-text" id="dropoff-status">لم يتم تحديد الموقع بعد</span>
         </div>
-
         <button class="delivery-submit" onclick="submitDelivery()">اطلب التوصيل الآن</button>
     </div>
 </div>
 
-<!-- ==================== لوحة التحكم المالية (للمؤسس) ==================== -->
+<!-- ==================== لوحة التحكم المالية ==================== -->
 <div id="view-admin-finance" class="app-view">
     <div class="fin-header">
         <button class="back-btn" onclick="navigateTo('home')" style="background:rgba(255,255,255,0.1); color:white;"><i class="fa-solid fa-arrow-right"></i></button>
         <h2>لوحة التحكم المالية</h2>
     </div>
-
     <div class="fin-content">
-        <!-- التحكم في سعر التوصيل -->
         <div class="fin-card">
             <h3><i class="fa-solid fa-motorcycle"></i> إدارة سعر التوصيل</h3>
             <p style="font-size:12px; color:var(--muted); margin-bottom:15px;">تحكم في سعر التوصيل. ابدأ بـ 0 (مجاني) لاكتساح السوق، ثم زد السعر بـ 5 جنيهات.</p>
@@ -341,29 +341,12 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
                 </div>
             </div>
         </div>
-
-        <!-- حاسبة الأرباح والخسائر -->
         <div class="fin-card">
-            <h3><i class="fa-solid fa-calculator"></i> حاسبة الأرباح والخسائر (محاكاة)</h3>
-            <p style="font-size:12px; color:var(--muted); margin-bottom:15px;">أدخل الأرقام المتوقعة لتعرف هل المنصة هتكسب ولا هتخسر مع نظام التوصيل الحالي.</p>
-            
-            <div class="calc-row">
-                <label>عدد الطلبات المتوقعة (شهرياً):</label>
-                <input type="number" id="calc-orders" value="100" oninput="calculateFinance()">
-            </div>
-            <div class="calc-row">
-                <label>متوسط سعر الطلب (ج.م):</label>
-                <input type="number" id="calc-avg-order" value="100" oninput="calculateFinance()">
-            </div>
-            <div class="calc-row">
-                <label>تكلفة المشوار للدليفري (ج.م):</label>
-                <input type="number" id="calc-trip-cost" value="15" oninput="calculateFinance()">
-            </div>
-            <div class="calc-row">
-                <label>راتب الدليفري الشهري (ج.م):</label>
-                <input type="number" id="calc-salary" value="3000" oninput="calculateFinance()">
-            </div>
-
+            <h3><i class="fa-solid fa-calculator"></i> حاسبة الأرباح والخسائر</h3>
+            <div class="calc-row"><label>عدد الطلبات المتوقعة:</label><input type="number" id="calc-orders" value="100" oninput="calculateFinance()"></div>
+            <div class="calc-row"><label>متوسط سعر الطلب:</label><input type="number" id="calc-avg-order" value="100" oninput="calculateFinance()"></div>
+            <div class="calc-row"><label>تكلفة المشوار للدليفري:</label><input type="number" id="calc-trip-cost" value="15" oninput="calculateFinance()"></div>
+            <div class="calc-row"><label>راتب الدليفري الشهري:</label><input type="number" id="calc-salary" value="3000" oninput="calculateFinance()"></div>
             <div class="calc-result">
                 <p>إجمالي العمولات (10%): <span class="val" id="res-commissions">0 ج.م</span></p>
                 <p>إجمالي تكلفة التوصيل: <span class="val text-red" id="res-delivery-cost">0 ج.م</span></p>
@@ -374,7 +357,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </div>
 
-   <!-- ==================== شاشة القسم الطبي ==================== -->
+<!-- ==================== شاشة القسم الطبي ==================== -->
 <div id="view-medical" class="app-view">
     <div class="medical-header">
         <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
@@ -390,7 +373,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         </div>
     </div>
 
-    <!-- الأطباء -->
     <div id="med-tab-doctors" class="other-med-services active">
         <div style="margin-bottom: 15px;">
             <label style="font-size:13px; font-weight:bold; margin-bottom:5px; display:block;">فلترة حسب التأمين:</label>
@@ -398,45 +380,50 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
                 <option value="all">كل الأطباء (بدون تأمين)</option>
                 <option value="bupa">بوبا إيجيبت</option>
                 <option value="misr">مصر للتأمين</option>
+                <option value="allianz">أليانز</option>
+                <option value="axa">أكسا</option>
+                <option value="metlife">ميتلايف</option>
             </select>
         </div>
         <div class="doctors-list" id="doctors-list"></div>
     </div>
 
-    <!-- الأعراض (المطور) -->
     <div id="med-tab-symptoms" class="other-med-services">
         <h3 style="margin-bottom: 15px; font-size: 16px;">إحنا هنساعدك تختار الدكتور المناسب</h3>
-        
         <label style="font-size:13px; font-weight:bold; margin-bottom:5px; display:block;">المريض؟</label>
         <div class="age-toggle">
             <button class="age-btn active" id="age-adult" onclick="setAge('adult')"><i class="fa-solid fa-user"></i> كبير</button>
             <button class="age-btn" id="age-child" onclick="setAge('child')"><i class="fa-solid fa-child"></i> طفل</button>
         </div>
-
         <label style="font-size:13px; font-weight:bold; margin-bottom:5px; display:block;">بتحس بإيه؟</label>
         <div class="symptoms-grid" id="symptoms-grid"></div>
     </div>
 
-    <!-- الملف الطبي (EMR) -->
     <div id="med-tab-emr" class="other-med-services">
         <div class="emr-subtabs">
             <button class="emr-subtab active" onclick="switchEMRTab('prescriptions', this)">💊 الروشتات</button>
             <button class="emr-subtab" onclick="switchEMRTab('labs', this)">🔬 التحاليل والأشعة</button>
         </div>
-
         <div id="emr-tab-prescriptions">
             <div id="prescriptions-list"><p style="text-align:center; color:var(--muted);">لا توجد روشتات حالياً.</p></div>
         </div>
-
         <div id="emr-tab-labs" style="display:none;">
             <div id="labs-list"><p style="text-align:center; color:var(--muted);">لا توجد طلبات تحاليل حالياً.</p></div>
         </div>
     </div>
 
-    <!-- التمريض -->
     <div id="med-tab-nursing" class="other-med-services">
         <div class="med-item-card"><div><h4>حقن وريدية ومحاليل</h4><p>زيارة منزلية - 150 ج.م</p></div><button class="book-btn" onclick="openNurseBooking(150)">احجز</button></div>
     </div>
+</div>
+
+<!-- ==================== شاشة التذكرة ==================== -->
+<div id="view-mybookings" class="app-view">
+    <div class="medical-header">
+        <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
+        <h2>تذكرة الحجز والطابور</h2>
+    </div>
+    <div id="live-ticket-container" style="padding: 20px;"></div>
 </div>
 
 <!-- ==================== زرار الطبيب العائم ==================== -->
@@ -444,15 +431,39 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     <i class="fa-solid fa-stethoscope"></i> وضع الطبيب (للتجربة)
 </button>
 
-<!-- ==================== مودال الطبيب (كتابة روشتة/تحاليل) ==================== -->
+<!-- ==================== مودال الحجز ==================== -->
+<div class="modal-overlay" id="booking-modal">
+    <div class="modal-content">
+        <div class="modal-header"><h2>حجز موعد</h2><button class="close-btn" onclick="closeModal('booking-modal')"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="input-group"><label>اسم المريض</label><input type="text" id="patient-name" class="input-field"></div>
+        <div class="input-group"><label>رقم الهاتف</label><input type="tel" id="patient-phone" class="input-field" oninput="localStorage.setItem('wasla_phone', this.value)"></div>
+        <div class="input-group">
+            <label>التأمين الصحي (اختياري)</label>
+            <select id="booking-insurance" class="input-field">
+                <option value="cash">دفع شخصي</option>
+                <option value="bupa">بوبا إيجيبت</option>
+                <option value="misr">مصر للتأمين</option>
+            </select>
+        </div>
+        <div class="input-group" id="nurse-gps-group" style="display:none;">
+            <label>موقعك (لزيارة التمريض)</label>
+            <button class="btn-loc" style="width:100%; padding:10px;" onclick="getNurseLocation()"><i class="fa-solid fa-location-crosshairs"></i> تحديد موقعي</button>
+            <p id="gps-status" style="font-size:11px; color:var(--muted); margin-top:5px;"></p>
+        </div>
+        <div class="deposit-box" id="deposit-box" style="display:none; background: #FFFBEB; border: 1px solid #FDE68A; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+            <h4 style="color: #B45309; font-size: 14px; margin-bottom: 5px;"><i class="fa-solid fa-triangle-exclamation"></i> مطلوب دفع عربون 25%</h4>
+            <p style="color: #92400E; font-size: 12px; line-height: 1.5;">لضمان جدية الحجز، يُرجى دفع عربون بقيمة <strong id="deposit-amount">0 ج.م</strong>.</p>
+        </div>
+        <div class="input-group" id="slot-group"><label>اختر موعد الحجز</label><div class="time-slots" id="time-slots-container"></div></div>
+        <button class="submit-btn" id="confirm-booking-btn" onclick="submitBooking()">تأكيد الحجز</button>
+    </div>
+</div>
+
+<!-- ==================== مودال الطبيب ==================== -->
 <div class="modal-overlay" id="doctor-modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h2>إضافة للملف الطبي</h2>
-            <button class="close-btn" onclick="closeModal('doctor-modal')"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+        <div class="modal-header"><h2>إضافة للملف الطبي</h2><button class="close-btn" onclick="closeModal('doctor-modal')"><i class="fa-solid fa-xmark"></i></button></div>
         <p style="font-size:12px; color:var(--muted); margin-bottom:15px;">أنت الآن تتصفح كطبيب للمريض: <b id="doc-patient-name">---</b></p>
-        
         <div class="input-group">
             <label>نوع الطلب</label>
             <select id="doc-request-type" class="input-field">
@@ -461,19 +472,17 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
             </select>
         </div>
         <div class="input-group">
-            <label>تفاصيل الطلب (اسم الدواء / نوع الأشعة)</label>
-            <textarea id="doc-request-details" class="input-field" placeholder="مثال: بنادول 500mg - قرص كل 8 ساعات..."></textarea>
+            <label>تفاصيل الطلب</label>
+            <textarea id="doc-request-details" class="input-field" placeholder="مثال: بنادول 500mg..."></textarea>
         </div>
         <button class="submit-btn" onclick="submitDoctorRequest()">إرسال للمريض</button>
     </div>
 </div>
+
 <!-- ==================== مودال الشكاوى ==================== -->
 <div class="modal-overlay" id="complaint-modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h2>الشكاوى والاقتراحات</h2>
-            <button class="close-btn" onclick="closeModal('complaint-modal')"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+        <div class="modal-header"><h2>الشكاوى والاقتراحات</h2><button class="close-btn" onclick="closeModal('complaint-modal')"><i class="fa-solid fa-xmark"></i></button></div>
         <div class="input-group">
             <label>نوع الرسالة</label>
             <select class="input-field">
@@ -482,10 +491,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
                 <option>مشكلة تقنية</option>
             </select>
         </div>
-        <div class="input-group">
-            <label>تفاصيل الرسالة</label>
-            <textarea class="input-field" placeholder="اكتب تفاصيل..."></textarea>
-        </div>
+        <div class="input-group"><label>تفاصيل الرسالة</label><textarea class="input-field" placeholder="اكتب تفاصيل..."></textarea></div>
         <button class="submit-btn" onclick="closeModal('complaint-modal'); showToast('تم إرسال رسالتك بنجاح!')">إرسال</button>
     </div>
 </div>
@@ -503,18 +509,18 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 
 <script>
 // ==========================================
-// المتغيرات الأساسية
-// ==========================================
-let currentDeliveryFee = parseInt(localStorage.getItem('wasla_delivery_fee')) || 0; 
-const commissionRate = 0.10; // 10%
-
-// ==========================================
-// 1. الثيم والتنقل
+// 1. المتغيرات والإعدادات الأساسية
 // ==========================================
 const savedTheme = localStorage.getItem('wasla_theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 if(savedTheme === 'dark') document.getElementById('theme-icon').className = 'fa-solid fa-sun';
 
+let currentDeliveryFee = parseInt(localStorage.getItem('wasla_delivery_fee')) || 0; 
+const commissionRate = 0.10;
+
+// ==========================================
+// 2. الدوال الأساسية (تنقل، إشعارات، ثيم)
+// ==========================================
 function toggleTheme() {
     const html = document.documentElement;
     const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
@@ -528,8 +534,10 @@ function navigateTo(viewId) {
     const target = document.getElementById('view-' + viewId);
     if(target) target.classList.add('active');
     window.scrollTo(0, 0);
+    
     if(viewId === 'admin-finance') updateFinancialUI();
-   if(viewId === 'medical') renderDoctors();
+    if(viewId === 'medical') renderDoctors();
+    if(viewId === 'mybookings') listenToMyTicket();
 }
 
 function openModal(id) { document.getElementById(id).classList.add('open'); }
@@ -541,9 +549,6 @@ function showToast(msg) {
     setTimeout(() => t.classList.remove('show'), 3000); 
 }
 
-// ==========================================
-// 2. الأنظمة الأساسية (بحث، صوت، GPS)
-// ==========================================
 function startVoiceSearch() {
     showToast('جاري الاستماع لطلبك... 🎤');
     setTimeout(() => {
@@ -580,7 +585,6 @@ let dropoffCoords = null;
 
 function getLocation(type) {
     if(!navigator.geolocation) return showToast('المتصفح لا يدعم الموقع');
-    
     const btn = document.getElementById(type + '-btn');
     const status = document.getElementById(type + '-status');
     status.innerText = 'جاري تحديد الموقع...';
@@ -605,7 +609,6 @@ function getLocation(type) {
 function submitDelivery() {
     const item = document.getElementById('delivery-item').value;
     const phone = document.getElementById('delivery-phone').value;
-    
     if(!item || !phone) return showToast('يرجى إدخال تفاصيل الشحنة ورقم الهاتف');
     if(!pickupCoords) return showToast('يرجى تحديد موقع الاستلام');
     if(!dropoffCoords) return showToast('يرجى تحديد موقع التسليم');
@@ -630,12 +633,11 @@ function submitDelivery() {
 }
 
 // ==========================================
-// 4. لوحة التحكم المالية (Financial Logic)
+// 4. لوحة التحكم المالية
 // ==========================================
 function updateFinancialUI() {
     document.getElementById('delivery-fee-val').innerText = currentDeliveryFee + ' ج.م';
     document.getElementById('btn-minus').disabled = currentDeliveryFee <= 0;
-    
     const priceText = document.getElementById('delivery-price-text');
     if(currentDeliveryFee === 0) {
         priceText.innerText = "مجاناً!";
@@ -644,7 +646,6 @@ function updateFinancialUI() {
         priceText.innerText = `بسعر ${currentDeliveryFee} ج.م`;
         priceText.style.color = "#FBBF24";
     }
-    
     calculateFinance();
 }
 
@@ -689,15 +690,9 @@ function calculateFinance() {
     }
 }
 
-// التشغيل
-updateFinancialUI();
-
-// 🟢 مكان لصق أكواد الأقسام الجديدة (JS) 🟢
-// ⬇️ هنلزق أكواد الأقسام الجديدة هنا ⬇️
 // ==========================================
-// القسم الطبي الشامل (أعراض، حجز، روشتة، صيدليات)
+// 5. القسم الطبي الشامل
 // ==========================================
-
 const doctorsData = [
   { id: 1, name: "د. أحمد محمود", spec: "أسنان", price: 200, icon: "fa-tooth", startTime: 14, endTime: 18, slotMins: 30, days: "السبت - الخميس", clinicLat: 30.3128, clinicLng: 31.3234, insurances: ['bupa', 'misr'], targetAge: 'adult' },
   { id: 2, name: "د. سارة علي", spec: "باطنة", price: 150, icon: "fa-heart-pulse", startTime: 10, endTime: 14, slotMins: 20, days: "الأحد - الخميس", clinicLat: 30.3130, clinicLng: 31.3240, insurances: ['allianz'], targetAge: 'adult' },
@@ -724,9 +719,16 @@ let nurseLocation = null;
 let currentAgeFilter = 'adult';
 let activeBookingForDoctor = null;
 
-// إدارة البيانات محلياً
 function getLocalBookings() { return JSON.parse(localStorage.getItem('wasla_bookings') || '[]'); }
 function saveLocalBookings(bookings) { localStorage.setItem('wasla_bookings', JSON.stringify(bookings)); }
+
+function openSection(section) {
+    if(section === 'medical') {
+        navigateTo('medical'); 
+    } else {
+        showToast('هذا القسم سيتم إضافته قريباً!');
+    }
+}
 
 function switchMedTab(tabId, btn) {
     document.querySelectorAll('.med-service-btn').forEach(b => b.classList.remove('active'));
@@ -737,7 +739,6 @@ function switchMedTab(tabId, btn) {
     if(tabId === 'symptoms') renderSymptoms();
 }
 
-// --- الأعراض وتحديد العمر ---
 function setAge(age) {
     currentAgeFilter = age;
     document.getElementById('age-adult').classList.toggle('active', age === 'adult');
@@ -755,13 +756,12 @@ function renderSymptoms() {
 }
 
 function selectSymptom(spec, name) {
-    document.querySelectorAll('.med-service-btn')[0].click(); // العودة للأطباء
+    document.querySelectorAll('.med-service-btn')[0].click();
     document.getElementById('insurance-filter').value = 'all';
-    renderDoctors('all', spec); // فلترة حسب التخصص
+    renderDoctors('all', spec);
     showToast(`بناءً على "${name}"، دكاترة ${spec} هم الأنسب لك.`);
 }
 
-// --- الأطباء والحجز ---
 function renderDoctors(insuranceFilter = 'all', specFilter = 'all') {
     const list = document.getElementById('doctors-list');
     let filtered = doctorsData;
@@ -790,7 +790,7 @@ function openBooking(id) {
     currentDoctor = doctorsData.find(d => d.id === id);
     isNurse = false; selectedSlot = null;
     document.getElementById('nurse-gps-group').style.display = 'none';
-    document.getElementById('deposit-box').classList.remove('show');
+    document.getElementById('deposit-box').style.display = 'none';
     document.getElementById('slot-group').style.display = 'block';
     openModal('booking-modal');
 
@@ -810,19 +810,42 @@ function openBooking(id) {
     }
 }
 
+function openNurseBooking(price) {
+    currentDoctor = { name: 'تمريض منزلي', price: price };
+    isNurse = true; selectedSlot = 'زيارة منزلية'; nurseLocation = null;
+    document.getElementById('slot-group').style.display = 'none';
+    document.getElementById('nurse-gps-group').style.display = 'block';
+    document.getElementById('deposit-box').style.display = 'block';
+    document.getElementById('deposit-amount').innerText = Math.round(price * 0.25) + ' ج.م';
+    document.getElementById('gps-status').innerText = '';
+    openModal('booking-modal');
+}
+
+function getNurseLocation() {
+    if(!navigator.geolocation) return showToast('المتصفح لا يدعم الموقع');
+    document.getElementById('gps-status').innerText = 'جاري تحديد الموقع...';
+    navigator.geolocation.getCurrentPosition(pos => {
+        nurseLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        document.getElementById('gps-status').innerHTML = '<span style="color:var(--brand)">تم تحديد الموقع ✅</span>';
+    }, err => {
+        nurseLocation = { lat: 30.3128, lng: 31.3234 };
+        document.getElementById('gps-status').innerHTML = '<span style="color:var(--brand)">تم تحديد موقع تجريبي ✅</span>';
+    });
+}
+
 function submitBooking() {
     const name = document.getElementById('patient-name').value;
     const phone = document.getElementById('patient-phone').value;
-    if (!name || !phone || !selectedSlot) return showToast('يرجى إكمال البيانات');
+    if (!name || !phone) return showToast('يرجى إكمال البيانات');
+    if (!isNurse && !selectedSlot) return showToast('يرجى اختيار موعد');
 
     const btn = document.getElementById('confirm-booking-btn'); btn.textContent = 'جارٍ الحجز...'; btn.disabled = true;
-
     const today = new Date().toISOString().split('T')[0];
     const bookings = getLocalBookings();
-    const queue = bookings.filter(b => b.doctorId === currentDoctor.id && b.date === today).length + 1;
+    const queue = bookings.filter(b => b.doctorId === (currentDoctor.id || '') && b.date === today).length + 1;
 
     const newBooking = {
-        id: 'BK-' + Date.now(), patientName: name, patientPhone: phone, doctorId: currentDoctor.id,
+        id: 'BK-' + Date.now(), patientName: name, patientPhone: phone, doctorId: currentDoctor.id || null,
         doctorName: currentDoctor.name, slot: selectedSlot, queueNumber: queue, date: today,
         status: 'pending', createdAt: new Date().toISOString(), meds: [], labs: []
     };
@@ -831,16 +854,17 @@ function submitBooking() {
     saveLocalBookings(bookings);
     localStorage.setItem('wasla_phone', phone);
 
-    // إظهار زرار الطبيب (للتجربة عشان تقدر تكتب روشتة)
+    // إظهار زرار الطبيب (للتجربة)
     document.getElementById('doctor-fab').style.display = 'flex';
     activeBookingForDoctor = newBooking;
 
     closeModal('booking-modal'); 
     showToast('تم الحجز بنجاح!');
     navigateTo('mybookings');
+    
+    btn.textContent = 'تأكيد الحجز'; btn.disabled = false;
 }
 
-// --- وضع الطبيب (كتابة الروشتة) ---
 function openDoctorModal() {
     if(!activeBookingForDoctor) return showToast('لا يوجد حجز نشط للتجربة');
     document.getElementById('doc-patient-name').innerText = activeBookingForDoctor.patientName;
@@ -868,7 +892,6 @@ function submitDoctorRequest() {
     }
 }
 
-// --- الملف الطبي للمريض (EMR) ---
 function switchEMRTab(tab, btn) {
     document.querySelectorAll('.emr-subtab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -880,7 +903,6 @@ function loadEMR() {
     const phone = localStorage.getItem('wasla_phone');
     const bookings = getLocalBookings().filter(b => b.patientPhone === phone);
     
-    // الروشتات
     const preList = document.getElementById('prescriptions-list');
     const prescriptions = bookings.flatMap(b => b.meds.map(m => ({ ...m, doctor: b.doctorName })));
     
@@ -912,7 +934,6 @@ function loadEMR() {
         `).join('');
     }
 
-    // التحاليل
     const labsList = document.getElementById('labs-list');
     const labs = bookings.flatMap(b => b.labs.map(l => ({ text: l, doctor: b.doctorName })));
     
@@ -929,6 +950,59 @@ function loadEMR() {
     }
 }
 
+function listenToMyTicket() {
+    const container = document.getElementById('live-ticket-container');
+    const phone = localStorage.getItem('wasla_phone');
+    if(!phone) return container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:20px;">ليس لديك أي حجوزات حالياً.</p>';
+
+    const bookings = getLocalBookings().filter(b => b.patientPhone === phone && b.status === 'pending');
+    if(bookings.length === 0) return container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:20px;">لا يوجد حجوزات نشطة حالياً.</p>';
+
+    container.innerHTML = '';
+    bookings.forEach(d => {
+        const casesAhead = Math.max(0, d.queueNumber - 1);
+        let progressPercent = 10;
+        if(d.queueNumber === 1) progressPercent = 100;
+        else if(casesAhead === 0) progressPercent = 80;
+        else progressPercent = Math.max(10, 100 - (casesAhead * 20));
+
+        let statusText = `قدامك ${casesAhead} حالات.`;
+        let statusClass = '';
+        if(casesAhead === 0) { statusText = 'حان دورك الآن!'; statusClass = 'alert'; }
+
+        container.innerHTML += `
+            <div class="live-ticket">
+                <div class="ticket-header">
+                    <h3>${d.doctorName} ${d.isNurse ? '(تمريض)' : ''}</h3>
+                    <p>تذكرة رقم <strong>${d.id.substring(0,8)}</strong></p>
+                    <div class="ticket-number">${d.queueNumber}</div>
+                    <p>رقمك في الطابور</p>
+                </div>
+                <div class="ticket-body">
+                    <div class="queue-status ${statusClass}"><i class="fa-solid fa-bell"></i> ${statusText}</div>
+                    <div class="progress-container"><div class="progress-bar" style="width: ${progressPercent}%"></div></div>
+                    <div class="ticket-info">
+                        <p><span>الموعد:</span> ${d.slot}</p>
+                        <p><span>سعر الكشف:</span> ${d.price} ج.م</p>
+                    </div>
+                    <button class="cancel-btn" onclick="cancelBooking('${d.id}')">إلغاء الحجز</button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function cancelBooking(docId) {
+    if(!confirm('هل أنت متأكد من إلغاء الحجز؟')) return;
+    let bookings = getLocalBookings();
+    bookings = bookings.map(b => b.id === docId ? {...b, status: 'cancelled'} : b);
+    localStorage.setItem('wasla_bookings', JSON.stringify(bookings));
+    showToast('تم إلغاء الحجز'); 
+    listenToMyTicket();
+}
+
+// التشغيل الأولي
+updateFinancialUI();
 </script>
 </body>
 </html>
