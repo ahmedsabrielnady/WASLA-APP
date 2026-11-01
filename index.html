@@ -20,11 +20,13 @@
   --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366); 
   --wallet-gradient: linear-gradient(135deg, #7C3AED, #4F46E5);
   --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05); --shadow-md: 0 10px 25px -3px rgba(0,0,0,0.08);
+  --ticker-bg: #FFFBEB; --ticker-text: #B45309; /* ألوان الإعلان المميزة */
 }
 [data-theme="dark"] {
   --brand: #10B981; --brand-light: #064E3B; --brand-gradient: linear-gradient(135deg, #059669, #0369A1);
   --dark: #F8FAFC; --bg: #0B1120; --card: #1E293B; --text: #F1F5F9; --muted: #94A3B8; --border: #334155;
   --nav-bg: rgba(30, 41, 59, 0.95); --shadow-sm: 0 4px 6px rgba(0,0,0,0.3); --shadow-md: 0 10px 25px rgba(0,0,0,0.4);
+  --ticker-bg: #451A03; --ticker-text: #FDE68A; /* ألوان الإعلان في الوضع الليلي */
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { background-color: var(--bg); color: var(--text); font-family: 'Cairo', sans-serif; padding-bottom: 80px; transition: 0.3s; overflow-x: hidden; }
@@ -49,6 +51,13 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .icon-btn.active { background: var(--brand-light); color: var(--brand); border-color: var(--brand); }
 .icon-btn:active { transform: scale(0.9); box-shadow: 0 0 15px var(--brand); color: var(--brand); }
 
+/* الشريط الإعلاني المتحرك (Ticker) */
+.ticker-wrap { width: 100%; overflow: hidden; background: var(--ticker-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 8px 0; box-shadow: var(--shadow-sm); }
+.ticker-label { background: var(--ticker-text); color: white; padding: 2px 10px; font-size: 11px; font-weight: 800; border-radius: 0 10px 10px 0; margin-left: 10px; z-index: 2; flex-shrink: 0; }
+.ticker-content { display: flex; white-space: nowrap; animation: ticker 18s linear infinite; }
+.ticker-content span { color: var(--ticker-text); font-size: 13px; font-weight: 800; padding-left: 50px; }
+@keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
 /* الترحيب */
 .welcome-area { padding: 20px 20px 10px; }
 .welcome-area p { font-size: 13px; color: var(--muted); margin-bottom: 5px; }
@@ -62,14 +71,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .mic-btn { width: 50px; height: 50px; border-radius: 15px; background: var(--brand-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: var(--shadow-sm); }
 .mic-btn:active { transform: scale(0.9); box-shadow: 0 0 15px var(--brand); }
 
-/* المحفظة (تم تصغيرها لتكون شريط رفيع شيك) */
-.wallet-card { background: var(--wallet-gradient); border-radius: 15px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; color: white; margin: 0 20px 20px; box-shadow: var(--shadow-sm); cursor: pointer; transition: 0.2s; }
-.wallet-card:active { transform: scale(0.98); }
-.wallet-card div { display: flex; align-items: center; gap: 10px; }
-.wallet-card i { font-size: 20px; }
-.wallet-card h4 { font-size: 14px; font-weight: 700; }
-.wallet-card .value { font-size: 18px; font-weight: 900; }
-
 /* البانر الرئيسي (الهالة) */
 .hero { background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: 24px; margin: 0 20px 15px; padding: 30px 25px; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
 .hero::before { content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(16, 185, 129, 0.4); border-radius: 50%; filter: blur(50px); animation: pulseHalo 4s infinite alternate; }
@@ -77,7 +78,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .hero h1 { font-size: 24px; font-weight: 900; margin-bottom: 8px; line-height: 1.4; position: relative; z-index: 1; }
 .hero p { font-size: 13px; color: #94A3B8; position: relative; z-index: 1; }
 
-/* السلايدر المتحرك (الإعلانات) - تم نقله تحت الهيرو */
+/* السلايدر (الإعلانات) */
 .ads-slider { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; padding: 0 20px 20px; scrollbar-width: none; }
 .ads-slider::-webkit-scrollbar { display: none; }
 .ad-item { min-width: 85%; scroll-snap-align: center; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 12px 15px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-sm); }
@@ -105,7 +106,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 
 /* الشريط السفلي */
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding: 12px 0; z-index: 100; backdrop-filter: blur(10px); }
-.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; width: 60px; transition: 0.2s; }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; color: var(--muted); font-size: 10px; font-weight: 700; width: 20%; transition: 0.2s; }
 .nav-item.active { color: var(--brand); }
 .nav-item i { font-size: 20px; margin-bottom: 2px; transition: 0.3s; }
 .nav-item:active { transform: scale(0.85); }
@@ -152,6 +153,16 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </header>
 
+<!-- الشريط الإعلاني المتحرك (Ticker) -->
+<div class="ticker-wrap">
+    <div class="ticker-label">عروض 📢</div>
+    <div class="ticker-content">
+        <span>🔥 عرض خاص: توصيل مجاني لأول 100 طلب في شبين القناطر! 🔥</span>
+        <span>✨ خصم 20% على الكشف الطبي باستخدام كود WASLA20 ✨</span>
+        <span>🚀 محل جديد انضم لوضلة: خصم 15% على أول طلب 🚀</span>
+    </div>
+</div>
+
 <!-- ==================== الشاشات (Views) ==================== -->
 <main id="view-home" class="app-view active">
     
@@ -170,22 +181,13 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <button class="mic-btn" onclick="startVoiceSearch()"><i class="fa-solid fa-microphone"></i></button>
     </div>
 
-    <!-- المحفظة (شريط رفيع شيك) -->
-    <div class="wallet-card" onclick="showToast('محفظتك جاهزة!')">
-        <div>
-            <i class="fa-solid fa-wallet"></i>
-            <h4>محفظة وصلة</h4>
-        </div>
-        <div class="value">150 <span style="font-size:12px;font-weight:normal">ج.م</span></div>
-    </div>
-
     <!-- البانر الرئيسي (الهالة) -->
     <div class="hero">
         <h1>كل احتياجاتك،<br>أقرب مع وصلة.</h1>
         <p>الصحة، السيارات، التعليم، التسوق والصيانة في مكان واحد.</p>
     </div>
 
-    <!-- السلايدر (الإعلانات) - تحت الهيرو مباشرة -->
+    <!-- السلايدر (الإعلانات) -->
     <div class="ads-slider" id="adsSlider">
         <div class="ad-item">
             <div class="ad-icon" style="background:#E0F2FE; color:#0284C7;"><i class="fa-solid fa-truck-fast"></i></div>
@@ -254,11 +256,12 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </div>
 
-<!-- ==================== الشريط السفلي ==================== -->
+<!-- ==================== الشريط السفلي (5 أزرار) ==================== -->
 <nav class="bottom-nav">
     <button class="nav-item active" onclick="navigateTo('home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
     <button class="nav-item" onclick="showToast('قريباً')"><i class="fa-solid fa-box"></i><span>طلباتي</span></button>
     <button class="nav-item" onclick="openModal('complaint-modal')"><i class="fa-solid fa-headset"></i><span>الدعم</span></button>
+    <button class="nav-item" onclick="showToast('محفظتك: 150 ج.م')"><i class="fa-solid fa-wallet"></i><span>المحفظة</span></button>
     <button class="nav-item" onclick="showToast('قريباً')"><i class="fa-solid fa-user"></i><span>حسابي</span></button>
 </nav>
 
@@ -318,7 +321,7 @@ function startVoiceSearch() {
     }, 2000);
 }
 
-// 6. السلايدر التلقائي (شريط الإعلانات)
+// 6. السلايدر التلقائي
 let slider = document.getElementById('adsSlider');
 let scrollAmount = 0;
 setInterval(() => {
