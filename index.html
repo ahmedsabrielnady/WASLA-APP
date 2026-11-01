@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#059669">
-<title>وصلة | WASLA - الجزء الأول (الواجهة)</title>
+<title>وصلة | WASLA - الواجهة الرئيسية</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -65,21 +65,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .cat-card h3 { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
 .cat-card p { font-size: 12px; color: var(--muted); }
 
-/* زرار الشكاوى العائم (صغير وشيك) */
-.fab-complaint {
-  position: fixed; bottom: 95px; right: 20px; width: 50px; height: 50px;
-  border-radius: 50%; background: var(--brand-gradient); color: white;
-  display: flex; align-items: center; justify-content: center; font-size: 20px;
-  box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4); z-index: 90; transition: 0.3s;
-}
-.fab-complaint:hover { transform: scale(1.1); }
-.fab-tooltip {
-  position: absolute; right: 60px; background: var(--dark); color: white;
-  padding: 5px 10px; border-radius: 8px; font-size: 11px; white-space: nowrap;
-  opacity: 0; visibility: hidden; transition: 0.3s;
-}
-.fab-complaint:hover .fab-tooltip { opacity: 1; visibility: visible; }
-
 /* شريط التنبيهات اللايف */
 .live-banner {
   position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
@@ -94,9 +79,10 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 
 /* الشريط السفلي */
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding: 12px 0; z-index: 100; backdrop-filter: blur(10px); }
-.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; width: 60px; }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; width: 60px; transition: 0.2s; }
 .nav-item.active { color: var(--brand); }
 .nav-item i { font-size: 20px; margin-bottom: 2px; }
+.nav-item:hover { color: var(--brand); transform: translateY(-2px); }
 
 /* المودالات */
 .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
@@ -115,7 +101,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 </head>
 <body>
 
-<!-- شريط التنبيهات اللايف (مخفي افتراضياً) -->
+<!-- شريط التنبيهات اللايف -->
 <div id="live-banner" class="live-banner">
     <i class="fa-solid fa-bell"></i>
     <div>
@@ -169,15 +155,9 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </main>
 
-<!-- 🟢 مكان لصق الأقسام الجديدة (HTML) 🟢 -->
-<!-- ⬇️ هنلصق الأقسام الجديدة هنا ⬇️ -->
+<!-- 🟢 مكان لصق شاشات الأقسام الجديدة (HTML) 🟢 -->
+<!-- ⬇️ هنلزق شاشات الأقسام الجديدة هنا ⬇️ -->
 
-
-<!-- ==================== الزرار العائم (الشكاوى) ==================== -->
-<button class="fab-complaint" onclick="openModal('complaint-modal')" title="الشكاوى والاقتراحات">
-    <i class="fa-solid fa-headset"></i>
-    <span class="fab-tooltip">الشكاوى والاقتراحات</span>
-</button>
 
 <!-- ==================== مودال الشكاوى ==================== -->
 <div class="modal-overlay" id="complaint-modal">
@@ -206,6 +186,8 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 <nav class="bottom-nav">
     <button class="nav-item active" onclick="navigateTo('home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
     <button class="nav-item" onclick="showToast('قريباً')"><i class="fa-solid fa-box"></i><span>طلباتي</span></button>
+    <!-- زرار الدعم (الشكاوى) تم نقله هنا -->
+    <button class="nav-item" onclick="openModal('complaint-modal')"><i class="fa-solid fa-headset"></i><span>الدعم</span></button>
     <button class="nav-item" onclick="showToast('قريباً')"><i class="fa-solid fa-user"></i><span>حسابي</span></button>
 </nav>
 
@@ -279,7 +261,8 @@ function toggleGPS() {
 }
 
 // 🟢 مكان لصق أكواد الأقسام الجديدة (JS) 🟢
-// ⬇️ هنلصق أكواد الأقسام الجديدة هنا ⬇️
+// ⬇️ هنلزق أكواد الأقسام الجديدة هنا ⬇️
+
 
 </script>
 </body>
