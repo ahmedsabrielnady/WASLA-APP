@@ -150,6 +150,38 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--brand-gradient); color: white; font-weight: 800; font-size: 15px; }
 .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--dark); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 3000; text-align:center; width: 85%; max-width: 400px; }
 .toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+/* =========================================
+   تطويرات المنظومة الطبية (Symptoms, Doctor, Pharmacy)
+   ========================================= */
+/* اختيار العمر */
+.age-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
+.age-btn { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid var(--border); background: var(--card); color: var(--muted); font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.age-btn.active { border-color: var(--brand); background: var(--brand-light); color: var(--brand); }
+
+/* زرار الطبيب العائم */
+.doctor-fab { position: fixed; bottom: 100px; left: 20px; background: #0F172A; color: #FBBF24; border-radius: 30px; padding: 12px 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 999; border: 2px solid #FBBF24; }
+.doctor-fab:active { transform: scale(0.95); }
+
+/* تابات الملف الطبي */
+.emr-subtabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.emr-subtab { background: transparent; color: var(--muted); font-weight: 800; font-size: 14px; padding-bottom: 5px; border-bottom: 3px solid transparent; }
+.emr-subtab.active { color: var(--brand); border-bottom-color: var(--brand); }
+
+/* كارت الروشتة */
+.prescription-card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); }
+.prescription-card h4 { color: var(--brand); margin-bottom: 5px; font-size: 15px; font-weight: 800; }
+.prescription-meds { background: var(--bg); padding: 10px; border-radius: 10px; margin: 10px 0; font-size: 13px; font-weight: bold; line-height: 1.8; }
+
+/* كارت الصيدلية */
+.pharmacy-card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid var(--border); margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; }
+.pharmacy-header { display: flex; justify-content: space-between; align-items: center; }
+.pharmacy-header h4 { font-size: 14px; font-weight: 800; color: var(--dark); }
+.badge-available { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+.badge-full { background: #ECFDF5; color: #059669; }
+.badge-partial { background: #FFF7ED; color: #EA580C; }
+.pharmacy-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; }
+.pharmacy-price { font-weight: 900; color: var(--brand); font-size: 15px; }
+.whatsapp-btn { background: #25D366; color: white; padding: 8px 15px; border-radius: 8px; font-weight: 800; font-size: 12px; display: flex; align-items: center; gap: 5px; }
 </style>
 </head>
 <body>
@@ -342,6 +374,99 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </div>
 
+   <!-- ==================== شاشة القسم الطبي ==================== -->
+<div id="view-medical" class="app-view">
+    <div class="medical-header">
+        <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
+        <h2>وصلة الطبية</h2>
+    </div>
+
+    <div class="medical-tabs-wrapper">
+        <div class="medical-services-tabs">
+            <button class="med-service-btn active" onclick="switchMedTab('doctors', this)"><i class="fa-solid fa-user-doctor"></i> الأطباء</button>
+            <button class="med-service-btn" onclick="switchMedTab('symptoms', this)"><i class="fa-solid fa-head-side-cough"></i> الأعراض</button>
+            <button class="med-service-btn" onclick="switchMedTab('emr', this)"><i class="fa-solid fa-file-medical"></i> ملفي الطبي</button>
+            <button class="med-service-btn" onclick="switchMedTab('nursing', this)"><i class="fa-solid fa-bed-pulse"></i> تمريض منزلي</button>
+        </div>
+    </div>
+
+    <!-- الأطباء -->
+    <div id="med-tab-doctors" class="other-med-services active">
+        <div style="margin-bottom: 15px;">
+            <label style="font-size:13px; font-weight:bold; margin-bottom:5px; display:block;">فلترة حسب التأمين:</label>
+            <select id="insurance-filter" class="input-field" onchange="renderDoctors(document.getElementById('insurance-filter').value)">
+                <option value="all">كل الأطباء (بدون تأمين)</option>
+                <option value="bupa">بوبا إيجيبت</option>
+                <option value="misr">مصر للتأمين</option>
+            </select>
+        </div>
+        <div class="doctors-list" id="doctors-list"></div>
+    </div>
+
+    <!-- الأعراض (المطور) -->
+    <div id="med-tab-symptoms" class="other-med-services">
+        <h3 style="margin-bottom: 15px; font-size: 16px;">إحنا هنساعدك تختار الدكتور المناسب</h3>
+        
+        <label style="font-size:13px; font-weight:bold; margin-bottom:5px; display:block;">المريض؟</label>
+        <div class="age-toggle">
+            <button class="age-btn active" id="age-adult" onclick="setAge('adult')"><i class="fa-solid fa-user"></i> كبير</button>
+            <button class="age-btn" id="age-child" onclick="setAge('child')"><i class="fa-solid fa-child"></i> طفل</button>
+        </div>
+
+        <label style="font-size:13px; font-weight:bold; margin-bottom:5px; display:block;">بتحس بإيه؟</label>
+        <div class="symptoms-grid" id="symptoms-grid"></div>
+    </div>
+
+    <!-- الملف الطبي (EMR) -->
+    <div id="med-tab-emr" class="other-med-services">
+        <div class="emr-subtabs">
+            <button class="emr-subtab active" onclick="switchEMRTab('prescriptions', this)">💊 الروشتات</button>
+            <button class="emr-subtab" onclick="switchEMRTab('labs', this)">🔬 التحاليل والأشعة</button>
+        </div>
+
+        <div id="emr-tab-prescriptions">
+            <div id="prescriptions-list"><p style="text-align:center; color:var(--muted);">لا توجد روشتات حالياً.</p></div>
+        </div>
+
+        <div id="emr-tab-labs" style="display:none;">
+            <div id="labs-list"><p style="text-align:center; color:var(--muted);">لا توجد طلبات تحاليل حالياً.</p></div>
+        </div>
+    </div>
+
+    <!-- التمريض -->
+    <div id="med-tab-nursing" class="other-med-services">
+        <div class="med-item-card"><div><h4>حقن وريدية ومحاليل</h4><p>زيارة منزلية - 150 ج.م</p></div><button class="book-btn" onclick="openNurseBooking(150)">احجز</button></div>
+    </div>
+</div>
+
+<!-- ==================== زرار الطبيب العائم ==================== -->
+<button class="doctor-fab" id="doctor-fab" style="display:none;" onclick="openDoctorModal()">
+    <i class="fa-solid fa-stethoscope"></i> وضع الطبيب (للتجربة)
+</button>
+
+<!-- ==================== مودال الطبيب (كتابة روشتة/تحاليل) ==================== -->
+<div class="modal-overlay" id="doctor-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>إضافة للملف الطبي</h2>
+            <button class="close-btn" onclick="closeModal('doctor-modal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:15px;">أنت الآن تتصفح كطبيب للمريض: <b id="doc-patient-name">---</b></p>
+        
+        <div class="input-group">
+            <label>نوع الطلب</label>
+            <select id="doc-request-type" class="input-field">
+                <option value="prescription">روشتة أدوية</option>
+                <option value="lab">طلب تحاليل / أشعة</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>تفاصيل الطلب (اسم الدواء / نوع الأشعة)</label>
+            <textarea id="doc-request-details" class="input-field" placeholder="مثال: بنادول 500mg - قرص كل 8 ساعات..."></textarea>
+        </div>
+        <button class="submit-btn" onclick="submitDoctorRequest()">إرسال للمريض</button>
+    </div>
+</div>
 <!-- ==================== مودال الشكاوى ==================== -->
 <div class="modal-overlay" id="complaint-modal">
     <div class="modal-content">
@@ -568,7 +693,248 @@ updateFinancialUI();
 
 // 🟢 مكان لصق أكواد الأقسام الجديدة (JS) 🟢
 // ⬇️ هنلزق أكواد الأقسام الجديدة هنا ⬇️
+// ==========================================
+// القسم الطبي الشامل (أعراض، حجز، روشتة، صيدليات)
+// ==========================================
 
+const doctorsData = [
+  { id: 1, name: "د. أحمد محمود", spec: "أسنان", price: 200, icon: "fa-tooth", startTime: 14, endTime: 18, slotMins: 30, days: "السبت - الخميس", clinicLat: 30.3128, clinicLng: 31.3234, insurances: ['bupa', 'misr'], targetAge: 'adult' },
+  { id: 2, name: "د. سارة علي", spec: "باطنة", price: 150, icon: "fa-heart-pulse", startTime: 10, endTime: 14, slotMins: 20, days: "الأحد - الخميس", clinicLat: 30.3130, clinicLng: 31.3240, insurances: ['allianz'], targetAge: 'adult' },
+  { id: 3, name: "د. يوسف كمال", spec: "أطفال", price: 180, icon: "fa-baby", startTime: 16, endTime: 20, slotMins: 20, days: "السبت - الأربعاء", clinicLat: 30.3120, clinicLng: 31.3220, insurances: ['bupa'], targetAge: 'child' }
+];
+
+const symptomsData = [
+  { name: "ألم بالأسنان", spec: "أسنان", age: "adult", icon: "fa-tooth" },
+  { name: "صداع مستمر", spec: "باطنة", age: "adult", icon: "fa-head-side-virus" },
+  { name: "ألم في المعدة", spec: "باطنة", age: "adult", icon: "fa-stomach" },
+  { name: "سخونية وبرد", spec: "أطفال", age: "child", icon: "fa-thermometer" },
+  { name: "كحة شديدة", spec: "أطفال", age: "child", icon: "fa-head-side-cough" }
+];
+
+const pharmaciesData = [
+  { name: "صيدلية العزبي (شبين)", available: "full", price: 120, phone: "201012345678" },
+  { name: "صيدلية سيف (شبين)", available: "partial", price: 90, phone: "201098765432" }
+];
+
+let currentDoctor = null;
+let selectedSlot = null;
+let isNurse = false;
+let nurseLocation = null;
+let currentAgeFilter = 'adult';
+let activeBookingForDoctor = null;
+
+// إدارة البيانات محلياً
+function getLocalBookings() { return JSON.parse(localStorage.getItem('wasla_bookings') || '[]'); }
+function saveLocalBookings(bookings) { localStorage.setItem('wasla_bookings', JSON.stringify(bookings)); }
+
+function switchMedTab(tabId, btn) {
+    document.querySelectorAll('.med-service-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.other-med-services').forEach(t => t.classList.remove('active'));
+    document.getElementById(`med-tab-${tabId}`).classList.add('active');
+    if(tabId === 'emr') loadEMR();
+    if(tabId === 'symptoms') renderSymptoms();
+}
+
+// --- الأعراض وتحديد العمر ---
+function setAge(age) {
+    currentAgeFilter = age;
+    document.getElementById('age-adult').classList.toggle('active', age === 'adult');
+    document.getElementById('age-child').classList.toggle('active', age === 'child');
+    renderSymptoms();
+}
+
+function renderSymptoms() {
+    const filtered = symptomsData.filter(s => s.age === currentAgeFilter);
+    document.getElementById('symptoms-grid').innerHTML = filtered.map(s => `
+        <div class="symptom-card" onclick="selectSymptom('${s.spec}', '${s.name}')">
+            <i class="fa-solid ${s.icon}"></i><span>${s.name}</span>
+        </div>
+    `).join('');
+}
+
+function selectSymptom(spec, name) {
+    document.querySelectorAll('.med-service-btn')[0].click(); // العودة للأطباء
+    document.getElementById('insurance-filter').value = 'all';
+    renderDoctors('all', spec); // فلترة حسب التخصص
+    showToast(`بناءً على "${name}"، دكاترة ${spec} هم الأنسب لك.`);
+}
+
+// --- الأطباء والحجز ---
+function renderDoctors(insuranceFilter = 'all', specFilter = 'all') {
+    const list = document.getElementById('doctors-list');
+    let filtered = doctorsData;
+    
+    if (insuranceFilter !== 'all') filtered = filtered.filter(d => d.insurances.includes(insuranceFilter));
+    if (specFilter !== 'all') filtered = filtered.filter(d => d.spec === specFilter);
+    
+    if(filtered.length === 0) return list.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:20px;">لا يوجد أطباء متاحون.</p>';
+
+    list.innerHTML = filtered.map(doc => `
+        <div class="doctor-card">
+            <div class="doc-img"><i class="fa-solid ${doc.icon}"></i></div>
+            <div class="doc-info">
+                <h3>${doc.name}</h3><div class="spec">${doc.spec}</div>
+                <div class="sched"><i class="fa-regular fa-clock"></i> ${doc.days} (${doc.startTime}:00 - ${doc.endTime}:00)</div>
+                <div class="doc-footer">
+                    <button class="btn-loc" onclick="window.open('https://maps.google.com/?q=${doc.clinicLat},${doc.clinicLng}', '_blank')"><i class="fa-solid fa-location-dot"></i> العيادة</button>
+                    <button class="book-btn" onclick="openBooking(${doc.id})">احجز (${doc.price} ج.م)</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function openBooking(id) {
+    currentDoctor = doctorsData.find(d => d.id === id);
+    isNurse = false; selectedSlot = null;
+    document.getElementById('nurse-gps-group').style.display = 'none';
+    document.getElementById('deposit-box').classList.remove('show');
+    document.getElementById('slot-group').style.display = 'block';
+    openModal('booking-modal');
+
+    const today = new Date().toISOString().split('T')[0];
+    const bookings = getLocalBookings().filter(b => b.doctorId === id && b.date === today && b.status === 'pending');
+    const taken = new Set(bookings.map(b => b.slot));
+
+    const container = document.getElementById('time-slots-container'); container.innerHTML = '';
+    for (let h = currentDoctor.startTime; h < currentDoctor.endTime; h++) {
+        for (let m = 0; m < 60; m += currentDoctor.slotMins) {
+            const time = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+            const btn = document.createElement('div'); btn.className = 'time-slot'; btn.innerText = time;
+            if (taken.has(time)) { btn.classList.add('disabled'); btn.innerText += ' (محجوز)'; }
+            else { btn.onclick = () => { document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); selectedSlot = time; }; }
+            container.appendChild(btn);
+        }
+    }
+}
+
+function submitBooking() {
+    const name = document.getElementById('patient-name').value;
+    const phone = document.getElementById('patient-phone').value;
+    if (!name || !phone || !selectedSlot) return showToast('يرجى إكمال البيانات');
+
+    const btn = document.getElementById('confirm-booking-btn'); btn.textContent = 'جارٍ الحجز...'; btn.disabled = true;
+
+    const today = new Date().toISOString().split('T')[0];
+    const bookings = getLocalBookings();
+    const queue = bookings.filter(b => b.doctorId === currentDoctor.id && b.date === today).length + 1;
+
+    const newBooking = {
+        id: 'BK-' + Date.now(), patientName: name, patientPhone: phone, doctorId: currentDoctor.id,
+        doctorName: currentDoctor.name, slot: selectedSlot, queueNumber: queue, date: today,
+        status: 'pending', createdAt: new Date().toISOString(), meds: [], labs: []
+    };
+    
+    bookings.unshift(newBooking);
+    saveLocalBookings(bookings);
+    localStorage.setItem('wasla_phone', phone);
+
+    // إظهار زرار الطبيب (للتجربة عشان تقدر تكتب روشتة)
+    document.getElementById('doctor-fab').style.display = 'flex';
+    activeBookingForDoctor = newBooking;
+
+    closeModal('booking-modal'); 
+    showToast('تم الحجز بنجاح!');
+    navigateTo('mybookings');
+}
+
+// --- وضع الطبيب (كتابة الروشتة) ---
+function openDoctorModal() {
+    if(!activeBookingForDoctor) return showToast('لا يوجد حجز نشط للتجربة');
+    document.getElementById('doc-patient-name').innerText = activeBookingForDoctor.patientName;
+    openModal('doctor-modal');
+}
+
+function submitDoctorRequest() {
+    const type = document.getElementById('doc-request-type').value;
+    const details = document.getElementById('doc-request-details').value;
+    if(!details) return showToast('أدخل التفاصيل');
+
+    let bookings = getLocalBookings();
+    const index = bookings.findIndex(b => b.id === activeBookingForDoctor.id);
+    
+    if(index > -1) {
+        if(type === 'prescription') {
+            bookings[index].meds.push({ text: details, pharmacy: null });
+        } else {
+            bookings[index].labs.push(details);
+        }
+        saveLocalBookings(bookings);
+        showToast('تم إرسال الطلب لملف المريض بنجاح!');
+        closeModal('doctor-modal');
+        document.getElementById('doc-request-details').value = '';
+    }
+}
+
+// --- الملف الطبي للمريض (EMR) ---
+function switchEMRTab(tab, btn) {
+    document.querySelectorAll('.emr-subtab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('emr-tab-prescriptions').style.display = tab === 'prescriptions' ? 'block' : 'none';
+    document.getElementById('emr-tab-labs').style.display = tab === 'labs' ? 'block' : 'none';
+}
+
+function loadEMR() {
+    const phone = localStorage.getItem('wasla_phone');
+    const bookings = getLocalBookings().filter(b => b.patientPhone === phone);
+    
+    // الروشتات
+    const preList = document.getElementById('prescriptions-list');
+    const prescriptions = bookings.flatMap(b => b.meds.map(m => ({ ...m, doctor: b.doctorName })));
+    
+    if(prescriptions.length === 0) {
+        preList.innerHTML = '<p style="text-align:center; color:var(--muted);">لا توجد روشتات حالياً.</p>';
+    } else {
+        preList.innerHTML = prescriptions.map(p => `
+            <div class="prescription-card">
+                <h4>روشتة من ${p.doctor}</h4>
+                <div class="prescription-meds">${p.text}</div>
+                <p style="font-size:12px; font-weight:bold; margin-bottom:10px; color:var(--muted);">ابحث عن الدواء في الصيدليات المتعاقدة:</p>
+                ${pharmaciesData.map(ph => `
+                    <div class="pharmacy-card">
+                        <div class="pharmacy-header">
+                            <h4>${ph.name}</h4>
+                            <span class="badge-available ${ph.available === 'full' ? 'badge-full' : 'badge-partial'}">
+                                ${ph.available === 'full' ? 'متوفر بالكامل' : 'متوفر جزئياً'}
+                            </span>
+                        </div>
+                        <div class="pharmacy-footer">
+                            <div class="pharmacy-price">${ph.price} ج.م</div>
+                            <a href="https://wa.me/${ph.phone}?text=مرحباً، أريد طلب الروشتة الخاصة بي من تطبيق وصلة" target="_blank" class="whatsapp-btn">
+                                <i class="fa-brands fa-whatsapp"></i> تواصل
+                            </a>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `).join('');
+    }
+
+    // التحاليل
+    const labsList = document.getElementById('labs-list');
+    const labs = bookings.flatMap(b => b.labs.map(l => ({ text: l, doctor: b.doctorName })));
+    
+    if(labs.length === 0) {
+        labsList.innerHTML = '<p style="text-align:center; color:var(--muted);">لا توجد طلبات تحاليل.</p>';
+    } else {
+        labsList.innerHTML = labs.map(l => `
+            <div class="prescription-card">
+                <h4>طلب من ${l.doctor}</h4>
+                <div class="prescription-meds">${l.text}</div>
+                <button class="book-btn" style="width:100%; margin-top:10px;" onclick="window.open('https://maps.google.com/?q=30.3128,31.3234','_blank')">عرض المعامل القريبة</button>
+            </div>
+        `).join('');
+    }
+}
+
+// إعدادات التنقل
+const originalNavigateTo = navigateTo;
+navigateTo = function(viewId) {
+    originalNavigateTo(viewId);
+    if(viewId === 'medical') renderDoctors();
+};
+   
 </script>
 </body>
 </html>
