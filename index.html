@@ -6,487 +6,6 @@
 <meta name="theme-color" content="#059669">
 <title>وصلة | WASLA - منصة الخدمات الشاملة</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- استدعاء الخطوط الجديدة (Fredoka للوجو، Tajawal للكتابة) -->
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-<style>
-/* =========================================
-   1. إعدادات الألوان والثيم (Design System)
-   ========================================= */
-:root {
-  --brand: #059669;       
-  --brand-light: #D1FAE5;
-  --brand-gradient: linear-gradient(135deg, #10B981, #0284C7);
-  --dark: #0F172A;        
-  --bg: #F4F7FB;          
-  --card: #FFFFFF;        
-  --text: #1E293B;        
-  --muted: #64748B;       
-  --border: #E2E8F0;      
-  --nav-bg: rgba(255, 255, 255, 0.95);
-  
-  /* ألوان اللوجو الجديد */
-  --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366);
-  --logo-text-color: #FF3366;
-
-  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 10px 25px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-  --shadow-hover: 0 20px 25px -5px rgba(5, 150, 105, 0.15), 0 10px 10px -5px rgba(5, 150, 105, 0.04);
-  --shadow-glow: 0 0 15px rgba(16, 185, 129, 0.4);
-}
-
-/* الوضع الليلي */
-[data-theme="dark"] {
-  --brand: #10B981;
-  --brand-light: #064E3B;
-  --brand-gradient: linear-gradient(135deg, #059669, #0369A1);
-  --dark: #F8FAFC;
-  --bg: #0B1120;
-  --card: #1E293B;
-  --text: #F1F5F9;
-  --muted: #94A3B8;
-  --border: #334155;
-  --nav-bg: rgba(30, 41, 59, 0.95);
-  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 10px 25px -3px rgba(0, 0, 0, 0.4);
-  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { 
-  background-color: var(--bg); color: var(--text); font-family: 'Cairo', sans-serif; 
-  padding-bottom: 80px; transition: background-color 0.3s, color 0.3s;
-  overflow-x: hidden;
-}
-button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outline: none; }
-
-/* =========================================
-   2. الشريط العلوي (اللوجو الجديد)
-   ========================================= */
-.top-header {
-  background: var(--card); padding: 12px 20px;
-  display: flex; justify-content: space-between; align-items: center;
-  position: sticky; top: 0; z-index: 100;
-  border-bottom: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-}
-.brand { display: flex; align-items: center; gap: 12px; }
-/* اللوجو المربع */
-.logo-box {
-  width: 48px; height: 48px;
-  background: var(--logo-gradient);
-  border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 6px 15px rgba(255, 51, 102, 0.3);
-  position: relative; overflow: hidden;
-}
-.logo-box::after {
-  content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
-  transform: skewX(-25deg); animation: shine 4s infinite;
-}
-@keyframes shine { 100% { left: 200%; } }
-/* حرف W */
-.logo-w {
-  font-family: 'Fredoka One', cursive;
-  color: white; font-size: 32px; line-height: 1;
-  margin-top: -4px; /* ضبط بسيط للمحاذاة */
-}
-/* النصوص */
-.brand-text { display: flex; flex-direction: column; align-items: flex-start; }
-.brand-text h1 { 
-  font-family: 'Tajawal', sans-serif; 
-  font-size: 26px; font-weight: 900; color: var(--dark); 
-  line-height: 1; margin-bottom: 4px; letter-spacing: -0.5px;
-}
-.brand-text span { 
-  font-family: 'Tajawal', sans-serif; 
-  font-size: 11px; font-weight: 800; color: var(--logo-text-color); 
-  letter-spacing: 3px; line-height: 1;
-}
-
-.icon-btn {
-  width: 42px; height: 42px; border-radius: 50%;
-  background: var(--bg); border: 1px solid var(--border);
-  color: var(--text); display: flex; align-items: center; justify-content: center;
-  font-size: 18px; transition: 0.2s; box-shadow: var(--shadow-sm);
-}
-.icon-btn:active { transform: scale(0.9); }
-
-/* =========================================
-   3. الشاشات (Views)
-   ========================================= */
-.app-view { display: none; animation: fadeIn 0.4s ease; }
-.app-view.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-/* =========================================
-   4. الشاشة الرئيسية (Home)
-   ========================================= */
-.hero {
-  background: linear-gradient(135deg, #0F172A, #1E293B);
-  border-radius: 24px; margin: 20px; padding: 35px 25px;
-  color: white; position: relative; overflow: hidden;
-  box-shadow: var(--shadow-md);
-}
-.hero::before {
-  content: ''; position: absolute; top: -50px; right: -50px;
-  width: 200px; height: 200px; background: rgba(16, 185, 129, 0.4);
-  border-radius: 50%; filter: blur(50px); animation: pulseHalo 4s infinite alternate;
-}
-@keyframes pulseHalo { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0.2; } }
-
-.hero h1 { font-size: 26px; font-weight: 900; margin-bottom: 10px; position: relative; z-index: 1; line-height: 1.4; }
-.hero p { font-size: 14px; color: #94A3B8; margin-bottom: 20px; position: relative; z-index: 1; }
-.search-bar {
-  display: flex; background: rgba(255,255,255,0.1); border-radius: 14px; padding: 6px;
-  border: 1px solid rgba(255,255,255,0.15); position: relative; z-index: 1;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-}
-.search-bar input { flex: 1; background: transparent; border: none; padding: 10px 15px; color: white; font-family: 'Cairo'; outline: none; }
-.search-bar button { background: var(--brand-gradient); color: white; border-radius: 10px; padding: 0 20px; font-weight: bold; box-shadow: var(--shadow-glow); }
-
-/* --- الإعلان المتحرك --- */
-.slider-wrapper {
-  margin: 0 20px 20px; border-radius: 18px; overflow: hidden;
-  position: relative; box-shadow: var(--shadow-md); background: var(--card);
-  height: 100px;
-}
-.slider-track { display: flex; transition: transform 0.5s ease-in-out; height: 100%; }
-.promo-slide {
-  min-width: 100%; display: flex; align-items: center; padding: 0 20px; gap: 15px;
-}
-.promo-icon {
-  width: 60px; height: 60px; border-radius: 15px;
-  display: flex; align-items: center; justify-content: center; font-size: 26px;
-  box-shadow: var(--shadow-sm);
-}
-.promo-text h4 { font-size: 15px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
-.promo-text p { font-size: 12px; color: var(--muted); }
-.slider-dots {
-  position: absolute; bottom: 8px; left: 0; right: 0;
-  display: flex; justify-content: center; gap: 6px;
-}
-.dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,0.2); transition: 0.3s; }
-.dot.active { background: var(--brand); width: 20px; border-radius: 10px; }
-
-/* --- شبكة الأقسام --- */
-.section-title { padding: 0 20px; margin: 20px 0 15px; font-size: 18px; font-weight: 900; color: var(--dark); display: flex; justify-content: space-between; align-items: center; }
-.categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
-@media (min-width: 600px) { .categories-grid { grid-template-columns: repeat(3, 1fr); } }
-
-.cat-card {
-  background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px;
-  display: flex; flex-direction: column; align-items: flex-start;
-  box-shadow: var(--shadow-sm); transition: 0.3s; cursor: pointer;
-}
-.cat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--brand); }
-.cat-icon {
-  width: 55px; height: 55px; border-radius: 16px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 24px; margin-bottom: 15px; box-shadow: var(--shadow-sm);
-}
-.cat-card h3 { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
-.cat-card p { font-size: 12px; color: var(--muted); line-height: 1.5; }
-
-/* =========================================
-   5. الشريط السفلي
-   ========================================= */
-.bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: var(--nav-bg); backdrop-filter: blur(10px);
-  border-top: 1px solid var(--border);
-  display: flex; justify-content: space-around; align-items: center;
-  padding: 12px 0; z-index: 100; box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
-}
-.nav-item {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  background: transparent; color: var(--muted); font-size: 11px; font-weight: 700;
-  width: 60px; transition: 0.3s;
-}
-.nav-item i { font-size: 20px; margin-bottom: 2px; transition: 0.3s; }
-.nav-item.active { color: var(--brand); }
-.nav-item.active i { transform: translateY(-4px); }
-
-/* =========================================
-   6. زر الشكاوى (FAB)
-   ========================================= */
-.fab {
-  position: fixed; bottom: 90px; left: 20px;
-  width: 55px; height: 55px; border-radius: 50%;
-  background: var(--brand-gradient); color: white;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 24px; box-shadow: var(--shadow-glow);
-  z-index: 90; transition: 0.3s; animation: float 3s ease-in-out infinite;
-}
-@keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
-
-/* =========================================
-   7. المودالات والإشعارات
-   ========================================= */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(5px); z-index: 1000;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; visibility: hidden; transition: 0.3s;
-}
-.modal-overlay.open { opacity: 1; visibility: visible; }
-.modal-content {
-  background: var(--card); width: 90%; max-width: 450px;
-  border-radius: 24px; padding: 25px; transform: translateY(20px);
-  transition: 0.3s; box-shadow: var(--shadow-md); border: 1px solid var(--border);
-}
-.modal-overlay.open .modal-content { transform: translateY(0); }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.modal-header h2 { font-size: 20px; font-weight: 900; color: var(--dark); }
-.close-btn { background: var(--bg); width: 35px; height: 35px; border-radius: 50%; color: var(--text); display: flex; align-items: center; justify-content: center; }
-
-.input-group { margin-bottom: 15px; }
-.input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
-.input-field {
-  width: 100%; padding: 12px 15px; background: var(--bg); border: 1px solid var(--border);
-  border-radius: 12px; font-family: 'Cairo'; color: var(--text); font-size: 14px; outline: none; transition: 0.2s;
-}
-.input-field:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-light); }
-textarea.input-field { resize: vertical; min-height: 100px; }
-.submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--brand-gradient); color: white; font-weight: 800; font-size: 15px; margin-top: 10px; box-shadow: var(--shadow-glow); }
-
-.toast {
-  position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px);
-  background: var(--dark); color: white; padding: 12px 25px; border-radius: 30px;
-  font-weight: bold; font-size: 14px; opacity: 0; visibility: hidden;
-  transition: 0.3s; z-index: 9999; box-shadow: var(--shadow-md); pointer-events: none;
-}
-.toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
-
-/* Placeholder */
-.service-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; text-align: center; padding: 20px; }
-.service-placeholder i { font-size: 70px; color: var(--brand-light); margin-bottom: 20px; }
-.service-placeholder h2 { font-size: 24px; font-weight: 900; color: var(--dark); margin-bottom: 10px; }
-.back-btn { background: var(--card); border: 1px solid var(--border); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 18px; margin: 20px; box-shadow: var(--shadow-sm); }
-</style>
-</head>
-<body>
-
-<!-- ==================== الشريط العلوي (اللوجو الجديد) ==================== -->
-<header class="top-header">
-  <div class="brand">
-    <div class="logo-box">
-      <div class="logo-w">W</div>
-    </div>
-    <div class="brand-text">
-      <h1>وصلة</h1>
-      <span>WASLA</span>
-    </div>
-  </div>
-  <div style="display: flex; gap: 10px;">
-    <button class="icon-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
-    <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
-  </div>
-</header>
-
-<!-- ==================== 1. الشاشة الرئيسية ==================== -->
-<main id="view-home" class="app-view active">
-  
-  <div class="hero">
-    <h1>كل احتياجاتك،<br>أقرب مع وصلة.</h1>
-    <p>الصحة، السيارات، التعليم، التسوق والصيانة في مكان واحد.</p>
-    <div class="search-bar">
-      <input type="text" placeholder="ابحث عن خدمة، طبيب، أو مطعم...">
-      <button><i class="fa-solid fa-magnifying-glass"></i></button>
-    </div>
-  </div>
-
-  <div class="section-title">عروض وخصومات</div>
-  
-  <!-- الإعلان المتحرك -->
-  <div class="slider-wrapper">
-    <div class="slider-track" id="sliderTrack">
-      <div class="promo-slide">
-        <div class="promo-icon" style="color: #0284C7; background: #E0F2FE;"><i class="fa-solid fa-car"></i></div>
-        <div class="promo-text"><h4>خصم 20% على غسيل السيارات</h4><p>استخدم كود: WASLA20</p></div>
-      </div>
-      <div class="promo-slide">
-        <div class="promo-icon" style="color: #EA580C; background: #FFF7ED;"><i class="fa-solid fa-cart-shopping"></i></div>
-        <div class="promo-text"><h4>توصيل سوبر ماركت مجاني</h4><p>للطلبات فوق 300 جنيه</p></div>
-      </div>
-      <div class="promo-slide">
-        <div class="promo-icon" style="color: #7C3AED; background: #F3E8FF;"><i class="fa-solid fa-graduation-cap"></i></div>
-        <div class="promo-text"><h4>أول حصة تعليمية مجانية</h4><p>لجميع الطلاب الجدد</p></div>
-      </div>
-    </div>
-    <div class="slider-dots" id="sliderDots"></div>
-  </div>
-
-  <div class="section-title">اكتشف الأقسام</div>
-  <div class="categories-grid">
-    <div class="cat-card" onclick="navigateTo('view-medical')">
-      <div class="cat-icon" style="background: #ECFDF5; color: #059669; box-shadow: 0 4px 10px rgba(5,150,105,0.15);"><i class="fa-solid fa-heart-pulse"></i></div>
-      <h3>الصحة والطب</h3>
-      <p>أطباء، صيدليات، ومعامل</p>
-    </div>
-    <div class="cat-card" onclick="navigateTo('view-cars')">
-      <div class="cat-icon" style="background: #E0F2FE; color: #0284C7; box-shadow: 0 4px 10px rgba(2,132,199,0.15);"><i class="fa-solid fa-car"></i></div>
-      <h3>خدمات السيارات</h3>
-      <p>صيانة، غسيل، وسحب</p>
-    </div>
-    <div class="cat-card" onclick="navigateTo('view-education')">
-      <div class="cat-icon" style="background: #F3E8FF; color: #7C3AED; box-shadow: 0 4px 10px rgba(124,58,237,0.15);"><i class="fa-solid fa-graduation-cap"></i></div>
-      <h3>وصلة للتعليم</h3>
-      <p>مدرسون ومجموعات</p>
-    </div>
-    <div class="cat-card" onclick="navigateTo('view-shopping')">
-      <div class="cat-icon" style="background: #FFF7ED; color: #EA580C; box-shadow: 0 4px 10px rgba(234,88,12,0.15);"><i class="fa-solid fa-cart-shopping"></i></div>
-      <h3>السوبر ماركت</h3>
-      <p>كل احتياجات البيت</p>
-    </div>
-    <div class="cat-card" onclick="navigateTo('view-maintenance')">
-      <div class="cat-icon" style="background: #FEF2F2; color: #E11D48; box-shadow: 0 4px 10px rgba(225,29,72,0.15);"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-      <h3>الصيانة المنزلية</h3>
-      <p>سباكة وكهرباء</p>
-    </div>
-  </div>
-</main>
-
-<!-- ==================== شاشات الأقسام ==================== -->
-<div id="view-medical" class="app-view">
-  <button class="back-btn" onclick="navigateTo('view-home')"><i class="fa-solid fa-arrow-right"></i></button>
-  <div class="service-placeholder"><i class="fa-solid fa-heart-pulse"></i><h2>القسم الطبي</h2><p>جاهز لتركيب كود الخدمة الطبية.</p></div>
-</div>
-<div id="view-cars" class="app-view">
-  <button class="back-btn" onclick="navigateTo('view-home')"><i class="fa-solid fa-arrow-right"></i></button>
-  <div class="service-placeholder"><i class="fa-solid fa-car"></i><h2>خدمات السيارات</h2><p>جاهز لتركيب تطبيق السيارات.</p></div>
-</div>
-<div id="view-education" class="app-view">
-  <button class="back-btn" onclick="navigateTo('view-home')"><i class="fa-solid fa-arrow-right"></i></button>
-  <div class="service-placeholder"><i class="fa-solid fa-graduation-cap"></i><h2>التعليم</h2><p>قريباً</p></div>
-</div>
-<div id="view-shopping" class="app-view">
-  <button class="back-btn" onclick="navigateTo('view-home')"><i class="fa-solid fa-arrow-right"></i></button>
-  <div class="service-placeholder"><i class="fa-solid fa-cart-shopping"></i><h2>التسوق</h2><p>قريباً</p></div>
-</div>
-<div id="view-maintenance" class="app-view">
-  <button class="back-btn" onclick="navigateTo('view-home')"><i class="fa-solid fa-arrow-right"></i></button>
-  <div class="service-placeholder"><i class="fa-solid fa-screwdriver-wrench"></i><h2>الصيانة</h2><p>قريباً</p></div>
-</div>
-
-<!-- ==================== زر الشكاوى ==================== -->
-<button class="fab" onclick="openModal('complaint-modal')"><i class="fa-solid fa-headset"></i></button>
-
-<!-- مودال الشكاوى -->
-<div class="modal-overlay" id="complaint-modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>الشكاوى والاقتراحات</h2>
-      <button class="close-btn" onclick="closeModal('complaint-modal')"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="input-group">
-      <label>نوع الرسالة</label>
-      <select class="input-field">
-        <option>اقتراح لتطوير المنصة</option>
-        <option>شكوى بخصوص خدمة</option>
-        <option>مشكلة تقنية في التطبيق</option>
-      </select>
-    </div>
-    <div class="input-group">
-      <label>الاسم (اختياري)</label>
-      <input type="text" class="input-field" placeholder="اكتب اسمك هنا...">
-    </div>
-    <div class="input-group">
-      <label>تفاصيل الرسالة</label>
-      <textarea class="input-field" placeholder="اكتب اقتراحك أو شكوتك بالتفصيل..."></textarea>
-    </div>
-    <button class="submit-btn" onclick="closeModal('complaint-modal'); showToast('تم إرسال رسالتك بنجاح، شكراً لك!')">إرسال</button>
-  </div>
-</div>
-
-<!-- ==================== شريط التنقل السفلي ==================== -->
-<nav class="bottom-nav">
-  <button class="nav-item active" onclick="navigateTo('view-home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
-  <button class="nav-item" onclick="showToast('قريباً')"><i class="fa-solid fa-box"></i><span>طلباتي</span></button>
-  <button class="nav-item" onclick="showToast('قريباً')"><i class="fa-solid fa-user"></i><span>حسابي</span></button>
-</nav>
-
-<div id="toast" class="toast"></div>
-
-<script>
-// =========================================
-// 1. التنقل
-// =========================================
-function navigateTo(viewId) {
-  document.querySelectorAll('.app-view').forEach(view => view.classList.remove('active'));
-  document.getElementById(viewId).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-  if(viewId === 'view-home') document.querySelector('.nav-item:nth-child(1)').classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// =========================================
-// 2. الوضع الليلي
-// =========================================
-function toggleTheme() {
-  const body = document.documentElement;
-  const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-  body.setAttribute('data-theme', newTheme);
-  document.getElementById('theme-icon').className = newTheme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-}
-
-// =========================================
-// 3. المودال والإشعارات
-// =========================================
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg; toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-// =========================================
-// 4. محرك الإعلانات
-// =========================================
-let currentSlide = 0;
-const track = document.getElementById('sliderTrack');
-const dotsContainer = document.getElementById('sliderDots');
-const totalSlides = document.querySelectorAll('.promo-slide').length;
-
-for (let i = 0; i < totalSlides; i++) {
-  const dot = document.createElement('div');
-  dot.classList.add('dot');
-  if (i === 0) dot.classList.add('active');
-  dotsContainer.appendChild(dot);
-}
-
-function updateSlider() {
-  track.style.transform = `translateX(${currentSlide * 100}%)`;
-  document.querySelectorAll('.dot').forEach((dot, index) => {
-    dot.classList.toggle('active', index === currentSlide);
-  });
-}
-
-setInterval(() => {
-  currentSlide = (currentSlide + 1) % totalSlides;
-  updateSlider();
-}, 3500);
-
-let touchStartX = 0;
-track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
-track.addEventListener('touchend', e => {
-  const touchEndX = e.changedTouches[0].clientX;
-  if (touchStartX - touchEndX > 50) { currentSlide = (currentSlide + 1) % totalSlides; updateSlider(); } 
-  else if (touchEndX - touchStartX > 50) { currentSlide = (currentSlide - 1 + totalSlides) % totalSlides; updateSlider(); }
-});
-</script>
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#059669">
-<title>وصلة | WASLA - منصة الخدمات الشاملة</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <!-- ربط فايربيز -->
@@ -494,7 +13,7 @@ track.addEventListener('touchend', e => {
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
 <style>
-/* --- نفس الثيم الأساسي --- */
+/* --- الثيم الأساسي --- */
 :root {
   --brand: #059669; --brand-light: #D1FAE5; --brand-gradient: linear-gradient(135deg, #10B981, #0284C7);
   --dark: #0F172A; --bg: #F4F7FB; --card: #FFFFFF; --text: #1E293B; --muted: #64748B; --border: #E2E8F0;
@@ -565,7 +84,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .back-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 18px; }
 .medical-header h2 { font-size: 20px; font-weight: 900; color: var(--dark); }
 
-/* تابات الخدمات الطبية */
 .medical-services-tabs { display: flex; gap: 10px; overflow-x: auto; padding: 15px 20px; scrollbar-width: none; background: var(--card); border-bottom: 1px solid var(--border); }
 .medical-services-tabs::-webkit-scrollbar { display: none; }
 .med-service-btn { padding: 10px 20px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); color: var(--muted); font-weight: 700; white-space: nowrap; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
@@ -589,27 +107,44 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .doc-price span { font-size: 11px; color: var(--muted); font-weight: normal; }
 .book-btn { background: var(--brand-gradient); color: white; border-radius: 10px; padding: 8px 15px; font-weight: 800; font-size: 12px; box-shadow: var(--shadow-glow); }
 
-/* الخدمات الطبية الأخرى */
 .other-med-services { display: none; padding: 20px; }
 .other-med-services.active { display: block; }
 .med-item-card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .med-item-card h4 { font-size: 15px; font-weight: 800; }
 .med-item-card p { font-size: 12px; color: var(--muted); }
 
-/* --- كروت الأعراض الجديدة --- */
+/* --- كروت الأعراض --- */
 .symptoms-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
 .symptom-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px 15px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: var(--shadow-sm); }
 .symptom-card:hover { transform: translateY(-5px); border-color: var(--brand); box-shadow: var(--shadow-hover); }
 .symptom-card i { font-size: 30px; color: var(--brand); margin-bottom: 10px; display: block; }
 .symptom-card span { font-size: 14px; font-weight: 800; color: var(--dark); }
 
-/* --- الشريط السفلي والفاب --- */
+/* --- الشريط السفلي والزرار العائم --- */
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding: 12px 0; z-index: 100; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); }
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; width: 60px; transition: 0.3s; }
 .nav-item i { font-size: 20px; margin-bottom: 2px; }
 .nav-item.active { color: var(--brand); }
 .nav-item.active i { transform: translateY(-4px); }
-.fab { position: fixed; bottom: 90px; left: 20px; width: 55px; height: 55px; border-radius: 50%; background: var(--brand-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: var(--shadow-glow); z-index: 90; animation: float 3s infinite; }
+
+/* زرار الشكاوى فوق على اليمين عشان ميتغطاش على "حسابي" */
+.fab { 
+  position: fixed; 
+  bottom: 100px; 
+  right: 20px; 
+  width: 55px; 
+  height: 55px; 
+  border-radius: 50%; 
+  background: var(--brand-gradient); 
+  color: white; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-size: 24px; 
+  box-shadow: var(--shadow-glow); 
+  z-index: 90; 
+  animation: float 3s infinite; 
+}
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
 /* --- المودالات --- */
@@ -624,7 +159,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
 .input-field { width: 100%; padding: 12px 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; font-family: 'Cairo'; color: var(--text); font-size: 14px; outline: none; }
 
-/* تنسيقات الدفع والعربون */
 .payment-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
 .pay-option { border: 2px solid var(--border); border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; }
 .pay-option.selected { border-color: var(--brand); background: var(--brand-light); }
@@ -699,14 +233,13 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   </div>
 </main>
 
-<!-- ==================== القسم الطبي الشامل ==================== -->
+<!-- ==================== القسم الطبي ==================== -->
 <div id="view-medical" class="app-view">
   <div class="medical-header">
     <button class="back-btn" onclick="navigateTo('view-home')"><i class="fa-solid fa-arrow-right"></i></button>
     <h2>وصلة الطبية</h2>
   </div>
 
-  <!-- تابات الخدمات الطبية -->
   <div class="medical-services-tabs">
     <button class="med-service-btn active" onclick="switchMedTab('doctors', this)"><i class="fa-solid fa-user-doctor"></i> الأطباء</button>
     <button class="med-service-btn" onclick="switchMedTab('symptoms', this)"><i class="fa-solid fa-head-side-cough"></i> الأعراض</button>
@@ -715,7 +248,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     <button class="med-service-btn" onclick="switchMedTab('supplies', this)"><i class="fa-solid fa-wheelchair"></i> مستلزمات طبية</button>
   </div>
 
-  <!-- محتوى: الأطباء -->
   <div id="med-tab-doctors" class="other-med-services active" style="display:block; padding-top:0;">
     <div class="specialties" style="padding: 15px 20px;">
       <button class="spec-btn active" onclick="filterDoctors('all', this)">الكل</button>
@@ -727,15 +259,11 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     <div class="doctors-list" id="doctors-list"></div>
   </div>
 
-  <!-- محتوى: الأعراض (الجديد) -->
   <div id="med-tab-symptoms" class="other-med-services">
     <h3 style="margin-bottom: 15px; font-size: 16px;">بتحس بإيه؟ اختار العرض وهنرشحلك الدكتور</h3>
-    <div class="symptoms-grid" id="symptoms-grid">
-      <!-- سيتم توليدها بالجافاسكريبت -->
-    </div>
+    <div class="symptoms-grid" id="symptoms-grid"></div>
   </div>
 
-  <!-- محتوى: تمريض منزلي -->
   <div id="med-tab-nursing" class="other-med-services">
     <div class="med-item-card">
       <div><h4>حقن وريدية ومحاليل</h4><p>زيارة منزلية - 150 ج.م</p></div>
@@ -747,7 +275,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
   </div>
 
-  <!-- محتوى: الصيدلية -->
   <div id="med-tab-pharmacy" class="other-med-services">
     <div style="text-align:center; padding: 20px; border: 2px dashed var(--border); border-radius: 15px;">
       <i class="fa-solid fa-file-prescription" style="font-size: 40px; color: var(--brand); margin-bottom: 10px;"></i>
@@ -758,7 +285,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
   </div>
 
-  <!-- محتوى: مستلزمات طبية -->
   <div id="med-tab-supplies" class="other-med-services">
     <div class="med-item-card">
       <div><h4>مرتبة هوائية (فراش طبي)</h4><p>مضادة لقرح الفراش - 850 ج.م</p></div>
@@ -814,9 +340,31 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     <div class="deposit-box" id="deposit-box">
       <h4><i class="fa-solid fa-triangle-exclamation"></i> مطلوب دفع عربون 25%</h4>
       <p>لضمان جدية الحجز (زيارة منزلية)، يُرجى دفع عربون بقيمة <strong id="deposit-amount">0 ج.م</strong>.</p>
-      <p style="margin-top:5px;">المتبقي يُدفع نقداً بعد إتمام الخدمة.</p>
     </div>
     <button class="submit-btn" id="confirm-booking-btn" onclick="submitBooking()">تأكيد الحجز الآن</button>
+  </div>
+</div>
+
+<!-- مودال الشكاوى -->
+<div class="modal-overlay" id="complaint-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>الشكاوى والاقتراحات</h2>
+      <button class="close-btn" onclick="closeModal('complaint-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="input-group">
+      <label>نوع الرسالة</label>
+      <select class="input-field">
+        <option>اقتراح لتطوير المنصة</option>
+        <option>شكوى بخصوص خدمة</option>
+        <option>مشكلة تقنية</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label>تفاصيل الرسالة</label>
+      <textarea class="input-field" placeholder="اكتب تفاصيل..."></textarea>
+    </div>
+    <button class="submit-btn" onclick="closeModal('complaint-modal'); showToast('تم إرسال رسالتك بنجاح!')">إرسال</button>
   </div>
 </div>
 
@@ -825,7 +373,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   <div class="admin-header">
     <div>
       <h2 style="font-size: 20px; font-weight: 900;">لوحة تحكم المؤسس</h2>
-      <p style="font-size: 12px; opacity: 0.8;">إدارة كل عمليات المنصة</p>
     </div>
     <button class="close-btn" onclick="closeAdmin()"><i class="fa-solid fa-xmark"></i></button>
   </div>
@@ -835,14 +382,14 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   </div>
 </div>
 
-<!-- ==================== الشريط السفلي ==================== -->
+<!-- ==================== الشريط السفلي والزرار العائم ==================== -->
 <nav class="bottom-nav">
   <button class="nav-item active" onclick="navigateTo('view-home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
   <button class="nav-item" onclick="showToast('قريباً')"><i class="fa-solid fa-box"></i><span>طلباتي</span></button>
   <button class="nav-item" onclick="showToast('قريباً')"><i class="fa-solid fa-user"></i><span>حسابي</span></button>
 </nav>
 
-<button class="fab" onclick="showToast('قريباً')"><i class="fa-solid fa-headset"></i></button>
+<button class="fab" onclick="openModal('complaint-modal')"><i class="fa-solid fa-headset"></i></button>
 
 <div id="toast" class="toast"></div>
 
@@ -862,7 +409,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // ==========================================
-// 2. البيانات (أطباء + أعراض)
+// 2. البيانات
 // ==========================================
 const doctorsData = [
   { id: 1, name: "د. أحمد محمود", spec: "أسنان", rating: 4.9, price: 200, icon: "fa-tooth", color: "#0284C7", bg: "#E0F2FE" },
@@ -907,14 +454,11 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-// تابات القسم الطبي
 function switchMedTab(tabId, btn) {
   document.querySelectorAll('.med-service-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('.other-med-services').forEach(tab => tab.style.display = 'none');
   document.getElementById(`med-tab-${tabId}`).style.display = 'block';
-  
-  // لو دخلنا على الأعراض، نرندرها
   if (tabId === 'symptoms') renderSymptoms();
 }
 
@@ -949,7 +493,6 @@ function filterDoctors(spec, btn) {
   renderDoctors(spec);
 }
 
-// --- الجديد: عرض الأعراض واختيارها ---
 function renderSymptoms() {
   const grid = document.getElementById('symptoms-grid');
   grid.innerHTML = symptomsData.map(sym => `
@@ -961,24 +504,17 @@ function renderSymptoms() {
 }
 
 function selectSymptom(specialty, symptomName) {
-  // 1. التبديل لتاب الأطباء
-  const docTabBtn = document.querySelector('.med-service-btn'); // أول زرار هو الأطباء
+  const docTabBtn = document.querySelector('.med-service-btn');
   switchMedTab('doctors', docTabBtn);
   
-  // 2. تحديث التخصص النشط
   document.querySelectorAll('.spec-btn').forEach(b => b.classList.remove('active'));
-  // البحث عن زرار التخصص المطلوب
   const targetBtn = Array.from(document.querySelectorAll('.spec-btn')).find(b => b.innerText === specialty);
   if(targetBtn) targetBtn.classList.add('active');
 
-  // 3. فلترة الأطباء
   renderDoctors(specialty);
-  
-  // 4. رسالة توضيحية
   showToast(`بناءً على "${symptomName}"، إليك أطباء ${specialty}`);
 }
 
-// فتح مودال الحجز
 function openBooking(type, name, price = 0, isHome = false) {
   currentDoctor = { type, name, price };
   isHomeVisit = isHome;
@@ -1109,7 +645,5 @@ setInterval(() => {
 renderDoctors();
 </script>
 
-</body>
-</html>
 </body>
 </html>
