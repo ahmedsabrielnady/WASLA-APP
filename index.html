@@ -52,6 +52,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .icon-btn.active { background: var(--brand-light); color: var(--brand); border-color: var(--brand); }
 .icon-btn:active { transform: scale(0.9); box-shadow: 0 0 15px var(--brand); color: var(--brand); }
 .btn-finance { background: #0F172A; color: #FBBF24; border-color: #0F172A; }
+.btn-doctor { background: #7C3AED; color: white; border-color: #7C3AED; }
 [data-theme="dark"] .btn-finance { background: #1E293B; color: #FBBF24; border-color: #334155; }
 
 /* الشريط الإعلاني */
@@ -104,30 +105,9 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .delivery-banner p { font-size: 13px; opacity: 0.9; }
 .input-group { margin-bottom: 15px; }
 .input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
-
-/* --- إصلاح خانات الإدخال (Inputs) عشان الكروم ميعملش Autofill --- */
-.input-field { 
-    width: 100%; padding: 14px 16px; 
-    background: var(--bg); border: 1.5px solid var(--border); 
-    border-radius: 12px; font-family: 'Cairo'; color: var(--text); 
-    font-size: 14px; outline: none; transition: 0.3s;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-}
-.input-field:focus { 
-    border-color: var(--brand); 
-    background: var(--card);
-    box-shadow: 0 0 0 3px var(--brand-light);
-}
-/* إخفاء لون الكروم الأزرق المزعج */
-.input-field:-webkit-autofill,
-.input-field:-webkit-autofill:hover, 
-.input-field:-webkit-autofill:focus, 
-.input-field:-webkit-autofill:active{
-    -webkit-box-shadow: 0 0 0 30px var(--bg) inset !important;
-    -webkit-text-fill-color: var(--text) !important;
-    transition: background-color 5000s ease-in-out 0s;
-}
-
+.input-field { width: 100%; padding: 14px 16px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px; font-family: 'Cairo'; color: var(--text); font-size: 14px; outline: none; transition: 0.3s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+.input-field:focus { border-color: var(--brand); background: var(--card); box-shadow: 0 0 0 3px var(--brand-light); }
+.input-field:-webkit-autofill, .input-field:-webkit-autofill:hover, .input-field:-webkit-autofill:focus, .input-field:-webkit-autofill:active{ -webkit-box-shadow: 0 0 0 30px var(--bg) inset !important; -webkit-text-fill-color: var(--text) !important; transition: background-color 5000s ease-in-out 0s; }
 .location-btn { width: 100%; padding: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-family: 'Cairo'; font-weight: 700; color: var(--text); margin-bottom: 15px; }
 .location-btn.active { background: #ECFDF5; border-color: #10B981; color: #047857; }
 .gps-text { font-size: 11px; color: var(--muted); text-align: center; margin-top: -10px; margin-bottom: 15px; display: block; }
@@ -247,6 +227,34 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .payment-details { display: none; margin-top: 10px; padding: 15px; background: var(--bg); border-radius: 12px; border: 1px dashed var(--border); }
 .payment-details.show { display: block; animation: fadeIn 0.3s ease; }
 
+/* =========================================
+   بوابة الطبيب (Doctor Dashboard)
+   ========================================= */
+#view-doctor-dashboard { background: var(--bg); min-height: 100vh; }
+.doc-dash-header { background: #0F172A; color: white; padding: 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.doc-dash-header h2 { font-size: 18px; font-weight: 900; }
+.doc-content { padding: 20px; max-width: 800px; margin: auto; }
+.doc-welcome { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 20px; border-right: 4px solid #7C3AED; box-shadow: var(--shadow-sm); }
+.doc-welcome h3 { font-size: 18px; font-weight: 900; margin-bottom: 5px; color: var(--dark); }
+.doc-welcome p { font-size: 12px; color: var(--muted); }
+.doc-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+@media(max-width: 500px) { .doc-stats-grid { grid-template-columns: 1fr; } }
+.doc-stat-card { background: var(--card); padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.doc-stat-card i { font-size: 24px; padding: 10px; border-radius: 10px; }
+.doc-stat-card .stat-info { display: flex; flex-direction: column; }
+.doc-stat-card span { font-size: 11px; color: var(--muted); }
+.doc-stat-card strong { font-size: 18px; font-weight: 900; color: var(--dark); }
+.doc-panel { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+.doc-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.doc-panel-header h3 { font-size: 16px; font-weight: 900; color: var(--dark); display: flex; align-items: center; gap: 8px; }
+.doc-queue { display: flex; flex-direction: column; gap: 10px; }
+.queue-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg); border-radius: 12px; border: 1px solid var(--border); }
+.queue-item-info h4 { font-size: 14px; font-weight: 800; margin-bottom: 3px; }
+.queue-item-info p { font-size: 11px; color: var(--muted); }
+.staff-card { display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; }
+.staff-info h4 { font-size: 14px; font-weight: 800; margin-bottom: 3px; }
+.staff-info p { font-size: 12px; color: var(--muted); }
+
 /* الشريط السفلي والمودالات */
 .live-banner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; border-radius: 15px; padding: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 9999; transition: 0.5s; border-right: 5px solid var(--brand); }
 .live-banner.show { top: 20px; }
@@ -287,7 +295,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <div class="brand-text"><h1>وصلة</h1><span>WASLA</span></div>
     </div>
     <div class="header-icons">
-        <button class="icon-btn" onclick="checkNotifications()" title="الإشعارات"><i class="fa-regular fa-bell"></i></button>
+        <button class="icon-btn btn-doctor" onclick="navigateTo('doctor-dashboard')" title="بوابة الطبيب (للتجربة)"><i class="fa-solid fa-user-doctor"></i></button>
         <button class="icon-btn btn-finance" onclick="navigateTo('admin-finance')" title="لوحة التحكم المالية"><i class="fa-solid fa-chart-line"></i></button>
         <button class="icon-btn" id="gps-btn" onclick="toggleGPS()" title="تتبع الموقع"><i class="fa-solid fa-location-dot"></i></button>
         <button class="icon-btn" onclick="toggleTheme()" title="الوضع الليلي"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
@@ -368,6 +376,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </main>
 
+<!-- ==================== شاشة التوصيل ==================== -->
 <div id="view-delivery" class="app-view">
     <div class="medical-header">
         <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
@@ -394,6 +403,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </div>
 
+<!-- ==================== لوحة التحكم المالية ==================== -->
 <div id="view-admin-finance" class="app-view">
     <div class="fin-header">
         <button class="back-btn" onclick="navigateTo('home')" style="background:rgba(255,255,255,0.1); color:white;"><i class="fa-solid fa-arrow-right"></i></button>
@@ -428,6 +438,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </div>
 
+<!-- ==================== شاشة القسم الطبي ==================== -->
 <div id="view-medical" class="app-view">
     <div class="medical-header">
         <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
@@ -509,6 +520,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </div>
 
+<!-- ==================== شاشة التذكرة ==================== -->
 <div id="view-mybookings" class="app-view">
     <div class="medical-header">
         <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
@@ -517,10 +529,79 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     <div id="live-ticket-container" style="padding: 20px;"></div>
 </div>
 
+<!-- ==================== بوابة الطبيب (Doctor Dashboard) ==================== -->
+<div id="view-doctor-dashboard" class="app-view">
+    <div class="doc-dash-header">
+        <h2>بوابة الطبيب (للتجربة)</h2>
+        <button class="icon-btn" onclick="navigateTo('home')" style="background:rgba(255,255,255,0.1); color:white; border:none;"><i class="fa-solid fa-arrow-right"></i> عودة</button>
+    </div>
+
+    <div class="doc-content">
+        <div class="doc-welcome">
+            <h3>مرحباً، د. أحمد محمود 👨‍⚕️</h3>
+            <p>عيادة الأسنان - شبين القناطر</p>
+        </div>
+
+        <div class="doc-stats-grid">
+            <div class="doc-stat-card">
+                <i class="fa-solid fa-eye" style="background:#E0F2FE; color:#0284C7"></i>
+                <div class="stat-info">
+                    <span>مشاهدات العيادة</span>
+                    <strong>145</strong>
+                </div>
+            </div>
+            <div class="doc-stat-card">
+                <i class="fa-solid fa-calendar-check" style="background:#ECFDF5; color:#059669"></i>
+                <div class="stat-info">
+                    <span>حجوزات اليوم</span>
+                    <strong id="doc-stat-bookings">0</strong>
+                </div>
+            </div>
+            <div class="doc-stat-card">
+                <i class="fa-solid fa-money-bill-trend-up" style="background:#F3E8FF; color:#7C3AED"></i>
+                <div class="stat-info">
+                    <span>إيرادات اليوم</span>
+                    <strong id="doc-stat-revenue">0 ج.م</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="doc-panel">
+            <div class="doc-panel-header">
+                <h3><i class="fa-solid fa-users"></i> طابور المرضى اليوم</h3>
+            </div>
+            <div id="doctor-queue-list" class="doc-queue">
+                <!-- سيتم توليد القائمة هنا -->
+            </div>
+        </div>
+
+        <div class="doc-panel">
+            <div class="doc-panel-header">
+                <h3><i class="fa-solid fa-user-nurse"></i> إدارة موظفي العيادة</h3>
+            </div>
+            <div class="staff-card">
+                <div class="staff-info">
+                    <h4>سارة (موظفة الاستقبال)</h4>
+                    <p>الراتب المستحق: 3,000 ج.م</p>
+                </div>
+                <button class="btn primary" onclick="showToast('تم تحويل الراتب لسارة بنجاح!')">تحويل الراتب</button>
+            </div>
+            <div class="staff-card">
+                <div class="staff-info">
+                    <h4>محمد (ممرض)</h4>
+                    <p>الراتب المستحق: 2,500 ج.م</p>
+                </div>
+                <button class="btn primary" onclick="showToast('تم تحويل الراتب لمحمد بنجاح!')">تحويل الراتب</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <button class="doctor-fab" id="doctor-fab" style="display:none;" onclick="openDoctorModal()">
     <i class="fa-solid fa-stethoscope"></i> وضع الطبيب (للتجربة)
 </button>
 
+<!-- ==================== مودال الحجز ==================== -->
 <div class="modal-overlay" id="booking-modal">
     <div class="modal-content">
         <div class="modal-header"><h2>حجز موعد</h2><button class="close-btn" onclick="closeModal('booking-modal')"><i class="fa-solid fa-xmark"></i></button></div>
@@ -571,7 +652,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
             <input type="text" id="wallet-number" class="input-field" style="margin-top:5px;" placeholder="01xxxxxxxxx">
         </div>
 
-        <!-- تنبيه الضمان للمحفظة -->
         <div id="wallet-escrow-info" class="warning-box" style="background:#E0F2FE; border-color:#BAE6FD; color:#0369A1; display:none; margin-top:10px;">
             <i class="fa-solid fa-shield-halved"></i>
             <div>سيتم خصم المبلغ من رصيدك كضمان (Escrow) لضمان حقك وحق الطبيب. إذا ألغيت الحجز في الوقت المسموح، سيعود المبلغ لرصيدك المتاح.</div>
@@ -683,6 +763,7 @@ function navigateTo(viewId) {
     if(viewId === 'medical') renderDoctors();
     if(viewId === 'mybookings') listenToMyTicket();
     if(viewId === 'home') updateWalletUI();
+    if(viewId === 'doctor-dashboard') renderDoctorDashboard();
 }
 
 function openModal(id) { document.getElementById(id).classList.add('open'); }
@@ -857,7 +938,40 @@ function calculateFinance() {
 }
 
 // ==========================================
-// 5. القسم الطبي الشامل
+// 5. بوابة الطبيب (Doctor Dashboard Logic)
+// ==========================================
+function renderDoctorDashboard() {
+    const queueContainer = document.getElementById('doctor-queue-list');
+    const bookings = getLocalBookings().filter(b => b.status === 'pending' && b.doctorId === 1); // عرض حجوزات د.أحمد كمثال
+    
+    // احصائيات تجريبية
+    document.getElementById('doc-stat-bookings').innerText = bookings.length;
+    let totalRev = bookings.reduce((sum, b) => sum + b.price, 0);
+    document.getElementById('doc-stat-revenue').innerText = totalRev + ' ج.م';
+
+    if(bookings.length === 0) {
+        queueContainer.innerHTML = '<p style="text-align:center; color:var(--muted); padding:20px;">لا يوجد مرضى في الطابور حالياً.</p>';
+        return;
+    }
+
+    queueContainer.innerHTML = bookings.map(b => `
+        <div class="queue-item">
+            <div class="queue-item-info">
+                <h4>${b.patientName}</h4>
+                <p>${b.slot} | ${b.paymentMethod === 'wallet' ? 'مدفوع ضمان' : 'كاش'}</p>
+            </div>
+            <button class="btn primary" onclick="callPatient('${b.id}')">استدعاء المريض</button>
+        </div>
+    `).join('');
+}
+
+function callPatient(id) {
+    showToast('🔔 تم إرسال إشعار للمريض بالدخول، يرجى التوجه للغرفة!');
+    // في الواقع، هنا هنبعت إشعار لحظي للمريض
+}
+
+// ==========================================
+// 6. القسم الطبي الشامل
 // ==========================================
 const doctorsData = [
   { id: 1, name: "د. أحمد محمود", spec: "أسنان", price: 200, icon: "fa-tooth", startTime: 14, endTime: 18, slotMins: 30, days: "السبت - الخميس", clinicLat: 30.3128, clinicLng: 31.3234, insurances: ['bupa', 'misr', 'metlife'], targetAge: 'adult' },
@@ -916,7 +1030,7 @@ function switchMedTab(tabId, btn) {
 }
 
 // ==========================================
-// 6. الميزات الجديدة (ذكاء وصلة المطور)
+// 7. الميزات الجديدة (ذكاء وصلة المطور)
 // ==========================================
 function askWaslaAI() {
     const input = document.getElementById('ai-input').value.toLowerCase();
@@ -978,7 +1092,7 @@ function setReminder() {
 }
 
 // ==========================================
-// 7. الأطباء والحجز والدفع
+// 8. الأطباء والحجز والدفع
 // ==========================================
 function setAge(age) {
     currentAgeFilter = age;
@@ -1027,16 +1141,13 @@ function renderDoctors(insuranceFilter = 'all', specFilter = 'all') {
     `).join('');
 }
 
-// دالة اختيار طريقة الدفع
 function selectPaymentMethod(method, el) {
     selectedPayMethod = method;
     document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
     
-    // إخفاء خانات المحفظة لو اختار كاش أو المحفظة
     document.getElementById('payment-details').classList.toggle('show', method === 'vodafone' || method === 'instapay');
     
-    // إظهار تنبيه الضمان لو اختار المحفظة
     const walletInfo = document.getElementById('wallet-escrow-info');
     if(method === 'wallet') {
         walletInfo.style.display = 'flex';
@@ -1056,7 +1167,6 @@ function openBooking(id) {
     document.getElementById('deposit-box').style.display = 'none';
     document.getElementById('slot-group').style.display = 'block';
     
-    // إعادة تعيين الدفع
     selectPaymentMethod('cash', document.querySelectorAll('.pay-method-btn')[0]);
     
     openModal('booking-modal');
@@ -1115,7 +1225,6 @@ function submitBooking() {
         return showToast('يرجى إدخال رقم المحفظة/الحساب');
     }
 
-    // التحقق من المحفظة لو اختار الدفع من المحفظة
     if(selectedPayMethod === 'wallet') {
         if(walletBalance < currentDoctor.price) {
             return showToast(`رصيد المحفظة غير كافي! متاح لك ${walletBalance} ج.م فقط.`);
@@ -1127,7 +1236,6 @@ function submitBooking() {
     const bookings = getLocalBookings();
     const queue = bookings.filter(b => b.doctorId === (currentDoctor.id || '') && b.date === today).length + 1;
 
-    // تنفيذ خصم المحفظة (الضمان)
     if(selectedPayMethod === 'wallet') {
         walletBalance -= currentDoctor.price;
         walletLocked += currentDoctor.price;
@@ -1328,7 +1436,6 @@ function cancelBooking(docId, date, slot) {
         }
     }
 
-    // إرجاع المبلغ للمحفظة لو كان دفع من المحفظة
     if(bookingToCancel && bookingToCancel.paymentMethod === 'wallet') {
         if(msg.includes('استرداد')) {
             walletLocked -= bookingToCancel.price;
@@ -1336,7 +1443,7 @@ function cancelBooking(docId, date, slot) {
             updateWalletUI();
             msg += " (تم إرجاع المبلغ للمحفظة).";
         } else {
-            walletLocked -= bookingToCancel.price; // تحويله للمنصة كعقوبة
+            walletLocked -= bookingToCancel.price;
             updateWalletUI();
             msg += " (تم خصم المبلغ من المحفظة).";
         }
