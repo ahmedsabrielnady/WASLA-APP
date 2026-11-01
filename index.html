@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#059669">
-<title>وصلة | WASLA - الواجهة الرئيسية</title>
+<title>وصلة | WASLA - المنصة الشاملة</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -17,7 +17,9 @@
   --brand: #059669; --brand-light: #D1FAE5; --brand-gradient: linear-gradient(135deg, #10B981, #0284C7);
   --dark: #0F172A; --bg: #F4F7FB; --card: #FFFFFF; --text: #1E293B; --muted: #64748B; --border: #E2E8F0;
   --nav-bg: rgba(255, 255, 255, 0.95);
-  --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366); --logo-text-color: #FF3366;
+  --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366); 
+  --wallet-gradient: linear-gradient(135deg, #7C3AED, #4F46E5);
+  --danger-gradient: linear-gradient(135deg, #E11D48, #BE123C);
   --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05); --shadow-md: 0 10px 25px -3px rgba(0,0,0,0.08);
 }
 [data-theme="dark"] {
@@ -34,89 +36,72 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .app-view.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-/* الهيدر واللوجو */
+/* الهيدر */
 .top-header { background: var(--card); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); }
 .brand { display: flex; align-items: center; gap: 12px; }
 .logo-box { width: 48px; height: 48px; background: var(--logo-gradient); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 15px rgba(255,51,102,0.3); position: relative; overflow: hidden; }
-/* لمعة اللوجو */
-.logo-box::after {
-  content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
-  transform: skewX(-25deg); animation: shine 4s infinite;
-}
+.logo-box::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); transform: skewX(-25deg); animation: shine 4s infinite; }
 @keyframes shine { 100% { left: 200%; } }
 .logo-w { font-family: 'Fredoka One', cursive; color: white; font-size: 32px; margin-top: -4px; z-index: 1; }
 .brand-text h1 { font-family: 'Tajawal', sans-serif; font-size: 26px; font-weight: 900; color: var(--dark); line-height: 1; margin-bottom: 4px; }
-
-/* كلمة WASLA بشكل فخم */
-.brand-text span { 
-  font-family: 'Tajawal', sans-serif; 
-  font-size: 11px; 
-  font-weight: 900; 
-  background: var(--logo-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: 5px; 
-  display: inline-block;
-  transform: scaleY(1.1);
-}
-
+.brand-text span { font-family: 'Tajawal', sans-serif; font-size: 11px; font-weight: 900; background: var(--logo-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 5px; display: inline-block; transform: scaleY(1.1); }
 .header-icons { display: flex; gap: 8px; }
-.icon-btn { 
-  width: 42px; height: 42px; border-radius: 50%; 
-  background: var(--bg); border: 1px solid var(--border); 
-  color: var(--text); display: flex; align-items: center; justify-content: center; 
-  font-size: 18px; position: relative; transition: 0.2s; 
-}
+.icon-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; }
 .icon-btn.active { background: var(--brand-light); color: var(--brand); border-color: var(--brand); }
+.icon-btn:active { transform: scale(0.9); box-shadow: 0 0 15px var(--brand); color: var(--brand); }
 
-/* الهالة التفاعلية (أزرار الهيدر) */
-.icon-btn:active {
-  transform: scale(0.9);
-  box-shadow: 0 0 15px var(--brand);
-  color: var(--brand);
-}
+/* الترحيب */
+.welcome-area { padding: 20px 20px 10px; }
+.welcome-area p { font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+.welcome-area h2 { font-size: 22px; font-weight: 900; color: var(--dark); }
 
-/* الرئيسية والهالة التفاعلية */
-.hero { background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: 24px; margin: 20px; padding: 35px 25px; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
-.hero::before {
-  content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px;
-  background: rgba(16, 185, 129, 0.4); border-radius: 50%; filter: blur(50px);
-  animation: pulseHalo 4s infinite alternate;
-}
+/* شريط البحث */
+.search-container { padding: 0 20px 15px; display: flex; gap: 10px; }
+.search-box { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 15px; display: flex; align-items: center; padding: 0 15px; box-shadow: var(--shadow-sm); }
+.search-box input { width: 100%; border: none; background: transparent; padding: 15px 0; font-family: 'Cairo'; font-size: 14px; color: var(--text); outline: none; }
+.search-box i { color: var(--muted); font-size: 18px; }
+.mic-btn { width: 50px; height: 50px; border-radius: 15px; background: var(--brand-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: var(--shadow-sm); }
+.mic-btn:active { transform: scale(0.9); box-shadow: 0 0 15px var(--brand); }
+
+/* المحفظة والطوارئ (Quick Actions) */
+.quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px 20px; }
+.action-card { border-radius: 20px; padding: 15px; color: white; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; box-shadow: var(--shadow-sm); cursor: pointer; transition: 0.2s; }
+.action-card:active { transform: scale(0.95); }
+.wallet-card { background: var(--wallet-gradient); }
+.emergency-card { background: var(--danger-gradient); animation: pulseRed 2s infinite alternate; }
+@keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(225,29,72,0.4); } 100% { box-shadow: 0 0 15px 5px rgba(225,29,72,0.2); } }
+.action-card h4 { font-size: 13px; font-weight: 700; opacity: 0.9; margin-bottom: 5px; }
+.action-card .value { font-size: 20px; font-weight: 900; }
+.action-card i { position: absolute; left: 15px; top: 15px; font-size: 30px; opacity: 0.2; }
+
+/* البانر الرئيسي (الهالة) */
+.hero { background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: 24px; margin: 0 20px 20px; padding: 30px 25px; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(16, 185, 129, 0.4); border-radius: 50%; filter: blur(50px); animation: pulseHalo 4s infinite alternate; }
 @keyframes pulseHalo { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0.2; } }
-.hero h1 { font-size: 26px; font-weight: 900; margin-bottom: 10px; line-height: 1.4; position: relative; z-index: 1; }
-.hero p { font-size: 14px; color: #94A3B8; position: relative; z-index: 1; }
+.hero h1 { font-size: 24px; font-weight: 900; margin-bottom: 8px; line-height: 1.4; position: relative; z-index: 1; }
+.hero p { font-size: 13px; color: #94A3B8; position: relative; z-index: 1; }
+
+/* السلايدر المتحرك (Ads) */
+.ads-slider { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; padding: 0 20px 20px; scrollbar-width: none; }
+.ads-slider::-webkit-scrollbar { display: none; }
+.ad-item { min-width: 85%; scroll-snap-align: center; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 15px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-sm); }
+.ad-icon { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.ad-info h4 { font-size: 15px; font-weight: 800; color: var(--dark); margin-bottom: 3px; }
+.ad-info p { font-size: 12px; color: var(--muted); }
 
 /* الأقسام */
-.section-title { padding: 0 20px; margin: 20px 0 15px; font-size: 18px; font-weight: 900; color: var(--dark); }
+.section-title { padding: 0 20px; margin: 10px 0 15px; font-size: 18px; font-weight: 900; color: var(--dark); display: flex; justify-content: space-between; }
 .categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
-.cat-card { 
-  background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; 
-  display: flex; flex-direction: column; align-items: flex-start; box-shadow: var(--shadow-sm); 
-  cursor: pointer; transition: 0.2s; 
-}
+.cat-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; box-shadow: var(--shadow-sm); cursor: pointer; transition: 0.2s; }
 .cat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
-
-/* الهالة التفاعلية (كروت الأقسام) */
-.cat-card:active {
-  transform: scale(0.95);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
-  border-color: var(--brand);
-}
-
+.cat-card:active { transform: scale(0.95); box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); border-color: var(--brand); }
 .cat-icon { width: 55px; height: 55px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 15px; transition: 0.3s; }
 .cat-card:active .cat-icon { transform: scale(1.1); }
 .cat-card h3 { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
 .cat-card p { font-size: 12px; color: var(--muted); }
 
 /* شريط التنبيهات اللايف */
-.live-banner {
-  position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-  width: 90%; max-width: 400px; background: white; border-radius: 15px; padding: 15px;
-  display: flex; gap: 15px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-  z-index: 9999; transition: 0.5s; border-right: 5px solid var(--brand);
-}
+.live-banner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; border-radius: 15px; padding: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 9999; transition: 0.5s; border-right: 5px solid var(--brand); }
 .live-banner.show { top: 20px; }
 .live-banner i { font-size: 28px; color: var(--brand); }
 .live-banner h4 { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 3px; }
@@ -127,16 +112,8 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; width: 60px; transition: 0.2s; }
 .nav-item.active { color: var(--brand); }
 .nav-item i { font-size: 20px; margin-bottom: 2px; transition: 0.3s; }
-
-/* الهالة التفاعلية (أزرار الشريط السفلي) */
-.nav-item:active {
-  transform: scale(0.85);
-}
-.nav-item:active i {
-  color: var(--brand);
-  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));
-  transform: translateY(-3px);
-}
+.nav-item:active { transform: scale(0.85); }
+.nav-item:active i { color: var(--brand); filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6)); transform: translateY(-3px); }
 
 /* المودالات */
 .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
@@ -149,12 +126,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
 .input-field { width: 100%; padding: 12px 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; font-family: 'Cairo'; color: var(--text); font-size: 14px; outline: none; }
 .submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--brand-gradient); color: white; font-weight: 800; font-size: 15px; }
-
-/* الهالة التفاعلية (زرار الإرسال) */
-.submit-btn:active {
-  transform: scale(0.96);
-  box-shadow: 0 0 15px var(--brand);
-}
+.submit-btn:active { transform: scale(0.96); box-shadow: 0 0 15px var(--brand); }
 
 .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--dark); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 3000; text-align:center; width: 85%; max-width: 400px; }
 .toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
@@ -178,24 +150,69 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <div class="brand-text"><h1>وصلة</h1><span>WASLA</span></div>
     </div>
     <div class="header-icons">
-        <!-- زرار التنبيهات الجديد -->
-        <button class="icon-btn" onclick="showToast('لا توجد إشعارات جديدة')" title="الإشعارات"><i class="fa-regular fa-bell"></i></button>
-        <!-- زرار الـ GPS -->
-        <button class="icon-btn" id="gps-btn" onclick="toggleGPS()" title="تتبع الموقع"><i class="fa-solid fa-location-dot"></i></button>
-        <!-- زرار الوضع الليلي -->
+        <button class="icon-btn" onclick="showToast('لا توجد إشعارات جديدة')"><i class="fa-regular fa-bell"></i></button>
+        <button class="icon-btn" id="gps-btn" onclick="toggleGPS()"><i class="fa-solid fa-location-dot"></i></button>
         <button class="icon-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
     </div>
 </header>
 
 <!-- ==================== الشاشات (Views) ==================== -->
 <main id="view-home" class="app-view active">
+    
+    <!-- الترحيب -->
+    <div class="welcome-area">
+        <p><i class="fa-solid fa-location-dot" style="color:var(--brand)"></i> شبين القناطر، القليوبية</p>
+        <h2>أهلاً بك يا أحمد 👋</h2>
+    </div>
+
+    <!-- البحث والصوت -->
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" placeholder="ابحث عن دكتور، سيارة، أو مطعم...">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <button class="mic-btn" onclick="startVoiceSearch()"><i class="fa-solid fa-microphone"></i></button>
+    </div>
+
+    <!-- المحفظة والطوارئ -->
+    <div class="quick-actions">
+        <div class="action-card wallet-card" onclick="showToast('محفظتك جاهزة!')">
+            <i class="fa-solid fa-wallet"></i>
+            <h4>محفظة وصلة</h4>
+            <div class="value">150 <span style="font-size:12px;font-weight:normal">ج.م</span></div>
+        </div>
+        <div class="action-card emergency-card" onclick="showToast('جاري الاتصال بالطوارئ...')">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <h4>طلب طارئ</h4>
+            <div class="value">اضغط الآن</div>
+        </div>
+    </div>
+
+    <!-- البانر الرئيسي (الهالة) -->
     <div class="hero">
         <h1>كل احتياجاتك،<br>أقرب مع وصلة.</h1>
         <p>الصحة، السيارات، التعليم، التسوق والصيانة في مكان واحد.</p>
     </div>
 
-    <div class="section-title">اكتشف الأقسام</div>
-    
+    <!-- السلايدر (الإعلانات) -->
+    <div class="section-title"><span>عروض وخصومات</span></div>
+    <div class="ads-slider" id="adsSlider">
+        <div class="ad-item">
+            <div class="ad-icon" style="background:#E0F2FE; color:#0284C7;"><i class="fa-solid fa-truck-fast"></i></div>
+            <div class="ad-info"><h4>توصيل مجاني لفترة محدودة</h4><p>لجميع طلبات السوبر ماركت في شبين</p></div>
+        </div>
+        <div class="ad-item">
+            <div class="ad-icon" style="background:#ECFDF5; color:#059669;"><i class="fa-solid fa-stethoscope"></i></div>
+            <div class="ad-info"><h4>خصم 20% على الكشف الطبي</h4><p>استخدم كود WASLA20</p></div>
+        </div>
+        <div class="ad-item">
+            <div class="ad-icon" style="background:#FFF7ED; color:#EA580C;"><i class="fa-solid fa-car"></i></div>
+            <div class="ad-info"><h4>غسيل سيارات في مكانك</h4><p>اطلب الآن واحصل على تلميع مجاني</p></div>
+        </div>
+    </div>
+
+    <!-- الأقسام -->
+    <div class="section-title"><span>اكتشف الأقسام</span></div>
     <div class="categories-grid">
         <div class="cat-card" onclick="openSection('medical')">
             <div class="cat-icon" style="background: #ECFDF5; color: #059669;"><i class="fa-solid fa-heart-pulse"></i></div>
@@ -296,19 +313,38 @@ function showToast(msg) {
 // 4. فتح الأقسام
 function openSection(section) {
     if(section === 'medical') {
-        // navigateTo('medical'); // هنفعلها لما نحط كود القسم
-        showToast('جاري فتح القسم الطبي...');
+        navigateTo('medical'); 
     } else {
         showToast('هذا القسم سيتم إضافته قريباً!');
     }
 }
 
-// 5. الجي بي إس والإشعارات اللايف (محاكاة)
+// 5. البحث الصوتي
+function startVoiceSearch() {
+    showToast('جاري الاستماع لطلبك... 🎤');
+    // محاكاة للاستماع وبعدين يكتب كلام
+    setTimeout(() => {
+        document.querySelector('.search-box input').value = "دكتور أسنان قريب";
+        showToast('جاري البحث عن: دكتور أسنان قريب');
+    }, 2000);
+}
+
+// 6. السلايدر التلقائي
+let slider = document.getElementById('adsSlider');
+let scrollAmount = 0;
+setInterval(() => {
+    if(slider) {
+        scrollAmount += 300;
+        if(scrollAmount > slider.scrollWidth) scrollAmount = 0;
+        slider.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+    }
+}, 3500);
+
+// 7. الجي بي إس والإشعارات اللايف
 let gpsActive = false;
 function toggleGPS() {
     const btn = document.getElementById('gps-btn');
     gpsActive = !gpsActive;
-    
     if(gpsActive) {
         btn.classList.add('active');
         showToast('تم تفعيل تتبع الموقع (محاكاة)');
