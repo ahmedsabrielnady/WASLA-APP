@@ -92,9 +92,25 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .med-item-card h4 { font-size: 15px; font-weight: 800; }
 .med-item-card p { font-size: 12px; color: var(--muted); }
 
-/* حجوزاتي */
-.queue-card { background: linear-gradient(135deg, #0284C7, #0C4A6E); color: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 10px 20px rgba(2,132,199,0.3); text-align: center; }
-.cancel-btn { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 6px 12px; border-radius: 8px; font-size: 12px; margin-top: 12px; }
+/* =========================================
+   التذكرة الحية (Live Queue Ticket) 
+   ========================================= */
+.live-ticket { background: var(--card); border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid var(--border); }
+.ticket-header { background: linear-gradient(135deg, #0F172A, #1E293B); color: white; padding: 25px 20px; text-align: center; position: relative; }
+.ticket-header h3 { font-size: 18px; font-weight: 800; margin-bottom: 5px; }
+.ticket-header p { font-size: 13px; color: #94A3B8; }
+.ticket-number { font-size: 65px; font-weight: 900; color: white; line-height: 1; margin: 10px 0; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+.ticket-body { padding: 25px 20px; text-align: center; }
+.queue-status { font-size: 18px; font-weight: 900; color: var(--brand); margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.queue-status.alert { color: #E11D48; animation: pulseRed 1.5s infinite; }
+.progress-container { background: #E2E8F0; border-radius: 10px; height: 12px; margin-bottom: 20px; overflow: hidden; position: relative; }
+.progress-bar { height: 100%; background: var(--brand-gradient); width: 0%; transition: width 1s ease-in-out; border-radius: 10px; }
+.ticket-info { background: var(--bg); border-radius: 12px; padding: 15px; text-align: right; margin-bottom: 20px; font-size: 13px; }
+.ticket-info p { margin-bottom: 8px; display: flex; justify-content: space-between; }
+.ticket-info p:last-child { margin-bottom: 0; }
+.ticket-info span { font-weight: 800; color: var(--dark); }
+.map-btn { display: block; width: 100%; padding: 12px; background: #E0F2FE; color: #0369A1; text-align: center; border-radius: 12px; font-weight: 800; text-decoration: none; margin-bottom: 10px; }
+.cancel-btn { background: #FFF1F2; color: #E11D48; width: 100%; padding: 12px; border-radius: 12px; font-weight: 800; border: 1px solid #FECDD3; }
 
 /* الشريط السفلي */
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding: 12px 0; z-index: 100; backdrop-filter: blur(10px); }
@@ -142,6 +158,8 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .admin-card { background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 15px; }
 .admin-card h4 { font-size: 15px; margin-bottom: 5px; }
 .admin-card p { font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+.admin-actions { display: flex; gap: 5px; margin-top: 10px; }
+.admin-btn-sm { padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; flex: 1; }
 
 /* إشعارات GPS */
 .live-banner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; border-radius: 15px; padding: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 9999; transition: 0.5s; border-right: 5px solid var(--brand); }
@@ -159,7 +177,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   <div><h4 id="banner-title">إشعار جديد</h4><p id="banner-desc">تفاصيل</p></div>
 </div>
 
-<!-- الهيدر -->
 <header class="top-header">
   <div class="brand">
     <div class="logo-box"><div class="logo-w">W</div></div>
@@ -173,7 +190,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   </div>
 </header>
 
-<!-- الرئيسية -->
 <main id="view-home" class="app-view active">
   <div class="hero">
     <h1>كل احتياجاتك،<br>أقرب مع وصلة.</h1>
@@ -192,7 +208,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   </div>
 </main>
 
-<!-- القسم الطبي -->
 <div id="view-medical" class="app-view">
   <div class="medical-header">
     <button class="back-btn" onclick="navigateTo('view-home')"><i class="fa-solid fa-arrow-right"></i></button>
@@ -216,7 +231,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
       <label style="font-size:13px; font-weight:bold; margin-bottom:5px; display:block;">فلترة حسب التأمين:</label>
       <select id="insurance-filter" class="input-field" onchange="renderDoctors(document.getElementById('insurance-filter').value)">
         <option value="all">كل الأطباء (بدون تأمين)</option>
-        <!-- سيتم تعبئتها بالجافاسكريبت -->
       </select>
     </div>
     <div class="doctors-list" id="doctors-list"></div>
@@ -259,16 +273,17 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   </div>
 </div>
 
-<!-- حجوزاتي -->
+<!-- شاشة التذاكر الحية -->
 <div id="view-mybookings" class="app-view">
   <div class="medical-header">
     <button class="back-btn" onclick="navigateTo('view-home')"><i class="fa-solid fa-arrow-right"></i></button>
-    <h2>حجوزاتي والطابور</h2>
+    <h2>تذكرة الحجز والطابور</h2>
   </div>
-  <div id="my-bookings-list" style="padding: 20px;"></div>
+  <div id="live-ticket-container" style="padding: 20px;">
+    <!-- التذكرة ستظهر هنا -->
+  </div>
 </div>
 
-<!-- مودال الحجز -->
 <div class="modal-overlay" id="booking-modal">
   <div class="modal-content">
     <div class="modal-header"><h2>حجز موعد</h2><button class="close-btn" onclick="closeModal('booking-modal')"><i class="fa-solid fa-xmark"></i></button></div>
@@ -277,9 +292,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 
     <div class="input-group">
       <label>التأمين الصحي (اختياري)</label>
-      <select id="booking-insurance" class="input-field">
-        <!-- سيتم تعبئتها بالجافاسكريبت -->
-      </select>
+      <select id="booking-insurance" class="input-field"></select>
     </div>
 
     <div class="input-group">
@@ -289,13 +302,11 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <div class="pay-option" onclick="selectPayment('online', this)"><i class="fa-solid fa-mobile-screen"></i><span>دفع إلكتروني</span></div>
       </div>
       <div class="e-wallet-fields" id="wallet-fields">
-        <label style="font-size:12px;">اختر المحفظة وادخل الرقم:</label>
         <select class="input-field" style="margin-bottom:5px;">
           <option>فودافون كاش</option>
           <option>إنستاباي</option>
-          <option>أورنج كاش</option>
         </select>
-        <input type="text" class="input-field" placeholder="رقم المحفظة أو الحساب">
+        <input type="text" class="input-field" placeholder="رقم المحفظة">
       </div>
     </div>
 
@@ -315,7 +326,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   </div>
 </div>
 
-<!-- لوحة الإدارة -->
 <div id="admin-panel">
   <div class="admin-header">
     <div><h2 style="font-size: 20px; font-weight: 900;">لوحة التحكم</h2></div>
@@ -334,15 +344,14 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
       <button class="book-btn" style="width:100%;" onclick="forceOverbook()">تأكيد الحجز اليدوي</button>
     </div>
 
-    <h3 style="margin-bottom: 15px;">أحدث الحجوزات (لإرسال طلبات التحاليل)</h3>
+    <h3 style="margin-bottom: 15px;">إدارة طابور العيادة (للتجربة)</h3>
     <div id="admin-bookings-list"></div>
   </div>
 </div>
 
-<!-- الشريط السفلي -->
 <nav class="bottom-nav">
   <button class="nav-item active" id="nav-home" onclick="navigateTo('view-home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
-  <button class="nav-item" id="nav-bookings" onclick="navigateTo('view-mybookings')"><i class="fa-solid fa-box"></i><span>حجوزاتي</span></button>
+  <button class="nav-item" id="nav-bookings" onclick="navigateTo('view-mybookings')"><i class="fa-solid fa-ticket"></i><span>تذكرتي</span></button>
 </nav>
 
 <div id="toast" class="toast"></div>
@@ -366,16 +375,11 @@ const db = firebase.firestore();
 // 2. البيانات الشاملة
 // ==========================================
 const insurancesList = [
-  { id: "bupa", name: "بوبا إيجيبت (Bupa)" },
-  { id: "misr", name: "مصر للتأمين (Misr Insurance)" },
-  { id: "allianz", name: "أليانز (Allianz)" },
-  { id: "axa", name: "أكسا (AXA)" },
-  { id: "metlife", name: "ميتلايف (MetLife)" },
-  { id: "orient", name: "أورينت (Orient)" },
-  { id: "royal", name: "رويال (Royal)" },
-  { id: "wethaq", name: "وثاق (Wethaq)" },
-  { id: "mada", name: "مدى (Mada)" },
-  { id: "gig", name: "جي أي جي (GIG)" }
+  { id: "bupa", name: "بوبا إيجيبت" }, { id: "misr", name: "مصر للتأمين" },
+  { id: "allianz", name: "أليانز" }, { id: "axa", name: "أكسا" },
+  { id: "metlife", name: "ميتلايف" }, { id: "orient", name: "أورينت" },
+  { id: "royal", name: "رويال" }, { id: "wethaq", name: "وثاق" },
+  { id: "mada", name: "مدى" }, { id: "gig", name: "جي أي جي" }
 ];
 
 const doctorsData = [
@@ -388,9 +392,7 @@ const doctorsData = [
   { id: 7, name: "د. كريم فؤاد", spec: "باطنة", price: 160, icon: "fa-heart-pulse", startTime: 9, endTime: 13, slotMins: 20, days: "السبت - الأربعاء", clinicLat: 30.3125, clinicLng: 31.3225, insurances: ['misr', 'allianz'] },
   { id: 8, name: "د. هالة سامي", spec: "جلدية", price: 240, icon: "fa-hand-dots", startTime: 13, endTime: 17, slotMins: 30, days: "الأحد - الخميس", clinicLat: 30.3145, clinicLng: 31.3245, insurances: ['axa'] },
   { id: 9, name: "د. عمر لطفي", spec: "عيون", price: 210, icon: "fa-eye", startTime: 14, endTime: 18, slotMins: 20, days: "السبت - الخميس", clinicLat: 30.3115, clinicLng: 31.3215, insurances: ['bupa', 'misr'] },
-  { id: 10, name: "د. ياسمين علي", spec: "أسنان", price: 190, icon: "fa-tooth", startTime: 10, endTime: 14, slotMins: 30, days: "الأحد - الخميس", clinicLat: 30.3132, clinicLng: 31.3232, insurances: ['allianz', 'metlife'] },
-  { id: 11, name: "د. طارق عبدالله", spec: "باطنة", price: 170, icon: "fa-heart-pulse", startTime: 17, endTime: 21, slotMins: 20, days: "السبت - الخميس", clinicLat: 30.3122, clinicLng: 31.3222, insurances: ['axa', 'bupa'] },
-  { id: 12, name: "د. نورا سليم", spec: "جلدية", price: 260, icon: "fa-hand-dots", startTime: 11, endTime: 15, slotMins: 30, days: "الأحد - الخميس", clinicLat: 30.3148, clinicLng: 31.3248, insurances: ['metlife'] }
+  { id: 10, name: "د. ياسمين علي", spec: "أسنان", price: 190, icon: "fa-tooth", startTime: 10, endTime: 14, slotMins: 30, days: "الأحد - الخميس", clinicLat: 30.3132, clinicLng: 31.3232, insurances: ['allianz', 'metlife'] }
 ];
 
 const symptomsData = [
@@ -412,6 +414,7 @@ let isNurse = false;
 let nurseLocation = null;
 let watchId = null;
 let notified = new Set();
+let unsubscribeTicket = null;
 
 // ==========================================
 // 3. التهيئة والتنقل
@@ -433,7 +436,10 @@ function navigateTo(id) {
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if(id === 'view-home') document.getElementById('nav-home').classList.add('active');
-  if(id === 'view-mybookings') { document.getElementById('nav-bookings').classList.add('active'); loadMyBookings(); }
+  if(id === 'view-mybookings') { 
+    document.getElementById('nav-bookings').classList.add('active'); 
+    listenToMyTicket(); 
+  }
   window.scrollTo(0, 0);
 }
 
@@ -457,8 +463,7 @@ function selectPayment(method, el) {
   document.getElementById('wallet-fields').classList.toggle('show', method === 'online');
 }
 
-// تعبئة قوائم التأمين
-function populateInsuranceDropdowns() {
+function populateDropdowns() {
   const filter = document.getElementById('insurance-filter');
   const booking = document.getElementById('booking-insurance');
   insurancesList.forEach(ins => {
@@ -473,14 +478,9 @@ function populateInsuranceDropdowns() {
 function renderDoctors(insuranceFilter = 'all') {
   const list = document.getElementById('doctors-list');
   let filtered = doctorsData;
-  if (insuranceFilter !== 'all') {
-    filtered = doctorsData.filter(d => d.insurances.includes(insuranceFilter));
-  }
+  if (insuranceFilter !== 'all') filtered = doctorsData.filter(d => d.insurances.includes(insuranceFilter));
   
-  if(filtered.length === 0) {
-    list.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:20px;">لا يوجد أطباء متعاقدون مع هذه الشركة حالياً.</p>';
-    return;
-  }
+  if(filtered.length === 0) return list.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:20px;">لا يوجد أطباء متعاقدون مع هذه الشركة حالياً.</p>';
 
   list.innerHTML = filtered.map(doc => `
     <div class="doctor-card">
@@ -504,8 +504,8 @@ function renderSymptoms() {
 }
 
 function selectSymptom(spec, name) {
-  document.querySelectorAll('.med-service-btn')[0].click(); // العودة لتاب الأطباء
-  document.getElementById('insurance-filter').value = 'all'; // إلغاء فلتر التأمين
+  document.querySelectorAll('.med-service-btn')[0].click();
+  document.getElementById('insurance-filter').value = 'all';
   renderDoctors('all');
   showToast(`بناءً على "${name}"، أطباء ${spec} هم الأنسب لك.`);
 }
@@ -515,8 +515,7 @@ function selectSymptom(spec, name) {
 // ==========================================
 async function openBooking(id) {
   currentDoctor = doctorsData.find(d => d.id === id);
-  isNurse = false;
-  selectedSlot = null;
+  isNurse = false; selectedSlot = null;
   document.getElementById('nurse-gps-group').style.display = 'none';
   document.getElementById('deposit-box').classList.remove('show');
   document.getElementById('slot-group').style.display = 'block';
@@ -526,25 +525,15 @@ async function openBooking(id) {
 
   const today = new Date().toISOString().split('T')[0];
   const snap = await db.collection('medical_bookings').where('doctorId', '==', id).where('date', '==', today).where('status', '==', 'pending').get();
-  const taken = new Set();
-  snap.forEach(d => taken.add(d.data().slot));
+  const taken = new Set(); snap.forEach(d => taken.add(d.data().slot));
 
-  const container = document.getElementById('time-slots-container');
-  container.innerHTML = '';
+  const container = document.getElementById('time-slots-container'); container.innerHTML = '';
   for (let h = currentDoctor.startTime; h < currentDoctor.endTime; h++) {
     for (let m = 0; m < 60; m += currentDoctor.slotMins) {
       const time = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
       const btn = document.createElement('div'); btn.className = 'time-slot'; btn.innerText = time;
-      if (taken.has(time)) { 
-        btn.classList.add('disabled'); 
-        btn.innerText += ' (محجوز)'; 
-      } else { 
-        btn.onclick = () => { 
-          document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected')); 
-          btn.classList.add('selected'); 
-          selectedSlot = time; 
-        }; 
-      }
+      if (taken.has(time)) { btn.classList.add('disabled'); btn.innerText += ' (محجوز)'; }
+      else { btn.onclick = () => { document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); selectedSlot = time; }; }
       container.appendChild(btn);
     }
   }
@@ -552,9 +541,7 @@ async function openBooking(id) {
 
 function openNurseBooking(price) {
   currentDoctor = { name: 'تمريض منزلي', price: price };
-  isNurse = true;
-  selectedSlot = 'زيارة منزلية';
-  nurseLocation = null;
+  isNurse = true; selectedSlot = 'زيارة منزلية'; nurseLocation = null;
   document.getElementById('slot-group').style.display = 'none';
   document.getElementById('nurse-gps-group').style.display = 'block';
   document.getElementById('deposit-box').classList.add('show');
@@ -569,7 +556,7 @@ function getNurseLocation() {
   navigator.geolocation.getCurrentPosition(pos => {
     nurseLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
     document.getElementById('gps-status').innerHTML = '<span style="color:var(--brand)">تم تحديد الموقع ✅</span>';
-  }, err => document.getElementById('gps-status').innerText = 'فشل تحديد الموقع، حاول مرة أخرى.');
+  }, err => document.getElementById('gps-status').innerText = 'فشل تحديد الموقع.');
 }
 
 async function submitBooking() {
@@ -579,7 +566,7 @@ async function submitBooking() {
   
   if (!name || !phone) return showToast('يرجى إدخال الاسم والهاتف');
   if (!isNurse && !selectedSlot) return showToast('يرجى اختيار موعد');
-  if (isNurse && !nurseLocation) return showToast('يرجى تحديد موقعك للتمريض');
+  if (isNurse && !nurseLocation) return showToast('يرجى تحديد موقعك');
 
   const btn = document.getElementById('confirm-booking-btn');
   btn.textContent = 'جارٍ الحجز...'; btn.disabled = true;
@@ -595,7 +582,7 @@ async function submitBooking() {
       patientName: name, patientPhone: phone, doctorId: currentDoctor.id || null, doctorName: currentDoctor.name,
       slot: selectedSlot, queueNumber: queue, date: today, status: 'pending',
       price: currentDoctor.price, insurance: insurance, payment: selectedPaymentMethod,
-      isNurse: isNurse, location: nurseLocation, deposit: isNurse ? Math.round(currentDoctor.price * 0.25) : 0,
+      isNurse: isNurse, location: nurseLocation,
       createdAt: new Date().toISOString()
     });
     
@@ -603,7 +590,8 @@ async function submitBooking() {
     showToast('تم الحجز بنجاح!');
     document.getElementById('notif-bell').classList.add('bell-alert');
     setTimeout(() => document.getElementById('notif-bell').classList.remove('bell-alert'), 8000);
-    navigateTo('view-mybookings');
+    setTimeout(() => { navigateTo('view-mybookings'); }, 500);
+
   } catch(e) { 
     showToast('حدث خطأ، حاول مرة أخرى'); 
   } finally {
@@ -612,31 +600,78 @@ async function submitBooking() {
 }
 
 // ==========================================
-// 6. حجوزاتي (الطابور)
+// 6. التذكرة الحية (Live Ticket)
 // ==========================================
-async function loadMyBookings() {
-  const container = document.getElementById('my-bookings-list');
+function listenToMyTicket() {
+  const container = document.getElementById('live-ticket-container');
   const phone = localStorage.getItem('wasla_phone');
-  if(!phone) return container.innerHTML = '<p style="text-align:center; color:var(--muted);">ليس لديك حجوزات سابقة.</p>';
   
-  container.innerHTML = '<p style="text-align:center; color:var(--muted);">جارٍ التحميل...</p>';
-  const snap = await db.collection('medical_bookings').where('patientPhone', '==', phone).where('status', '==', 'pending').get();
-  
-  if(snap.empty) return container.innerHTML = '<p style="text-align:center; color:var(--muted);">لا يوجد حجوزات نشطة حالياً.</p>';
-  
-  container.innerHTML = '';
-  snap.forEach(doc => {
-    const d = doc.data();
-    container.innerHTML += `
-      <div class="queue-card">
-        <h3>${d.doctorName} ${d.isNurse ? '(تمريض)' : ''}</h3>
-        <h1 style="font-size:40px; margin:10px 0;">${d.queueNumber}</h1>
-        <p>الموعد: ${d.slot}</p>
-        <p style="color:#FBBF24; font-size:12px; margin-top:10px; font-weight:bold;">${d.queueNumber === 1 ? 'أنت التالي!' : `قدامك ${d.queueNumber - 1} حالات.`}</p>
-        <button class="cancel-btn" onclick="cancelBooking('${doc.id}', '${d.date}', '${d.slot}')">إلغاء الحجز</button>
-      </div>
-    `;
-  });
+  if(!phone) {
+    container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:20px;">ليس لديك أي حجوزات حالياً.</p>';
+    return;
+  }
+
+  if(unsubscribeTicket) unsubscribeTicket(); 
+  container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:20px;">جاري تحديث التذكرة...</p>';
+
+  unsubscribeTicket = db.collection('medical_bookings')
+    .where('patientPhone', '==', phone)
+    .where('status', '==', 'pending')
+    .onSnapshot(snap => {
+      if(snap.empty) {
+        container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:20px;">لا يوجد حجوزات نشطة حالياً.</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        const casesAhead = Math.max(0, d.queueNumber - 1);
+        
+        let progressPercent = 10;
+        if(d.queueNumber === 1) progressPercent = 100;
+        else if(casesAhead === 0) progressPercent = 80;
+        else progressPercent = Math.max(10, 100 - (casesAhead * 20));
+
+        let statusText = `قدامك ${casesAhead} حالات.`;
+        let statusClass = '';
+        if(casesAhead === 0) {
+          statusText = 'حان دورك الآن! برجاء التوجه للعيادة.';
+          statusClass = 'alert';
+        }
+
+        container.innerHTML += `
+          <div class="live-ticket">
+            <div class="ticket-header">
+              <h3>${d.doctorName} ${d.isNurse ? '(تمريض)' : ''}</h3>
+              <p>تذكرة رقم <strong>${doc.id.substring(0,6)}</strong></p>
+              <div class="ticket-number">${d.queueNumber}</div>
+              <p>رقمك في الطابور</p>
+            </div>
+            
+            <div class="ticket-body">
+              <div class="queue-status ${statusClass}">
+                <i class="fa-solid fa-bell"></i> ${statusText}
+              </div>
+              
+              <div class="progress-container">
+                <div class="progress-bar" style="width: ${progressPercent}%"></div>
+              </div>
+
+              <div class="ticket-info">
+                <p><span>الموعد:</span> ${d.slot}</p>
+                <p><span>سعر الكشف:</span> ${d.price} ج.م</p>
+                <p><span>الحالة:</span> <b style="color:var(--brand)">${d.status === 'pending' ? 'في الانتظار' : d.status}</b></p>
+              </div>
+
+              ${d.doctorId ? `<a href="https://maps.google.com/?q=${doctorsData.find(doc=>doc.id===d.doctorId)?.clinicLat},${doctorsData.find(doc=>doc.id===d.doctorId)?.clinicLng}" target="_blank" class="map-btn"><i class="fa-solid fa-location-dot"></i> موقع العيادة على الخريطة</a>` : ''}
+              
+              <button class="cancel-btn" onclick="cancelBooking('${doc.id}', '${d.date}', '${d.slot}')">إلغاء الحجز</button>
+            </div>
+          </div>
+        `;
+      });
+    });
 }
 
 async function cancelBooking(docId, date, slot) {
@@ -647,22 +682,18 @@ async function cancelBooking(docId, date, slot) {
   
   await db.collection('medical_bookings').doc(docId).update({ status: 'cancelled' });
   showToast(msg); 
-  loadMyBookings();
 }
 
 // ==========================================
-// 7. الملف الطبي (EMR)
+// 7. EMR (ملفي الطبي)
 // ==========================================
 async function loadEMR() {
   const container = document.getElementById('emr-list');
   const phone = localStorage.getItem('wasla_phone');
   if(!phone) return container.innerHTML = '<p style="text-align:center; color:var(--muted);">قم بحجز موعد أولاً.</p>';
-  
   container.innerHTML = '<p style="text-align:center; color:var(--muted);">جارٍ التحميل...</p>';
   const snap = await db.collection('medical_bookings').where('patientPhone', '==', phone).where('hasLabRequest', '==', true).get();
-  
-  if(snap.empty) return container.innerHTML = '<p style="text-align:center; color:var(--muted);">لا توجد طلبات تحاليل أو أشعة حالياً.</p>';
-  
+  if(snap.empty) return container.innerHTML = '<p style="text-align:center; color:var(--muted);">لا توجد طلبات تحاليل حالياً.</p>';
   container.innerHTML = '';
   snap.forEach(doc => {
     const d = doc.data();
@@ -678,7 +709,7 @@ async function loadEMR() {
 }
 
 // ==========================================
-// 8. لوحة الإدارة (Overbooking + إرسال طلبات)
+// 8. لوحة الإدارة
 // ==========================================
 function openAdmin() { document.getElementById('admin-panel').style.display = 'block'; listenBookings(); }
 function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
@@ -700,17 +731,21 @@ async function forceOverbook() {
 }
 
 function listenBookings() {
-  db.collection('medical_bookings').orderBy('createdAt', 'desc').onSnapshot(snap => {
+  db.collection('medical_bookings').where('status', '==', 'pending').orderBy('createdAt', 'asc').onSnapshot(snap => {
     const list = document.getElementById('admin-bookings-list');
-    list.innerHTML = snap.empty ? '<p>لا توجد حجوزات حتى الآن.</p>' : '';
+    list.innerHTML = snap.empty ? '<p>لا توجد حجوزات نشطة.</p>' : '';
     snap.forEach(doc => {
       const d = doc.data();
       list.innerHTML += `
-        <div class="admin-card">
-          <h4>${d.patientName} - (طابور ${d.queueNumber})</h4>
+        <div class="admin-card" style="border-right: 4px solid var(--brand);">
+          <h4>${d.patientName} - طابور رقم (${d.queueNumber})</h4>
           <p>${d.doctorName} | ${d.slot} ${d.isOverbooked ? '<span style="color:red; font-weight:bold;">(Overbooking)</span>' : ''}</p>
-          <p>السعر: ${d.price || 0} ج.م | التأمين: ${d.insurance || 'كاش'} | الدفع: ${d.payment || 'كاش'}</p>
+          <p>التأمين: ${d.insurance || 'كاش'} | الدفع: ${d.payment || 'كاش'}</p>
           ${d.location ? `<a href="https://maps.google.com/?q=${d.location.lat},${d.location.lng}" target="_blank" style="font-size:12px; color:blue; font-weight:bold;">📍 موقع المريض (للتمريض)</a><br>` : ''}
+          <div class="admin-actions">
+            <button class="admin-btn-sm" style="background:#0284C7; color:white;" onclick="moveQueueUp('${doc.id}')">تخطي حالة (تقليل الرقم)</button>
+            <button class="admin-btn-sm" style="background:#059669; color:white;" onclick="completeBooking('${doc.id}')">إنهاء الكشف</button>
+          </div>
           <div style="margin-top:8px; border-top:1px solid var(--border); padding-top:8px;">
             <input type="text" class="input-field" id="lt-${doc.id}" placeholder="نوع الطلب (أشعة/تحاليل)" style="margin-bottom:5px;">
             <input type="text" class="input-field" id="ld-${doc.id}" placeholder="تفاصيل الطلب" style="margin-bottom:5px;">
@@ -722,6 +757,19 @@ function listenBookings() {
   });
 }
 
+async function moveQueueUp(docId) {
+  const doc = await db.collection('medical_bookings').doc(docId).get();
+  if(doc.exists && doc.data().queueNumber > 1) {
+    await db.collection('medical_bookings').doc(docId).update({ queueNumber: doc.data().queueNumber - 1 });
+    showToast('تم تقليل رقم الطابور للمريض!');
+  }
+}
+
+async function completeBooking(docId) {
+  await db.collection('medical_bookings').doc(docId).update({ status: 'completed' });
+  showToast('تم إنهاء الكشف بنجاح');
+}
+
 async function sendLab(id) {
   const type = document.getElementById(`lt-${id}`).value;
   const details = document.getElementById(`ld-${id}`).value;
@@ -731,7 +779,7 @@ async function sendLab(id) {
 }
 
 // ==========================================
-// 9. إشعارات GPS (شبين القناطر)
+// 9. إشعارات GPS + الجرس
 // ==========================================
 function toggleLiveTracking() {
   const icon = document.querySelector('#gps-btn i');
@@ -739,7 +787,7 @@ function toggleLiveTracking() {
     navigator.geolocation.clearWatch(watchId); watchId = null;
     icon.style.color = 'var(--muted)'; showToast('تم إيقاف التتبع');
   } else {
-    showToast('جاري محاكاة موقعك في شبين القناطر...');
+    showToast('محاكاة موقع شبين القناطر...');
     icon.style.color = 'var(--brand)';
     checkNearby(30.3128, 31.3234);
     watchId = navigator.geolocation.watchPosition(() => {}, null, {enableHighAccuracy:true});
@@ -771,16 +819,15 @@ function onBellClick() {
   showToast('تم قراءة جميع الإشعارات.');
 }
 
-// رفع الروشتة
 document.getElementById('prescription-upload').addEventListener('change', function() {
   if(this.files.length > 0) {
-    showToast('تم رفع الروشتة! جاري البحث في الصيدليات...');
+    showToast('تم رفع الروشتة! جاري البحث...');
     setTimeout(() => showToast('متوفر في صيدلية العزبي (شبين) - خصم 10%'), 2000);
   }
 });
 
 // التشغيل
-populateInsuranceDropdowns();
+populateDropdowns();
 renderDoctors();
 </script>
 </body>
