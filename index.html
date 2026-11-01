@@ -4,15 +4,118 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#059669">
-<title>وصلة | WASLA</title>
+<title>وصلة | WASLA - الجزء الأول (الواجهة)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="style.css">
+
+<style>
+/* =========================================
+   1. إعدادات الألوان والثيم (CSS)
+   ========================================= */
+:root {
+  --brand: #059669; --brand-light: #D1FAE5; --brand-gradient: linear-gradient(135deg, #10B981, #0284C7);
+  --dark: #0F172A; --bg: #F4F7FB; --card: #FFFFFF; --text: #1E293B; --muted: #64748B; --border: #E2E8F0;
+  --nav-bg: rgba(255, 255, 255, 0.95);
+  --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366); --logo-text-color: #FF3366;
+  --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05); --shadow-md: 0 10px 25px -3px rgba(0,0,0,0.08);
+}
+[data-theme="dark"] {
+  --brand: #10B981; --brand-light: #064E3B; --brand-gradient: linear-gradient(135deg, #059669, #0369A1);
+  --dark: #F8FAFC; --bg: #0B1120; --card: #1E293B; --text: #F1F5F9; --muted: #94A3B8; --border: #334155;
+  --nav-bg: rgba(30, 41, 59, 0.95); --shadow-sm: 0 4px 6px rgba(0,0,0,0.3); --shadow-md: 0 10px 25px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background-color: var(--bg); color: var(--text); font-family: 'Cairo', sans-serif; padding-bottom: 80px; transition: 0.3s; overflow-x: hidden; }
+button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outline: none; }
+
+/* شاشات التطبيق */
+.app-view { display: none; animation: fadeIn 0.4s ease; }
+.app-view.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+/* الهيدر واللوجو */
+.top-header { background: var(--card); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo-box { width: 48px; height: 48px; background: var(--logo-gradient); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 15px rgba(255,51,102,0.3); }
+.logo-w { font-family: 'Fredoka One', cursive; color: white; font-size: 32px; margin-top: -4px; }
+.brand-text h1 { font-family: 'Tajawal', sans-serif; font-size: 26px; font-weight: 900; color: var(--dark); line-height: 1; margin-bottom: 4px; }
+.brand-text span { font-family: 'Tajawal', sans-serif; font-size: 11px; font-weight: 800; color: var(--logo-text-color); letter-spacing: 3px; }
+.header-icons { display: flex; gap: 10px; }
+.icon-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 18px; position: relative; transition: 0.2s; }
+.icon-btn.active { background: var(--brand-light); color: var(--brand); border-color: var(--brand); }
+
+/* الرئيسية والهالة التفاعلية */
+.hero { background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: 24px; margin: 20px; padding: 35px 25px; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+.hero::before {
+  content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px;
+  background: rgba(16, 185, 129, 0.4); border-radius: 50%; filter: blur(50px);
+  animation: pulseHalo 4s infinite alternate;
+}
+@keyframes pulseHalo { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0.2; } }
+.hero h1 { font-size: 26px; font-weight: 900; margin-bottom: 10px; line-height: 1.4; position: relative; z-index: 1; }
+.hero p { font-size: 14px; color: #94A3B8; position: relative; z-index: 1; }
+
+/* الأقسام */
+.section-title { padding: 0 20px; margin: 20px 0 15px; font-size: 18px; font-weight: 900; color: var(--dark); }
+.categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
+.cat-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; box-shadow: var(--shadow-sm); cursor: pointer; transition: 0.3s; }
+.cat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+.cat-icon { width: 55px; height: 55px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 15px; }
+.cat-card h3 { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
+.cat-card p { font-size: 12px; color: var(--muted); }
+
+/* زرار الشكاوى العائم (صغير وشيك) */
+.fab-complaint {
+  position: fixed; bottom: 95px; right: 20px; width: 50px; height: 50px;
+  border-radius: 50%; background: var(--brand-gradient); color: white;
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+  box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4); z-index: 90; transition: 0.3s;
+}
+.fab-complaint:hover { transform: scale(1.1); }
+.fab-tooltip {
+  position: absolute; right: 60px; background: var(--dark); color: white;
+  padding: 5px 10px; border-radius: 8px; font-size: 11px; white-space: nowrap;
+  opacity: 0; visibility: hidden; transition: 0.3s;
+}
+.fab-complaint:hover .fab-tooltip { opacity: 1; visibility: visible; }
+
+/* شريط التنبيهات اللايف */
+.live-banner {
+  position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+  width: 90%; max-width: 400px; background: white; border-radius: 15px; padding: 15px;
+  display: flex; gap: 15px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  z-index: 9999; transition: 0.5s; border-right: 5px solid var(--brand);
+}
+.live-banner.show { top: 20px; }
+.live-banner i { font-size: 28px; color: var(--brand); }
+.live-banner h4 { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 3px; }
+.live-banner p { font-size: 12px; color: var(--muted); }
+
+/* الشريط السفلي */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding: 12px 0; z-index: 100; backdrop-filter: blur(10px); }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; width: 60px; }
+.nav-item.active { color: var(--brand); }
+.nav-item i { font-size: 20px; margin-bottom: 2px; }
+
+/* المودالات */
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
+.modal-overlay.open { opacity: 1; visibility: visible; }
+.modal-content { background: var(--card); width: 92%; max-width: 450px; border-radius: 24px; padding: 25px; transform: translateY(20px); transition: 0.3s; max-height: 90vh; overflow-y: auto; }
+.modal-overlay.open .modal-content { transform: translateY(0); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.close-btn { background: var(--bg); width: 35px; height: 35px; border-radius: 50%; color: var(--text); display: flex; align-items: center; justify-content: center; }
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+.input-field { width: 100%; padding: 12px 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; font-family: 'Cairo'; color: var(--text); font-size: 14px; outline: none; }
+.submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--brand-gradient); color: white; font-weight: 800; font-size: 15px; }
+.toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--dark); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 3000; text-align:center; width: 85%; max-width: 400px; }
+.toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+</style>
 </head>
 <body>
 
-<!-- شريط التنبيهات اللايف (مخفي في البداية) -->
+<!-- شريط التنبيهات اللايف (مخفي افتراضياً) -->
 <div id="live-banner" class="live-banner">
     <i class="fa-solid fa-bell"></i>
     <div>
@@ -21,6 +124,7 @@
     </div>
 </div>
 
+<!-- الهيدر -->
 <header class="top-header">
     <div class="brand">
         <div class="logo-box"><div class="logo-w">W</div></div>
@@ -32,6 +136,7 @@
     </div>
 </header>
 
+<!-- ==================== الشاشات (Views) ==================== -->
 <main id="view-home" class="app-view active">
     <div class="hero">
         <h1>كل احتياجاتك،<br>أقرب مع وصلة.</h1>
@@ -41,50 +146,40 @@
     <div class="section-title">اكتشف الأقسام</div>
     
     <div class="categories-grid">
-        <!-- الطبية -->
         <div class="cat-card" onclick="openSection('medical')">
             <div class="cat-icon" style="background: #ECFDF5; color: #059669;"><i class="fa-solid fa-heart-pulse"></i></div>
-            <h3>الصحة والطب</h3>
-            <p>أطباء، صيدليات، وتمريض</p>
+            <h3>الصحة والطب</h3><p>أطباء، صيدليات، وتمريض</p>
         </div>
-        
-        <!-- السيارات -->
         <div class="cat-card" onclick="openSection('cars')">
             <div class="cat-icon" style="background: #E0F2FE; color: #0284C7;"><i class="fa-solid fa-car"></i></div>
-            <h3>خدمات السيارات</h3>
-            <p>صيانة، غسيل، وسحب</p>
+            <h3>خدمات السيارات</h3><p>صيانة، غسيل، وسحب</p>
         </div>
-
-        <!-- التعليم -->
         <div class="cat-card" onclick="openSection('education')">
             <div class="cat-icon" style="background: #F3E8FF; color: #7C3AED;"><i class="fa-solid fa-graduation-cap"></i></div>
-            <h3>وصلة للتعليم</h3>
-            <p>مدرسون ومجموعات</p>
+            <h3>وصلة للتعليم</h3><p>مدرسون ومجموعات</p>
         </div>
-
-        <!-- التسوق -->
         <div class="cat-card" onclick="openSection('shopping')">
             <div class="cat-icon" style="background: #FFF7ED; color: #EA580C;"><i class="fa-solid fa-cart-shopping"></i></div>
-            <h3>السوبر ماركت</h3>
-            <p>كل احتياجات البيت</p>
+            <h3>السوبر ماركت</h3><p>كل احتياجات البيت</p>
         </div>
-
-        <!-- الصيانة المنزلية -->
         <div class="cat-card" onclick="openSection('maintenance')">
             <div class="cat-icon" style="background: #FEF2F2; color: #E11D48;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-            <h3>الصيانة المنزلية</h3>
-            <p>سباكة وكهرباء</p>
+            <h3>الصيانة المنزلية</h3><p>سباكة وكهرباء</p>
         </div>
     </div>
 </main>
 
-<!-- زرار الشكاوى والاقتراحات (صغير وشيك) -->
-<button class="fab-complaint" onclick="openComplaintModal()" title="الشكاوى والاقتراحات">
+<!-- 🟢 مكان لصق الأقسام الجديدة (HTML) 🟢 -->
+<!-- ⬇️ هنلصق الأقسام الجديدة هنا ⬇️ -->
+
+
+<!-- ==================== الزرار العائم (الشكاوى) ==================== -->
+<button class="fab-complaint" onclick="openModal('complaint-modal')" title="الشكاوى والاقتراحات">
     <i class="fa-solid fa-headset"></i>
     <span class="fab-tooltip">الشكاوى والاقتراحات</span>
 </button>
 
-<!-- مودال الشكاوى -->
+<!-- ==================== مودال الشكاوى ==================== -->
 <div class="modal-overlay" id="complaint-modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -107,109 +202,21 @@
     </div>
 </div>
 
+<!-- ==================== الشريط السفلي ==================== -->
 <nav class="bottom-nav">
-    <button class="nav-item active" onclick="showToast('أنت في الرئيسية')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
+    <button class="nav-item active" onclick="navigateTo('home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
     <button class="nav-item" onclick="showToast('قريباً')"><i class="fa-solid fa-box"></i><span>طلباتي</span></button>
     <button class="nav-item" onclick="showToast('قريباً')"><i class="fa-solid fa-user"></i><span>حسابي</span></button>
 </nav>
 
 <div id="toast" class="toast"></div>
 
-<script src="script.js"></script>
-:root {
-    --brand: #059669; --brand-light: #D1FAE5; --brand-gradient: linear-gradient(135deg, #10B981, #0284C7);
-    --dark: #0F172A; --bg: #F4F7FB; --card: #FFFFFF; --text: #1E293B; --muted: #64748B; --border: #E2E8F0;
-    --nav-bg: rgba(255, 255, 255, 0.95);
-    --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366); --logo-text-color: #FF3366;
-    --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05); --shadow-md: 0 10px 25px -3px rgba(0,0,0,0.08);
-}
-[data-theme="dark"] {
-    --brand: #10B981; --brand-light: #064E3B; --brand-gradient: linear-gradient(135deg, #059669, #0369A1);
-    --dark: #F8FAFC; --bg: #0B1120; --card: #1E293B; --text: #F1F5F9; --muted: #94A3B8; --border: #334155;
-    --nav-bg: rgba(30, 41, 59, 0.95); --shadow-sm: 0 4px 6px rgba(0,0,0,0.3); --shadow-md: 0 10px 25px rgba(0,0,0,0.4);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { background-color: var(--bg); color: var(--text); font-family: 'Cairo', sans-serif; padding-bottom: 80px; transition: 0.3s; overflow-x: hidden; }
-button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outline: none; }
+<script>
+// ==========================================
+// الجزء الأول: السكريبت الأساسي
+// ==========================================
 
-/* الهيدر */
-.top-header { background: var(--card); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); }
-.brand { display: flex; align-items: center; gap: 12px; }
-.logo-box { width: 48px; height: 48px; background: var(--logo-gradient); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 15px rgba(255,51,102,0.3); }
-.logo-w { font-family: 'Fredoka One', cursive; color: white; font-size: 32px; margin-top: -4px; }
-.brand-text h1 { font-family: 'Tajawal', sans-serif; font-size: 26px; font-weight: 900; color: var(--dark); line-height: 1; margin-bottom: 4px; }
-.brand-text span { font-family: 'Tajawal', sans-serif; font-size: 11px; font-weight: 800; color: var(--logo-text-color); letter-spacing: 3px; }
-.header-icons { display: flex; gap: 10px; }
-.icon-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 18px; position: relative; transition: 0.2s; }
-.icon-btn.active { background: var(--brand-light); color: var(--brand); border-color: var(--brand); }
-
-/* البانر والهالة التفاعلية */
-.hero { background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: 24px; margin: 20px; padding: 35px 25px; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
-.hero::before {
-    content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px;
-    background: rgba(16, 185, 129, 0.4); border-radius: 50%; filter: blur(50px);
-    animation: pulseHalo 4s infinite alternate;
-}
-@keyframes pulseHalo { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0.2; } }
-.hero h1 { font-size: 26px; font-weight: 900; margin-bottom: 10px; line-height: 1.4; position: relative; z-index: 1; }
-.hero p { font-size: 14px; color: #94A3B8; position: relative; z-index: 1; }
-
-/* الأقسام */
-.section-title { padding: 0 20px; margin: 20px 0 15px; font-size: 18px; font-weight: 900; color: var(--dark); }
-.categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
-.cat-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; box-shadow: var(--shadow-sm); cursor: pointer; transition: 0.3s; }
-.cat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
-.cat-icon { width: 55px; height: 55px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 15px; }
-.cat-card h3 { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
-.cat-card p { font-size: 12px; color: var(--muted); }
-
-/* زرار الشكاوى العائم (صغير وشيك) */
-.fab-complaint {
-    position: fixed; bottom: 95px; right: 20px; width: 50px; height: 50px;
-    border-radius: 50%; background: var(--brand-gradient); color: white;
-    display: flex; align-items: center; justify-content: center; font-size: 20px;
-    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4); z-index: 90; transition: 0.3s;
-}
-.fab-complaint:hover { transform: scale(1.1); }
-.fab-tooltip {
-    position: absolute; right: 60px; background: var(--dark); color: white;
-    padding: 5px 10px; border-radius: 8px; font-size: 11px; white-space: nowrap;
-    opacity: 0; visibility: hidden; transition: 0.3s;
-}
-.fab-complaint:hover .fab-tooltip { opacity: 1; visibility: visible; }
-
-/* شريط التنبيهات اللايف */
-.live-banner {
-    position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-    width: 90%; max-width: 400px; background: white; border-radius: 15px; padding: 15px;
-    display: flex; gap: 15px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    z-index: 9999; transition: 0.5s; border-right: 5px solid var(--brand);
-}
-.live-banner.show { top: 20px; }
-.live-banner i { font-size: 28px; color: var(--brand); }
-.live-banner h4 { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 3px; }
-.live-banner p { font-size: 12px; color: var(--muted); }
-
-/* الشريط السفلي */
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding: 12px 0; z-index: 100; backdrop-filter: blur(10px); }
-.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; width: 60px; }
-.nav-item.active { color: var(--brand); }
-.nav-item i { font-size: 20px; margin-bottom: 2px; }
-
-/* المودالات */
-.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
-.modal-overlay.open { opacity: 1; visibility: visible; }
-.modal-content { background: var(--card); width: 92%; max-width: 450px; border-radius: 24px; padding: 25px; transform: translateY(20px); transition: 0.3s; }
-.modal-overlay.open .modal-content { transform: translateY(0); }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.close-btn { background: var(--bg); width: 35px; height: 35px; border-radius: 50%; color: var(--text); display: flex; align-items: center; justify-content: center; }
-.input-group { margin-bottom: 15px; }
-.input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
-.input-field { width: 100%; padding: 12px 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; font-family: 'Cairo'; color: var(--text); font-size: 14px; outline: none; }
-.submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--brand-gradient); color: white; font-weight: 800; font-size: 15px; }
-.toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--dark); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 3000; text-align:center; width: 85%; max-width: 400px; }
-.toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
-// الثيم
+// 1. الثيم (الوضع الليلي)
 const savedTheme = localStorage.getItem('wasla_theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 if(savedTheme === 'dark') document.getElementById('theme-icon').className = 'fa-solid fa-sun';
@@ -222,7 +229,15 @@ function toggleTheme() {
     document.getElementById('theme-icon').className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
 }
 
-// المودال والإشعارات
+// 2. التنقل بين الشاشات
+function navigateTo(viewId) {
+    document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+    const target = document.getElementById('view-' + viewId);
+    if(target) target.classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+// 3. المودالات والإشعارات
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function showToast(msg) { 
@@ -232,19 +247,16 @@ function showToast(msg) {
     setTimeout(() => t.classList.remove('show'), 3000); 
 }
 
-function openComplaintModal() { openModal('complaint-modal'); }
-
-// التنقل
+// 4. فتح الأقسام
 function openSection(section) {
     if(section === 'medical') {
-        showToast('جاري فتح القسم الطبي...');
-        // هنا مستقبلاً هنحول لصفحة الطبي
+        navigateTo('medical');
     } else {
         showToast('هذا القسم سيتم إضافته قريباً!');
     }
 }
 
-// GPS واللايف (محاكاة شبين القناطر)
+// 5. الجي بي إس والإشعارات اللايف (محاكاة)
 let gpsActive = false;
 function toggleGPS() {
     const btn = document.getElementById('gps-btn');
@@ -252,22 +264,23 @@ function toggleGPS() {
     
     if(gpsActive) {
         btn.classList.add('active');
-        showToast('تم تفعيل تتبع الموقع (محاكاة شبين القناطر)');
-        
-        // إظهار إشعار لايف للتجربة
+        showToast('تم تفعيل تتبع الموقع (محاكاة)');
         setTimeout(() => {
             const banner = document.getElementById('live-banner');
             document.getElementById('banner-title').innerText = 'إنت قريب من صيدلية العزبي!';
             document.getElementById('banner-desc').innerText = 'خصم 10% على وصلة لو اشتريت دلوقتي.';
             banner.classList.add('show');
-            
             setTimeout(() => banner.classList.remove('show'), 5000);
         }, 2000);
-        
     } else {
         btn.classList.remove('active');
         showToast('تم إيقاف تتبع الموقع');
     }
 }
+
+// 🟢 مكان لصق أكواد الأقسام الجديدة (JS) 🟢
+// ⬇️ هنلصق أكواد الأقسام الجديدة هنا ⬇️
+
+</script>
 </body>
 </html>
