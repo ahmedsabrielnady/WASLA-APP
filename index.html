@@ -19,6 +19,7 @@
   --nav-bg: rgba(255, 255, 255, 0.95);
   --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366); 
   --wallet-gradient: linear-gradient(135deg, #7C3AED, #4F46E5);
+  --delivery-gradient: linear-gradient(135deg, #F59E0B, #EA580C);
   --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05); --shadow-md: 0 10px 25px -3px rgba(0,0,0,0.08);
   --ticker-bg: #FFFBEB; --ticker-text: #B45309;
 }
@@ -89,6 +90,30 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .cat-card h3 { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
 .cat-card p { font-size: 12px; color: var(--muted); }
 
+/* =========================================
+   شاشة التوصيل (Delivery View)
+   ========================================= */
+.delivery-header { display: flex; align-items: center; gap: 15px; padding: 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 70px; z-index: 90; }
+.back-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 18px; }
+.delivery-header h2 { font-size: 20px; font-weight: 900; color: var(--dark); }
+.delivery-form { padding: 20px; }
+.delivery-banner { background: var(--delivery-gradient); border-radius: 20px; padding: 25px; color: white; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-md); }
+.delivery-banner h1 { font-size: 24px; font-weight: 900; margin-bottom: 5px; }
+.delivery-banner p { font-size: 13px; opacity: 0.9; }
+
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+.input-field { width: 100%; padding: 12px 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; font-family: 'Cairo'; color: var(--text); font-size: 14px; outline: none; }
+.input-field:focus { border-color: var(--delivery-gradient); }
+
+.location-btn { width: 100%; padding: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-family: 'Cairo'; font-weight: 700; color: var(--text); margin-bottom: 15px; }
+.location-btn.active { background: #ECFDF5; border-color: #10B981; color: #047857; }
+.location-btn i { font-size: 20px; }
+.gps-text { font-size: 11px; color: var(--muted); text-align: center; margin-top: -10px; margin-bottom: 15px; display: block; }
+
+.delivery-submit { width: 100%; padding: 16px; border-radius: 14px; background: var(--delivery-gradient); color: white; font-weight: 900; font-size: 16px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3); margin-top: 10px; }
+.delivery-submit:active { transform: scale(0.96); }
+
 /* شريط التنبيهات اللايف */
 .live-banner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; border-radius: 15px; padding: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 9999; transition: 0.5s; border-right: 5px solid var(--brand); }
 .live-banner.show { top: 20px; }
@@ -111,9 +136,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .modal-overlay.open .modal-content { transform: translateY(0); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .close-btn { background: var(--bg); width: 35px; height: 35px; border-radius: 50%; color: var(--text); display: flex; align-items: center; justify-content: center; }
-.input-group { margin-bottom: 15px; }
-.input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
-.input-field { width: 100%; padding: 12px 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; font-family: 'Cairo'; color: var(--text); font-size: 14px; outline: none; }
 .submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--brand-gradient); color: white; font-weight: 800; font-size: 15px; }
 .submit-btn:active { transform: scale(0.96); box-shadow: 0 0 15px var(--brand); }
 
@@ -202,8 +224,60 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
             <div class="cat-icon" style="background: #FEF2F2; color: #E11D48;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
             <h3>الصيانة المنزلية</h3><p>سباكة وكهرباء</p>
         </div>
+        
+        <!-- القسم الجديد: التوصيل -->
+        <div class="cat-card" onclick="navigateTo('delivery')">
+            <div class="cat-icon" style="background: #FFF7ED; color: #F59E0B;"><i class="fa-solid fa-motorcycle"></i></div>
+            <h3>توصيل مجاني</h3><p>أي حاجة توصلك في دقايق</p>
+        </div>
     </div>
 </main>
+
+<!-- ==================== شاشة التوصيل (Delivery App) ==================== -->
+<div id="view-delivery" class="app-view">
+    <div class="delivery-header">
+        <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
+        <h2>توصيل مجاني</h2>
+    </div>
+
+    <div class="delivery-form">
+        <div class="delivery-banner">
+            <h1>عايز توصل إيه؟ 🛵</h1>
+            <p>إحنا بنوصل أي حاجة لأي حد في شبين القناطر مجاناً!</p>
+        </div>
+
+        <div class="input-group">
+            <label>نوع الشحنة / الحاجة اللي عايز توصلها</label>
+            <input type="text" id="delivery-item" class="input-field" placeholder="مثال: شنطة، فلوس، أوراق، هدية...">
+        </div>
+        <div class="input-group">
+            <label>رقم تليفونك</label>
+            <input type="tel" id="delivery-phone" class="input-field" placeholder="01xxxxxxxxx">
+        </div>
+
+        <!-- موقع الاستلام -->
+        <div class="input-group">
+            <label>موقع الاستلام (من فين؟)</label>
+            <button class="location-btn" id="pickup-btn" onclick="getLocation('pickup')">
+                <span>تحديد موقع الاستلام</span>
+                <i class="fa-solid fa-location-crosshairs"></i>
+            </button>
+            <span class="gps-text" id="pickup-status">لم يتم تحديد الموقع بعد</span>
+        </div>
+
+        <!-- موقع التسليم -->
+        <div class="input-group">
+            <label>موقع التسليم (لحد فين؟)</label>
+            <button class="location-btn" id="dropoff-btn" onclick="getLocation('dropoff')">
+                <span>تحديد موقع التسليم</span>
+                <i class="fa-solid fa-location-crosshairs"></i>
+            </button>
+            <span class="gps-text" id="dropoff-status">لم يتم تحديد الموقع بعد</span>
+        </div>
+
+        <button class="delivery-submit" onclick="submitDelivery()">اطلب التوصيل الآن</button>
+    </div>
+</div>
 
 <!-- 🟢 مكان لصق شاشات الأقسام الجديدة (HTML) 🟢 -->
 <!-- ⬇️ هنلزق شاشات الأقسام الجديدة هنا ⬇️ -->
@@ -297,7 +371,7 @@ function startVoiceSearch() {
     }, 2000);
 }
 
-// 6. الجي بي إس والإشعارات اللايف
+// 6. الجي بي إس والإشعارات اللايف (للزر اللي فوق)
 let gpsActive = false;
 function toggleGPS() {
     const btn = document.getElementById('gps-btn');
@@ -316,6 +390,70 @@ function toggleGPS() {
         btn.classList.remove('active');
         showToast('تم إيقاف تتبع الموقع');
     }
+}
+
+// 7. نظام التوصيل (جديد)
+let pickupCoords = null;
+let dropoffCoords = null;
+
+function getLocation(type) {
+    if(!navigator.geolocation) return showToast('المتصفح لا يدعم الموقع');
+    
+    const btn = document.getElementById(type + '-btn');
+    const status = document.getElementById(type + '-status');
+    
+    status.innerText = 'جاري تحديد الموقع...';
+    
+    navigator.geolocation.getCurrentPosition(pos => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        if(type === 'pickup') pickupCoords = coords;
+        else dropoffCoords = coords;
+        
+        btn.classList.add('active');
+        btn.innerHTML = `<span>تم تحديد الموقع ✅</span><i class="fa-solid fa-check"></i>`;
+        status.innerHTML = `<span style="color:#059669">تم تحديد الموقع بنجاح</span>`;
+        
+    }, err => {
+        // محاكاة في حالة الرفض للتجربة
+        const coords = { lat: 30.3128, lng: 31.3234 };
+        if(type === 'pickup') pickupCoords = coords;
+        else dropoffCoords = coords;
+        
+        btn.classList.add('active');
+        btn.innerHTML = `<span>تم تحديد الموقع (تجريبي) ✅</span><i class="fa-solid fa-check"></i>`;
+        status.innerHTML = `<span style="color:#059669">تم استخدام موقع افتراضي (شبين)</span>`;
+    });
+}
+
+function submitDelivery() {
+    const item = document.getElementById('delivery-item').value;
+    const phone = document.getElementById('delivery-phone').value;
+    
+    if(!item || !phone) return showToast('يرجى إدخال تفاصيل الشحنة ورقم الهاتف');
+    if(!pickupCoords) return showToast('يرجى تحديد موقع الاستلام');
+    if(!dropoffCoords) return showToast('يرجى تحديد موقع التسليم');
+    
+    const btn = document.querySelector('.delivery-submit');
+    btn.innerText = 'جاري إرسال الطلب...';
+    
+    // محاكاة إرسال الطلب للسيرفر
+    setTimeout(() => {
+        btn.innerText = 'اطلب التوصيل الآن';
+        showToast('تم استلام طلبك! مندوب وصلة في الطريق إليك.');
+        
+        // تصفير الحقول
+        document.getElementById('delivery-item').value = '';
+        document.getElementById('delivery-phone').value = '';
+        pickupCoords = null; dropoffCoords = null;
+        document.getElementById('pickup-btn').classList.remove('active');
+        document.getElementById('pickup-btn').innerHTML = `<span>تحديد موقع الاستلام</span><i class="fa-solid fa-location-crosshairs"></i>`;
+        document.getElementById('pickup-status').innerText = 'لم يتم تحديد الموقع بعد';
+        document.getElementById('dropoff-btn').classList.remove('active');
+        document.getElementById('dropoff-btn').innerHTML = `<span>تحديد موقع التسليم</span><i class="fa-solid fa-location-crosshairs"></i>`;
+        document.getElementById('dropoff-status').innerText = 'لم يتم تحديد الموقع بعد';
+        
+        navigateTo('home');
+    }, 1500);
 }
 
 // 🟢 مكان لصق أكواد الأقسام الجديدة (JS) 🟢
