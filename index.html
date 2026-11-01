@@ -39,18 +39,20 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
 /* الهيدر */
-.top-header { background: var(--card); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); }
-.brand { display: flex; align-items: center; gap: 12px; }
-.logo-box { width: 48px; height: 48px; background: var(--logo-gradient); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 15px rgba(255,51,102,0.3); position: relative; overflow: hidden; }
+.top-header { background: var(--card); padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.brand { display: flex; align-items: center; gap: 10px; }
+.logo-box { width: 44px; height: 44px; background: var(--logo-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(255,51,102,0.3); position: relative; overflow: hidden; }
 .logo-box::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); transform: skewX(-25deg); animation: shine 4s infinite; }
 @keyframes shine { 100% { left: 200%; } }
-.logo-w { font-family: 'Fredoka One', cursive; color: white; font-size: 32px; margin-top: -4px; z-index: 1; }
-.brand-text h1 { font-family: 'Tajawal', sans-serif; font-size: 26px; font-weight: 900; color: var(--dark); line-height: 1; margin-bottom: 4px; }
-.brand-text span { font-family: 'Tajawal', sans-serif; font-size: 11px; font-weight: 900; background: var(--logo-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 5px; display: inline-block; transform: scaleY(1.1); }
-.header-icons { display: flex; gap: 8px; }
-.icon-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; }
+.logo-w { font-family: 'Fredoka One', cursive; color: white; font-size: 30px; margin-top: -4px; z-index: 1; }
+.brand-text h1 { font-family: 'Tajawal', sans-serif; font-size: 24px; font-weight: 900; color: var(--dark); line-height: 1; margin-bottom: 3px; }
+.brand-text span { font-family: 'Tajawal', sans-serif; font-size: 10px; font-weight: 900; background: var(--logo-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 4px; display: inline-block; transform: scaleY(1.1); }
+.header-icons { display: flex; gap: 6px; }
+.icon-btn { width: 38px; height: 38px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.2s; }
 .icon-btn.active { background: var(--brand-light); color: var(--brand); border-color: var(--brand); }
 .icon-btn:active { transform: scale(0.9); box-shadow: 0 0 15px var(--brand); color: var(--brand); }
+.btn-finance { background: #0F172A; color: #FBBF24; border-color: #0F172A; }
+[data-theme="dark"] .btn-finance { background: #1E293B; color: #FBBF24; border-color: #334155; }
 
 /* الشريط الإعلاني المتحرك (Ticker) */
 .ticker-wrap { width: 100%; overflow: hidden; background: var(--ticker-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 8px 0; box-shadow: var(--shadow-sm); }
@@ -111,7 +113,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .fin-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
 .fin-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 15px; color: var(--brand); display: flex; align-items: center; gap: 8px; }
 
-/* التحكم في سعر التوصيل */
 .delivery-price-control { display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 15px; border-radius: 15px; margin-bottom: 10px; }
 .delivery-price-control span { font-size: 15px; font-weight: 700; }
 .price-controls { display: flex; align-items: center; gap: 15px; }
@@ -119,7 +120,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .price-controls button:disabled { opacity: 0.3; }
 .price-controls .val { font-size: 20px; font-weight: 900; color: var(--dark); min-width: 60px; text-align: center; }
 
-/* حاسبة الأرباح */
 .calc-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .calc-row label { font-size: 13px; font-weight: 700; color: var(--text); }
 .calc-row input { width: 120px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; text-align: center; font-family: 'Cairo'; font-size: 14px; font-weight: bold; background: var(--bg); color: var(--text); outline: none; }
@@ -170,10 +170,14 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <div class="brand-text"><h1>وصلة</h1><span>WASLA</span></div>
     </div>
     <div class="header-icons">
+        <!-- زرار الإشعارات (رجعناه) -->
+        <button class="icon-btn" onclick="showToast('لا توجد إشعارات جديدة')" title="الإشعارات"><i class="fa-regular fa-bell"></i></button>
         <!-- زرار لوحة التحكم المالية (للمؤسس) -->
-        <button class="icon-btn" onclick="navigateTo('admin-finance')" title="لوحة التحكم المالية" style="background: #0F172A; color: #FBBF24;"><i class="fa-solid fa-chart-line"></i></button>
-        <button class="icon-btn" id="gps-btn" onclick="toggleGPS()"><i class="fa-solid fa-location-dot"></i></button>
-        <button class="icon-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
+        <button class="icon-btn btn-finance" onclick="navigateTo('admin-finance')" title="لوحة التحكم المالية"><i class="fa-solid fa-chart-line"></i></button>
+        <!-- زرار الجي بي إس -->
+        <button class="icon-btn" id="gps-btn" onclick="toggleGPS()" title="تتبع الموقع"><i class="fa-solid fa-location-dot"></i></button>
+        <!-- زرار الوضع الليلي -->
+        <button class="icon-btn" onclick="toggleTheme()" title="الوضع الليلي"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
     </div>
 </header>
 
@@ -235,6 +239,10 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         </div>
     </div>
 </main>
+
+<!-- 🟢 مكان لصق شاشات الأقسام الجديدة (HTML) 🟢 -->
+<!-- ⬇️ هنلزق شاشات الأقسام الجديدة هنا ⬇️ -->
+
 
 <!-- ==================== شاشة التوصيل ==================== -->
 <div id="view-delivery" class="app-view">
@@ -499,7 +507,6 @@ function submitDelivery() {
 // 4. لوحة التحكم المالية (Financial Logic)
 // ==========================================
 function updateFinancialUI() {
-    // تحديث سعر التوصيل في الشاشات
     document.getElementById('delivery-fee-val').innerText = currentDeliveryFee + ' ج.م';
     document.getElementById('btn-minus').disabled = currentDeliveryFee <= 0;
     
@@ -524,26 +531,16 @@ function changeDeliveryFee(amount) {
 }
 
 function calculateFinance() {
-    // المدخلات
     const orders = parseFloat(document.getElementById('calc-orders').value) || 0;
     const avgOrderValue = parseFloat(document.getElementById('calc-avg-order').value) || 0;
     const tripCost = parseFloat(document.getElementById('calc-trip-cost').value) || 0;
     const driverSalary = parseFloat(document.getElementById('calc-salary').value) || 0;
 
-    // الحسابات
     const totalCommissions = orders * avgOrderValue * commissionRate;
-    
-    // تكلفة التوصيل: (تكلفة المشوار * عدد الطلبات) + (راتب الدليفري * عدد الدليفريين المفروضين)
-    // بنفترض دليفري واحد في الأول
     const totalDeliveryCost = (tripCost * orders) + driverSalary;
-    
-    // لو المستخدم بيدفع رسوم توصيل (لو السعر مش صفر)
     const userPaidDelivery = orders * currentDeliveryFee;
-    
-    // صافي الربح = العمولات + الفلوس اللي دفعها المستخدم للتوصيل - إجمالي تكاليف التوصيل
     const netProfit = (totalCommissions + userPaidDelivery) - totalDeliveryCost;
 
-    // تحديث الشاشة
     document.getElementById('res-commissions').innerText = Math.round(totalCommissions) + ' ج.م';
     document.getElementById('res-delivery-cost').innerText = Math.round(totalDeliveryCost) + ' ج.م';
     
@@ -556,8 +553,6 @@ function calculateFinance() {
         netEl.className = 'val text-red';
     }
 
-    // حساب التغطية
-    // كل طلب بيجيب كام جنيه للمنصة؟ (عمولة + رسوم توصيل)
     const revenuePerOrder = (avgOrderValue * commissionRate) + currentDeliveryFee;
     let ordersToCover = 0;
     if(revenuePerOrder > 0) {
@@ -568,8 +563,12 @@ function calculateFinance() {
     }
 }
 
-// تشغيل الدالة أول ما الصفحة تفتح
+// التشغيل
 updateFinancialUI();
+
+// 🟢 مكان لصق أكواد الأقسام الجديدة (JS) 🟢
+// ⬇️ هنلزق أكواد الأقسام الجديدة هنا ⬇️
+
 </script>
 </body>
 </html>
