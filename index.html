@@ -8,19 +8,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
 <style>
-/* --- الثيم والألوان --- */
 :root {
   --brand: #059669; --brand-light: #D1FAE5; --brand-gradient: linear-gradient(135deg, #10B981, #0284C7);
   --dark: #0F172A; --bg: #F4F7FB; --card: #FFFFFF; --text: #1E293B; --muted: #64748B; --border: #E2E8F0;
   --nav-bg: rgba(255, 255, 255, 0.95);
   --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366); --logo-text-color: #FF3366;
   --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05); --shadow-md: 0 10px 25px -3px rgba(0,0,0,0.08);
-  --shadow-glow: 0 0 15px rgba(16,185,129,0.4);
 }
 [data-theme="dark"] {
   --brand: #10B981; --brand-light: #064E3B; --brand-gradient: linear-gradient(135deg, #059669, #0369A1);
@@ -32,7 +29,7 @@ body { background-color: var(--bg); color: var(--text); font-family: 'Cairo', sa
 button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outline: none; }
 .hidden { display: none !important; }
 
-/* --- الهيدر --- */
+/* الهيدر */
 .top-header { background: var(--card); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); }
 .brand { display: flex; align-items: center; gap: 12px; }
 .logo-box { width: 48px; height: 48px; background: var(--logo-gradient); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 15px rgba(255,51,102,0.3); }
@@ -40,24 +37,10 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .brand-text h1 { font-family: 'Tajawal', sans-serif; font-size: 26px; font-weight: 900; color: var(--dark); line-height: 1; margin-bottom: 4px; }
 .brand-text span { font-family: 'Tajawal', sans-serif; font-size: 11px; font-weight: 800; color: var(--logo-text-color); letter-spacing: 3px; }
 .icon-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 18px; position: relative; }
-.admin-btn { background: var(--dark); color: white; border-radius: 20px; padding: 5px 15px; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
-
-/* الهالة الحمراء للجرس */
 .bell-alert { color: #E11D48 !important; animation: pulseRed 1.5s infinite; }
-@keyframes pulseRed {
-  0% { box-shadow: 0 0 0 0 rgba(225,29,72,0.6); }
-  70% { box-shadow: 0 0 0 12px rgba(225,29,72,0); }
-  100% { box-shadow: 0 0 0 0 rgba(225,29,72,0); }
-}
+@keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(225,29,72,0.6); } 70% { box-shadow: 0 0 0 12px rgba(225,29,72,0); } 100% { box-shadow: 0 0 0 0 rgba(225,29,72,0); } }
 
-/* إشعار الموقع */
-.live-banner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; border-radius: 15px; padding: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 9999; transition: 0.5s; border-right: 5px solid var(--brand); }
-.live-banner.show { top: 20px; }
-.live-banner i { font-size: 28px; color: var(--brand); }
-.live-banner h4 { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 3px; }
-.live-banner p { font-size: 12px; color: var(--muted); }
-
-/* --- الشاشات --- */
+/* الشاشات */
 .app-view { display: none; animation: fadeIn 0.4s ease; }
 .app-view.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -73,11 +56,10 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .cat-card h3 { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
 .cat-card p { font-size: 12px; color: var(--muted); }
 
-/* --- القسم الطبي --- */
+/* القسم الطبي */
 .medical-header { display: flex; align-items: center; gap: 15px; padding: 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 70px; z-index: 90; }
 .back-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 18px; }
 .medical-header h2 { font-size: 20px; font-weight: 900; color: var(--dark); }
-
 .medical-tabs-wrapper { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 130px; z-index: 80; }
 .medical-services-tabs { display: flex; gap: 10px; overflow-x: auto; padding: 15px 20px; scrollbar-width: none; }
 .medical-services-tabs::-webkit-scrollbar { display: none; }
@@ -103,11 +85,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .symptom-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px 15px; text-align: center; cursor: pointer; box-shadow: var(--shadow-sm); }
 .symptom-card i { font-size: 30px; color: var(--brand); margin-bottom: 10px; display: block; }
 .symptom-card span { font-size: 14px; font-weight: 800; color: var(--dark); }
-
-/* الملف الطبي (EMR) */
-.emr-card { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 15px; margin-bottom: 15px; border-right: 4px solid var(--brand); }
-.emr-card h4 { font-size: 15px; font-weight: 800; margin-bottom: 5px; color: var(--dark); }
-.emr-card .req-type { font-size: 12px; color: #E11D48; font-weight: bold; background: #FFF1F2; display: inline-block; padding: 3px 8px; border-radius: 5px; margin-bottom: 8px; }
 
 /* التمريض والمعامل والمستلزمات */
 .med-item-card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
@@ -145,6 +122,8 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .pay-option.selected { border-color: var(--brand); background: var(--brand-light); }
 .pay-option i { font-size: 22px; color: var(--brand); margin-bottom: 5px; display: block; }
 .pay-option span { font-size: 12px; font-weight: 800; color: var(--dark); }
+.e-wallet-fields { display: none; margin-top: 10px; padding: 10px; background: var(--bg); border-radius: 12px; border: 1px solid var(--border); }
+.e-wallet-fields.show { display: block; }
 
 .deposit-box { background: #FFFBEB; border: 1px solid #FDE68A; padding: 15px; border-radius: 12px; margin-bottom: 15px; display: none; }
 .deposit-box.show { display: block; }
@@ -167,13 +146,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 </head>
 <body>
 
-<!-- إشعار الـ GPS -->
-<div class="live-banner" id="live-banner">
-  <i class="fa-solid fa-bell"></i>
-  <div><h4 id="banner-title">إشعار جديد</h4><p id="banner-desc">تفاصيل</p></div>
-</div>
-
-<!-- الهيدر -->
 <header class="top-header">
   <div class="brand">
     <div class="logo-box"><div class="logo-w">W</div></div>
@@ -181,13 +153,11 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   </div>
   <div style="display: flex; gap: 8px; align-items:center;">
     <button class="icon-btn" onclick="openAdmin()" title="الإدارة"><i class="fa-solid fa-user-tie"></i></button>
-    <button class="icon-btn" onclick="toggleLiveTracking()" id="gps-btn" title="إشعارات قريبة"><i class="fa-solid fa-location-dot" style="color:var(--muted)"></i></button>
     <button class="icon-btn" id="notif-bell" onclick="onBellClick()"><i class="fa-regular fa-bell"></i></button>
     <button class="icon-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
   </div>
 </header>
 
-<!-- الرئيسية -->
 <main id="view-home" class="app-view active">
   <div class="hero">
     <h1>كل احتياجاتك،<br>أقرب مع وصلة.</h1>
@@ -206,7 +176,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   </div>
 </main>
 
-<!-- القسم الطبي -->
 <div id="view-medical" class="app-view">
   <div class="medical-header">
     <button class="back-btn" onclick="navigateTo('view-home')"><i class="fa-solid fa-arrow-right"></i></button>
@@ -218,14 +187,22 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
       <button class="med-service-btn active" onclick="switchMedTab('doctors', this)"><i class="fa-solid fa-user-doctor"></i> الأطباء</button>
       <button class="med-service-btn" onclick="switchMedTab('symptoms', this)"><i class="fa-solid fa-head-side-cough"></i> الأعراض</button>
       <button class="med-service-btn" onclick="switchMedTab('emr', this)"><i class="fa-solid fa-file-medical"></i> ملفي الطبي</button>
-      <button class="med-service-btn" onclick="switchMedTab('labs', this)"><i class="fa-solid fa-flask"></i> معامل وأشعة</button>
       <button class="med-service-btn" onclick="switchMedTab('nursing', this)"><i class="fa-solid fa-bed-pulse"></i> تمريض منزلي</button>
-      <button class="med-service-btn" onclick="switchMedTab('pharmacy', this)"><i class="fa-solid fa-pills"></i> صيدلية</button>
-      <button class="med-service-btn" onclick="switchMedTab('supplies', this)"><i class="fa-solid fa-wheelchair"></i> مستلزمات</button>
     </div>
   </div>
 
   <div id="med-tab-doctors" class="other-med-services active">
+    <div style="margin-bottom: 15px;">
+      <label style="font-size:13px; font-weight:bold; margin-bottom:5px; display:block;">فلترة حسب شركة التأمين:</label>
+      <select id="insurance-filter" class="input-field" onchange="renderDoctors(document.getElementById('insurance-filter').value)">
+        <option value="all">كل الأطباء (بدون تأمين)</option>
+        <option value="bupa">بوبا إيجيبت</option>
+        <option value="misr">مصر للتأمين</option>
+        <option value="allianz">أليانز</option>
+        <option value="axa">أكسا</option>
+        <option value="metlife">ميتلايف</option>
+      </select>
+    </div>
     <div class="doctors-list" id="doctors-list"></div>
   </div>
 
@@ -239,34 +216,12 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     <div id="emr-list"><p style="text-align:center; color:var(--muted);">لا توجد طلبات حالياً.</p></div>
   </div>
 
-  <div id="med-tab-labs" class="other-med-services">
-    <h3 style="margin-bottom: 15px; font-size: 16px;">مراكز قريبة (شبين القناطر)</h3>
-    <div class="med-item-card"><div><h4>معمل المختبر</h4><p>تحاليل دم - 1.2 كم</p></div><button class="book-btn" onclick="showToast('تم فتح موقع المعمل')">موقع</button></div>
-    <div class="med-item-card"><div><h4>مركز الأشعة التخصصي</h4><p>أشعة رنين - 2.5 كم</p></div><button class="book-btn" onclick="showToast('تم فتح موقع المركز')">موقع</button></div>
-  </div>
-
   <div id="med-tab-nursing" class="other-med-services">
     <div class="med-item-card"><div><h4>حقن وريدية ومحاليل</h4><p>زيارة منزلية - 150 ج.م</p></div><button class="book-btn" onclick="openNurseBooking(150)">احجز</button></div>
-    <div class="med-item-card"><div><h4>رعاية كبار السن (12 ساعة)</h4><p>زيارة منزلية - 400 ج.م</p></div><button class="book-btn" onclick="openNurseBooking(400)">احجز</button></div>
-  </div>
-
-  <div id="med-tab-pharmacy" class="other-med-services">
-    <div style="text-align:center; padding: 20px; border: 2px dashed var(--border); border-radius: 15px;">
-      <i class="fa-solid fa-file-prescription" style="font-size: 40px; color: var(--brand); margin-bottom: 10px;"></i>
-      <h3>ارفع روشتة الطبيب</h3>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">سيتم إبلاغك بالصيدليات القريبة المتوفر فيها الدواء.</p>
-      <input type="file" id="prescription-upload" style="display: none;" accept="image/*">
-      <button class="book-btn" style="width: 100%; padding: 12px;" onclick="document.getElementById('prescription-upload').click()">اختر صورة الروشتة</button>
-    </div>
-  </div>
-
-  <div id="med-tab-supplies" class="other-med-services">
-    <div class="med-item-card"><div><h4>مرتبة هوائية</h4><p>مضادة للقرح - 850 ج.م</p></div><button class="book-btn" onclick="showToast('تمت الإضافة للسلة')">اطلب</button></div>
-    <div class="med-item-card"><div><h4>كرسي متحرك</h4><p>قابل للطي - 1200 ج.م</p></div><button class="book-btn" onclick="showToast('تمت الإضافة للسلة')">اطلب</button></div>
+    <div class="med-item-card"><div><h4>رعاية كبار السن</h4><p>زيارة منزلية - 400 ج.م</p></div><button class="book-btn" onclick="openNurseBooking(400)">احجز</button></div>
   </div>
 </div>
 
-<!-- حجوزاتي -->
 <div id="view-mybookings" class="app-view">
   <div class="medical-header">
     <button class="back-btn" onclick="navigateTo('view-home')"><i class="fa-solid fa-arrow-right"></i></button>
@@ -275,7 +230,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   <div id="my-bookings-list" style="padding: 20px;"></div>
 </div>
 
-<!-- مودال الحجز -->
 <div class="modal-overlay" id="booking-modal">
   <div class="modal-content">
     <div class="modal-header"><h2>حجز موعد</h2><button class="close-btn" onclick="closeModal('booking-modal')"><i class="fa-solid fa-xmark"></i></button></div>
@@ -283,9 +237,10 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     <div class="input-group"><label>رقم الهاتف</label><input type="tel" id="patient-phone" class="input-field" oninput="localStorage.setItem('wasla_phone', this.value)"></div>
 
     <div class="input-group">
-      <label>التأمين الصحي</label>
-      <select id="insurance-select" class="input-field">
+      <label>التأمين الصحي (اختياري)</label>
+      <select id="booking-insurance" class="input-field" onchange="togglePaymentForInsurance()">
         <option value="cash">دفع شخصي (بدون تأمين)</option>
+        <option value="bupa">بوبا إيجيبت</option>
         <option value="misr">مصر للتأمين</option>
         <option value="allianz">أليانز</option>
         <option value="axa">أكسا</option>
@@ -296,7 +251,16 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
       <label>طريقة الدفع</label>
       <div class="payment-options">
         <div class="pay-option selected" onclick="selectPayment('cash', this)"><i class="fa-solid fa-money-bill-wave"></i><span>كاش</span></div>
-        <div class="pay-option" onclick="selectPayment('online', this)"><i class="fa-solid fa-credit-card"></i><span>دفع إلكتروني</span></div>
+        <div class="pay-option" onclick="selectPayment('online', this)"><i class="fa-solid fa-mobile-screen"></i><span>دفع إلكتروني</span></div>
+      </div>
+      <div class="e-wallet-fields" id="wallet-fields">
+        <label style="font-size:12px;">اختر المحفظة وادخل الرقم:</label>
+        <select class="input-field" style="margin-bottom:5px;">
+          <option>فودافون كاش</option>
+          <option>إنستاباي</option>
+          <option>أورنج كاش</option>
+        </select>
+        <input type="text" class="input-field" placeholder="رقم المحفظة أو الحساب">
       </div>
     </div>
 
@@ -316,7 +280,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   </div>
 </div>
 
-<!-- لوحة الإدارة -->
 <div id="admin-panel">
   <div class="admin-header">
     <div><h2 style="font-size: 20px; font-weight: 900;">لوحة التحكم</h2></div>
@@ -339,7 +302,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
   </div>
 </div>
 
-<!-- الشريط السفلي -->
 <nav class="bottom-nav">
   <button class="nav-item active" id="nav-home" onclick="navigateTo('view-home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
   <button class="nav-item" id="nav-bookings" onclick="navigateTo('view-mybookings')"><i class="fa-solid fa-box"></i><span>حجوزاتي</span></button>
@@ -362,18 +324,23 @@ const db = firebase.firestore();
 
 // 2. البيانات
 const doctorsData = [
-  { id: 1, name: "د. أحمد محمود", spec: "أسنان", price: 200, icon: "fa-tooth", startTime: 14, endTime: 18, slotMins: 30, days: "السبت - الخميس", clinicLat: 30.3128, clinicLng: 31.3234 },
-  { id: 2, name: "د. سارة علي", spec: "باطنة", price: 150, icon: "fa-heart-pulse", startTime: 10, endTime: 14, slotMins: 20, days: "الأحد - الخميس", clinicLat: 30.3130, clinicLng: 31.3240 }
+  { id: 1, name: "د. أحمد محمود", spec: "أسنان", price: 200, icon: "fa-tooth", startTime: 14, endTime: 18, slotMins: 30, days: "السبت - الخميس", clinicLat: 30.3128, clinicLng: 31.3234, insurances: ['bupa', 'misr'] },
+  { id: 2, name: "د. سارة علي", spec: "باطنة", price: 150, icon: "fa-heart-pulse", startTime: 10, endTime: 14, slotMins: 20, days: "الأحد - الخميس", clinicLat: 30.3130, clinicLng: 31.3240, insurances: ['allianz', 'axa'] },
+  { id: 3, name: "د. محمد حسن", spec: "جلدية", price: 250, icon: "fa-hand-dots", startTime: 16, endTime: 20, slotMins: 30, days: "السبت - الأربعاء", clinicLat: 30.3120, clinicLng: 31.3220, insurances: ['metlife', 'bupa'] },
+  { id: 4, name: "د. ليلى كريم", spec: "أسنان", price: 180, icon: "fa-tooth", startTime: 9, endTime: 13, slotMins: 30, days: "الأحد - الخميس", clinicLat: 30.3140, clinicLng: 31.3250, insurances: ['misr'] },
+  { id: 5, name: "د. خالد يوسف", spec: "عيون", price: 220, icon: "fa-eye", startTime: 11, endTime: 15, slotMins: 20, days: "السبت - الخميس", clinicLat: 30.3110, clinicLng: 31.3210, insurances: ['axa', 'metlife'] },
+  { id: 6, name: "د. منى إبراهيم", spec: "أسنان", price: 200, icon: "fa-tooth", startTime: 15, endTime: 19, slotMins: 30, days: "الأحد - الخميس", clinicLat: 30.3135, clinicLng: 31.3235, insurances: ['bupa'] },
+  { id: 7, name: "د. كريم فؤاد", spec: "باطنة", price: 160, icon: "fa-heart-pulse", startTime: 9, endTime: 13, slotMins: 20, days: "السبت - الأربعاء", clinicLat: 30.3125, clinicLng: 31.3225, insurances: ['misr', 'allianz'] },
+  { id: 8, name: "د. هالة سامي", spec: "جلدية", price: 240, icon: "fa-hand-dots", startTime: 13, endTime: 17, slotMins: 30, days: "الأحد - الخميس", clinicLat: 30.3145, clinicLng: 31.3245, insurances: ['axa'] },
+  { id: 9, name: "د. عمر لطفي", spec: "عيون", price: 210, icon: "fa-eye", startTime: 14, endTime: 18, slotMins: 20, days: "السبت - الخميس", clinicLat: 30.3115, clinicLng: 31.3215, insurances: ['bupa', 'misr'] },
+  { id: 10, name: "د. ياسمين علي", spec: "أسنان", price: 190, icon: "fa-tooth", startTime: 10, endTime: 14, slotMins: 30, days: "الأحد - الخميس", clinicLat: 30.3132, clinicLng: 31.3232, insurances: ['allianz', 'metlife'] }
 ];
 
 const symptomsData = [
   { name: "ألم بالأسنان", spec: "أسنان", icon: "fa-tooth" },
-  { name: "صداع مستمر", spec: "باطنة", icon: "fa-head-side-virus" }
-];
-
-const partnerLocations = [
-  { name: "صيدلية العزبي (شبين)", lat: 30.3130, lng: 31.3240, discount: "خصم 10%" },
-  { name: "مطعم مؤمن (شبين)", lat: 30.3115, lng: 31.3220, discount: "خصم 15%" }
+  { name: "صداع مستمر", spec: "باطنة", icon: "fa-head-side-virus" },
+  { name: "طفح جلدي", spec: "جلدية", icon: "fa-hand-dots" },
+  { name: "زغللة في العين", spec: "عيون", icon: "fa-eye" }
 ];
 
 let currentDoctor = null;
@@ -381,8 +348,6 @@ let selectedSlot = null;
 let selectedPaymentMethod = 'cash';
 let isNurse = false;
 let nurseLocation = null;
-let watchId = null;
-let notified = new Set();
 
 // 3. الثيم
 const savedTheme = localStorage.getItem('wasla_theme') || 'light';
@@ -416,12 +381,20 @@ function switchMedTab(tabId, btn) {
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 4000); }
-function selectPayment(method, el) { selectedPaymentMethod = method; document.querySelectorAll('.pay-option').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); }
+function selectPayment(method, el) { 
+  selectedPaymentMethod = method; 
+  document.querySelectorAll('.pay-option').forEach(o => o.classList.remove('selected')); 
+  el.classList.add('selected'); 
+  document.getElementById('wallet-fields').classList.toggle('show', method === 'online');
+}
 
 // 5. الأطباء
-function renderDoctors(filter = 'all') {
+function renderDoctors(insuranceFilter = 'all') {
   const list = document.getElementById('doctors-list');
-  const filtered = filter === 'all' ? doctorsData : doctorsData.filter(d => d.spec === filter);
+  let filtered = doctorsData;
+  if (insuranceFilter !== 'all') {
+    filtered = doctorsData.filter(d => d.insurances.includes(insuranceFilter));
+  }
   list.innerHTML = filtered.map(doc => `
     <div class="doctor-card">
       <div class="doc-img"><i class="fa-solid ${doc.icon}"></i></div>
@@ -429,7 +402,7 @@ function renderDoctors(filter = 'all') {
         <h3>${doc.name}</h3><div class="spec">${doc.spec}</div>
         <div class="sched"><i class="fa-regular fa-clock"></i> ${doc.days} (${doc.startTime}:00 - ${doc.endTime}:00)</div>
         <div class="doc-footer">
-          <button class="btn-loc" onclick="window.open('https://maps.google.com/?q=${doc.clinicLat},${doc.clinicLng}', '_blank')"><i class="fa-solid fa-location-dot"></i> موقع العيادة</button>
+          <button class="btn-loc" onclick="window.open('https://maps.google.com/?q=${doc.clinicLat},${doc.clinicLng}', '_blank')"><i class="fa-solid fa-location-dot"></i> الموقع</button>
           <button class="book-btn" onclick="openBooking(${doc.id})">احجز (${doc.price} ج.م)</button>
         </div>
       </div>
@@ -444,7 +417,8 @@ function renderSymptoms() {
 }
 function selectSymptom(spec, name) {
   document.querySelectorAll('.med-service-btn')[0].click();
-  renderDoctors(spec);
+  document.getElementById('insurance-filter').value = 'all';
+  renderDoctors('all');
   showToast(`بناءً على "${name}"، إليك أطباء ${spec}`);
 }
 
@@ -456,6 +430,7 @@ async function openBooking(id) {
   document.getElementById('nurse-gps-group').style.display = 'none';
   document.getElementById('deposit-box').classList.remove('show');
   document.getElementById('slot-group').style.display = 'block';
+  document.getElementById('wallet-fields').classList.remove('show');
   document.getElementById('time-slots-container').innerHTML = '<p style="font-size:12px; color:var(--muted);">جاري التحميل...</p>';
   openModal('booking-modal');
 
@@ -502,10 +477,13 @@ function getNurseLocation() {
 async function submitBooking() {
   const name = document.getElementById('patient-name').value;
   const phone = document.getElementById('patient-phone').value;
-  const insurance = document.getElementById('insurance-select').value;
+  const insurance = document.getElementById('booking-insurance').value;
   if (!name || !phone) return showToast('يرجى إدخال الاسم والهاتف');
   if (!isNurse && !selectedSlot) return showToast('يرجى اختيار موعد');
   if (isNurse && !nurseLocation) return showToast('يرجى تحديد موقعك للتمريض');
+
+  const btn = document.getElementById('confirm-booking-btn');
+  btn.textContent = 'جارٍ الحجز...'; btn.disabled = true;
 
   localStorage.setItem('wasla_phone', phone);
   const today = new Date().toISOString().split('T')[0];
@@ -520,18 +498,24 @@ async function submitBooking() {
       isNurse: isNurse, location: nurseLocation, deposit: isNurse ? Math.round(currentDoctor.price * 0.25) : 0,
       createdAt: new Date().toISOString()
     });
-    closeModal('booking-modal'); showToast('تم الحجز بنجاح!');
+    closeModal('booking-modal'); 
+    showToast('تم الحجز بنجاح!');
     document.getElementById('notif-bell').classList.add('bell-alert');
     setTimeout(() => document.getElementById('notif-bell').classList.remove('bell-alert'), 8000);
     navigateTo('view-mybookings');
-  } catch(e) { showToast('حدث خطأ'); }
+  } catch(e) { 
+    showToast('حدث خطأ، حاول مرة أخرى'); 
+  } finally {
+    btn.textContent = 'تأكيد الحجز'; btn.disabled = false;
+  }
 }
 
-// 7. حجوزاتي والإلغاء
+// 7. حجوزاتي
 async function loadMyBookings() {
   const container = document.getElementById('my-bookings-list');
   const phone = localStorage.getItem('wasla_phone');
   if(!phone) return container.innerHTML = '<p style="text-align:center; color:var(--muted);">ليس لديك حجوزات.</p>';
+  container.innerHTML = '<p style="text-align:center; color:var(--muted);">جارٍ التحميل...</p>';
   const snap = await db.collection('medical_bookings').where('patientPhone', '==', phone).where('status', '==', 'pending').get();
   if(snap.empty) return container.innerHTML = '<p style="text-align:center; color:var(--muted);">لا يوجد حجوزات نشطة.</p>';
   container.innerHTML = '';
@@ -630,50 +614,10 @@ async function sendLab(id) {
   showToast('تم إرسال الطلب للمريض!');
 }
 
-// 10. GPS + الإشعارات
-function toggleLiveTracking() {
-  const icon = document.querySelector('#gps-btn i');
-  if(watchId) {
-    navigator.geolocation.clearWatch(watchId); watchId = null;
-    icon.style.color = 'var(--muted)'; showToast('تم إيقاف التتبع');
-  } else {
-    showToast('محاكاة شبين القناطر...');
-    icon.style.color = 'var(--brand)';
-    checkNearby(30.3128, 31.3234);
-    watchId = navigator.geolocation.watchPosition(() => {}, null, {enableHighAccuracy:true});
-  }
-}
-function checkNearby(uLat, uLng) {
-  partnerLocations.forEach(p => {
-    const dist = getDistance(uLat, uLng, p.lat, p.lng);
-    if(dist < 2 && !notified.has(p.name)) {
-      notified.add(p.name);
-      document.getElementById('banner-title').innerText = `إنت قريب من ${p.name}!`;
-      document.getElementById('banner-desc').innerText = `${p.discount} لو طلبت دلوقتي.`;
-      const banner = document.getElementById('live-banner');
-      banner.classList.add('show');
-      setTimeout(() => banner.classList.remove('show'), 5000);
-    }
-  });
-}
-function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
 function onBellClick() {
   document.getElementById('notif-bell').classList.remove('bell-alert');
   showToast('لا توجد إشعارات جديدة');
 }
-
-// رفع الروشتة
-document.getElementById('prescription-upload').addEventListener('change', function() {
-  if(this.files.length > 0) {
-    showToast('تم رفع الروشتة! جاري البحث...');
-    setTimeout(() => showToast('متوفر في صيدلية العزبي (شبين) - خصم 10%'), 2000);
-  }
-});
 
 // التشغيل
 renderDoctors();
