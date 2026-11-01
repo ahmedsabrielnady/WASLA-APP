@@ -20,13 +20,13 @@
   --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366); 
   --wallet-gradient: linear-gradient(135deg, #7C3AED, #4F46E5);
   --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05); --shadow-md: 0 10px 25px -3px rgba(0,0,0,0.08);
-  --ticker-bg: #FFFBEB; --ticker-text: #B45309; /* ألوان الإعلان المميزة */
+  --ticker-bg: #FFFBEB; --ticker-text: #B45309;
 }
 [data-theme="dark"] {
   --brand: #10B981; --brand-light: #064E3B; --brand-gradient: linear-gradient(135deg, #059669, #0369A1);
   --dark: #F8FAFC; --bg: #0B1120; --card: #1E293B; --text: #F1F5F9; --muted: #94A3B8; --border: #334155;
   --nav-bg: rgba(30, 41, 59, 0.95); --shadow-sm: 0 4px 6px rgba(0,0,0,0.3); --shadow-md: 0 10px 25px rgba(0,0,0,0.4);
-  --ticker-bg: #451A03; --ticker-text: #FDE68A; /* ألوان الإعلان في الوضع الليلي */
+  --ticker-bg: #451A03; --ticker-text: #FDE68A;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { background-color: var(--bg); color: var(--text); font-family: 'Cairo', sans-serif; padding-bottom: 80px; transition: 0.3s; overflow-x: hidden; }
@@ -72,19 +72,11 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .mic-btn:active { transform: scale(0.9); box-shadow: 0 0 15px var(--brand); }
 
 /* البانر الرئيسي (الهالة) */
-.hero { background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: 24px; margin: 0 20px 15px; padding: 30px 25px; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+.hero { background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: 24px; margin: 0 20px 20px; padding: 30px 25px; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
 .hero::before { content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(16, 185, 129, 0.4); border-radius: 50%; filter: blur(50px); animation: pulseHalo 4s infinite alternate; }
 @keyframes pulseHalo { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0.2; } }
 .hero h1 { font-size: 24px; font-weight: 900; margin-bottom: 8px; line-height: 1.4; position: relative; z-index: 1; }
 .hero p { font-size: 13px; color: #94A3B8; position: relative; z-index: 1; }
-
-/* السلايدر (الإعلانات) */
-.ads-slider { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; padding: 0 20px 20px; scrollbar-width: none; }
-.ads-slider::-webkit-scrollbar { display: none; }
-.ad-item { min-width: 85%; scroll-snap-align: center; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 12px 15px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-sm); }
-.ad-icon { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-.ad-info h4 { font-size: 14px; font-weight: 800; color: var(--dark); margin-bottom: 3px; }
-.ad-info p { font-size: 11px; color: var(--muted); }
 
 /* الأقسام */
 .section-title { padding: 0 20px; margin: 10px 0 15px; font-size: 18px; font-weight: 900; color: var(--dark); display: flex; justify-content: space-between; }
@@ -185,22 +177,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     <div class="hero">
         <h1>كل احتياجاتك،<br>أقرب مع وصلة.</h1>
         <p>الصحة، السيارات، التعليم، التسوق والصيانة في مكان واحد.</p>
-    </div>
-
-    <!-- السلايدر (الإعلانات) -->
-    <div class="ads-slider" id="adsSlider">
-        <div class="ad-item">
-            <div class="ad-icon" style="background:#E0F2FE; color:#0284C7;"><i class="fa-solid fa-truck-fast"></i></div>
-            <div class="ad-info"><h4>توصيل مجاني لفترة محدودة</h4><p>لجميع طلبات السوبر ماركت في شبين</p></div>
-        </div>
-        <div class="ad-item">
-            <div class="ad-icon" style="background:#ECFDF5; color:#059669;"><i class="fa-solid fa-stethoscope"></i></div>
-            <div class="ad-info"><h4>خصم 20% على الكشف الطبي</h4><p>استخدم كود WASLA20</p></div>
-        </div>
-        <div class="ad-item">
-            <div class="ad-icon" style="background:#FFF7ED; color:#EA580C;"><i class="fa-solid fa-car"></i></div>
-            <div class="ad-info"><h4>غسيل سيارات في مكانك</h4><p>اطلب الآن واحصل على تلميع مجاني</p></div>
-        </div>
     </div>
 
     <!-- الأقسام -->
@@ -321,20 +297,7 @@ function startVoiceSearch() {
     }, 2000);
 }
 
-// 6. السلايدر التلقائي
-let slider = document.getElementById('adsSlider');
-let scrollAmount = 0;
-setInterval(() => {
-    if(slider) {
-        scrollAmount += 300;
-        if(scrollAmount >= (slider.scrollWidth - slider.clientWidth)) {
-            scrollAmount = 0;
-        }
-        slider.scrollTo({ left: scrollAmount, behavior: 'smooth' });
-    }
-}, 3000);
-
-// 7. الجي بي إس والإشعارات اللايف
+// 6. الجي بي إس والإشعارات اللايف
 let gpsActive = false;
 function toggleGPS() {
     const btn = document.getElementById('gps-btn');
