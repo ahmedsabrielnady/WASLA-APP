@@ -19,7 +19,6 @@
   --nav-bg: rgba(255, 255, 255, 0.95);
   --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366); 
   --wallet-gradient: linear-gradient(135deg, #7C3AED, #4F46E5);
-  --danger-gradient: linear-gradient(135deg, #E11D48, #BE123C);
   --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05); --shadow-md: 0 10px 25px -3px rgba(0,0,0,0.08);
 }
 [data-theme="dark"] {
@@ -63,31 +62,28 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .mic-btn { width: 50px; height: 50px; border-radius: 15px; background: var(--brand-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: var(--shadow-sm); }
 .mic-btn:active { transform: scale(0.9); box-shadow: 0 0 15px var(--brand); }
 
-/* المحفظة والطوارئ (Quick Actions) */
-.quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px 20px; }
-.action-card { border-radius: 20px; padding: 15px; color: white; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; box-shadow: var(--shadow-sm); cursor: pointer; transition: 0.2s; }
-.action-card:active { transform: scale(0.95); }
-.wallet-card { background: var(--wallet-gradient); }
-.emergency-card { background: var(--danger-gradient); animation: pulseRed 2s infinite alternate; }
-@keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(225,29,72,0.4); } 100% { box-shadow: 0 0 15px 5px rgba(225,29,72,0.2); } }
-.action-card h4 { font-size: 13px; font-weight: 700; opacity: 0.9; margin-bottom: 5px; }
-.action-card .value { font-size: 20px; font-weight: 900; }
-.action-card i { position: absolute; left: 15px; top: 15px; font-size: 30px; opacity: 0.2; }
+/* المحفظة (تم تصغيرها لتكون شريط رفيع شيك) */
+.wallet-card { background: var(--wallet-gradient); border-radius: 15px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; color: white; margin: 0 20px 20px; box-shadow: var(--shadow-sm); cursor: pointer; transition: 0.2s; }
+.wallet-card:active { transform: scale(0.98); }
+.wallet-card div { display: flex; align-items: center; gap: 10px; }
+.wallet-card i { font-size: 20px; }
+.wallet-card h4 { font-size: 14px; font-weight: 700; }
+.wallet-card .value { font-size: 18px; font-weight: 900; }
 
 /* البانر الرئيسي (الهالة) */
-.hero { background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: 24px; margin: 0 20px 20px; padding: 30px 25px; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+.hero { background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: 24px; margin: 0 20px 15px; padding: 30px 25px; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
 .hero::before { content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(16, 185, 129, 0.4); border-radius: 50%; filter: blur(50px); animation: pulseHalo 4s infinite alternate; }
 @keyframes pulseHalo { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0.2; } }
 .hero h1 { font-size: 24px; font-weight: 900; margin-bottom: 8px; line-height: 1.4; position: relative; z-index: 1; }
 .hero p { font-size: 13px; color: #94A3B8; position: relative; z-index: 1; }
 
-/* السلايدر المتحرك (Ads) */
+/* السلايدر المتحرك (الإعلانات) - تم نقله تحت الهيرو */
 .ads-slider { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; padding: 0 20px 20px; scrollbar-width: none; }
 .ads-slider::-webkit-scrollbar { display: none; }
-.ad-item { min-width: 85%; scroll-snap-align: center; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 15px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-sm); }
-.ad-icon { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-.ad-info h4 { font-size: 15px; font-weight: 800; color: var(--dark); margin-bottom: 3px; }
-.ad-info p { font-size: 12px; color: var(--muted); }
+.ad-item { min-width: 85%; scroll-snap-align: center; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 12px 15px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-sm); }
+.ad-icon { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.ad-info h4 { font-size: 14px; font-weight: 800; color: var(--dark); margin-bottom: 3px; }
+.ad-info p { font-size: 11px; color: var(--muted); }
 
 /* الأقسام */
 .section-title { padding: 0 20px; margin: 10px 0 15px; font-size: 18px; font-weight: 900; color: var(--dark); display: flex; justify-content: space-between; }
@@ -174,18 +170,13 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <button class="mic-btn" onclick="startVoiceSearch()"><i class="fa-solid fa-microphone"></i></button>
     </div>
 
-    <!-- المحفظة والطوارئ -->
-    <div class="quick-actions">
-        <div class="action-card wallet-card" onclick="showToast('محفظتك جاهزة!')">
+    <!-- المحفظة (شريط رفيع شيك) -->
+    <div class="wallet-card" onclick="showToast('محفظتك جاهزة!')">
+        <div>
             <i class="fa-solid fa-wallet"></i>
             <h4>محفظة وصلة</h4>
-            <div class="value">150 <span style="font-size:12px;font-weight:normal">ج.م</span></div>
         </div>
-        <div class="action-card emergency-card" onclick="showToast('جاري الاتصال بالطوارئ...')">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <h4>طلب طارئ</h4>
-            <div class="value">اضغط الآن</div>
-        </div>
+        <div class="value">150 <span style="font-size:12px;font-weight:normal">ج.م</span></div>
     </div>
 
     <!-- البانر الرئيسي (الهالة) -->
@@ -194,8 +185,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <p>الصحة، السيارات، التعليم، التسوق والصيانة في مكان واحد.</p>
     </div>
 
-    <!-- السلايدر (الإعلانات) -->
-    <div class="section-title"><span>عروض وخصومات</span></div>
+    <!-- السلايدر (الإعلانات) - تحت الهيرو مباشرة -->
     <div class="ads-slider" id="adsSlider">
         <div class="ad-item">
             <div class="ad-icon" style="background:#E0F2FE; color:#0284C7;"><i class="fa-solid fa-truck-fast"></i></div>
@@ -322,23 +312,24 @@ function openSection(section) {
 // 5. البحث الصوتي
 function startVoiceSearch() {
     showToast('جاري الاستماع لطلبك... 🎤');
-    // محاكاة للاستماع وبعدين يكتب كلام
     setTimeout(() => {
         document.querySelector('.search-box input').value = "دكتور أسنان قريب";
         showToast('جاري البحث عن: دكتور أسنان قريب');
     }, 2000);
 }
 
-// 6. السلايدر التلقائي
+// 6. السلايدر التلقائي (شريط الإعلانات)
 let slider = document.getElementById('adsSlider');
 let scrollAmount = 0;
 setInterval(() => {
     if(slider) {
         scrollAmount += 300;
-        if(scrollAmount > slider.scrollWidth) scrollAmount = 0;
+        if(scrollAmount >= (slider.scrollWidth - slider.clientWidth)) {
+            scrollAmount = 0;
+        }
         slider.scrollTo({ left: scrollAmount, behavior: 'smooth' });
     }
-}, 3500);
+}, 3000);
 
 // 7. الجي بي إس والإشعارات اللايف
 let gpsActive = false;
