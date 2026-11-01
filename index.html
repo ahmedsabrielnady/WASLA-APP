@@ -6950,807 +6950,44 @@ nav#app-tabs {
   #main-container, .app-main {
     padding-bottom: 100px !important;
   }
-
-  /* ==========================================
-     الكود الجديد بتاع شاشة الدخول (انسخه من هنا)
-     ========================================== */
-
-  /* 1. إجبار المودال يكون في النص بالظبط */
-  .modal-overlay {
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 16px !important;
-    z-index: 999999 !important;
-    background: rgba(11, 18, 32, 0.85) !important;
-  }
-
-  /* 2. إخفاء الشريط السفلي نهائياً لما المودال يفتح */
-  body:has(.modal-overlay.open) #app-tabs {
-    display: none !important;
-  }
-
-  /* 3. تظبيط شكل المربع الأبيض (المودال) */
-  #modal-auth .modal {
-    display: block !important;
-    width: 100% !important;
-    max-width: 400px !important;
-    margin: auto !important;
-    padding: 24px !important;
-    border-radius: 20px !important;
-    background: #fff !important;
-    position: relative !important;
-    max-height: 90vh !important;
-    overflow-y: auto !important;
-  }
-
-  /* 4. إجبار الخانات (Inputs) واللافتات (Labels) تكون فوق بعض */
-  #modal-auth .modal .label, 
-  #modal-auth .modal input {
-    display: block !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    margin-bottom: 12px !important;
-    text-align: right !important;
-  }
-
-  /* شكل الـ Input */
-  #modal-auth .modal input {
-    padding: 12px 14px !important;
-    border: 1px solid #E2E8F0 !important;
-    border-radius: 12px !important;
-    font-size: 14px !important;
-    background: #F8FAFC !important;
-  }
-
-  #modal-auth .modal input:focus {
-    border-color: #059669 !important;
-    outline: none !important;
-    background: #fff !important;
-  }
-
-  /* شكل الـ Label */
-  #modal-auth .modal .label {
-    font-size: 13px !important;
-    font-weight: 800 !important;
-    color: #334155 !important;
-    margin-bottom: 6px !important;
-    margin-top: 10px !important;
-  }
-
-  /* 5. تظبيط زرار الإغلاق (X) */
-  #modal-auth .modal-close {
-    position: absolute !important;
-    top: 16px !important;
-    left: 16px !important;
-    right: auto !important;
-    width: 34px !important;
-    height: 34px !important;
-    background: #F1F5F9 !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 16px !important;
-    color: #64748B !important;
-    z-index: 10 !important;
-  }
-
-  /* 6. تظبيط زرار الدخول */
-  #modal-auth .btn-primary {
-    width: 100% !important;
-    padding: 14px !important;
-    font-size: 16px !important;
-    border-radius: 12px !important;
-    margin-top: 10px !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 8px !important;
-  }
-  /* ==========================================
-     الحل الشامل (الستايل + شاشة الدخول + اللمس)
-     ========================================== */
-  
-  /* 1. تصفير المسافات */
-  html, body, .app-shell {
-    margin: 0 !important;
-    padding: 0 !important;
-    padding-top: 0 !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  /* 2. الهيدر */
-  .app-header {
-    position: -webkit-sticky !important;
-    position: sticky !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    z-index: 9999 !important;
-    margin: 0 !important;
-    padding: 12px 16px !important;
-    background: rgba(255, 255, 255, 0.98) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-    border-bottom: 1px solid #E2E8F0 !important;
-    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04) !important;
-    transform: translateZ(0) !important;
-    will-change: transform !important;
-  }
-
-  /* 3. المحتوى */
-  #main-container, .app-main {
-    margin: 0 !important;
-    padding-top: 20px !important;
-    padding-bottom: 100px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  /* 4. شريط الحالة */
-  .context-switcher-inner {
-    background: #FFFFFF !important;
-    border: 1px solid #E2E8F0 !important;
-    border-radius: 14px !important;
-    padding: 10px 14px !important;
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-  }
-  .context-label { font-size: 9px !important; color: #64748B !important; margin: 0 !important; }
-  .context-name { font-size: 13px !important; font-weight: 900 !important; color: #0F172A !important; margin: 0 !important; }
-  .context-switch-btn { background: #F8FAFC !important; color: #0F172A !important; border: 1px solid #E2E8F0 !important; border-radius: 8px !important; font-size: 11px !important; }
-  /* ==========================================
-     FIX MODALS & PERFORMANCE (بدون تهنيج)
-     ========================================== */
-
-  /* 1. تصفير شكل النوافذ (تكون مخفية افتراضياً) */
-  .modal-overlay {
-    display: none !important; /* مخفية افتراضياً - ده اللي هيمنع التهنيج */
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 999999 !important;
-    background: rgba(11, 18, 32, 0.7) !important;
-  }
-
-  /* 2. تظهر بس لما نضيف كلاس open (عشان تقفلها بزرار) */
-  .modal-overlay.open {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 16px !important;
-  }
-
-  /* 3. شكل المربع الأبيض (المودال) */
-  .modal {
-    display: block !important;
-    width: 100% !important;
-    max-width: 400px !important;
-    margin: auto !important;
-    padding: 24px !important;
-    border-radius: 20px !important;
-    background: #fff !important;
-    max-height: 85vh !important;
-    overflow-y: auto !important;
-    position: relative !important;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.2) !important;
-  }
-
-  /* 4. إخفاء الشريط السفلي لما المودال يفتح */
-  body.modal-open #app-tabs,
-  body.modal-open .bottom-nav {
-    display: none !important;
-  }
-
-  /* 5. إصلاح اللمس (عشان تكتب وتدوس) */
-  body.modal-open { touch-action: auto !important; }
-  .modal-overlay.open, .modal-overlay.open * { 
-    pointer-events: auto !important; 
-    touch-action: auto !important; 
-  }
-
-  /* 6. تظبيط حقول الإدخال (Labels & Inputs) */
-  .modal .label, .modal label {
-    display: block !important;
-    width: 100% !important;
-    text-align: right !important;
-    margin-bottom: 6px !important;
-    margin-top: 12px !important;
-    font-size: 13px !important;
-    font-weight: 800 !important;
-    color: #334155 !important;
-  }
-  .modal input, .modal select, .modal textarea {
-    display: block !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    margin-bottom: 16px !important;
-    padding: 12px 14px !important;
-    border: 1px solid #CBD5E1 !important;
-    border-radius: 10px !important;
-    font-size: 14px !important;
-    font-family: inherit !important;
-    background: #F8FAFC !important;
-  }
-
-  /* 7. تظبيط زرار الإغلاق (X) */
-  .modal-close {
-    position: absolute !important;
-    top: 16px !important;
-    left: 16px !important;
-    right: auto !important;
-    width: 34px !important;
-    height: 34px !important;
-    background: #F1F5F9 !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    z-index: 10 !important;
-    border: none !important;
-    cursor: pointer !important;
-  }
-     /* ==========================================
-   إجبار المتصفح على فتح الكيبورد والسماح بالكتابة
-   ========================================== */
-
-body.modal-open,
-body.modal-open * {
-  touch-action: manipulation !important;
-  -webkit-user-select: text !important;
-  user-select: text !important;
-}
-
-.modal-overlay.open,
-.modal-overlay.open * {
-  pointer-events: auto !important;
-  touch-action: manipulation !important;
-}
-
-/* إجبار الخانات على استقبال اللمس */
-.modal input,
-.modal textarea,
-.modal select {
-  pointer-events: auto !important;
-  touch-action: manipulation !important;
-  -webkit-user-select: text !important;
-  user-select: text !important;
-  z-index: 99999 !important;
-  position: relative !important;
-}
-
-/* تظبيط مقاس المودال عشان الكيبورد ميغطيش الخانات */
-.modal {
-  max-height: 85dvh !important; /* بياخد مساحة الشاشة المتاحة بعد الكيبورد */
-  height: auto !important;
-}
-</style> <!-- إغلاق الستايل -->
-
-</div> <!-- قفل الـ app-shell -->
-   <!-- WASLA AUTH UI UPGRADE & TOUCH FIX -->
-<script>
-(function WASLA_AUTH_UPGRADE() {
-  'use strict';
-  if (!window.AuthUI || !window.WaslaCore) return;
-
-  const { Utils, UI } = window.WaslaCore;
-
-  // 1. إصلاح مشكلة الكيبورد (إلغاء منع اللمس)
-  document.addEventListener('DOMContentLoaded', () => {
-    const style = document.createElement('style');
-    style.textContent = `
-      body.modal-open { 
-        touch-action: auto !important; 
-        overflow: hidden !important; 
-        position: fixed !important;
-        width: 100% !important;
-      }
-      .modal-overlay.open { 
-        pointer-events: auto !important; 
-        touch-action: auto !important; 
-      }
-      .modal input, .modal button {
-        pointer-events: auto !important;
-        touch-action: auto !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
-
-  // 2. تصميم جديد واحترافي لشاشة الدخول
-  window.AuthUI._loginForm = function() {
-    return `
-      <div style="text-align:center; margin-bottom: 24px;">
-        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #059669, #10B981); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; margin: 0 auto 16px; box-shadow: 0 10px 25px rgba(5,150,105,0.3);">
-          <i class="fa-solid fa-link"></i>
-        </div>
-        <h3 style="font-size: 22px; font-weight: 900; color: #0F172A; margin-bottom: 6px;">مرحباً بعودتك</h3>
-        <p style="font-size: 13px; color: #64748B; font-weight: 600;">سجل دخولك لمتابعة خدماتك في وصلة</p>
-      </div>
-
-      <form onsubmit="event.preventDefault(); AuthUI._submitLogin();">
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 12px; font-weight: 800; color: #334155; margin-bottom: 8px; text-align: right;">رقم الموبايل</label>
-          <div style="position: relative;">
-            <i class="fa-solid fa-mobile-screen" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94A3B8; font-size: 16px;"></i>
-            <input type="tel" id="login-phone" placeholder="01xxxxxxxxx" maxlength="11" autocomplete="tel" style="width: 100%; padding: 14px 40px 14px 14px; border: 1.5px solid #E2E8F0; border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 700; color: #0F172A; background: #F8FAFC; outline: none; transition: all 0.2s;">
-          </div>
-        </div>
-
-        <div style="margin-bottom: 24px;">
-          <label style="display: block; font-size: 12px; font-weight: 800; color: #334155; margin-bottom: 8px; text-align: right;">كلمة السر</label>
-          <div style="position: relative;">
-            <i class="fa-solid fa-lock" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94A3B8; font-size: 16px;"></i>
-            <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" style="width: 100%; padding: 14px 40px 14px 14px; border: 1.5px solid #E2E8F0; border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 700; color: #0F172A; background: #F8FAFC; outline: none; transition: all 0.2s;">
-          </div>
-        </div>
-
-        <button type="submit" style="width: 100%; padding: 16px; background: linear-gradient(135deg, #059669, #10B981); color: #fff; border: none; border-radius: 14px; font-family: inherit; font-size: 16px; font-weight: 900; cursor: pointer; box-shadow: 0 8px 20px rgba(5,150,105,0.3); display: flex; justify-content: center; align-items: center; gap: 8px; transition: transform 0.1s;">
-          دخول <i class="fa-solid fa-arrow-left"></i>
-        </button>
-      </form>
-
-      <div style="text-align: center; margin-top: 24px; border-top: 1px solid #E2E8F0; padding-top: 20px;">
-        <p style="font-size: 13px; color: #64748B; font-weight: 600; margin: 0;">
-          ليس لديك حساب؟ 
-          <a onclick="AuthUI.open('register')" style="color: #059669; font-weight: 900; cursor: pointer; margin-right: 4px; text-decoration: none;">سجل الآن مجاناً</a>
-        </p>
-      </div>
-    `;
-  };
-
-  // 3. تصميم جديد لشاشة إنشاء الحساب
-  window.AuthUI._registerForm = function() {
-    return `
-      <div style="text-align:center; margin-bottom: 24px;">
-        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #2563EB, #60A5FA); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; margin: 0 auto 16px; box-shadow: 0 10px 25px rgba(37,99,235,0.3);">
-          <i class="fa-solid fa-user-plus"></i>
-        </div>
-        <h3 style="font-size: 22px; font-weight: 900; color: #0F172A; margin-bottom: 6px;">حساب جديد</h3>
-        <p style="font-size: 13px; color: #64748B; font-weight: 600;">انضم لشبكة وصلة واستفد من كل الخدمات</p>
-      </div>
-
-      <form onsubmit="event.preventDefault(); AuthUI._submitRegister();">
-        <div style="margin-bottom: 14px;">
-          <label style="display: block; font-size: 12px; font-weight: 800; color: #334155; margin-bottom: 8px; text-align: right;">الاسم الثلاثي</label>
-          <input type="text" id="reg-name" placeholder="محمد أحمد علي" autocomplete="name" style="width: 100%; padding: 14px; border: 1.5px solid #E2E8F0; border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 700; color: #0F172A; background: #F8FAFC; outline: none; transition: all 0.2s;">
-        </div>
-
-        <div style="margin-bottom: 14px;">
-          <label style="display: block; font-size: 12px; font-weight: 800; color: #334155; margin-bottom: 8px; text-align: right;">رقم الموبايل</label>
-          <input type="tel" id="reg-phone" placeholder="01xxxxxxxxx" maxlength="11" autocomplete="tel" style="width: 100%; padding: 14px; border: 1.5px solid #E2E8F0; border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 700; color: #0F172A; background: #F8FAFC; outline: none; transition: all 0.2s;">
-        </div>
-
-        <div style="margin-bottom: 24px;">
-          <label style="display: block; font-size: 12px; font-weight: 800; color: #334155; margin-bottom: 8px; text-align: right;">كلمة السر</label>
-          <input type="password" id="reg-pass" placeholder="6 أحرف على الأقل" autocomplete="new-password" style="width: 100%; padding: 14px; border: 1.5px solid #E2E8F0; border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 700; color: #0F172A; background: #F8FAFC; outline: none; transition: all 0.2s;">
-        </div>
-
-        <button type="submit" style="width: 100%; padding: 16px; background: linear-gradient(135deg, #2563EB, #3B82F6); color: #fff; border: none; border-radius: 14px; font-family: inherit; font-size: 16px; font-weight: 900; cursor: pointer; box-shadow: 0 8px 20px rgba(37,99,235,0.3); display: flex; justify-content: center; align-items: center; gap: 8px;">
-          إنشاء الحساب <i class="fa-solid fa-check"></i>
-        </button>
-      </form>
-
-      <div style="text-align: center; margin-top: 24px; border-top: 1px solid #E2E8F0; padding-top: 20px;">
-        <p style="font-size: 13px; color: #64748B; font-weight: 600; margin: 0;">
-          لديك حساب بالفعل؟ 
-          <a onclick="AuthUI.open('login')" style="color: #2563EB; font-weight: 900; cursor: pointer; margin-right: 4px; text-decoration: none;">تسجيل الدخول</a>
-        </p>
-      </div>
-    `;
-  };
-  
-  // إضافة تأثير عند التركيز على الخانات
-  const inputStyle = document.createElement('style');
-  inputStyle.textContent = `
-    .modal input:focus {
-      border-color: #059669 !important;
-      background: #fff !important;
-      box-shadow: 0 0 0 4px rgba(5,150,105,0.1) !important;
-    }
-    .modal button:active {
-      transform: scale(0.98) !important;
-    }
-  `;
-  document.head.appendChild(inputStyle);
-
-  console.log('✅ تم تحديث شاشة الدخول وإصلاح الكيبورد');
-})();
-</script>
-   <!-- WASLA GLOBAL GLOW EFFECT -->
-<style id="wasla-glow-style">
-  /* 1. الشكل العام للهالة اللي هتظهر */
-  .wasla-click-glow {
-    position: relative;
-    transition: all 0.15s ease !important;
-    /* هالة حمراء زي شعار وصلة */
-    box-shadow: 0 0 0 4px rgba(255, 61, 104, 0.15), 0 0 25px rgba(255, 138, 0, 0.4) !important;
-    border-color: #FF3D68 !important;
-    transform: scale(0.98) !important; /* ضغطة خفيفة عشان يتفاعل */
-    z-index: 10 !important;
-  }
-
-  /* 2. حلقة إضافية حوالين الزرار عشان تبقى أوضح */
-  .wasla-click-glow::after {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    border-radius: inherit;
-    border: 2px solid rgba(255, 61, 104, 0.6);
-    pointer-events: none;
-    animation: glowPulse 1s infinite alternate;
-  }
-
-  @keyframes glowPulse {
-    from { opacity: 0.5; transform: scale(1); }
-    to { opacity: 0; transform: scale(1.05); }
-  }
-</style>
-
-<script id="wasla-glow-script">
-(function WASLA_GLOBAL_GLOW() {
-  'use strict';
-  
-  // تحديد كل العناصر اللي ليها تفاعل في المنصة
-  const interactiveSelectors = [
-    'button', 'a', '.sector-card', '.wp-service-card', '.nav-item', 
-    '.local-provider', '.wg-product', '.wcars-card', '.education-card', 
-    '.patient-card', '.doctor-card-med', '.elite-choice', '.elite-shortcut',
-    '[onclick]', '[role="button"]'
-  ].join(',');
-
-  // إضافة كلاس الهالة لما ندوس
-  document.addEventListener('pointerdown', (e) => {
-    // لو المستخدم بيسحب سكرول أو بيعمل زووم، منعملش هالة
-    if (e.pointerType === 'touch' && e.isPrimary === false) return;
-
-    const target = e.target.closest(interactiveSelectors);
-    if (target && !target.closest('.modal-overlay') && target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
-      // إضافة الهالة
-      target.classList.add('wasla-click-glow');
-      
-      // مسح الهالة بعد ما المستخدم يشيل إيده (أو بعد نص ثانية)
-      const removeGlow = () => {
-        setTimeout(() => target.classList.remove('wasla-click-glow'), 150);
-        document.removeEventListener('pointerup', removeGlow);
-        document.removeEventListener('pointercancel', removeGlow);
-      };
-      
-      document.addEventListener('pointerup', removeGlow);
-      document.addEventListener('pointercancel', removeGlow);
-    }
-  });
-
-  console.log('✨ [WASLA] Global Glow Effect Activated');
-})();
-</script>
-   <!-- WASLA FOUNDER & UX UPGRADE -->
-<style id="wasla-custom-features-style">
-  /* تنسيقات الشكاوى والأعراض */
-  .symptom-card { background: #fff; border: 1.5px solid #E2E8F0; border-radius: 14px; padding: 14px; text-align: center; cursor: pointer; transition: all 0.2s; }
-  .symptom-card:hover { border-color: #059669; background: #F0FDF4; transform: translateY(-2px); }
-  .symptom-icon { font-size: 24px; color: #059669; margin-bottom: 8px; display: block; }
-  .symptom-name { font-size: 13px; font-weight: 900; color: #0F172A; }
-  
-  .feedback-tag { display: inline-block; padding: 8px 14px; border-radius: 20px; background: #F1F5F9; border: 1px solid #E2E8F0; font-size: 12px; font-weight: 800; color: #475569; cursor: pointer; margin: 4px; transition: all 0.2s; }
-  .feedback-tag.selected { background: #ECFDF5; border-color: #059669; color: #059669; }
-  
-  .feedback-home-btn { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #F8FAFC, #FFFFFF); border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px; margin: 16px 0; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: all 0.2s; }
-  .feedback-home-btn:hover { border-color: #FF3D68; box-shadow: 0 4px 15px rgba(255,61,104,0.1); }
-  
-  .price-manager-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-</style>
-
-<script id="wasla-custom-features-script">
-(function WASLA_FEATURES_UPGRADE() {
-  'use strict';
-  if (!window.WaslaCore || !window.Auth) return;
-  const { Utils, UI, Store } = window.WaslaCore;
-
-  // ==========================================
-  // 1. ميزة الأعراض الذكية (Medical Symptoms)
-  // ==========================================
-  const SYMPTOMS = [
-    { id: 'headache', name: 'صداع مستمر', icon: 'fa-head-side-virus', spec: 'باطنة', advice: 'قد يحتاج كشف باطنة أو مخ وأعصاب.' },
-    { id: 'chest', name: 'ألم في الصدر', icon: 'fa-heart-pulse', spec: 'قلب', advice: 'يُنصح باستشارة طبيب قلب فوراً.' },
-    { id: 'stomach', name: 'ألم في المعدة', icon: 'fa-stomach', spec: 'باطنة', advice: 'قد يحتاج كشف باطنة أو جهاز هضمي.' },
-    { id: 'bone', name: 'ألم في المفاصل', icon: 'fa-bone', spec: 'عظام', advice: 'يُنصح بكشف عظام.' },
-    { id: 'fever', name: 'حرارة مرتفعة', icon: 'fa-thermometer-high', spec: 'باطنة', advice: 'كشف باطنة أو أطفال (حسب العمر).' },
-    { id: 'skin', name: 'طفح جلدي', icon: 'fa-allergies', spec: 'جلدية', advice: 'كشف جلدية.' }
-  ];
-
-  const originalMedOpen = window.WaslaMedicalRequests.open;
-  window.WaslaMedicalRequests.open = function(type, title) {
-    if (type === 'symptoms') {
-      const body = Utils.$('#modal-generic-body');
-      if(!body) return;
-      body.innerHTML = `
-        <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
-        <div style="text-align:center; margin-bottom: 20px;">
-          <div style="width:56px;height:56px;background:#ECFDF5;color:#059669;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 10px;"><i class="fa-solid fa-notes-medical"></i></div>
-          <h3 style="font-size:18px;font-weight:900;">ما هو العرض الذي تشعر به؟</h3>
-          <p style="font-size:12px;color:#64748B;margin-top:4px;">اختر العرض لنقترح لك الطبيب المناسب.</p>
-        </div>
-        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;">
-          ${SYMPTOMS.map(s => `
-            <div class="symptom-card" onclick="WaslaFeatureActions.selectSymptom('${s.id}')">
-              <i class="fa-solid ${s.icon} symptom-icon"></i>
-              <div class="symptom-name">${s.name}</div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-      UI.modal('modal-generic', { open: true });
-      return;
-    }
-    return originalMedOpen.call(this, type, title);
-  };
-
-  window.WaslaFeatureActions = {
-    selectSymptom: function(id) {
-      const s = SYMPTOMS.find(x => x.id === id);
-      if(!s) return;
-      UI.modal('modal-generic', { open: false });
-      UI.toast(`💡 ${s.advice}`, 'info', 4000);
-      // فلترة الأطباء
-      if (window.medicalFilters) {
-        window.medicalFilters.specialty = s.spec;
-      }
-      setTimeout(() => window.Router.go('medical'), 1000);
-    }
-  };
-
-  // ==========================================
-  // 2. تقييد مساعد المدرس (Education Fix)
-  // ==========================================
-  const originalEduRender = window.WaslaEducation.render;
-  window.WaslaEducation.render = function(el) {
-    originalEduRender.call(this, el);
-    const user = window.Auth.getCurrentUser();
-    const isTeacher = user && (user.role === 'teacher' || Auth.getCurrentContext() === 'teacher');
-    const isFounder = user && (user.role === 'founder' || Auth.getCurrentContext() === 'founder');
-    
-    // إخفاء زر مساعد المدرس لو مش مدرس أو مؤسس
-    const adminBtns = el.querySelectorAll('button[onclick*="setView(\'admin\')"]');
-    if (!isTeacher && !isFounder) {
-      adminBtns.forEach(btn => btn.style.display = 'none');
-    }
-  };
-
-  // ==========================================
-  // 3. نظام التسعير المرن (Dynamic Pricing)
-  // ==========================================
-  window.WaslaPricing = {
-    getDefaultPrices: () => ({
-      home_nursing: 250,
-      home_visit: 400,
-      supplies: 75,
-      car_battery: 150,
-      car_tire: 180
-    }),
-    getPrice: function(key) {
-      const db = Store.load();
-      const prices = db.customPricing || this.getDefaultPrices();
-      return prices[key] || 0;
-    },
-    updatePrice: function(key, newPrice) {
-      const db = Store.load();
-      if (!db.customPricing) db.customPricing = this.getDefaultPrices();
-      db.customPricing[key] = newPrice;
-      Store.save(db);
-      UI.toast('✅ تم تحديث السعر بنجاح وسيظهر لجميع المستخدمين', 'success');
-    }
-  };
-
-  // ربط الأسعار بالواجهة (تعديل دالة العرض في الطبي)
-  if (window.WaslaMedicalRequests && window.WaslaMedicalRequests.catalog) {
-    const cat = window.WaslaMedicalRequests.catalog;
-    if(cat.home_nursing) cat.home_nursing.price = window.WaslaPricing.getPrice('home_nursing');
-    if(cat.home_visit) cat.home_visit.price = window.WaslaPricing.getPrice('home_visit');
-  }
-
-  // إضافة قسم التسعير في لوحة المؤسس
-  const originalFounderRender = window.WaslaFounderV3 ? window.WaslaFounderV3.setTab : null;
-  if (window.WaslaFounderV3) {
-    // اعتراض التبويبات عشان نضيف تبويب تسعير
-    const origRender = window.WaslaFounderV3.render; // Assuming render exists, otherwise use Router
-    window.Router.registry['founder'] = function(el) {
-       // بنستدعي الريندر الأصلي
-       window.WaslaFounderV3._renderOriginal.call(this, el);
-       
-       // نضيف قسم التسعير في نهاية الصفحة
-       const prices = Store.load().customPricing || window.WaslaPricing.getDefaultPrices();
-       const priceHTML = `
-         <div class="wv3-panel" style="margin-top:20px;">
-            <h3><i class="fa-solid fa-money-bill-trend-up"></i> التحكم في أسعار الخدمات</h3>
-            <p style="font-size:11px; color:#64748B; margin-bottom:12px;">أي تعديل هنا سيظهر فوراً للمستخدمين في الصفحة الرئيسية.</p>
-            <div class="price-manager-card">
-              <span style="font-weight:900;">التمريض المنزلي</span>
-              <div>
-                <input type="number" id="price-home_nursing" value="${prices.home_nursing}" style="width:80px; padding:6px; border:1px solid #ccc; border-radius:6px; text-align:center;">
-                <button class="wv3-btn primary" onclick="WaslaFeatureActions.savePrice('home_nursing')">حفظ</button>
-              </div>
-            </div>
-            <div class="price-manager-card">
-              <span style="font-weight:900;">زيارة طبيب منزلية</span>
-              <div>
-                <input type="number" id="price-home_visit" value="${prices.home_visit}" style="width:80px; padding:6px; border:1px solid #ccc; border-radius:6px; text-align:center;">
-                <button class="wv3-btn primary" onclick="WaslaFeatureActions.savePrice('home_visit')">حفظ</button>
-              </div>
-            </div>
-         </div>
-       `;
-       el.insertAdjacentHTML('beforeend', priceHTML);
-    };
-  }
-
-  window.WaslaFeatureActions.savePrice = function(key) {
-    const val = Number(Utils.$('#price-' + key).value);
-    if(val > 0) window.WaslaPricing.updatePrice(key, val);
-  };
-
-  // ==========================================
-  // 4. نظام الشكاوى والاقتراحات (Feedback)
-  // ==========================================
-  window.WaslaFeedback = {
-    open: function() {
-      const body = Utils.$('#modal-generic-body');
-      body.innerHTML = `
-        <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
-        <div style="text-align:center; margin-bottom:16px;">
-          <i class="fa-solid fa-headset" style="font-size:32px; color:#FF3D68; margin-bottom:8px;"></i>
-          <h3 style="font-size:18px; font-weight:900;">الشكاوى والاقتراحات</h3>
-          <p style="font-size:12px; color:#64748B;">رأيك يهمنا جداً لتطوير وصلة.</p>
-        </div>
-        <div style="margin-bottom:16px;">
-          <label class="label">ما هو موضوع الشكوى؟</label>
-          <div style="display:flex; flex-wrap:wrap; gap:6px;" id="feedback-tags">
-             <div class="feedback-tag" onclick="this.classList.toggle('selected')">تأخر توصيل</div>
-             <div class="feedback-tag" onclick="this.classList.toggle('selected')">طلب مختلف</div>
-             <div class="feedback-tag" onclick="this.classList.toggle('selected')">سوء معاملة</div>
-             <div class="feedback-tag" onclick="this.classList.toggle('selected')">اقتراح جديد</div>
-             <div class="feedback-tag" onclick="this.classList.toggle('selected')">أخرى</div>
-          </div>
-        </div>
-        <label class="label">اكتب تفاصيل إضافية (اختياري)</label>
-        <textarea id="feedback-text" class="input" rows="3" placeholder="اشرح لنا ما حدث بالتفصيل..." style="margin-bottom:16px;"></textarea>
-        <button class="btn btn-primary btn-block" onclick="WaslaFeedback.submit()">إرسال الشكوى</button>
-      `;
-      UI.modal('modal-generic', { open: true });
-    },
-    submit: function() {
-      const selectedTags = Array.from(document.querySelectorAll('#feedback-tags .selected')).map(t => t.innerText);
-      const text = Utils.$('#feedback-text').value.trim();
-      if (selectedTags.length === 0 && !text) {
-        return UI.toast('اختر موضوع الشكوى أو اكتب التفاصيل', 'error');
-      }
-      const db = Store.load();
-      db.feedback = db.feedback || [];
-      db.feedback.push({ id: Utils.id('fb'), tags: selectedTags, text, ts: Date.now() });
-      Store.save(db);
-      UI.modal('modal-generic', { open: false });
-      UI.toast('✅ تم استلام شكواك وسيتم مراجعتها قريباً', 'success');
-    }
-  };
-
-  // إضافة زر الشكاوى في الصفحة الرئيسية
-  const originalHomeRender = window.Router.registry['home'];
-  window.Router.registry['home'] = function(el, params) {
-    originalHomeRender.call(this, el, params);
-    
-    // إضافة الزرار في نهاية الصفحة الرئيسية
-    const feedbackBtn = `
-      <div class="feedback-home-btn" onclick="WaslaFeedback.open()">
-        <div style="display:flex; align-items:center; gap:12px;">
-          <div style="width:40px; height:40px; background:#FFF1F2; color:#FF3D68; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px;">
-            <i class="fa-solid fa-comment-dots"></i>
-          </div>
-          <div>
-            <div style="font-size:14px; font-weight:900; color:#0F172A;">لديك شكوى أو اقتراح؟</div>
-            <div style="font-size:11px; color:#64748B;">ساعدنا نكون أفضل، رأيك يهمنا</div>
-          </div>
-        </div>
-        <i class="fa-solid fa-chevron-left" style="color:#CBD5E1;"></i>
-      </div>
-    `;
-    const sharePanel = el.querySelector('.wp-share-panel');
-    if(sharePanel) {
-      sharePanel.insertAdjacentHTML('beforebegin', feedbackBtn);
-    }
-  };
-
-  console.log('✅ [WASLA UPGRADE] Features loaded successfully.');
-})();
-</script>
-<!-- WASLA NUCLEAR OVERRIDE (V6) -->
-<style id="wasla-nuclear-style">
-  /* 1. شريط الإعلانات (مضمون) */
-  .wasla-ticker-container { 
-    background: #0B1220; 
-    border-radius: 12px; 
-    margin: 0 0 16px 0; 
-    display: flex; 
-    align-items: center; 
-    padding: 8px 0; 
-    overflow: hidden; 
-    position: relative; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-    width: 100%;
-  }
-  .wasla-ticker-label { 
-    background: #FF3D68; 
-    color: #fff; 
-    padding: 4px 12px; 
-    font-size: 11px; 
-    font-weight: 900; 
-    border-radius: 6px; 
-    margin-right: 10px; 
-    z-index: 2; 
-    flex-shrink: 0; 
-    position: relative; 
-  }
-  .wasla-ticker-track { 
-    display: flex; 
-    white-space: nowrap; 
-    overflow: hidden;
-    width: 100%;
-  }
-  .wasla-ticker-text { 
-    display: inline-block; 
-    padding-right: 50px; 
-    font-size: 13px; 
-    font-weight: 700; 
-    color: #fff; 
-    animation: marquee 15s linear infinite; 
-  }
+<!-- WASLA GRAND FINAL FIX (THE ONLY CODE YOU NEED) -->
+<style id="wasla-grand-final-style">
+  /* 1. شريط الإعلانات */
+  .wasla-ticker-container { background: #0B1220; border-radius: 12px; margin: 16px; display: flex; align-items: center; padding: 10px 0; overflow: hidden; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+  .wasla-ticker-label { background: #FF3D68; color: #fff; padding: 6px 14px; font-size: 12px; font-weight: 900; border-radius: 8px; margin-right: 12px; z-index: 2; flex-shrink: 0; box-shadow: 0 2px 8px rgba(255,61,104,0.4); }
+  .wasla-ticker-track { display: flex; white-space: nowrap; width: 100%; }
+  .wasla-ticker-text { display: inline-block; padding-right: 60px; font-size: 14px; font-weight: 700; color: #F8FAFC; animation: marqueeSmooth 12s linear infinite; }
   .wasla-ticker-container:hover .wasla-ticker-text { animation-play-state: paused; }
-  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+  @keyframes marqueeSmooth { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-  /* 2. لوحة المؤسس */
-  .founder-force-header { background: linear-gradient(135deg, #0B1220, #1E293B); color: #fff; border-radius: 20px; padding: 20px; margin-bottom: 20px; }
-  .founder-force-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid #E2E8F0; }
-  .founder-force-tab { padding: 10px 16px; border-radius: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; font-weight: 800; font-size: 13px; color: #475569; cursor: pointer; white-space: nowrap; }
-  .founder-force-tab.active { background: #0B1220; color: #fff; border-color: #0B1220; }
-  
-  .force-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
-  .force-stat { text-align: center; padding: 16px; }
-  .force-stat-val { font-size: 24px; font-weight: 900; color: #0F172A; }
-  .force-stat-lbl { font-size: 11px; color: #64748B; font-weight: 800; }
-  
-  /* 3. إجبار الكتابة في الخانات */
-  #admin-ticker-input { 
-    pointer-events: auto !important; 
-    touch-action: auto !important; 
-    z-index: 99999 !important; 
-    position: relative !important; 
-    background: #F8FAFC !important; 
-    border: 1.5px solid #E2E8F0 !important; 
-    width: 100% !important; 
-    box-sizing: border-box !important; 
-    padding: 12px !important;
-    font-family: inherit !important;
-  }
-  #view-founder { pointer-events: auto !important; touch-action: auto !important; }
+  /* 2. تصميم الأعراض */
+  .symptom-card { background: #fff; border: 1.5px solid #E2E8F0; border-radius: 14px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .symptom-card:hover, .symptom-card.active { border-color: #059669; background: #ECFDF5; box-shadow: 0 0 0 3px rgba(5,150,105,0.15); }
+  .symptom-icon { font-size: 28px; color: #059669; margin-bottom: 10px; display: block; }
+  .symptom-name { font-size: 14px; font-weight: 900; color: #0F172A; }
+  .symptom-result-panel { display: none; margin-top: 20px; background: #F8FAFC; border: 1.5px solid #CBD5E1; border-radius: 16px; padding: 16px; animation: slideUp 0.3s ease; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* 3. إجبار المودال والكتابة */
+  .modal-overlay { display: none !important; position: fixed !important; inset: 0 !important; z-index: 999999 !important; background: rgba(11, 18, 32, 0.7) !important; }
+  .modal-overlay.open { display: flex !important; align-items: center !important; justify-content: center !important; padding: 16px !important; }
+  .modal { display: block !important; width: 100% !important; max-width: 400px !important; margin: auto !important; padding: 24px !important; border-radius: 20px !important; background: #fff !important; max-height: 85vh !important; overflow-y: auto !important; position: relative !important; box-shadow: 0 20px 50px rgba(0,0,0,0.2) !important; }
+  body.modal-open { touch-action: auto !important; overflow: hidden !important; }
+  body.modal-open #app-tabs { display: none !important; }
+  #view-founder, #view-founder * { pointer-events: auto !important; touch-action: auto !important; }
+  #admin-ticker-input { position: relative !important; z-index: 99999 !important; background: #F8FAFC !important; border: 1.5px solid #E2E8F0 !important; padding: 12px !important; width: 100% !important; box-sizing: border-box !important; border-radius: 10px !important; font-family: inherit !important; font-size: 14px !important; }
 </style>
 
-<script id="wasla-nuclear-script">
-(function WASLA_NUCLEAR_V6() {
+<script id="wasla-grand-final-script">
+(function WASLA_GRAND_FINAL() {
   'use strict';
   
-  // الانتظار حتى يتم تحميل النظام الأساسي
-  const initNuclear = () => {
-    if (!window.WaslaCore || !window.Auth || !window.Router) {
-      setTimeout(initNuclear, 300);
-      return;
-    }
+  const init = () => {
+    if (!window.WaslaCore || !window.Auth || !window.Router) { setTimeout(init, 300); return; }
+    const { Utils, UI, Store } = window.WaslaCore;
+    window.UI = UI;
 
-    window.UI = window.WaslaCore.UI;
-    window.Utils = window.WaslaCore.Utils;
-    const Store = window.WaslaCore.Store;
-
-    // 1. إصلاح زرار X في كل النوافذ
+    // 1. إصلاح زرار الإكس (في كل النوافذ)
     document.addEventListener('click', function(e) {
       if (e.target.closest('.modal-close')) {
         const overlay = e.target.closest('.modal-overlay');
@@ -7758,297 +6995,107 @@ body.modal-open * {
       }
     });
 
-    // 2. شريط الإعلانات (حقن قسري)
+    // 2. شريط الإعلانات
     setInterval(() => {
       const homeView = document.querySelector('#view-home');
-      if (!homeView) return;
-      
+      if (!homeView || homeView.querySelector('.wasla-ticker-container')) return;
       const db = Store.load();
-      const announcements = db.announcements || ['مرحباً بكم في منصة وصلة! أي طلب توصيل مجاني اليوم.'];
-      const tickerText = announcements.join(' ⭐ ');
-      
-      if (!homeView.querySelector('.wasla-ticker-container')) {
-        const tickerHTML = `
-          <div class="wasla-ticker-container" style="margin-top: 16px;">
-            <div class="wasla-ticker-label">عروض اليوم</div>
-            <div class="wasla-ticker-track">
-              <div class="wasla-ticker-text">${tickerText}</div>
-              <div class="wasla-ticker-text">${tickerText}</div> 
-            </div>
-          </div>
-        `;
-        // إجبار الشريط يظهر فوق أي حاجة
-        const mainWrap = homeView.querySelector('.wp-home') || homeView;
-        mainWrap.insertAdjacentHTML('afterbegin', tickerHTML);
-      }
+      const announcements = db.announcements || ['مرحباً بكم في منصة وصلة!'];
+      const tickerText = announcements.join('   ⭐   ');
+      const tickerHTML = `
+        <div class="wasla-ticker-container">
+          <div class="wasla-ticker-label">عروض اليوم</div>
+          <div class="wasla-ticker-track"><div class="wasla-ticker-text">${tickerText} &nbsp;&nbsp;&nbsp;&nbsp; ${tickerText}</div></div>
+        </div>
+      `;
+      const mainWrap = homeView.querySelector('.wp-home') || homeView;
+      mainWrap.insertAdjacentHTML('afterbegin', tickerHTML);
     }, 1000);
 
-    // 3. هيمنة على صفحة المؤسس (تدمير القديم وبناء الجديد)
+    // 3. لوحة المؤسس
     setInterval(() => {
       const founderView = document.querySelector('#view-founder');
-      if (!founderView) return;
-      
-      // لو لسه فيها التصميم الجديد بتاعنا، اخرج
-      if (founderView.querySelector('.founder-force-header')) return;
-
-      // مسح أي إيرور قديم
+      if (!founderView || founderView.getAttribute('data-built') === 'true') return;
       founderView.innerHTML = '';
-
-      let db = Store.load();
+      founderView.setAttribute('data-built', 'true');
+      const db = Store.load();
       const usersCount = (db.users || []).length;
       const orders = db.orders || [];
       const feedbacks = db.feedback || [];
-
-      // بناء التصميم
       founderView.innerHTML = `
-        <div class="founder-force-header">
+        <div style="background:linear-gradient(135deg, #0B1220, #1E293B); color:#fff; border-radius:20px; padding:20px; margin-bottom:20px;">
           <h1 style="font-size:22px; font-weight:900; margin-bottom:4px;">مركز تحكم وصلة</h1>
-          <p style="font-size:12px; color:#94A3B8;">إدارة المنصة بالكامل</p>
         </div>
-        
-        <div class="force-card">
-          <h3 style="font-size:15px; font-weight:900; margin-bottom:12px;">شريط الإعلانات التفاعلي</h3>
-          <textarea id="admin-ticker-input" rows="3" placeholder="اكتب كل إعلان في سطر منفصل..." style="margin-bottom:10px;">${(db.announcements || ['مرحباً بكم في منصة وصلة!']).join('\n')}</textarea>
-          <button style="background:#059669; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:800; width:100%;" onclick="window.WaslaNuclearActions.saveTicker()">تحديث الإعلانات</button>
+        <div style="background:#fff; border:1px solid #E2E8F0; border-radius:16px; padding:16px; margin-bottom:16px;">
+          <h3 style="font-size:15px; font-weight:900; margin-bottom:12px;">شريط الإعلانات</h3>
+          <textarea id="admin-ticker-input" rows="3" placeholder="اكتب كل إعلان في سطر...">${(db.announcements || ['مرحباً بكم في منصة وصلة!']).join('\n')}</textarea>
+          <button style="background:#059669; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:800; width:100%; margin-top:10px;" onclick="window.WaslaGrandActions.saveTicker()">تحديث الإعلانات</button>
         </div>
-
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
-          <div class="force-card force-stat">
-            <div class="force-stat-val">${usersCount}</div>
-            <div class="force-stat-lbl">مستخدم</div>
-          </div>
-          <div class="force-card force-stat">
-            <div class="force-stat-val">${orders.length}</div>
-            <div class="force-stat-lbl">طلب</div>
-          </div>
+          <div style="background:#fff; border:1px solid #E2E8F0; border-radius:16px; padding:16px; text-align:center;"><div style="font-size:24px; font-weight:900;">${usersCount}</div><div style="font-size:11px; color:#64748B;">مستخدم</div></div>
+          <div style="background:#fff; border:1px solid #E2E8F0; border-radius:16px; padding:16px; text-align:center;"><div style="font-size:24px; font-weight:900;">${orders.length}</div><div style="font-size:11px; color:#64748B;">طلب</div></div>
         </div>
-
-        <div class="force-card">
+        <div style="background:#fff; border:1px solid #E2E8F0; border-radius:16px; padding:16px;">
           <h3 style="font-size:15px; font-weight:900; margin-bottom:12px;">الشكاوى (${feedbacks.length})</h3>
-          ${feedbacks.length === 0 ? '<p style="font-size:12px; color:#64748B;">لا توجد شكاوى.</p>' : feedbacks.map((f, i) => `
+          ${feedbacks.map((f, i) => `
             <div style="border:1px solid #E2E8F0; padding:10px; border-radius:10px; margin-bottom:8px; ${f.resolved ? 'opacity:0.5;' : ''}">
               <p style="font-size:12px; font-weight:700;">${f.text || 'بدون تفاصيل'}</p>
-              <button onclick="window.WaslaNuclearActions.resolveFeedback(${i})" style="margin-top:8px; background:#E2E8F0; border:none; padding:6px; border-radius:6px; font-size:11px; cursor:pointer;">${f.resolved ? 'إرجاع' : 'تم الحل'}</button>
+              <button onclick="window.WaslaGrandActions.resolveFeedback(${i})" style="margin-top:8px; background:#E2E8F0; border:none; padding:6px; border-radius:6px; font-size:11px;">${f.resolved ? 'إرجاع' : 'تم الحل'}</button>
             </div>
           `).join('')}
         </div>
       `;
     }, 1000);
 
-    // الأكشنز
-    window.WaslaNuclearActions = {
-      saveTicker: () => {
-        const input = document.getElementById('admin-ticker-input');
-        if (!input) return;
-        const lines = input.value.split('\n').filter(l => l.trim() !== '');
-        const db = Store.load();
-        db.announcements = lines;
-        Store.save(db);
-        window.UI.toast('✅ تم حفظ الإعلانات', 'success');
-        window.Router.go('home'); // عشان يشوف الشريط بيتحرك
-      },
-      resolveFeedback: (index) => {
-        const db = Store.load();
-        if (db.feedback && db.feedback[index]) {
-          db.feedback[index].resolved = !db.feedback[index].resolved;
-          Store.save(db);
-          document.querySelector('#view-founder').innerHTML = ''; // إجبار التحديث
-        }
-      }
-    };
-
-    console.log('✅ [WASLA V6] Nuclear Force Active.');
-  };
-
-  initNuclear();
-})();
-</script>
-<!-- WASLA SYMPTOMS & TICKER FINAL FIX -->
-<style id="wasla-final-symptoms-style">
-  /* 1. شريط الإعلانات (تصميم احترافي وسريع) */
-  .wasla-ticker-container { 
-    background: linear-gradient(90deg, #0B1220, #1E293B); 
-    border: 1px solid #334155;
-    border-radius: 12px; 
-    margin: 0 0 16px 0; 
-    display: flex; 
-    align-items: center; 
-    padding: 10px 0; 
-    overflow: hidden; 
-    position: relative; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
-    width: 100%;
-  }
-  .wasla-ticker-label { 
-    background: #FF3D68; 
-    color: #fff; 
-    padding: 6px 14px; 
-    font-size: 12px; 
-    font-weight: 900; 
-    border-radius: 8px; 
-    margin-right: 12px; 
-    z-index: 2; 
-    flex-shrink: 0; 
-    position: relative; 
-    box-shadow: 0 2px 8px rgba(255,61,104,0.4);
-  }
-  .wasla-ticker-track { 
-    display: flex; 
-    white-space: nowrap; 
-    overflow: hidden;
-    width: 100%;
-    align-items: center;
-  }
-  .wasla-ticker-text { 
-    display: inline-block; 
-    padding-right: 60px; 
-    font-size: 14px; 
-    font-weight: 700; 
-    color: #F8FAFC; 
-    animation: marqueeSmooth 10s linear infinite; /* سرعة أسرع وحركة ناعمة */
-  }
-  .wasla-ticker-container:hover .wasla-ticker-text { animation-play-state: paused; }
-  @keyframes marqueeSmooth { 
-    0% { transform: translateX(0); } 
-    100% { transform: translateX(-50%); } 
-  }
-
-  /* 2. تصميم شاشة الأعراض */
-  .symptom-card { 
-    background: #fff; 
-    border: 1.5px solid #E2E8F0; 
-    border-radius: 14px; 
-    padding: 16px; 
-    text-align: center; 
-    cursor: pointer; 
-    transition: all 0.2s; 
-  }
-  .symptom-card:hover { border-color: #059669; background: #F0FDF4; }
-  .symptom-card.active { border-color: #059669; background: #ECFDF5; box-shadow: 0 0 0 3px rgba(5,150,105,0.15); }
-  .symptom-icon { font-size: 28px; color: #059669; margin-bottom: 10px; display: block; }
-  .symptom-name { font-size: 14px; font-weight: 900; color: #0F172A; }
-  
-  .symptom-result-panel { 
-    display: none; 
-    margin-top: 20px; 
-    background: #F8FAFC; 
-    border: 1.5px solid #CBD5E1; 
-    border-radius: 16px; 
-    padding: 16px; 
-    animation: slideUp 0.3s ease; 
-  }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-</style>
-
-<script id="wasla-final-symptoms-script">
-(function WASLA_FINAL_SYMPTOMS() {
-  'use strict';
-  
-  const initSymptoms = () => {
-    if (!window.WaslaCore || !window.Auth) {
-      setTimeout(initSymptoms, 300);
-      return;
-    }
-    const { Utils, UI } = window.WaslaCore;
-    window.UI = UI;
-
-    // 1. قائمة الأعراض
+    // 4. الأعراض
     const SYMPTOMS = [
-      { id: 'headache', name: 'صداع مستمر', icon: 'fa-head-side-virus', spec: 'باطنة وكبد', advice: 'قد يحتاج كشف باطنة أو مخ وأعصاب.' },
-      { id: 'chest', name: 'ألم في الصدر', icon: 'fa-heart-pulse', spec: 'قلب', advice: 'يُنصح باستشارة طبيب قلب فوراً.' },
-      { id: 'stomach', name: 'ألم في المعدة', icon: 'fa-stomach', spec: 'باطنة وكبد', advice: 'قد يحتاج كشف باطنة أو جهاز هضمي.' },
-      { id: 'bone', name: 'ألم في المفاصل', icon: 'fa-bone', spec: 'عظام', advice: 'يُنصح بكشف عظام.' },
-      { id: 'fever', name: 'حرارة مرتفعة', icon: 'fa-thermometer-high', spec: 'باطنة وكبد', advice: 'كشف باطنة أو أطفال (حسب العمر).' },
-      { id: 'skin', name: 'طفح جلدي', icon: 'fa-allergies', spec: 'جلدية', advice: 'يُنصح بكشف جلدية.' },
-      { id: 'eye', name: 'احمرار العين', icon: 'fa-eye', spec: 'رمد', advice: 'يحتاج كشف رمد أو عيون.' },
-      { id: 'teeth', name: 'ألم الأسنان', icon: 'fa-tooth', spec: 'أسنان', advice: 'يحتاج كشف أسنان.' }
+      { id: 'headache', name: 'صداع', icon: 'fa-head-side-virus', spec: 'باطنة وكبد', advice: 'قد يحتاج كشف باطنة.' },
+      { id: 'chest', name: 'ألم في الصدر', icon: 'fa-heart-pulse', spec: 'قلب', advice: 'استشارة قلب فوراً.' },
+      { id: 'teeth', name: 'ألم الأسنان', icon: 'fa-tooth', spec: 'أسنان', advice: 'كشف أسنان.' }
     ];
-
     let currentSelectedSymptom = null;
 
-    // 2. اعتراض دالة فتح الأعراض
     if (window.WaslaMedicalRequests) {
       const originalOpen = window.WaslaMedicalRequests.open;
-      
       window.WaslaMedicalRequests.open = function(type, title) {
         if (type === 'symptoms') {
           const body = Utils.$('#modal-generic-body');
-          if (!body) return;
-          
           body.innerHTML = `
             <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
-            <div style="text-align:center; margin-bottom: 20px;">
-              <div style="width:56px;height:56px;background:#ECFDF5;color:#059669;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 10px;"><i class="fa-solid fa-notes-medical"></i></div>
-              <h3 style="font-size:18px;font-weight:900;color:#0F172A;">ما هو العرض الذي تشعر به؟</h3>
-              <p style="font-size:12px;color:#64748B;margin-top:4px;">اختر العرض لنقترح لك الطبيب المناسب.</p>
+            <h3 style="font-size:18px;font-weight:900;text-align:center;margin-bottom:16px;">اختر العرض</h3>
+            <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px;">
+              ${SYMPTOMS.map(s => `<div class="symptom-card" id="symp-${s.id}" onclick="window.WaslaGrandSymptomAction.select('${s.id}')"><i class="fa-solid ${s.icon} symptom-icon"></i><div class="symptom-name">${s.name}</div></div>`).join('')}
             </div>
-
-            <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; max-height: 45vh; overflow-y:auto; padding-bottom:10px;">
-              ${SYMPTOMS.map(s => `
-                <div class="symptom-card" id="symp-${s.id}" onclick="WaslaFinalSymptomAction.select('${s.id}')">
-                  <i class="fa-solid ${s.icon} symptom-icon"></i>
-                  <div class="symptom-name">${s.name}</div>
-                </div>
-              `).join('')}
-            </div>
-
-            <!-- التاب التفاعلية اللي هتظهر تحت -->
             <div id="symptom-result-panel" class="symptom-result-panel">
               <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                  <div style="font-size:11px; font-weight:800; color:#64748B; margin-bottom:2px;">التخصص المطلوب:</div>
-                  <div style="font-size:18px; font-weight:900; color:#0F172A;" id="res-spec">---</div>
-                  <div style="font-size:11px; font-weight:700; color:#059669; margin-top:4px;" id="res-advice">---</div>
-                </div>
-                <button style="background:#059669; color:#fff; border:none; padding:10px 20px; border-radius:10px; font-weight:900; cursor:pointer; box-shadow:0 4px 12px rgba(5,150,105,0.3);" onclick="WaslaFinalSymptomAction.book()">
-                  احجز الآن
-                </button>
+                <div><div style="font-size:11px; font-weight:800; color:#64748B;">التخصص:</div><div style="font-size:18px; font-weight:900;" id="res-spec">---</div></div>
+                <button style="background:#059669; color:#fff; border:none; padding:10px 20px; border-radius:10px; font-weight:900;" onclick="window.WaslaGrandSymptomAction.book()">احجز الآن</button>
               </div>
             </div>
           `;
-          
           UI.modal('modal-generic', { open: true });
           return;
         }
-        
         return originalOpen.call(this, type, title);
       };
     }
 
-    // 3. أكشنز الأعراض
-    window.WaslaFinalSymptomAction = {
+    window.WaslaGrandSymptomAction = {
       select: function(id) {
         currentSelectedSymptom = SYMPTOMS.find(s => s.id === id);
-        if (!currentSelectedSymptom) return;
-
-        // إزالة التحديد من الكل
         document.querySelectorAll('.symptom-card').forEach(c => c.classList.remove('active'));
-        
-        // تحديد الكارت اللي اتضغط
-        const card = document.getElementById('symp-' + id);
-        if (card) card.classList.add('active');
-
-        // إظهار التاب
-        const panel = document.getElementById('symptom-result-panel');
-        if (panel) {
-          panel.style.display = 'block';
-          document.getElementById('res-spec').innerText = currentSelectedSymptom.spec;
-          document.getElementById('res-advice').innerText = currentSelectedSymptom.advice;
-        }
+        document.getElementById('symp-' + id).classList.add('active');
+        document.getElementById('symptom-result-panel').style.display = 'block';
+        document.getElementById('res-spec').innerText = currentSelectedSymptom.spec;
       },
       book: function() {
-        if (!currentSelectedSymptom) return;
-        
         UI.modal('modal-generic', { open: false });
-        UI.toast(`جاري عرض أطباء ${currentSelectedSymptom.spec}`, 'success');
-        
-        // فلترة الأطباء
         window.Router.go('medical');
         setTimeout(() => {
           const select = document.querySelector('#med-spec');
           if (select) {
             for (let i = 0; i < select.options.length; i++) {
-              if (select.options[i].value.includes(currentSelectedSymptom.spec) || select.options[i].text.includes(currentSelectedSymptom.spec)) {
+              if (select.options[i].text.includes(currentSelectedSymptom.spec)) {
                 select.selectedIndex = i;
                 select.dispatchEvent(new Event('change'));
                 break;
@@ -8059,39 +7106,23 @@ body.modal-open * {
       }
     };
 
-    // 4. شريط الإعلانات (تحديث مستمر)
-    setInterval(() => {
-      const homeView = document.querySelector('#view-home');
-      if (!homeView) return;
-      
-      const db = window.WaslaCore.Store.load();
-      const announcements = db.announcements || ['مرحباً بكم في منصة وصلة!'];
-      const tickerText = announcements.join('   ⭐   ');
-      
-      // لو الشريط مش موجود، نضيفه
-      if (!homeView.querySelector('.wasla-ticker-container')) {
-        const tickerHTML = `
-          <div class="wasla-ticker-container" style="margin: 16px;">
-            <div class="wasla-ticker-label">عروض اليوم</div>
-            <div class="wasla-ticker-track">
-              <div class="wasla-ticker-text">${tickerText} &nbsp;&nbsp;&nbsp;&nbsp; ${tickerText}</div>
-            </div>
-          </div>
-        `;
-        const mainWrap = homeView.querySelector('.wp-home') || homeView;
-        mainWrap.insertAdjacentHTML('afterbegin', tickerHTML);
-      } else {
-        // تحديث النص لو اتغير
-        const textEl = homeView.querySelector('.wasla-ticker-text');
-        if (textEl && !textEl.innerText.includes(announcements[0])) {
-          textEl.innerHTML = `${tickerText} &nbsp;&nbsp;&nbsp;&nbsp; ${tickerText}`;
-        }
+    window.WaslaGrandActions = {
+      saveTicker: () => {
+        const lines = document.getElementById('admin-ticker-input').value.split('\n').filter(l => l.trim() !== '');
+        const db = Store.load(); db.announcements = lines; Store.save(db);
+        window.UI.toast('✅ تم الحفظ', 'success');
+        document.querySelector('#view-home')?.querySelector('.wasla-ticker-container')?.remove();
+        window.Router.go('home');
+      },
+      resolveFeedback: (index) => {
+        const db = Store.load(); db.feedback[index].resolved = !db.feedback[index].resolved; Store.save(db);
+        document.querySelector('#view-founder').setAttribute('data-built', 'false');
       }
-    }, 1000);
-
-    console.log('✅ [WASLA FINAL] Symptoms Tab & Smooth Ticker Active.');
+    };
   };
-
-  initSymptoms();
+  init();
 })();
 </script>
+</div> <!-- قفل الـ app-shell -->
+</body>
+</html>
