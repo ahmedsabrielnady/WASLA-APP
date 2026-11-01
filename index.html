@@ -94,10 +94,70 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .cat-card h3 { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
 .cat-card p { font-size: 12px; color: var(--muted); }
 
+/* التوصيل */
+.delivery-header { display: flex; align-items: center; gap: 15px; padding: 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 70px; z-index: 90; }
+.back-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 18px; }
+.delivery-header h2 { font-size: 20px; font-weight: 900; color: var(--dark); }
+.delivery-form { padding: 20px; }
+.delivery-banner { background: var(--delivery-gradient); border-radius: 20px; padding: 25px; color: white; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-md); }
+.delivery-banner h1 { font-size: 24px; font-weight: 900; margin-bottom: 5px; }
+.delivery-banner p { font-size: 13px; opacity: 0.9; }
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+
+/* --- إصلاح خانات الإدخال (Inputs) عشان الكروم ميعملش Autofill --- */
+.input-field { 
+    width: 100%; padding: 14px 16px; 
+    background: var(--bg); border: 1.5px solid var(--border); 
+    border-radius: 12px; font-family: 'Cairo'; color: var(--text); 
+    font-size: 14px; outline: none; transition: 0.3s;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+.input-field:focus { 
+    border-color: var(--brand); 
+    background: var(--card);
+    box-shadow: 0 0 0 3px var(--brand-light);
+}
+/* إخفاء لون الكروم الأزرق المزعج */
+.input-field:-webkit-autofill,
+.input-field:-webkit-autofill:hover, 
+.input-field:-webkit-autofill:focus, 
+.input-field:-webkit-autofill:active{
+    -webkit-box-shadow: 0 0 0 30px var(--bg) inset !important;
+    -webkit-text-fill-color: var(--text) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+.location-btn { width: 100%; padding: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-family: 'Cairo'; font-weight: 700; color: var(--text); margin-bottom: 15px; }
+.location-btn.active { background: #ECFDF5; border-color: #10B981; color: #047857; }
+.gps-text { font-size: 11px; color: var(--muted); text-align: center; margin-top: -10px; margin-bottom: 15px; display: block; }
+.delivery-submit { width: 100%; padding: 16px; border-radius: 14px; background: var(--delivery-gradient); color: white; font-weight: 900; font-size: 16px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3); margin-top: 10px; }
+
+/* المالية */
+#view-admin-finance { background: var(--bg); min-height: 100vh; }
+.fin-header { background: var(--dark); color: white; padding: 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; z-index: 100; }
+.fin-header h2 { font-size: 20px; font-weight: 900; }
+.fin-content { padding: 20px; max-width: 800px; margin: auto; }
+.fin-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+.fin-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 15px; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+.delivery-price-control { display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 15px; border-radius: 15px; margin-bottom: 10px; }
+.delivery-price-control span { font-size: 15px; font-weight: 700; }
+.price-controls { display: flex; align-items: center; gap: 15px; }
+.price-controls button { width: 40px; height: 40px; border-radius: 10px; font-size: 20px; font-weight: 900; background: var(--brand-light); color: var(--brand); display: flex; align-items: center; justify-content: center; }
+.price-controls button:disabled { opacity: 0.3; }
+.price-controls .val { font-size: 20px; font-weight: 900; color: var(--dark); min-width: 60px; text-align: center; }
+.calc-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.calc-row label { font-size: 13px; font-weight: 700; color: var(--text); }
+.calc-row input { width: 120px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; text-align: center; font-family: 'Cairo'; font-size: 14px; font-weight: bold; background: var(--bg); color: var(--text); outline: none; }
+.calc-result { background: linear-gradient(135deg, #1E293B, #0F172A); color: white; padding: 20px; border-radius: 15px; margin-top: 20px; }
+.calc-result p { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+.calc-result p:last-child { margin-bottom: 0; border-top: 1px solid #334155; padding-top: 10px; font-size: 16px; font-weight: 900; }
+.calc-result .val { font-weight: 900; }
+.text-green { color: #10B981; }
+.text-red { color: #E11D48; }
+
 /* القسم الطبي */
 .medical-header { display: flex; align-items: center; gap: 15px; padding: 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 70px; z-index: 90; }
-.back-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 18px; }
-.medical-header h2 { font-size: 20px; font-weight: 900; color: var(--dark); }
 .medical-tabs-wrapper { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 130px; z-index: 80; }
 .medical-services-tabs { display: flex; gap: 10px; overflow-x: auto; padding: 15px 20px; scrollbar-width: none; }
 .medical-services-tabs::-webkit-scrollbar { display: none; }
@@ -129,8 +189,8 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 /* الذكاء الاصطناعي */
 .ai-container { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); text-align: center; }
 .ai-icon { width: 60px; height: 60px; border-radius: 50%; background: var(--brand-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px; box-shadow: var(--shadow-glow); }
-.ai-input { width: 100%; padding: 15px; border: 2px solid var(--brand-light); border-radius: 15px; font-family: 'Cairo'; font-size: 14px; margin-bottom: 15px; outline: none; transition: 0.3s; text-align: right; }
-.ai-input:focus { border-color: var(--brand); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+.ai-input { width: 100%; padding: 15px; border: 2px solid var(--brand-light); border-radius: 15px; font-family: 'Cairo'; font-size: 14px; margin-bottom: 15px; outline: none; transition: 0.3s; text-align: right; background: var(--bg); color: var(--text); }
+.ai-input:focus { border-color: var(--brand); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); background: var(--card); }
 .ai-result { margin-top: 15px; padding: 15px; border-radius: 12px; background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; font-weight: bold; font-size: 14px; display: none; text-align: right; }
 .ai-result.show { display: block; animation: fadeIn 0.4s ease; }
 
@@ -257,7 +317,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <button class="mic-btn" onclick="startVoiceSearch()"><i class="fa-solid fa-microphone"></i></button>
     </div>
 
-    <!-- كارت المحفظة الجديد -->
     <div class="wallet-card" onclick="showToast('المحفظة قريباً')">
         <div class="wallet-header">
             <h4><i class="fa-solid fa-wallet"></i> محفظة وصلة</h4>
@@ -314,54 +373,55 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
         <h2>توصيل مجاني</h2>
     </div>
-    <div class="delivery-form" style="padding: 20px;">
-        <div class="delivery-banner" style="background: var(--delivery-gradient); border-radius: 20px; padding: 25px; color: white; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-md);">
-            <h1 style="font-size: 24px; font-weight: 900; margin-bottom: 5px;">عايز توصل إيه؟ 🛵</h1>
-            <p style="font-size: 13px; opacity: 0.9;">إحنا بنوصل أي حاجة لأي حد في شبين القناطر <span id="delivery-price-text" style="font-weight:900; font-size:16px;">مجاناً!</span></p>
+    <div class="delivery-form">
+        <div class="delivery-banner">
+            <h1>عايز توصل إيه؟ 🛵</h1>
+            <p>إحنا بنوصل أي حاجة لأي حد في شبين القناطر <span id="delivery-price-text" style="font-weight:900; font-size:16px;">مجاناً!</span></p>
         </div>
-        <div class="input-group" style="margin-bottom:15px;"><label>نوع الشحنة</label><input type="text" id="delivery-item" class="input-field" placeholder="مثال: شنطة، فلوس..."></div>
-        <div class="input-group" style="margin-bottom:15px;"><label>رقم تليفونك</label><input type="tel" id="delivery-phone" class="input-field" placeholder="01xxxxxxxxx"></div>
-        <div class="input-group" style="margin-bottom:15px;">
+        <div class="input-group"><label>نوع الشحنة</label><input type="text" id="delivery-item" class="input-field" placeholder="مثال: شنطة، فلوس..."></div>
+        <div class="input-group"><label>رقم تليفونك</label><input type="tel" id="delivery-phone" class="input-field" placeholder="01xxxxxxxxx"></div>
+        <div class="input-group">
             <label>موقع الاستلام (من فين؟)</label>
             <button class="location-btn" id="pickup-btn" onclick="getLocation('pickup')"><span>تحديد موقع الاستلام</span><i class="fa-solid fa-location-crosshairs"></i></button>
             <span class="gps-text" id="pickup-status">لم يتم تحديد الموقع بعد</span>
         </div>
-        <div class="input-group" style="margin-bottom:15px;">
+        <div class="input-group">
             <label>موقع التسليم (لحد فين؟)</label>
             <button class="location-btn" id="dropoff-btn" onclick="getLocation('dropoff')"><span>تحديد موقع التسليم</span><i class="fa-solid fa-location-crosshairs"></i></button>
             <span class="gps-text" id="dropoff-status">لم يتم تحديد الموقع بعد</span>
         </div>
-        <button class="delivery-submit" onclick="submitDelivery()" style="width: 100%; padding: 16px; border-radius: 14px; background: var(--delivery-gradient); color: white; font-weight: 900; font-size: 16px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3);">اطلب التوصيل الآن</button>
+        <button class="delivery-submit" onclick="submitDelivery()">اطلب التوصيل الآن</button>
     </div>
 </div>
 
 <div id="view-admin-finance" class="app-view">
-    <div class="fin-header" style="background: var(--dark); color: white; padding: 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; z-index: 100;">
+    <div class="fin-header">
         <button class="back-btn" onclick="navigateTo('home')" style="background:rgba(255,255,255,0.1); color:white;"><i class="fa-solid fa-arrow-right"></i></button>
         <h2>لوحة التحكم المالية</h2>
     </div>
-    <div class="fin-content" style="padding: 20px; max-width: 800px; margin: auto;">
-        <div class="fin-card" style="background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm);">
-            <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 15px; color: var(--brand); display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-motorcycle"></i> إدارة سعر التوصيل</h3>
-            <div class="delivery-price-control" style="display: flex; justify-content: space-between; align-items: center; background: var(--bg); padding: 15px; border-radius: 15px;">
+    <div class="fin-content">
+        <div class="fin-card">
+            <h3><i class="fa-solid fa-motorcycle"></i> إدارة سعر التوصيل</h3>
+            <p style="font-size:12px; color:var(--muted); margin-bottom:15px;">تحكم في سعر التوصيل. ابدأ بـ 0 (مجاني) لاكتساح السوق، ثم زد السعر بـ 5 جنيهات.</p>
+            <div class="delivery-price-control">
                 <span>سعر التوصيل الحالي:</span>
-                <div class="price-controls" style="display: flex; align-items: center; gap: 15px;">
-                    <button onclick="changeDeliveryFee(-5)" id="btn-minus" style="width: 40px; height: 40px; border-radius: 10px; font-size: 20px; font-weight: 900; background: var(--brand-light); color: var(--brand); display: flex; align-items: center; justify-content: center;">-</button>
-                    <div class="val" id="delivery-fee-val" style="font-size: 20px; font-weight: 900; color: var(--dark); min-width: 60px; text-align: center;">0 ج.م</div>
-                    <button onclick="changeDeliveryFee(5)" id="btn-plus" style="width: 40px; height: 40px; border-radius: 10px; font-size: 20px; font-weight: 900; background: var(--brand-light); color: var(--brand); display: flex; align-items: center; justify-content: center;">+</button>
+                <div class="price-controls">
+                    <button onclick="changeDeliveryFee(-5)" id="btn-minus">-</button>
+                    <div class="val" id="delivery-fee-val">0 ج.م</div>
+                    <button onclick="changeDeliveryFee(5)" id="btn-plus">+</button>
                 </div>
             </div>
         </div>
-        <div class="fin-card" style="background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-sm);">
-            <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 15px; color: var(--brand); display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-calculator"></i> حاسبة الأرباح والخسائر</h3>
-            <div class="calc-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;"><label>عدد الطلبات المتوقعة:</label><input type="number" id="calc-orders" value="100" oninput="calculateFinance()" style="width: 120px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; text-align: center; font-family: 'Cairo'; font-size: 14px; font-weight: bold; background: var(--bg); color: var(--text); outline: none;"></div>
-            <div class="calc-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;"><label>متوسط سعر الطلب:</label><input type="number" id="calc-avg-order" value="100" oninput="calculateFinance()" style="width: 120px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; text-align: center; font-family: 'Cairo'; font-size: 14px; font-weight: bold; background: var(--bg); color: var(--text); outline: none;"></div>
-            <div class="calc-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;"><label>تكلفة المشوار للدليفري:</label><input type="number" id="calc-trip-cost" value="15" oninput="calculateFinance()" style="width: 120px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; text-align: center; font-family: 'Cairo'; font-size: 14px; font-weight: bold; background: var(--bg); color: var(--text); outline: none;"></div>
-            <div class="calc-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;"><label>راتب الدليفري الشهري:</label><input type="number" id="calc-salary" value="3000" oninput="calculateFinance()" style="width: 120px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; text-align: center; font-family: 'Cairo'; font-size: 14px; font-weight: bold; background: var(--bg); color: var(--text); outline: none;"></div>
-            <div class="calc-result" style="background: linear-gradient(135deg, #1E293B, #0F172A); color: white; padding: 20px; border-radius: 15px; margin-top: 20px;">
-                <p style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">إجمالي العمولات (10%): <span class="val" id="res-commissions" style="font-weight: 900;">0 ج.م</span></p>
-                <p style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">إجمالي تكلفة التوصيل: <span class="val text-red" id="res-delivery-cost" style="font-weight: 900; color:#E11D48;">0 ج.م</span></p>
-                <p style="display: flex; justify-content: space-between; margin-bottom: 0; border-top: 1px solid #334155; padding-top: 10px; font-size: 16px; font-weight: 900;">صافي الربح / الخسارة: <span class="val text-green" id="res-net" style="font-weight: 900; color:#10B981;">0 ج.م</span></p>
+        <div class="fin-card">
+            <h3><i class="fa-solid fa-calculator"></i> حاسبة الأرباح والخسائر</h3>
+            <div class="calc-row"><label>عدد الطلبات المتوقعة:</label><input type="number" id="calc-orders" value="100" oninput="calculateFinance()"></div>
+            <div class="calc-row"><label>متوسط سعر الطلب:</label><input type="number" id="calc-avg-order" value="100" oninput="calculateFinance()"></div>
+            <div class="calc-row"><label>تكلفة المشوار للدليفري:</label><input type="number" id="calc-trip-cost" value="15" oninput="calculateFinance()"></div>
+            <div class="calc-row"><label>راتب الدليفري الشهري:</label><input type="number" id="calc-salary" value="3000" oninput="calculateFinance()"></div>
+            <div class="calc-result">
+                <p>إجمالي العمولات (10%): <span class="val" id="res-commissions">0 ج.م</span></p>
+                <p>إجمالي تكلفة التوصيل: <span class="val text-red" id="res-delivery-cost">0 ج.م</span></p>
+                <p>صافي الربح / الخسارة: <span class="val text-green" id="res-net">0 ج.م</span></p>
             </div>
             <p style="font-size:12px; text-align:center; margin-top:10px; font-weight:bold; color:var(--brand);" id="res-coverage">تحتاج 0 طلب لتغطية راتب دليفري واحد.</p>
         </div>
@@ -470,8 +530,8 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
             <div>تنبيه: في حالة إلغاء الحجز قبل الموعد بأقل من 12 ساعة، يتم خصم العربون (25%).</div>
         </div>
 
-        <div class="input-group"><label>اسم المريض</label><input type="text" id="patient-name" class="input-field"></div>
-        <div class="input-group"><label>رقم الهاتف</label><input type="tel" id="patient-phone" class="input-field" oninput="localStorage.setItem('wasla_phone', this.value)"></div>
+        <div class="input-group"><label>اسم المريض</label><input type="text" id="patient-name" class="input-field" placeholder="مثال: أحمد محمد"></div>
+        <div class="input-group"><label>رقم الهاتف</label><input type="tel" id="patient-phone" class="input-field" placeholder="01xxxxxxxxx" oninput="localStorage.setItem('wasla_phone', this.value)"></div>
         
         <div class="input-group">
             <label>التأمين الصحي (اختياري)</label>
@@ -509,6 +569,12 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <div id="payment-details" class="payment-details">
             <label style="font-size:12px; font-weight:bold;">أدخل رقم المحفظة/الحساب</label>
             <input type="text" id="wallet-number" class="input-field" style="margin-top:5px;" placeholder="01xxxxxxxxx">
+        </div>
+
+        <!-- تنبيه الضمان للمحفظة -->
+        <div id="wallet-escrow-info" class="warning-box" style="background:#E0F2FE; border-color:#BAE6FD; color:#0369A1; display:none; margin-top:10px;">
+            <i class="fa-solid fa-shield-halved"></i>
+            <div>سيتم خصم المبلغ من رصيدك كضمان (Escrow) لضمان حقك وحق الطبيب. إذا ألغيت الحجز في الوقت المسموح، سيعود المبلغ لرصيدك المتاح.</div>
         </div>
 
         <div class="input-group" id="nurse-gps-group" style="display:none;">
@@ -969,6 +1035,17 @@ function selectPaymentMethod(method, el) {
     
     // إخفاء خانات المحفظة لو اختار كاش أو المحفظة
     document.getElementById('payment-details').classList.toggle('show', method === 'vodafone' || method === 'instapay');
+    
+    // إظهار تنبيه الضمان لو اختار المحفظة
+    const walletInfo = document.getElementById('wallet-escrow-info');
+    if(method === 'wallet') {
+        walletInfo.style.display = 'flex';
+        if(currentDoctor && walletBalance < currentDoctor.price) {
+            showToast(`رصيد غير كافي! متاح لك ${walletBalance} ج.م`);
+        }
+    } else {
+        walletInfo.style.display = 'none';
+    }
 }
 
 function openBooking(id) {
