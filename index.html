@@ -151,12 +151,23 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .age-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
 .age-btn { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid var(--border); background: var(--card); color: var(--muted); font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .age-btn.active { border-color: var(--brand); background: var(--brand-light); color: var(--brand); }
+
+/* الذكاء الاصطناعي (Ask Wasla AI) */
+.ai-container { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); text-align: center; }
+.ai-icon { width: 60px; height: 60px; border-radius: 50%; background: var(--brand-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px; box-shadow: var(--shadow-glow); }
+.ai-input { width: 100%; padding: 15px; border: 2px solid var(--brand-light); border-radius: 15px; font-family: 'Cairo'; font-size: 14px; margin-bottom: 15px; outline: none; transition: 0.3s; text-align: right; }
+.ai-input:focus { border-color: var(--brand); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+.ai-result { margin-top: 15px; padding: 15px; border-radius: 12px; background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; font-weight: bold; font-size: 14px; display: none; text-align: right; }
+.ai-result.show { display: block; animation: fadeIn 0.4s ease; }
+
+/* الملف الطبي (EMR) */
 .emr-subtabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
 .emr-subtab { background: transparent; color: var(--muted); font-weight: 800; font-size: 14px; padding-bottom: 5px; border-bottom: 3px solid transparent; }
 .emr-subtab.active { color: var(--brand); border-bottom-color: var(--brand); }
 .prescription-card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid var(--border); margin-bottom: 15px; box-shadow: var(--shadow-sm); }
 .prescription-card h4 { color: var(--brand); margin-bottom: 5px; font-size: 15px; font-weight: 800; }
 .prescription-meds { background: var(--bg); padding: 10px; border-radius: 10px; margin: 10px 0; font-size: 13px; font-weight: bold; line-height: 1.8; }
+.reminder-btn { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: bold; width: 100%; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 5px; }
 .pharmacy-card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid var(--border); margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; }
 .pharmacy-header { display: flex; justify-content: space-between; align-items: center; }
 .pharmacy-header h4 { font-size: 14px; font-weight: 800; color: var(--dark); }
@@ -165,7 +176,11 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .badge-partial { background: #FFF7ED; color: #EA580C; }
 .pharmacy-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; }
 .pharmacy-price { font-weight: 900; color: var(--brand); font-size: 15px; }
-.whatsapp-btn { background: #25D366; color: white; padding: 8px 15px; border-radius: 8px; font-weight: 800; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+.pharmacy-actions { display: flex; gap: 5px; }
+.pharmacy-order-btn { background: var(--brand-gradient); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 800; font-size: 12px; }
+.whatsapp-btn { background: #25D366; color: white; padding: 8px 12px; border-radius: 8px; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+
+/* التذكرة الحية */
 .live-ticket { background: var(--card); border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid var(--border); }
 .ticket-header { background: linear-gradient(135deg, #0F172A, #1E293B); color: white; padding: 25px 20px; text-align: center; position: relative; }
 .ticket-header h3 { font-size: 18px; font-weight: 800; margin-bottom: 5px; }
@@ -180,7 +195,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .ticket-info p { margin-bottom: 8px; display: flex; justify-content: space-between; }
 .ticket-info p:last-child { margin-bottom: 0; }
 .ticket-info span { font-weight: 800; color: var(--dark); }
-.map-btn { display: block; width: 100%; padding: 12px; background: #E0F2FE; color: #0369A1; text-align: center; border-radius: 12px; font-weight: 800; text-decoration: none; margin-bottom: 10px; }
 .cancel-btn { background: #FFF1F2; color: #E11D48; width: 100%; padding: 12px; border-radius: 12px; font-weight: 800; border: 1px solid #FECDD3; }
 .time-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
 .time-slot { padding: 10px; border: 2px solid var(--border); border-radius: 10px; text-align: center; font-weight: 700; font-size: 13px; cursor: pointer; }
@@ -188,6 +202,8 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .time-slot.disabled { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; text-decoration: line-through; border-color: transparent; }
 .doctor-fab { position: fixed; bottom: 100px; left: 20px; background: #0F172A; color: #FBBF24; border-radius: 30px; padding: 12px 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 999; border: 2px solid #FBBF24; }
 .doctor-fab:active { transform: scale(0.95); }
+.warning-box { background: #FFFBEB; border: 1px solid #FDE68A; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 12px; color: #B45309; font-weight: 700; display: flex; gap: 8px; align-items: flex-start; }
+.warning-box i { margin-top: 2px; }
 
 /* الشريط السفلي والمودالات */
 .live-banner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; border-radius: 15px; padding: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 9999; transition: 0.5s; border-right: 5px solid var(--brand); }
@@ -229,7 +245,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <div class="brand-text"><h1>وصلة</h1><span>WASLA</span></div>
     </div>
     <div class="header-icons">
-        <button class="icon-btn" onclick="showToast('لا توجد إشعارات جديدة')" title="الإشعارات"><i class="fa-regular fa-bell"></i></button>
+        <button class="icon-btn" onclick="checkNotifications()" title="الإشعارات"><i class="fa-regular fa-bell"></i></button>
         <button class="icon-btn btn-finance" onclick="navigateTo('admin-finance')" title="لوحة التحكم المالية"><i class="fa-solid fa-chart-line"></i></button>
         <button class="icon-btn" id="gps-btn" onclick="toggleGPS()" title="تتبع الموقع"><i class="fa-solid fa-location-dot"></i></button>
         <button class="icon-btn" onclick="toggleTheme()" title="الوضع الليلي"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
@@ -368,6 +384,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         <div class="medical-services-tabs">
             <button class="med-service-btn active" onclick="switchMedTab('doctors', this)"><i class="fa-solid fa-user-doctor"></i> الأطباء</button>
             <button class="med-service-btn" onclick="switchMedTab('symptoms', this)"><i class="fa-solid fa-head-side-cough"></i> الأعراض</button>
+            <button class="med-service-btn" onclick="switchMedTab('ai', this)"><i class="fa-solid fa-robot"></i> ذكاء وصلة</button>
             <button class="med-service-btn" onclick="switchMedTab('emr', this)"><i class="fa-solid fa-file-medical"></i> ملفي الطبي</button>
             <button class="med-service-btn" onclick="switchMedTab('nursing', this)"><i class="fa-solid fa-bed-pulse"></i> تمريض منزلي</button>
         </div>
@@ -378,11 +395,16 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
             <label style="font-size:13px; font-weight:bold; margin-bottom:5px; display:block;">فلترة حسب التأمين:</label>
             <select id="insurance-filter" class="input-field" onchange="renderDoctors(document.getElementById('insurance-filter').value)">
                 <option value="all">كل الأطباء (بدون تأمين)</option>
-                <option value="bupa">بوبا إيجيبت</option>
-                <option value="misr">مصر للتأمين</option>
-                <option value="allianz">أليانز</option>
-                <option value="axa">أكسا</option>
-                <option value="metlife">ميتلايف</option>
+                <option value="bupa">بوبا إيجيبت (Bupa)</option>
+                <option value="misr">مصر للتأمين (Misr Insurance)</option>
+                <option value="allianz">أليانز (Allianz)</option>
+                <option value="axa">أكسا (AXA)</option>
+                <option value="metlife">ميتلايف (MetLife)</option>
+                <option value="gig">جي أي جي (GIG)</option>
+                <option value="orient">أورينت (Orient)</option>
+                <option value="royal">رويال (Royal)</option>
+                <option value="wethaq">وثاق (Wethaq)</option>
+                <option value="mada">مدى (Mada)</option>
             </select>
         </div>
         <div class="doctors-list" id="doctors-list"></div>
@@ -397,6 +419,18 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
         </div>
         <label style="font-size:13px; font-weight:bold; margin-bottom:5px; display:block;">بتحس بإيه؟</label>
         <div class="symptoms-grid" id="symptoms-grid"></div>
+    </div>
+
+    <!-- الذكاء الاصطناعي (Out of the box) -->
+    <div id="med-tab-ai" class="other-med-services">
+        <div class="ai-container">
+            <div class="ai-icon"><i class="fa-solid fa-robot"></i></div>
+            <h3 style="margin-bottom: 10px; font-size: 18px; color: var(--dark);">مساعد وصلة الذكي</h3>
+            <p style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">اكتب الأعراض اللي حاسس بيها، وهنرشحلك الدكتور المناسب.</p>
+            <input type="text" id="ai-input" class="ai-input" placeholder="مثال: عندي صداع شديد وبرد من امبارح...">
+            <button class="submit-btn" onclick="askWaslaAI()">اسأل ذكاء وصلة 🧠</button>
+            <div id="ai-result" class="ai-result"></div>
+        </div>
     </div>
 
     <div id="med-tab-emr" class="other-med-services">
@@ -435,14 +469,28 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 <div class="modal-overlay" id="booking-modal">
     <div class="modal-content">
         <div class="modal-header"><h2>حجز موعد</h2><button class="close-btn" onclick="closeModal('booking-modal')"><i class="fa-solid fa-xmark"></i></button></div>
+        
+        <div class="warning-box">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div>تنبيه: في حالة إلغاء الحجز قبل الموعد بأقل من 12 ساعة، يتم خصم العربون (25%).</div>
+        </div>
+
         <div class="input-group"><label>اسم المريض</label><input type="text" id="patient-name" class="input-field"></div>
         <div class="input-group"><label>رقم الهاتف</label><input type="tel" id="patient-phone" class="input-field" oninput="localStorage.setItem('wasla_phone', this.value)"></div>
         <div class="input-group">
             <label>التأمين الصحي (اختياري)</label>
             <select id="booking-insurance" class="input-field">
-                <option value="cash">دفع شخصي</option>
-                <option value="bupa">بوبا إيجيبت</option>
-                <option value="misr">مصر للتأمين</option>
+                <option value="cash">دفع شخصي (بدون تأمين)</option>
+                <option value="bupa">بوبا إيجيبت (Bupa)</option>
+                <option value="misr">مصر للتأمين (Misr Insurance)</option>
+                <option value="allianz">أليانز (Allianz)</option>
+                <option value="axa">أكسا (AXA)</option>
+                <option value="metlife">ميتلايف (MetLife)</option>
+                <option value="gig">جي أي جي (GIG)</option>
+                <option value="orient">أورينت (Orient)</option>
+                <option value="royal">رويال (Royal)</option>
+                <option value="wethaq">وثاق (Wethaq)</option>
+                <option value="mada">مدى (Mada)</option>
             </select>
         </div>
         <div class="input-group" id="nurse-gps-group" style="display:none;">
@@ -499,7 +547,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 <!-- ==================== الشريط السفلي ==================== -->
 <nav class="bottom-nav">
     <button class="nav-item active" onclick="navigateTo('home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
-    <button class="nav-item" onclick="showToast('قريباً')"><i class="fa-solid fa-box"></i><span>طلباتي</span></button>
+    <button class="nav-item" onclick="navigateTo('mybookings')"><i class="fa-solid fa-box"></i><span>حجوزاتي</span></button>
     <button class="nav-item" onclick="openModal('complaint-modal')"><i class="fa-solid fa-headset"></i><span>الدعم</span></button>
     <button class="nav-item" onclick="showToast('محفظتك: 150 ج.م')"><i class="fa-solid fa-wallet"></i><span>المحفظة</span></button>
     <button class="nav-item" onclick="showToast('قريباً')"><i class="fa-solid fa-user"></i><span>حسابي</span></button>
@@ -547,6 +595,25 @@ function showToast(msg) {
     t.textContent = msg; 
     t.classList.add('show'); 
     setTimeout(() => t.classList.remove('show'), 3000); 
+}
+
+// دالة فحص الإشعارات (الجرس)
+function checkNotifications() {
+    const phone = localStorage.getItem('wasla_phone');
+    if(!phone) return showToast('لا توجد إشعارات جديدة');
+
+    const bookings = getLocalBookings().filter(b => b.patientPhone === phone && b.status === 'pending');
+    if(bookings.length > 0) {
+        const b = bookings[0];
+        const casesAhead = Math.max(0, b.queueNumber - 1);
+        if(casesAhead === 0) {
+            showToast('🔔 تنبيه: حان دورك الآن! برجاء التوجه للعيادة.');
+        } else {
+            showToast(`🔔 إشعار: أنت رقم ${b.queueNumber}، قدامك ${casesAhead} حالات.`);
+        }
+    } else {
+        showToast('لا توجد إشعارات جديدة');
+    }
 }
 
 function startVoiceSearch() {
@@ -694,9 +761,9 @@ function calculateFinance() {
 // 5. القسم الطبي الشامل
 // ==========================================
 const doctorsData = [
-  { id: 1, name: "د. أحمد محمود", spec: "أسنان", price: 200, icon: "fa-tooth", startTime: 14, endTime: 18, slotMins: 30, days: "السبت - الخميس", clinicLat: 30.3128, clinicLng: 31.3234, insurances: ['bupa', 'misr'], targetAge: 'adult' },
-  { id: 2, name: "د. سارة علي", spec: "باطنة", price: 150, icon: "fa-heart-pulse", startTime: 10, endTime: 14, slotMins: 20, days: "الأحد - الخميس", clinicLat: 30.3130, clinicLng: 31.3240, insurances: ['allianz'], targetAge: 'adult' },
-  { id: 3, name: "د. يوسف كمال", spec: "أطفال", price: 180, icon: "fa-baby", startTime: 16, endTime: 20, slotMins: 20, days: "السبت - الأربعاء", clinicLat: 30.3120, clinicLng: 31.3220, insurances: ['bupa'], targetAge: 'child' }
+  { id: 1, name: "د. أحمد محمود", spec: "أسنان", price: 200, icon: "fa-tooth", startTime: 14, endTime: 18, slotMins: 30, days: "السبت - الخميس", clinicLat: 30.3128, clinicLng: 31.3234, insurances: ['bupa', 'misr', 'metlife'], targetAge: 'adult' },
+  { id: 2, name: "د. سارة علي", spec: "باطنة", price: 150, icon: "fa-heart-pulse", startTime: 10, endTime: 14, slotMins: 20, days: "الأحد - الخميس", clinicLat: 30.3130, clinicLng: 31.3240, insurances: ['allianz', 'axa', 'gig'], targetAge: 'adult' },
+  { id: 3, name: "د. يوسف كمال", spec: "أطفال", price: 180, icon: "fa-baby", startTime: 16, endTime: 20, slotMins: 20, days: "السبت - الأربعاء", clinicLat: 30.3120, clinicLng: 31.3220, insurances: ['bupa', 'orient', 'royal'], targetAge: 'child' }
 ];
 
 const symptomsData = [
@@ -708,8 +775,8 @@ const symptomsData = [
 ];
 
 const pharmaciesData = [
-  { name: "صيدلية العزبي (شبين)", available: "full", price: 120, phone: "201012345678" },
-  { name: "صيدلية سيف (شبين)", available: "partial", price: 90, phone: "201098765432" }
+  { name: "صيدلية العزبي (شبين)", available: "full", price: 120, phone: "201012345678", insurances: ['bupa', 'misr'] },
+  { name: "صيدلية سيف (شبين)", available: "partial", price: 90, phone: "201098765432", insurances: ['allianz'] }
 ];
 
 let currentDoctor = null;
@@ -739,6 +806,39 @@ function switchMedTab(tabId, btn) {
     if(tabId === 'symptoms') renderSymptoms();
 }
 
+// ==========================================
+// 6. الميزات الجديدة (ذكاء وصلة)
+// ==========================================
+function askWaslaAI() {
+    const input = document.getElementById('ai-input').value.toLowerCase();
+    const resultDiv = document.getElementById('ai-result');
+    if(!input) return showToast('اكتب الأعراض أولاً');
+
+    resultDiv.classList.add('show');
+    resultDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري تحليل الأعراض...';
+
+    setTimeout(() => {
+        let suggestedSpec = 'باطنة'; // الافتراضي
+        if(input.includes('سن') || input.includes('ضرس')) suggestedSpec = 'أسنان';
+        else if(input.includes('طفل') || input.includes('سخونية') || input.includes('برد')) suggestedSpec = 'أطفال';
+        else if(input.includes('عين')) suggestedSpec = 'عيون';
+        else if(input.includes('جلد') || input.includes('حساسية')) suggestedSpec = 'جلدية';
+        
+        resultDiv.innerHTML = `
+            بناءً على وصفك، الأفضل تزور دكتور <b>${suggestedSpec}</b>.<br><br>
+            <button class="book-btn" style="width:100%;" onclick="document.querySelectorAll('.med-service-btn')[0].click(); renderDoctors('all', '${suggestedSpec}');">عرض أطباء ${suggestedSpec} <i class="fa-solid fa-arrow-left"></i></button>
+        `;
+        document.getElementById('ai-input').value = '';
+    }, 1500);
+}
+
+function setReminder() {
+    showToast('⏰ تم تفعيل تذكير الدواء! سيتم إشعارك بمواعيد الجرعات.');
+}
+
+// ==========================================
+// 7. الأطباء والحجز
+// ==========================================
 function setAge(age) {
     currentAgeFilter = age;
     document.getElementById('age-adult').classList.toggle('active', age === 'adult');
@@ -847,6 +947,7 @@ function submitBooking() {
     const newBooking = {
         id: 'BK-' + Date.now(), patientName: name, patientPhone: phone, doctorId: currentDoctor.id || null,
         doctorName: currentDoctor.name, slot: selectedSlot, queueNumber: queue, date: today,
+        price: currentDoctor.price || 0, 
         status: 'pending', createdAt: new Date().toISOString(), meds: [], labs: []
     };
     
@@ -854,12 +955,11 @@ function submitBooking() {
     saveLocalBookings(bookings);
     localStorage.setItem('wasla_phone', phone);
 
-    // إظهار زرار الطبيب (للتجربة)
     document.getElementById('doctor-fab').style.display = 'flex';
     activeBookingForDoctor = newBooking;
 
     closeModal('booking-modal'); 
-    showToast('تم الحجز بنجاح!');
+    showToast('تم الحجز بنجاح! (تم خصم 50 ج.م من المحفظة كتأمين)');
     navigateTo('mybookings');
     
     btn.textContent = 'تأكيد الحجز'; btn.disabled = false;
@@ -913,6 +1013,7 @@ function loadEMR() {
             <div class="prescription-card">
                 <h4>روشتة من ${p.doctor}</h4>
                 <div class="prescription-meds">${p.text}</div>
+                <button class="reminder-btn" onclick="setReminder()"><i class="fa-regular fa-clock"></i> تذكير بمواعيد الدواء</button>
                 <p style="font-size:12px; font-weight:bold; margin-bottom:10px; color:var(--muted);">ابحث عن الدواء في الصيدليات المتعاقدة:</p>
                 ${pharmaciesData.map(ph => `
                     <div class="pharmacy-card">
@@ -924,9 +1025,12 @@ function loadEMR() {
                         </div>
                         <div class="pharmacy-footer">
                             <div class="pharmacy-price">${ph.price} ج.م</div>
-                            <a href="https://wa.me/${ph.phone}?text=مرحباً، أريد طلب الروشتة الخاصة بي من تطبيق وصلة" target="_blank" class="whatsapp-btn">
-                                <i class="fa-brands fa-whatsapp"></i> تواصل
-                            </a>
+                            <div class="pharmacy-actions">
+                                <button class="pharmacy-order-btn" onclick="showToast('جاري تجهيز الدواء وتوصيله...')">اطلب الآن</button>
+                                <a href="https://wa.me/${ph.phone}?text=مرحباً، أريد طلب الروشتة الخاصة بي من تطبيق وصلة" target="_blank" class="whatsapp-btn">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 `).join('')}
@@ -985,19 +1089,32 @@ function listenToMyTicket() {
                         <p><span>الموعد:</span> ${d.slot}</p>
                         <p><span>سعر الكشف:</span> ${d.price} ج.م</p>
                     </div>
-                    <button class="cancel-btn" onclick="cancelBooking('${d.id}')">إلغاء الحجز</button>
+                    <button class="cancel-btn" onclick="cancelBooking('${d.id}', '${d.date}', '${d.slot}')">إلغاء الحجز</button>
                 </div>
             </div>
         `;
     });
 }
 
-function cancelBooking(docId) {
+function cancelBooking(docId, date, slot) {
     if(!confirm('هل أنت متأكد من إلغاء الحجز؟')) return;
+
+    const bookingDate = new Date(`${date}T${slot === 'زيارة منزلية' ? '00:00' : slot}:00`);
+    const now = new Date();
+    const diffHours = (bookingDate - now) / (1000 * 60 * 60);
+
+    let msg = "";
+    if (diffHours < 12) {
+        msg = "تم إلغاء الحجز، وتم خصم العربون (أقل من 12 ساعة).";
+    } else {
+        msg = "تم إلغاء الحجز، وتم استرداد العربون (أكثر من 12 ساعة).";
+    }
+
     let bookings = getLocalBookings();
     bookings = bookings.map(b => b.id === docId ? {...b, status: 'cancelled'} : b);
     localStorage.setItem('wasla_bookings', JSON.stringify(bookings));
-    showToast('تم إلغاء الحجز'); 
+    
+    showToast(msg); 
     listenToMyTicket();
 }
 
