@@ -2003,6 +2003,87 @@ window.closeHub = function() {
 updateFinancialUI();
 updateWalletUI();
 checkDoctorNotifications();
+   // ==========================================
+// نظام التحكم في تشغيل/تعطيل الخدمات (Service Toggles)
+// ==========================================
+function getServiceStatus(serviceId) {
+    const settings = JSON.parse(localStorage.getItem('wasla_service_settings')) || {};
+    // القيمة الافتراضية: true (شغال)، إلا لو المستخدم قفلها
+    return settings[serviceId] !== false;
+}
+
+function toggleServiceStatus(serviceId, checkboxEl) {
+    const settings = JSON.parse(localStorage.getItem('wasla_service_settings')) || {};
+    settings[serviceId] = checkboxEl.checked;
+    localStorage.setItem('wasla_service_settings', JSON.stringify(settings));
+    showToast(`تم ${checkboxEl.checked ? 'تفعيل' : 'تعطيل'} الخدمة!`);
+    
+    // تحديث واجهة السيارات لو مفتوحة
+    if (document.getElementById('view-cars').style.display === 'block') {
+        renderCarServicesUI();
+    }
+}
+
+// ==========================================
+// تحديث واجهة السيارات عشان تحترم حالة التشغيل/التعطيل
+// ==========================================
+function renderCarServicesUI() {
+    const isEmergencyEnabled = getServiceStatus('car_emergency');
+    const isNormalEnabled = getServiceStatus('car_normal');
+
+    // زرار الطوارئ (الونش)
+    const emergencyBtn = document.querySelector('.car-emergency-btn');
+    if (emergencyBtn) {
+        if (!isEmergencyEnabled) {
+            emergencyBtn.style.opacity = '0.5';
+            emergencyBtn.style.pointerEvents = 'none';
+            emergencyBtn.innerHTML = `
+                <div>
+                    <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 5px;"><i class="fa-solid fa-ban"></i> الخدمة غير متاحة</h3>
+                    <p style="font-size: 12px; opacity: 0.9;">خدمة الطوارئ (الونش) متوقفة مؤقتاً.</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="fa-solid fa-power-off"></i>
+                </div>
+            `;
+        } else {
+            emergencyBtn.style.opacity = '1';
+            emergencyBtn.style.pointerEvents = 'auto';
+            emergencyBtn.innerHTML = `
+                <div>
+                    <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 5px;"><i class="fa-solid fa-truck-pickup"></i> عطلان في الطريق؟</h3>
+                    <p style="font-size: 12px; opacity: 0.9;">اطلب ونش سحب فوراً لأي مكان في شبين.</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="fa-solid fa-phone-volume"></i>
+                </div>
+            `;
+        }
+    }
+
+    // كروت الخدمات العادية
+    const normalCards = document.querySelectorAll('.car-normal-card');
+    normalCards.forEach(card => {
+        if (!isNormalEnabled) {
+            card.style.opacity = '0.5';
+            card.style.pointerEvents = 'none';
+            // إضافة علامة "غير متاح" لو مش موجودة
+            if (!card.querySelector('.unavailable-badge')) {
+                const badge = document.createElement('div');
+                badge.className = 'unavailable-badge';
+                badge.innerText = 'غير متاح';
+                badge.style.cssText = 'position:absolute; top:10px; left:10px; background:#EF4444; color:white; font-size:10px; padding:2px 6px; border-radius:6px; font-weight:bold;';
+                card.style.position = 'relative';
+                card.appendChild(badge);
+            }
+        } else {
+            card.style.opacity = '1';
+            card.style.pointerEvents = 'auto';
+            const badge = card.querySelector('.unavailable-badge');
+            if (badge) badge.remove();
+        }
+    });
+}
 </script>
 </body>
 </html>
