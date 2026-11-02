@@ -33,7 +33,7 @@
 body { background-color: var(--bg); color: var(--text); font-family: 'Cairo', sans-serif; padding-bottom: 80px; transition: 0.3s; overflow-x: hidden; }
 button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outline: none; }
 
-/* شاشات التطبيق */
+/* شاشات التطبيق (تم تعديلها عشان تمنع التداخل) */
 .app-view { display: none; animation: fadeIn 0.4s ease; }
 .app-view.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -48,7 +48,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .brand-text h1 { font-family: 'Tajawal', sans-serif; font-size: 20px; font-weight: 900; color: var(--dark); line-height: 1; margin-bottom: 2px; }
 .brand-text span { font-family: 'Tajawal', sans-serif; font-size: 9px; font-weight: 900; background: var(--logo-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 3px; display: inline-block; transform: scaleY(1.1); }
 
-/* هندسة الأزرار العلوية (5 أزرار) */
+/* هندسة الأزرار العلوية */
 .header-icons { display: flex; gap: 4px; align-items: center; }
 .icon-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 14px; transition: 0.2s; position: relative; }
 .icon-btn.active { background: var(--brand-light); color: var(--brand); border-color: var(--brand); }
@@ -101,7 +101,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
 .input-field { width: 100%; padding: 14px 16px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px; font-family: 'Cairo'; color: var(--text); font-size: 14px; outline: none; transition: 0.3s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
 .input-field:focus { border-color: var(--brand); background: var(--card); box-shadow: 0 0 0 3px var(--brand-light); }
-.input-field:-webkit-autofill, .input-field:-webkit-autofill:hover, .input-field:-webkit-autofill:focus, .input-field:-webkit-autofill:active{ -webkit-box-shadow: 0 0 0 30px var(--bg) inset !important; -webkit-text-fill-color: var(--text) !important; transition: background-color 5000s ease-in-out 0s; }
 .location-btn { width: 100%; padding: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-family: 'Cairo'; font-weight: 700; color: var(--text); margin-bottom: 15px; }
 .location-btn.active { background: #ECFDF5; border-color: #10B981; color: #047857; }
 .gps-text { font-size: 11px; color: var(--muted); text-align: center; margin-top: -10px; margin-bottom: 15px; display: block; }
@@ -209,7 +208,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 .time-slot.selected { border-color: var(--brand); background: var(--brand-light); color: var(--brand); }
 .time-slot.disabled { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; text-decoration: line-through; border-color: transparent; }
 
-/* الزرار العائم (تم تصغيره) */
+/* الزرار العائم */
 .doctor-fab { position: fixed; bottom: 90px; left: 15px; width: 50px; height: 50px; border-radius: 50%; background: #0F172A; color: #FBBF24; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 999; border: 2px solid #FBBF24; transition: 0.2s; }
 .doctor-fab:active { transform: scale(0.9); }
 
@@ -290,7 +289,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </div>
 
-<!-- الهيدر الشامل (5 أزرار) -->
+<!-- الهيدر الشامل -->
 <header class="top-header">
     <div class="brand">
         <div class="logo-box"><div class="logo-w">W</div></div>
@@ -298,7 +297,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
     <div class="header-icons">
         <button class="icon-btn" onclick="checkNotifications()" title="الإشعارات"><i class="fa-regular fa-bell"></i></button>
-        <button class="icon-btn btn-doctor" id="doc-header-btn" onclick="navigateTo('doctor-dashboard')" title="بوابة الطبيب (للتجربة)">
+        <button class="icon-btn btn-doctor" id="doc-header-btn" onclick="navigateTo('doctor-dashboard')" title="بوابة الطبيب">
             <i class="fa-solid fa-user-doctor"></i>
             <span class="badge-dot" id="doc-badge"></span>
         </button>
@@ -317,7 +316,8 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </div>
 
-<main id="view-home" class="app-view active">
+<!-- تم وضع style="display: none;" في كل قسم لمنع التداخل نهائياً -->
+<main id="view-home" class="app-view active" style="display: block;">
     <div class="welcome-area">
         <p><i class="fa-solid fa-location-dot" style="color:var(--brand)"></i> شبين القناطر، القليوبية</p>
         <h2>أهلاً بك يا أحمد 👋</h2>
@@ -354,7 +354,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
             <div class="cat-icon" style="background: #FFF7ED; color: #EA580C;"><i class="fa-solid fa-cart-shopping"></i></div>
             <h3>السوبر ماركت</h3><p>كل احتياجات البيت</p>
         </div>
-        <!-- كارت المطاعم المضافة -->
         <div class="cat-card" onclick="openSection('restaurants')">
             <div class="cat-icon" style="background: #FEF2F2; color: #E11D48;"><i class="fa-solid fa-burger"></i></div>
             <h3>الفاست فود والمطاعم</h3><p>برجر، بيتزا، وكريب</p>
@@ -370,7 +369,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </main>
 
-<div id="view-delivery" class="app-view">
+<div id="view-delivery" class="app-view" style="display: none;">
     <div class="medical-header">
         <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
         <h2>توصيل مجاني</h2>
@@ -396,7 +395,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </div>
 
-<div id="view-admin-finance" class="app-view">
+<div id="view-admin-finance" class="app-view" style="display: none;">
     <div class="fin-header">
         <button class="back-btn" onclick="navigateTo('home')" style="background:rgba(255,255,255,0.1); color:white;"><i class="fa-solid fa-arrow-right"></i></button>
         <h2>لوحة التحكم المالية</h2>
@@ -404,7 +403,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     <div class="fin-content">
         <div class="fin-card">
             <h3><i class="fa-solid fa-motorcycle"></i> إدارة سعر التوصيل</h3>
-            <p style="font-size:12px; color:var(--muted); margin-bottom:15px;">تحكم في سعر التوصيل. ابدأ بـ 0 (مجاني) لاكتساح السوق، ثم زد السعر بـ 5 جنيهات.</p>
+            <p style="font-size:12px; color:var(--muted); margin-bottom:15px;">تحكم في سعر التوصيل.</p>
             <div class="delivery-price-control">
                 <span>سعر التوصيل الحالي:</span>
                 <div class="price-controls">
@@ -430,7 +429,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </div>
 
-<div id="view-medical" class="app-view">
+<div id="view-medical" class="app-view" style="display: none;">
     <div class="medical-header">
         <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
         <h2>وصلة الطبية</h2>
@@ -512,7 +511,7 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </div>
 
-<div id="view-mybookings" class="app-view">
+<div id="view-mybookings" class="app-view" style="display: none;">
     <div class="medical-header">
         <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
         <h2>تذكرة الحجز والطابور</h2>
@@ -520,87 +519,35 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     <div id="live-ticket-container" style="padding: 20px;"></div>
 </div>
 
-<div id="view-doctor-dashboard" class="app-view">
+<div id="view-doctor-dashboard" class="app-view" style="display: none;">
     <div class="doc-dash-header">
         <h2>بوابة الطبيب (للتجربة)</h2>
         <button class="icon-btn" onclick="navigateTo('home')" style="background:rgba(255,255,255,0.1); color:white; border:none;"><i class="fa-solid fa-arrow-right"></i> عودة</button>
     </div>
-
     <div class="doc-content">
         <div class="doc-welcome">
             <h3>مرحباً، د. أحمد محمود 👨‍⚕️</h3>
             <p>عيادة الأسنان - شبين القناطر</p>
         </div>
-
         <div class="doc-stats-grid">
-            <div class="doc-stat-card">
-                <i class="fa-solid fa-eye" style="background:#E0F2FE; color:#0284C7"></i>
-                <div class="stat-info">
-                    <span>مشاهدات العيادة</span>
-                    <strong>145</strong>
-                </div>
-            </div>
-            <div class="doc-stat-card">
-                <i class="fa-solid fa-calendar-check" style="background:#ECFDF5; color:#059669"></i>
-                <div class="stat-info">
-                    <span>حجوزات اليوم</span>
-                    <strong id="doc-stat-bookings">0</strong>
-                </div>
-            </div>
-            <div class="doc-stat-card">
-                <i class="fa-solid fa-money-bill-trend-up" style="background:#F3E8FF; color:#7C3AED"></i>
-                <div class="stat-info">
-                    <span>إيرادات اليوم</span>
-                    <strong id="doc-stat-revenue">0 ج.م</strong>
-                </div>
-            </div>
+            <div class="doc-stat-card"><i class="fa-solid fa-eye" style="background:#E0F2FE; color:#0284C7"></i><div class="stat-info"><span>مشاهدات العيادة</span><strong>145</strong></div></div>
+            <div class="doc-stat-card"><i class="fa-solid fa-calendar-check" style="background:#ECFDF5; color:#059669"></i><div class="stat-info"><span>حجوزات اليوم</span><strong id="doc-stat-bookings">0</strong></div></div>
+            <div class="doc-stat-card"><i class="fa-solid fa-money-bill-trend-up" style="background:#F3E8FF; color:#7C3AED"></i><div class="stat-info"><span>إيرادات اليوم</span><strong id="doc-stat-revenue">0 ج.م</strong></div></div>
         </div>
-
         <div class="doc-panel" id="doc-results-panel" style="display:none; border-color:#F59E0B;">
-            <div class="doc-panel-header" style="border-color:#F59E0B;">
-                <h3 style="color:#F59E0B;"><i class="fa-solid fa-file-medical-alt"></i> نتائج أشعة/تحاليل مرفوعة (تحتاج مراجعة)</h3>
-            </div>
+            <div class="doc-panel-header" style="border-color:#F59E0B;"><h3 style="color:#F59E0B;"><i class="fa-solid fa-file-medical-alt"></i> نتائج مرفوعة (تحتاج مراجعة)</h3></div>
             <div id="doctor-results-list" class="doc-queue"></div>
         </div>
-
         <div class="doc-panel">
-            <div class="doc-panel-header">
-                <h3><i class="fa-solid fa-users"></i> طابور المرضى اليوم</h3>
-                <button class="btn primary" style="padding:5px 10px; font-size:12px;" onclick="showToast('تم إرسال تذكير لجميع المرضى عبر الواتساب!')">تذكير الكل</button>
-            </div>
+            <div class="doc-panel-header"><h3><i class="fa-solid fa-users"></i> طابور المرضى اليوم</h3></div>
             <div id="doctor-queue-list" class="doc-queue"></div>
-        </div>
-
-        <div class="doc-panel">
-            <div class="doc-panel-header">
-                <h3><i class="fa-solid fa-user-nurse"></i> إدارة موظفي العيادة (تسكير)</h3>
-            </div>
-            <div class="staff-card">
-                <div class="staff-info">
-                    <h4>سارة (موظفة الاستقبال)</h4>
-                    <p>الراتب المستحق: 3,000 ج.م</p>
-                </div>
-                <button class="btn primary" onclick="showToast('تم خصم 3000 ج.م من أرباحك وتسجيلها كراتب لسارة')">تسكير الراتب</button>
-            </div>
-            <div class="staff-card">
-                <div class="staff-info">
-                    <h4>محمد (ممرض)</h4>
-                    <p>الراتب المستحق: 2,500 ج.م</p>
-                </div>
-                <button class="btn primary" onclick="showToast('تم خصم 2500 ج.م من أرباحك وتسجيلها كراتب لمحمد')">تسكير الراتب</button>
-            </div>
-            <div style="background:var(--bg); padding:15px; border-radius:12px; margin-top:15px; font-size:12px; color:var(--muted);">
-                <i class="fa-solid fa-info-circle"></i> ملاحظة: المنصة تحصل على عمولة 10% من كل كشف، ويتم خصم رواتب الموظفين من صافي أرباح العيادة لتسهيل الحسابات عليك.
-            </div>
         </div>
     </div>
 </div>
 
-<button class="doctor-fab" id="doctor-fab" style="display:none;" onclick="openDoctorModal()">
-    <i class="fa-solid fa-stethoscope"></i>
-</button>
+<button class="doctor-fab" id="doctor-fab" style="display:none;" onclick="openDoctorModal()"><i class="fa-solid fa-stethoscope"></i></button>
 
-<!-- مودال رفع النتيجة (للمريض) -->
+<!-- المودالات -->
 <div class="modal-overlay" id="upload-result-modal">
     <div class="modal-content">
         <div class="modal-header"><h2>رفع نتيجة الأشعة/التحليل</h2><button class="close-btn" onclick="closeModal('upload-result-modal')"><i class="fa-solid fa-xmark"></i></button></div>
@@ -610,7 +557,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     </div>
 </div>
 
-<!-- مودال مراجعة الطبيب -->
 <div class="modal-overlay" id="doctor-review-modal">
     <div class="modal-content">
         <div class="modal-header"><h2>مراجعة النتيجة</h2><button class="close-btn" onclick="closeModal('doctor-review-modal')"><i class="fa-solid fa-xmark"></i></button></div>
@@ -619,87 +565,31 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
             <h3 id="review-patient-name" style="font-size:18px; font-weight:900;"></h3>
             <p id="review-test-name" style="font-size:13px; color:var(--muted);"></p>
         </div>
-        
         <label class="label" style="font-weight:800; font-size:13px; margin-bottom:5px; display:block;">ملاحظات وتعليمات للمريض</label>
-        <textarea id="doc-review-note" class="input-field" placeholder="مثال: النتائج سليمة، يرجى الاستمرار على الدواء..."></textarea>
-
+        <textarea id="doc-review-note" class="input-field" placeholder="مثال: النتائج سليمة..."></textarea>
         <button class="submit-btn" style="background:#10B981; margin-top:10px; margin-bottom:10px;" onclick="submitReview('healthy')"><i class="fa-solid fa-check"></i> سليم (لا يحتاج زيارة)</button>
         <button class="submit-btn" style="background:#F59E0B;" onclick="submitReview('followup')"><i class="fa-solid fa-calendar-plus"></i> يحتاج متابعة وحجز زيارة</button>
-        
-        <div style="text-align:center; margin-top:20px;">
-            <a href="https://wa.me/201012345678?text=مرحباً، بخصوص نتيجتك..." target="_blank" style="color:#25D366; font-weight:800; text-decoration:none; font-size:14px;"><i class="fa-brands fa-whatsapp"></i> تواصل مع المريض واتساب</a>
-        </div>
     </div>
 </div>
 
 <div class="modal-overlay" id="booking-modal">
     <div class="modal-content">
         <div class="modal-header"><h2>حجز موعد</h2><button class="close-btn" onclick="closeModal('booking-modal')"><i class="fa-solid fa-xmark"></i></button></div>
-        
-        <div class="warning-box">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <div>تنبيه: في حالة إلغاء الحجز قبل الموعد بأقل من 12 ساعة، يتم خصم العربون (25%).</div>
-        </div>
-
+        <div class="warning-box"><i class="fa-solid fa-triangle-exclamation"></i><div>تنبيه: في حالة إلغاء الحجز قبل الموعد بأقل من 12 ساعة، يتم خصم العربون (25%).</div></div>
         <div class="input-group"><label>اسم المريض</label><input type="text" id="patient-name" class="input-field" placeholder="مثال: أحمد محمد"></div>
         <div class="input-group"><label>رقم الهاتف</label><input type="tel" id="patient-phone" class="input-field" placeholder="01xxxxxxxxx" oninput="localStorage.setItem('wasla_phone', this.value)"></div>
-        
-        <div class="input-group">
-            <label>التأمين الصحي (اختياري)</label>
-            <select id="booking-insurance" class="input-field">
-                <option value="cash">دفع شخصي (بدون تأمين)</option>
-                <option value="bupa">بوبا إيجيبت (Bupa)</option>
-                <option value="misr">مصر للتأمين (Misr Insurance)</option>
-                <option value="allianz">أليانز (Allianz)</option>
-                <option value="axa">أكسا (AXA)</option>
-                <option value="metlife">ميتلايف (MetLife)</option>
-                <option value="gig">جي أي جي (GIG)</option>
-                <option value="orient">أورينت (Orient)</option>
-                <option value="royal">رويال (Royal)</option>
-                <option value="wethaq">وثاق (Wethaq)</option>
-                <option value="mada">مدى (Mada)</option>
-            </select>
-        </div>
-
         <label class="label" style="font-weight:800; font-size:14px; margin-bottom:10px; display:block;">طريقة الدفع</label>
         <div class="payment-methods">
-            <div class="pay-method-btn active" onclick="selectPaymentMethod('cash', this)">
-                <i class="fa-solid fa-money-bill-wave"></i> كاش
-            </div>
-            <div class="pay-method-btn" onclick="selectPaymentMethod('vodafone', this)">
-                <i class="fa-solid fa-mobile-screen"></i> فودافون
-            </div>
-            <div class="pay-method-btn" onclick="selectPaymentMethod('instapay', this)">
-                <i class="fa-solid fa-building-columns"></i> إنستاباي
-            </div>
-            <div class="pay-method-btn" onclick="selectPaymentMethod('wallet', this)">
-                <i class="fa-solid fa-wallet"></i> المحفظة
-            </div>
+            <div class="pay-method-btn active" onclick="selectPaymentMethod('cash', this)"><i class="fa-solid fa-money-bill-wave"></i> كاش</div>
+            <div class="pay-method-btn" onclick="selectPaymentMethod('vodafone', this)"><i class="fa-solid fa-mobile-screen"></i> فودافون</div>
+            <div class="pay-method-btn" onclick="selectPaymentMethod('instapay', this)"><i class="fa-solid fa-building-columns"></i> إنستاباي</div>
+            <div class="pay-method-btn" onclick="selectPaymentMethod('wallet', this)"><i class="fa-solid fa-wallet"></i> المحفظة</div>
         </div>
-        
-        <div id="payment-details" class="payment-details">
-            <label style="font-size:12px; font-weight:bold;">أدخل رقم المحفظة/الحساب</label>
-            <input type="text" id="wallet-number" class="input-field" style="margin-top:5px;" placeholder="01xxxxxxxxx">
-        </div>
-
-        <div id="wallet-escrow-info" class="warning-box" style="background:#E0F2FE; border-color:#BAE6FD; color:#0369A1; display:none; margin-top:10px;">
-            <i class="fa-solid fa-shield-halved"></i>
-            <div>سيتم خصم المبلغ من رصيدك كضمان (Escrow) لضمان حقك وحق الطبيب. إذا ألغيت الحجز في الوقت المسموح، سيعود المبلغ لرصيدك المتاح.</div>
-        </div>
-
-        <div class="input-group" id="nurse-gps-group" style="display:none;">
-            <label>موقعك (لزيارة التمريض)</label>
-            <button class="btn-loc" style="width:100%; padding:10px;" onclick="getNurseLocation()"><i class="fa-solid fa-location-crosshairs"></i> تحديد موقعي</button>
-            <p id="gps-status" style="font-size:11px; color:var(--muted); margin-top:5px;"></p>
-        </div>
-        
-        <div class="deposit-box" id="deposit-box" style="display:none; background: #FFFBEB; border: 1px solid #FDE68A; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-            <h4 style="color: #B45309; font-size: 14px; margin-bottom: 5px;"><i class="fa-solid fa-triangle-exclamation"></i> مطلوب دفع عربون 25%</h4>
-            <p style="color: #92400E; font-size: 12px; line-height: 1.5;">لضمان جدية الحجز، يُرجى دفع عربون بقيمة <strong id="deposit-amount">0 ج.م</strong>.</p>
-        </div>
-        
+        <div id="payment-details" class="payment-details"><label style="font-size:12px; font-weight:bold;">أدخل رقم المحفظة/الحساب</label><input type="text" id="wallet-number" class="input-field" style="margin-top:5px;" placeholder="01xxxxxxxxx"></div>
+        <div id="wallet-escrow-info" class="warning-box" style="background:#E0F2FE; border-color:#BAE6FD; color:#0369A1; display:none; margin-top:10px;"><i class="fa-solid fa-shield-halved"></i><div>سيتم خصم المبلغ من رصيدك كضمان (Escrow).</div></div>
+        <div class="input-group" id="nurse-gps-group" style="display:none;"><label>موقعك (لزيارة التمريض)</label><button class="btn-loc" style="width:100%; padding:10px;" onclick="getNurseLocation()"><i class="fa-solid fa-location-crosshairs"></i> تحديد موقعي</button><p id="gps-status" style="font-size:11px; color:var(--muted); margin-top:5px;"></p></div>
+        <div class="deposit-box" id="deposit-box" style="display:none; background: #FFFBEB; border: 1px solid #FDE68A; padding: 15px; border-radius: 12px; margin-bottom: 15px;"><h4 style="color: #B45309; font-size: 14px; margin-bottom: 5px;"><i class="fa-solid fa-triangle-exclamation"></i> مطلوب دفع عربون 25%</h4><p style="color: #92400E; font-size: 12px; line-height: 1.5;">لضمان جدية الحجز، يُرجى دفع عربون بقيمة <strong id="deposit-amount">0 ج.م</strong>.</p></div>
         <div class="input-group" id="slot-group"><label>اختر موعد الحجز</label><div class="time-slots" id="time-slots-container"></div></div>
-        
         <button class="submit-btn" id="confirm-booking-btn" onclick="submitBooking()">تأكيد الحجز</button>
     </div>
 </div>
@@ -708,57 +598,27 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
     <div class="modal-content">
         <div class="modal-header"><h2>إضافة للملف الطبي</h2><button class="close-btn" onclick="closeModal('doctor-modal')"><i class="fa-solid fa-xmark"></i></button></div>
         <p style="font-size:12px; color:var(--muted); margin-bottom:15px;">أنت الآن تتصفح كطبيب للمريض: <b id="doc-patient-name">---</b></p>
-        <div class="input-group">
-            <label>نوع الطلب</label>
-            <select id="doc-request-type" class="input-field">
-                <option value="prescription">روشتة أدوية</option>
-                <option value="lab">طلب تحاليل / أشعة</option>
-            </select>
-        </div>
-        <div class="input-group">
-            <label>تفاصيل الطلب</label>
-            <textarea id="doc-request-details" class="input-field" placeholder="مثال: بنادول 500mg..."></textarea>
-        </div>
+        <div class="input-group"><label>نوع الطلب</label><select id="doc-request-type" class="input-field"><option value="prescription">روشتة أدوية</option><option value="lab">طلب تحاليل / أشعة</option></select></div>
+        <div class="input-group"><label>تفاصيل الطلب</label><textarea id="doc-request-details" class="input-field" placeholder="مثال: بنادول 500mg..."></textarea></div>
         <button class="submit-btn" onclick="submitDoctorRequest()">إرسال للمريض</button>
     </div>
 </div>
 
-<!-- مودال المحفظة -->
 <div class="modal-overlay" id="wallet-modal">
     <div class="modal-content">
         <div class="modal-header"><h2>محفظة وصلة</h2><button class="close-btn" onclick="closeModal('wallet-modal')"><i class="fa-solid fa-xmark"></i></button></div>
-        
-        <div class="wallet-balance-box">
-            <p>الرصيد المتاح</p>
-            <h2 id="wallet-modal-available">0 ج.م</h2>
-            <p style="font-size:11px; margin-top:5px; background:rgba(255,255,255,0.2); display:inline-block; padding:2px 8px; border-radius:10px;">المحجوز كضمان: <span id="wallet-modal-locked">0</span> ج.م</p>
-        </div>
-
+        <div class="wallet-balance-box"><p>الرصيد المتاح</p><h2 id="wallet-modal-available">0 ج.م</h2><p style="font-size:11px; margin-top:5px; background:rgba(255,255,255,0.2); display:inline-block; padding:2px 8px; border-radius:10px;">المحجوز كضمان: <span id="wallet-modal-locked">0</span> ج.م</p></div>
         <button class="submit-btn" style="margin-bottom:15px; background:#0F172A;" onclick="showToast('جاري تحويلك لبوابة الدفع...')"><i class="fa-solid fa-plus-circle"></i> إضافة رصيد (شحن)</button>
-        
         <h3 style="font-size:14px; font-weight:800; margin-bottom:10px; color:var(--dark);">آخر العمليات</h3>
-        <div class="wallet-action-row">
-            <span>حجز كشف د. أحمد</span>
-            <span style="color:#E11D48;">-200 ج.م</span>
-        </div>
-        <div class="wallet-action-row">
-            <span>إيداع رصيد (فودافون كاش)</span>
-            <span style="color:#10B981;">+1000 ج.م</span>
-        </div>
+        <div class="wallet-action-row"><span>حجز كشف</span><span style="color:#E11D48;">-200 ج.م</span></div>
+        <div class="wallet-action-row"><span>إيداع رصيد (فودافون كاش)</span><span style="color:#10B981;">+1000 ج.م</span></div>
     </div>
 </div>
 
 <div class="modal-overlay" id="complaint-modal">
     <div class="modal-content">
         <div class="modal-header"><h2>الشكاوى والاقتراحات</h2><button class="close-btn" onclick="closeModal('complaint-modal')"><i class="fa-solid fa-xmark"></i></button></div>
-        <div class="input-group">
-            <label>نوع الرسالة</label>
-            <select class="input-field">
-                <option>اقتراح لتطوير المنصة</option>
-                <option>شكوى بخصوص خدمة</option>
-                <option>مشكلة تقنية</option>
-            </select>
-        </div>
+        <div class="input-group"><label>نوع الرسالة</label><select class="input-field"><option>اقتراح لتطوير المنصة</option><option>شكوى بخصوص خدمة</option><option>مشكلة تقنية</option></select></div>
         <div class="input-group"><label>تفاصيل الرسالة</label><textarea class="input-field" placeholder="اكتب تفاصيل..."></textarea></div>
         <button class="submit-btn" onclick="closeModal('complaint-modal'); showToast('تم إرسال رسالتك بنجاح!')">إرسال</button>
     </div>
@@ -776,8 +636,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 
 <script>
 // ==========================================
-// الجزء الثاني (JavaScript) سيأتي في الرسالة التالية...
-// ==========================================
 // 1. المتغيرات والإعدادات الأساسية
 // ==========================================
 const savedTheme = localStorage.getItem('wasla_theme') || 'light';
@@ -788,7 +646,6 @@ let currentDeliveryFee = parseInt(localStorage.getItem('wasla_delivery_fee')) ||
 const commissionRate = 0.10;
 let selectedPayMethod = 'cash';
 
-// بيانات المحفظة (مشتركة بين كل الأقسام)
 let walletBalance = parseInt(localStorage.getItem('wasla_wallet_balance')) || 1000;
 let walletLocked = parseInt(localStorage.getItem('wasla_wallet_locked')) || 0;
 
@@ -808,10 +665,26 @@ function toggleTheme() {
     document.getElementById('theme-icon').className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
 }
 
+// ** الدالة المسؤولة عن التنقل بين الصفحات وإخفاء الباقي **
 function navigateTo(viewId) {
-    document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+    // إخفاء كل الأقسام
+    document.querySelectorAll('.app-view').forEach(v => {
+        v.classList.remove('active');
+        v.style.display = 'none'; 
+    });
+    
+    // إخفاء قسم السوبر ماركت لو مفتوح
+    const hub = document.getElementById('wasla-hub-view');
+    if(hub) hub.style.display = 'none';
+    if(flashTimerInterval) clearInterval(flashTimerInterval);
+
+    // إظهار القسم المطلوب
     const target = document.getElementById('view-' + viewId);
-    if(target) target.classList.add('active');
+    if(target) {
+        target.classList.add('active');
+        target.style.display = 'block';
+    }
+    
     window.scrollTo(0, 0);
     
     if(viewId === 'admin-finance') updateFinancialUI();
@@ -884,7 +757,7 @@ function toggleGPS() {
 }
 
 // ==========================================
-// 3. نظام التوصيل المستقل (Delivery)
+// 3. نظام التوصيل
 // ==========================================
 let pickupCoords = null;
 let dropoffCoords = null;
@@ -997,7 +870,7 @@ function calculateFinance() {
 }
 
 // ==========================================
-// 5. بوابة الطبيب (Doctor Dashboard Logic)
+// 5. بوابة الطبيب
 // ==========================================
 function renderDoctorDashboard() {
     const queueContainer = document.getElementById('doctor-queue-list');
@@ -1180,7 +1053,7 @@ let activeBookingForDoctor = null;
 function getLocalBookings() { return JSON.parse(localStorage.getItem('wasla_bookings') || '[]'); }
 function saveLocalBookings(bookings) { localStorage.setItem('wasla_bookings', JSON.stringify(bookings)); }
 
-// ** دالة ربط الأقسام الرئيسية (المربوطة بالأزرار في الرئيسية) **
+// ** دالة ربط الأقسام الرئيسية **
 function openSection(section) {
     if(section === 'medical') {
         navigateTo('medical'); 
@@ -1681,8 +1554,8 @@ window.openRestaurants = function() {
 };
 
 function renderHubUI() {
-    const mainContainer = document.querySelector('.container') || document.querySelector('main'); 
-    if(mainContainer) mainContainer.style.display = 'none';
+    // إخفاء الأقسام الأخرى
+    document.querySelectorAll('.app-view').forEach(v => v.style.display = 'none');
 
     let hubContainer = document.getElementById('wasla-hub-view');
     if (!hubContainer) {
@@ -1698,7 +1571,7 @@ function renderHubUI() {
                 ${currentView === 'grocery' ? '🛒 سوبر ماركت وصلة' : '🍔 مطاعم وصلة'}
             </h2>
             <div style="display: flex; gap: 10px;">
-                <button onclick="openMyOrders()" style="background: #e0f2fe; color: #0284c7; border: none; border-radius: 10px; padding: 8px 15px; cursor: pointer; font-weight: bold;">طلباتي 📦</button>
+                <button onclick="openMyOrders()" style="background: #e0f2fe; color: #0284c7; border: none; border-radius: 10px; padding: 8px 15px; cursor: pointer; font-weight: bold;">تتبع طلباتي 📦</button>
                 <button onclick="closeHub()" style="background: #e2e8f0; color: #334155; border: none; border-radius: 10px; padding: 8px 15px; cursor: pointer; font-weight: bold;">رجوع</button>
             </div>
         </div>
@@ -1989,11 +1862,17 @@ function placeOrder(total, method, paymentNote) {
     
     simulateOrderTracking(newOrder.id);
     
-    setTimeout(() => { closeHub(); openMyOrders(); }, 1000);
+    setTimeout(() => { openMyOrders(); }, 1000);
 }
 
 window.openMyOrders = function() {
     const hubContainer = document.getElementById('wasla-hub-view');
+    if(!hubContainer) return;
+    
+    // إخفاء أي حاجة تانية
+    document.querySelectorAll('.app-view').forEach(v => v.style.display = 'none');
+    hubContainer.style.display = 'block';
+
     const orders = JSON.parse(localStorage.getItem('wasla_all_orders')) || [];
     orders.sort((a, b) => b.id.localeCompare(a.id));
 
@@ -2016,6 +1895,7 @@ window.openMyOrders = function() {
                 </div>
                 <p style="font-size: 12px; color: #777;">التاريخ: ${o.date} | الدفع: ${o.paymentNote}</p>
                 ${mapBtn}
+                
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; position: relative;">
                     <div style="position: absolute; top: 15px; left: 10%; right: 10%; height: 2px; background: #eee; z-index: 1;"></div>
                     
@@ -2040,11 +1920,19 @@ window.openMyOrders = function() {
         `;
     }).join('');
 
-    if(orders.length === 0) ordersHTML = `<div style="text-align: center; padding: 50px; color: #777;">لا توجد طلبات سابقة حتى الآن 📦</div>`;
+    if(orders.length === 0) {
+        ordersHTML = `
+            <div style="text-align: center; padding: 50px; color: #777;">
+                <i class="fa-solid fa-box-open" style="font-size: 50px; color: #ddd; margin-bottom: 15px;"></i><br>
+                لا توجد طلبات سابقة حتى الآن 📦<br>
+                <button onclick="renderHubUI()" style="margin-top:15px; padding:10px 20px; background:#10b981; color:white; border:none; border-radius:10px; font-weight:bold;">اطلب الآن</button>
+            </div>
+        `;
+    }
 
     hubContainer.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin: 0; color: #0f172a; font-size: 20px;">📦 طلباتي</h2>
+            <h2 style="margin: 0; color: #0f172a; font-size: 20px;">📦 تتبع الطلبات</h2>
             <button onclick="renderHubUI()" style="background: #e2e8f0; color: #334155; border: none; border-radius: 10px; padding: 8px 15px; cursor: pointer; font-weight: bold;">العودة للتسوق</button>
         </div>
         ${ordersHTML}
@@ -2066,8 +1954,10 @@ function updateOrderStatus(index, status) {
     if(orders[index]) {
         orders[index].status = status;
         localStorage.setItem('wasla_all_orders', JSON.stringify(orders));
-        if(document.getElementById('wasla-hub-view') && document.getElementById('wasla-hub-view').innerHTML.includes('طلباتي')) {
-            openMyOrders();
+        
+        const hub = document.getElementById('wasla-hub-view');
+        if(hub && hub.innerHTML.includes('تتبع الطلبات')) {
+            openMyOrders(); 
         }
     }
 }
@@ -2103,10 +1993,10 @@ function startFlashTimer() {
 }
 
 window.closeHub = function() {
-    document.getElementById('wasla-hub-view').style.display = 'none';
+    const hub = document.getElementById('wasla-hub-view');
+    if(hub) hub.style.display = 'none';
     if(flashTimerInterval) clearInterval(flashTimerInterval);
-    const mainContainer = document.querySelector('.container') || document.querySelector('main'); 
-    if(mainContainer) mainContainer.style.display = 'block';
+    navigateTo('home');
 };
 
 // التشغيل الأولي
