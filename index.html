@@ -793,6 +793,78 @@
                 navigateTo('home');
             }, 1500);
         }
+        // ==========================================
+// 10. الربط مع السيرفر الحقيقي (API Integration)
+// ==========================================
+
+// 1. اختبار إن السيرفر شغال
+async function checkServerHealth() {
+    try {
+        const response = await fetch('http://localhost:5000/api/health');
+        const data = await response.json();
+        console.log('✅ السيرفر شغال:', data.message);
+    } catch (error) {
+        console.error('❌ السيرفر مش شغال، تأكد إنك فاتح الترمينال وكاتب node server.js');
+    }
+}
+
+// شغل الاختبار أول ما الصفحة تفتح
+checkServerHealth();
+
+// 2. دالة تسجيل الدخول الحقيقية (هتستبدل الوهمية بعدين)
+async function realLogin(phone, password) {
+    try {
+        const response = await fetch('http://localhost:5000/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // نجاح
+            localStorage.setItem('wasla_token', data.token); // احفظ التوكن
+            localStorage.setItem('wasla_user', JSON.stringify(data.user));
+            showToast(`أهلاً بك يا ${data.user.fullName}`);
+            console.log('User Data:', data.user);
+        } else {
+            // فشل
+            showToast(data.error || 'رقم أو كلمة سر غلط');
+        }
+    } catch (error) {
+        console.error(error);
+        showToast('مشكلة في الاتصال بالسيرفر');
+    }
+}
+
+// 3. دالة إنشاء حساب جديد حقيقية
+async function realRegister(phone, password, fullName) {
+    try {
+        const response = await fetch('http://localhost:5000/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, password, fullName, role: 'CUSTOMER' })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast('تم إنشاء الحساب بنجاح! سجل دخولك دلوقتي.');
+        } else {
+            showToast(data.error || 'حدث خطأ أثناء التسجيل');
+        }
+    } catch (error) {
+        console.error(error);
+        showToast('مشكلة في الاتصال بالسيرفر');
+    }
+}
+
+// 4. مثال سريع عشان تجرب من الـ Console
+// افتح الـ Console في المتصفح (F12) واكتب:
+// realRegister('01111111111', '123456', 'مستخدم جديد')
+// وبعدين جرب تسجل دخول:
+// realLogin('01111111111', '123456')
     </script>
 </body>
 </html>
