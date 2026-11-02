@@ -9,20 +9,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- مكتبات Firebase -->
+    <!-- مكتبات Firebase (تم تحديثها عشان تشمل الدخول والخروج) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         
         window.firebaseModules = { 
             initializeApp, 
             getAuth, 
             createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword, 
+            signInWithEmailAndPassword,
+            onAuthStateChanged,
+            signOut,
             getFirestore, 
             doc, 
-            setDoc 
+            setDoc,
+            getDoc
         };
     </script>
 
@@ -229,14 +232,21 @@
         /* المودالات */
         .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
         .modal-overlay.open { opacity: 1; visibility: visible; }
-        .modal-content { background: var(--card); width: 92%; max-width: 450px; border-radius: 24px; padding: 25px; transform: translateY(20px); transition: 0.3s; max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: var(--card); width: 92%; max-width: 450px; border-radius: 24px; padding: 25px; transform: translateY(20px); transition: 0.3s; max-height: 90vh; overflow-y: auto; position: relative;}
         .modal-overlay.open .modal-content { transform: translateY(0); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .close-btn { background: var(--bg); width: 35px; height: 35px; border-radius: 50%; color: var(--text); display: flex; align-items: center; justify-content: center; }
-        .submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--brand-gradient); color: white; font-weight: 800; font-size: 15px; }
+        .close-btn { background: var(--bg); width: 35px; height: 35px; border-radius: 50%; color: var(--text); display: flex; align-items: center; justify-content: center; cursor: pointer;}
+        .submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--brand-gradient); color: white; font-weight: 800; font-size: 15px; margin-top: 10px;}
         .submit-btn:active { transform: scale(0.96); box-shadow: 0 0 15px var(--brand); }
         .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--dark); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 3000; text-align:center; width: 85%; max-width: 400px; }
         .toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+
+        /* =========================================
+           Auth Styles (جديد)
+           ========================================= */
+        .auth-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+        .auth-tab { flex: 1; text-align: center; padding: 10px; font-weight: 800; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s; }
+        .auth-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
     </style>
 </head>
 <body>
@@ -309,7 +319,7 @@
     <main id="view-home" class="app-view active">
         <div class="welcome-area">
             <p><i class="fa-solid fa-location-dot" style="color:var(--brand)"></i> شبين القناطر، القليوبية</p>
-            <h2>أهلاً بك يا أحمد 👋</h2>
+            <h2 id="welcome-text">أهلاً بك 👋</h2>
         </div>
 
         <div class="search-container">
@@ -540,6 +550,53 @@
         </div>
     </div>
 
+    <!-- ==================== Auth Modal (تسجيل الدخول / إنشاء حساب) ==================== -->
+    <div class="modal-overlay" id="auth-modal">
+        <div class="modal-content">
+            <button class="close-btn" style="position: absolute; top: 15px; left: 15px;" onclick="closeModal('auth-modal')"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div class="logo-box" style="margin: 0 auto 10px; width: 50px; height: 50px;"><div class="logo-w">W</div></div>
+                <h2 style="font-size: 20px; font-weight: 900; color: var(--dark);">مرحباً بك في وصلة</h2>
+            </div>
+
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">تسجيل الدخول</div>
+                <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">حساب جديد</div>
+            </div>
+
+            <!-- Form Register -->
+            <div id="form-register" style="display: none;">
+                <div class="input-group">
+                    <label>الاسم بالكامل</label>
+                    <input type="text" id="reg-name" class="input-field" placeholder="محمد أحمد">
+                </div>
+                <div class="input-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="reg-email" class="input-field" placeholder="example@wasla.com">
+                </div>
+                <div class="input-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="reg-password" class="input-field" placeholder="********">
+                </div>
+                <button class="submit-btn" onclick="handleRegister()">إنشاء الحساب</button>
+            </div>
+
+            <!-- Form Login -->
+            <div id="form-login">
+                <div class="input-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="login-email" class="input-field" placeholder="example@wasla.com">
+                </div>
+                <div class="input-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="login-password" class="input-field" placeholder="********">
+                </div>
+                <button class="submit-btn" onclick="handleLogin()">دخول</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== الشريط السفلي (Bottom Nav) ==================== -->
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="navigateTo('home', this)">
@@ -558,9 +615,9 @@
             <div class="nav-icon-wrap"><i class="fa-solid fa-wallet"></i></div>
             <span>المحفظة</span>
         </button>
-        <button class="nav-item" onclick="showToast('قريباً')">
+        <button class="nav-item" id="nav-account-btn" onclick="checkAuth()">
             <div class="nav-icon-wrap"><i class="fa-solid fa-user"></i></div>
-            <span>حسابي</span>
+            <span id="nav-account-text">حسابي</span>
         </button>
     </nav>
 
@@ -836,52 +893,123 @@
         const auth = window.firebaseModules.getAuth(app);
         const db = window.firebaseModules.getFirestore(app);
 
-        // 3. دالة إنشاء حساب جديد (Firebase Auth + Firestore)
-        async function fbRegister(fullName, email, password) {
+        // 3. دالة إنشاء حساب جديد
+        async function handleRegister() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+
+            if(!name || !email || !password) return showToast('يرجى ملء جميع الحقول');
+
             try {
-                // إنشاء الحساب في Firebase Authentication
                 const userCredential = await window.firebaseModules.createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // حفظ بيانات إضافية في قاعدة البيانات (Firestore)
                 await window.firebaseModules.setDoc(window.firebaseModules.doc(db, "users", user.uid), {
-                    fullName: fullName,
+                    fullName: name,
                     email: email,
                     role: 'CUSTOMER',
                     waslaId: 'WASLA-' + Math.floor(10000 + Math.random() * 90000),
                     createdAt: new Date().toISOString()
                 });
 
-                showToast('✅ تم إنشاء الحساب بنجاح في Firebase!');
-                return true;
+                showToast('✅ تم إنشاء الحساب بنجاح');
+                closeModal('auth-modal');
             } catch (err) {
-                console.error(err);
-                showToast('حدث خطأ: ' + err.message);
-                return false;
+                showToast('خطأ: ' + err.message);
             }
         }
 
-        // 4. دالة تسجيل الدخول (Firebase Auth)
-        async function fbLogin(email, password) {
+        // 4. دالة تسجيل الدخول
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if(!email || !password) return showToast('يرجى إدخال البريد وكلمة المرور');
+
             try {
-                const userCredential = await window.firebaseModules.signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                
-                showToast(`أهلاً بك يا ${user.email}`);
-                console.log('User Logged In:', user);
-                return true;
+                await window.firebaseModules.signInWithEmailAndPassword(auth, email, password);
+                showToast('✅ تم تسجيل الدخول');
+                closeModal('auth-modal');
             } catch (err) {
-                console.error(err);
-                showToast('البريد أو كلمة المرور غير صحيحة');
-                return false;
+                showToast('خطأ: البريد أو كلمة المرور غير صحيحة');
             }
         }
+
+        // 5. دالة تسجيل الخروج
+        async function handleLogout() {
+            try {
+                await window.firebaseModules.signOut(auth);
+                showToast('تم تسجيل الخروج');
+            } catch (err) {
+                showToast('حدث خطأ');
+            }
+        }
+
+        // 6. دالة فحص حالة المستخدم
+        function checkAuth() {
+            if (auth.currentUser) {
+                if(confirm("هل تريد تسجيل الخروج؟")) handleLogout();
+            } else {
+                openModal('auth-modal');
+            }
+        }
+
+        // 7. دالة تبديل التابات في شاشة الدخول
+        function switchAuthTab(type) {
+            document.getElementById('tab-login').classList.toggle('active', type === 'login');
+            document.getElementById('tab-register').classList.toggle('active', type === 'register');
+            document.getElementById('form-login').style.display = (type === 'login') ? 'block' : 'none';
+            document.getElementById('form-register').style.display = (type === 'register') ? 'block' : 'none';
+        }
+
+        // 8. مراقبة حالة الدخول (لتحديث الواجهة)
+        window.firebaseModules.onAuthStateChanged(auth, async (user) => {
+            const accountText = document.getElementById('nav-account-text');
+            const welcomeText = document.getElementById('welcome-text');
+            
+            if (user) {
+                try {
+                    const userDoc = await window.firebaseModules.getDoc(window.firebaseModules.doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        if(welcomeText) welcomeText.innerText = `أهلاً بك يا ${userData.fullName} 👋`;
+                        if(accountText) accountText.innerText = userData.fullName.split(' ')[0];
+                    }
+                } catch(e) { console.log("Error fetching user data"); }
+            } else {
+                if(welcomeText) welcomeText.innerText = `أهلاً بك 👋`;
+                if(accountText) accountText.innerText = "حسابي";
+            }
+        });
 
         console.log('✅ Firebase Client Ready!');
-        // عشان تجرب، هتفتح الـ Console (F12) وتكتب:
-        // fbRegister('أحمد صبري', 'test@wasla.com', '123456')
-        // وبعدين:
-        // fbLogin('test@wasla.com', '123456')
-    </script>
+   /* =========================================
+   Account Page Styles
+   ========================================= */
+.profile-header { background: var(--brand-gradient); border-radius: 0 0 30px 30px; padding: 40px 20px 30px; text-align: center; color: white; margin-bottom: 20px; position: relative; }
+.profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: white; color: var(--brand); font-size: 32px; font-weight: 900; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+.profile-name { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+.profile-id { font-size: 13px; font-weight: 700; opacity: 0.9; background: rgba(255,255,255,0.2); display: inline-block; padding: 4px 12px; border-radius: 20px; margin-top: 8px; }
+.settings-list { padding: 0 20px; }
+.settings-item { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; display: flex; align-items: center; gap: 15px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+.settings-item:active { transform: scale(0.98); }
+.settings-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.settings-text { flex: 1; font-size: 15px; font-weight: 800; color: var(--text); }
+.logout-btn { width: 100%; padding: 15px; background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; border-radius: 16px; font-weight: 900; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 20px; }
+
+/* =========================================
+   Medical Page Styles
+   ========================================= */
+.doc-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; display: flex; gap: 15px; margin-bottom: 12px; box-shadow: var(--shadow-sm); }
+.doc-avatar { width: 60px; height: 60px; border-radius: 14px; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.doc-info { flex: 1; }
+.doc-name { font-size: 16px; font-weight: 900; color: var(--text); margin-bottom: 2px; }
+.doc-spec { font-size: 12px; color: var(--brand); font-weight: 800; margin-bottom: 6px; }
+.doc-meta { font-size: 11px; color: var(--muted); font-weight: 700; display: flex; gap: 10px; }
+.doc-price { text-align: center; display: flex; flex-direction: column; justify-content: center; }
+.doc-price-num { font-size: 18px; font-weight: 900; color: var(--text); }
+.doc-price-label { font-size: 10px; color: var(--muted); font-weight: 700; }
+ </script>
 </body>
 </html>
