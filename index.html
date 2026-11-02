@@ -342,9 +342,19 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
             <div class="cat-icon" style="background: #ECFDF5; color: #059669;"><i class="fa-solid fa-heart-pulse"></i></div>
             <h3>الصحة والطب</h3><p>أطباء، صيدليات، وتمريض</p>
         </div>
-        <div class="cat-card" onclick="openSection('cars')">
-            <div class="cat-icon" style="background: #E0F2FE; color: #0284C7;"><i class="fa-solid fa-car"></i></div>
-            <h3>خدمات السيارات</h3><p>صيانة، غسيل، وسحب</p>
+function openSection(section) {
+    if(section === 'medical') {
+        navigateTo('medical'); 
+    } else if (section === 'shopping') {
+        openGrocery();
+    } else if (section === 'restaurants') {
+        openRestaurants();
+    } else if (section === 'cars') {
+        navigateTo('cars'); 
+    } else {
+        showToast('هذا القسم سيتم إضافته قريباً!');
+    }
+}
         </div>
         <div class="cat-card" onclick="openSection('education')">
             <div class="cat-icon" style="background: #F3E8FF; color: #7C3AED;"><i class="fa-solid fa-graduation-cap"></i></div>
