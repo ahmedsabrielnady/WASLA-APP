@@ -8,6 +8,24 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- مكتبات Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
+        window.firebaseModules = { 
+            initializeApp, 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            getFirestore, 
+            doc, 
+            setDoc 
+        };
+    </script>
+
     <style>
         /* =========================================
            1. إعدادات الألوان والثيم (CSS)
@@ -93,7 +111,7 @@
         .mic-btn:active { transform: scale(0.9); box-shadow: 0 0 15px var(--brand); }
 
         /* =========================================
-           Smart Search Overlay (جديد)
+           Smart Search Overlay
            ========================================= */
         .search-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 2000; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
         .search-overlay.open { transform: translateY(0); }
@@ -128,7 +146,7 @@
         .cat-card p { font-size: 12px; color: var(--muted); }
 
         /* =========================================
-           Skeleton Loading (جديد)
+           Skeleton Loading
            ========================================= */
         .skeleton-view { padding: 20px; display: none; }
         .skeleton-view.active { display: block; }
@@ -189,7 +207,7 @@
         .live-banner p { font-size: 12px; color: var(--muted); }
 
         /* =========================================
-           Bottom Nav (Bubble Animation) - جديد
+           Bottom Nav (Bubble Animation)
            ========================================= */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding: 12px 0; z-index: 100; backdrop-filter: blur(10px); height: 75px; }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: transparent; color: var(--muted); font-size: 10px; font-weight: 700; width: 20%; transition: 0.3s; position: relative; }
@@ -255,7 +273,7 @@
         </div>
     </div>
 
-    <!-- ==================== Smart Search Overlay (جديد) ==================== -->
+    <!-- ==================== Smart Search Overlay ==================== -->
     <div class="search-overlay" id="search-overlay">
         <div class="search-header">
             <div class="search-box">
@@ -336,7 +354,7 @@
         </div>
     </main>
 
-    <!-- ==================== Skeleton Loading View (جديد) ==================== -->
+    <!-- ==================== Skeleton Loading View ==================== -->
     <div id="view-skeleton" class="app-view">
         <div class="skeleton-view active">
             <div class="skeleton-header"><div class="skeleton-shimmer"></div></div>
@@ -522,7 +540,7 @@
         </div>
     </div>
 
-    <!-- ==================== الشريط السفلي (Bottom Nav - Bubble) ==================== -->
+    <!-- ==================== الشريط السفلي (Bottom Nav) ==================== -->
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="navigateTo('home', this)">
             <div class="nav-icon-wrap"><i class="fa-solid fa-house"></i></div>
@@ -614,7 +632,11 @@
 
         // 4. فتح الأقسام
         function openSection(section) {
-            navigateTo(section);
+            if (section === 'delivery') {
+                navigateTo('delivery');
+            } else {
+                navigateTo(section);
+            }
         }
 
         // 5. البحث الذكي (Smart Search)
@@ -793,78 +815,73 @@
                 navigateTo('home');
             }, 1500);
         }
+
         // ==========================================
-// 10. الربط مع السيرفر الحقيقي (API Integration)
-// ==========================================
-
-// 1. اختبار إن السيرفر شغال
-async function checkServerHealth() {
-    try {
-        const response = await fetch('http://localhost:5000/api/health');
-        const data = await response.json();
-        console.log('✅ السيرفر شغال:', data.message);
-    } catch (error) {
-        console.error('❌ السيرفر مش شغال، تأكد إنك فاتح الترمينال وكاتب node server.js');
-    }
-}
-
-// شغل الاختبار أول ما الصفحة تفتح
-checkServerHealth();
-
-// 2. دالة تسجيل الدخول الحقيقية (هتستبدل الوهمية بعدين)
-async function realLogin(phone, password) {
-    try {
-        const response = await fetch('http://localhost:5000/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone, password })
-        });
+        // 10. Firebase Integration (الربط المباشر)
+        // ==========================================
         
-        const data = await response.json();
-        
-        if (response.ok) {
-            // نجاح
-            localStorage.setItem('wasla_token', data.token); // احفظ التوكن
-            localStorage.setItem('wasla_user', JSON.stringify(data.user));
-            showToast(`أهلاً بك يا ${data.user.fullName}`);
-            console.log('User Data:', data.user);
-        } else {
-            // فشل
-            showToast(data.error || 'رقم أو كلمة سر غلط');
+        // 1. إعدادات Firebase (من لوحة التحكم)
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7187h2gddC7neGyoOQ-rxqlFYJCjVBM4",
+            authDomain: "wasla-204cb.firebaseapp.com",
+            projectId: "wasla-204cb",
+            storageBucket: "wasla-204cb.firebasestorage.app",
+            messagingSenderId: "178715174423",
+            appId: "1:178715174423:web:ca4770d82ef217509f5e52",
+            measurementId: "G-NCXMYYBS5P"
+        };
+
+        // 2. تهيئة Firebase
+        const app = window.firebaseModules.initializeApp(firebaseConfig);
+        const auth = window.firebaseModules.getAuth(app);
+        const db = window.firebaseModules.getFirestore(app);
+
+        // 3. دالة إنشاء حساب جديد (Firebase Auth + Firestore)
+        async function fbRegister(fullName, email, password) {
+            try {
+                // إنشاء الحساب في Firebase Authentication
+                const userCredential = await window.firebaseModules.createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // حفظ بيانات إضافية في قاعدة البيانات (Firestore)
+                await window.firebaseModules.setDoc(window.firebaseModules.doc(db, "users", user.uid), {
+                    fullName: fullName,
+                    email: email,
+                    role: 'CUSTOMER',
+                    waslaId: 'WASLA-' + Math.floor(10000 + Math.random() * 90000),
+                    createdAt: new Date().toISOString()
+                });
+
+                showToast('✅ تم إنشاء الحساب بنجاح في Firebase!');
+                return true;
+            } catch (err) {
+                console.error(err);
+                showToast('حدث خطأ: ' + err.message);
+                return false;
+            }
         }
-    } catch (error) {
-        console.error(error);
-        showToast('مشكلة في الاتصال بالسيرفر');
-    }
-}
 
-// 3. دالة إنشاء حساب جديد حقيقية
-async function realRegister(phone, password, fullName) {
-    try {
-        const response = await fetch('http://localhost:5000/api/auth/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone, password, fullName, role: 'CUSTOMER' })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            showToast('تم إنشاء الحساب بنجاح! سجل دخولك دلوقتي.');
-        } else {
-            showToast(data.error || 'حدث خطأ أثناء التسجيل');
+        // 4. دالة تسجيل الدخول (Firebase Auth)
+        async function fbLogin(email, password) {
+            try {
+                const userCredential = await window.firebaseModules.signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                showToast(`أهلاً بك يا ${user.email}`);
+                console.log('User Logged In:', user);
+                return true;
+            } catch (err) {
+                console.error(err);
+                showToast('البريد أو كلمة المرور غير صحيحة');
+                return false;
+            }
         }
-    } catch (error) {
-        console.error(error);
-        showToast('مشكلة في الاتصال بالسيرفر');
-    }
-}
 
-// 4. مثال سريع عشان تجرب من الـ Console
-// افتح الـ Console في المتصفح (F12) واكتب:
-// realRegister('01111111111', '123456', 'مستخدم جديد')
-// وبعدين جرب تسجل دخول:
-// realLogin('01111111111', '123456')
+        console.log('✅ Firebase Client Ready!');
+        // عشان تجرب، هتفتح الـ Console (F12) وتكتب:
+        // fbRegister('أحمد صبري', 'test@wasla.com', '123456')
+        // وبعدين:
+        // fbLogin('test@wasla.com', '123456')
     </script>
 </body>
 </html>
