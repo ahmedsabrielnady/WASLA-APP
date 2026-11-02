@@ -1980,6 +1980,547 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+   // =========================================================================
+// 🚀 WASLA ULTIMATE HUB - (Grocery + Restaurants + Flash Deals + Tracking)
+// =========================================================================
+
+// --- 1. قواعد البيانات (Data) ---
+
+// أ. السوبر ماركت (مع لقطات اليوم)
+const groceryData = [
+    { id: 'f1', name: 'جبنة رومي قديمة', price: 60, originalPrice: 120, unit: 'نصف كيلو', img: '🧀', isFlash: true, stock: 3, discount: '50%', expiry: 'صلاحية: 3 أيام' },
+    { id: 'f2', name: 'عصير جهينة برتقال', price: 7, originalPrice: 15, unit: 'كرتونة', img: '🧃', isFlash: true, stock: 5, discount: '53%', expiry: 'صلاحية: أسبوع' },
+    { id: 'f3', name: 'كرواسون بالشوكولاتة', price: 10, originalPrice: 20, unit: 'قطعة', img: '🥐', isFlash: true, stock: 2, discount: '50%', expiry: 'مخبوز اليوم' },
+    { id: 's1', name: 'صندوق مفاجآت وصلة', price: 50, originalPrice: 150, unit: 'بوكس', img: '🎁', isFlash: true, isSurprise: true, stock: 10, discount: '66%', expiry: 'كمية محدودة' },
+    { id: 'g1', name: 'لحمة بتلو بلدي', price: 350, unit: 'كيلو', img: '🥩', isFlash: false },
+    { id: 'g2', name: 'فراخ بيضاء طازجة', price: 110, unit: 'كيلو', img: '🍗', isFlash: false },
+    { id: 'g3', name: 'طماطم بلدي', price: 15, unit: 'كيلو', img: '🍅', isFlash: false },
+    { id: 'g4', name: 'برسيل مسحوق غسيل', price: 145, unit: '3 كيلو', img: '🧴', isFlash: false },
+    { id: 'g5', name: 'لبن جهينة كامل الدسم', price: 38, unit: '1 لتر', img: '🥛', isFlash: false },
+    { id: 'g6', name: 'أرز مصري فاخر', price: 32, unit: '1 كيلو', img: '🍚', isFlash: false }
+];
+
+// ب. المطاعم (Fast Food)
+const restaurantData = [
+    { id: 'r1', name: 'بوفالو برجر', desc: 'برجر لحم بقري مشوي مع صوص خاص', price: 85, category: 'برجر', img: '🍔', restaurant: 'Buffalo Burger' },
+    { id: 'r2', name: 'دبل تشيز برجر', desc: 'قطعتين لحم مع جبنة شيدر مذابة', price: 120, category: 'برجر', img: '🍔', restaurant: 'Burger King' },
+    { id: 'r3', name: 'بيتزا مارجريتا', desc: 'بيتزا إيطالية كلاسيكية بالجبن والصوص', price: 150, category: 'بيتزا', img: '🍕', restaurant: 'Pizza Hut' },
+    { id: 'r4', name: 'بيتزا سوبر كرانشي', desc: 'بيتزا بحشوة دجاج مقرمش وصوص رانش', price: 180, category: 'بيتزا', img: '🍕', restaurant: 'جريمة أكل' },
+    { id: 'r5', name: 'وجبة فرايد تشيكن (8 قطع)', desc: 'دجاج مقرمش مع بطاطس وكول سلو', price: 200, category: 'فرايد تشيكن', img: '🍗', restaurant: 'KFC' },
+    { id: 'r6', name: 'ستربس دجاج حار', desc: 'قطع دجاج مقرمشة حارة مع صوص', price: 95, category: 'فرايد تشيكن', img: '🍗', restaurant: 'KFC' },
+    { id: 'r7', name: 'كريب زنجر', desc: 'كريب بحشوة دجاج زنجر وصوص شيدر', price: 90, category: 'كريب', img: '🌯', restaurant: 'كوينجز' },
+    { id: 'r8', name: 'كريب شوكولاتة', desc: 'كريب حلو بحشوة شوكولاتة وبندق', price: 70, category: 'كريب', img: '🥞', restaurant: 'بيتي' },
+    { id: 'r9', name: 'ساندوتش شاورما فراخ', desc: 'شاورما دجاج مع طحينة ومخلل', price: 65, category: 'ساندوتشات', img: '🌯', restaurant: 'شاورما الشام' },
+    { id: 'r10', name: 'ساندوتش فاهيتا', desc: 'شرائح دجاج مع فلفل ألوان وجبنة', price: 75, category: 'ساندوتشات', img: '🥙', restaurant: 'سينابون' }
+];
+
+// --- 2. المتغيرات العامة (State) ---
+let currentCart = {}; // { id: { qty, type } }
+let currentView = 'grocery'; 
+let flashTimerInterval = null;
+let userLocation = null;
+
+// --- 3. دوال التحكم في الواجهات (UI Controllers) ---
+
+window.openGrocery = function() {
+    currentView = 'grocery';
+    currentCart = {}; // تصفير السلة عند تغيير القسم
+    renderHubUI();
+};
+
+window.openRestaurants = function() {
+    currentView = 'restaurant';
+    currentCart = {}; 
+    renderHubUI();
+};
+
+function renderHubUI() {
+    // إخفاء الواجهة الرئيسية
+    const mainContainer = document.querySelector('.container') || document.querySelector('main') || document.querySelector('.app-container'); 
+    if(mainContainer) mainContainer.style.display = 'none';
+
+    // إنشاء حاوية الوصلة
+    let hubContainer = document.getElementById('wasla-hub-view');
+    if (!hubContainer) {
+        hubContainer = document.createElement('div');
+        hubContainer.id = 'wasla-hub-view';
+        hubContainer.style.cssText = "padding: 20px 20px 100px 20px; direction: rtl; font-family: 'Cairo', sans-serif; background: #f8f9fa; min-height: 100vh; position: relative;";
+        document.body.appendChild(hubContainer);
+    }
+    
+    // الهيدر المشترك
+    let headerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: #0f172a; font-size: 20px;">
+                ${currentView === 'grocery' ? '🛒 سوبر ماركت وصلة' : '🍔 مطاعم وصلة'}
+            </h2>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="openMyOrders()" style="background: #e0f2fe; color: #0284c7; border: none; border-radius: 10px; padding: 8px 15px; cursor: pointer; font-weight: bold;">طلباتي 📦</button>
+                <button onclick="closeHub()" style="background: #e2e8f0; color: #334155; border: none; border-radius: 10px; padding: 8px 15px; cursor: pointer; font-weight: bold;">رجوع</button>
+            </div>
+        </div>
+    `;
+
+    // مربع "أكتب وأطلب"
+    let customRequestHTML = `
+        <div style="background: white; padding: 15px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #333;">مش لاقي حاجة معينة؟ اطلبها وإحنا نجبهالك! 🛵</h4>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="custom-request-input" placeholder="اكتب اسم المنتج أو الوجبة..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Cairo'; outline: none;">
+                <button onclick="submitCustomRequest()" style="background: #0f172a; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">اطلب</button>
+            </div>
+        </div>
+    `;
+
+    let contentHTML = currentView === 'grocery' ? renderGroceryContent() : renderRestaurantContent();
+
+    hubContainer.innerHTML = headerHTML + customRequestHTML + contentHTML + renderCartBar() + renderCheckoutModal();
+    
+    updateCartUI();
+    if (currentView === 'grocery') startFlashTimer();
+    hubContainer.style.display = 'block';
+}
+
+// --- 4. دوال بناء المحتوى (Content Builders) ---
+
+function renderGroceryContent() {
+    const flashProducts = groceryData.filter(p => p.isFlash);
+    const normalProducts = groceryData.filter(p => !p.isFlash);
+
+    let flashHTML = flashProducts.map(p => `
+        <div style="background: #fff; border: 2px solid ${p.isSurprise ? '#a855f7' : '#fca5a5'}; border-radius: 15px; padding: 15px; text-align: center; position: relative;">
+            <div style="position: absolute; top: -10px; right: -10px; background: ${p.isSurprise ? '#a855f7' : '#ef4444'}; color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; transform: rotate(10deg);">
+                ${p.isSurprise ? 'بوكس غامض 🎁' : 'خصم ' + p.discount + ' 🔥'}
+            </div>
+            <div style="font-size: 40px; margin-bottom: 10px;">${p.img}</div>
+            <h4 style="margin: 0 0 5px 0; font-size: 14px;">${p.name}</h4>
+            <div style="display: flex; justify-content: center; gap: 5px; margin-bottom: 5px;">
+                <span style="text-decoration: line-through; color: #999; font-size: 12px;">${p.originalPrice} ج.م</span>
+                <span style="font-weight: bold; color: ${p.isSurprise ? '#a855f7' : '#ef4444'}; font-size: 16px;">${p.price} ج.م</span>
+            </div>
+            <div style="font-size: 11px; color: #ef4444; margin-bottom: 10px; font-weight: bold;">⏳ باقي ${p.stock} قطع!</div>
+            <button onclick="addToCart('${p.id}', 'grocery')" style="background: ${p.isSurprise ? '#a855f7' : '#ef4444'}; color: white; border: none; border-radius: 8px; padding: 8px; width: 100%; cursor: pointer; font-weight: bold;">${p.isSurprise ? 'افتح البوكس' : 'اقتنص الفرصة'}</button>
+        </div>
+    `).join('');
+
+    let normalHTML = normalProducts.map(p => `
+        <div style="background: white; border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            <div style="font-size: 40px; margin-bottom: 10px;">${p.img}</div>
+            <h4 style="margin: 0 0 5px 0; font-size: 14px;">${p.name}</h4>
+            <p style="margin: 0 0 10px 0; font-size: 12px; color: #777;">${p.unit}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: bold; color: #0f172a;">${p.price} ج.م</span>
+                <button onclick="addToCart('${p.id}', 'grocery')" style="background: #e0f2fe; color: #0284c7; border: none; border-radius: 8px; padding: 5px 10px; cursor: pointer; font-weight: bold;">+</button>
+            </div>
+        </div>
+    `).join('');
+
+    return `
+        <div style="margin-bottom: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 10px;">
+                <h3 style="margin: 0; color: #ef4444; font-size: 16px;">⚡ لقطة اليوم (كميات محدودة)</h3>
+                <span id="flash-timer" style="background: #ef4444; color: white; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: bold;">--:--:--</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">${flashHTML}</div>
+        </div>
+        <div style="margin-bottom: 100px;">
+            <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">🛍️ كل المنتجات</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">${normalHTML}</div>
+        </div>
+    `;
+}
+
+function renderRestaurantContent() {
+    const categories = [...new Set(restaurantData.map(item => item.category))];
+    
+    let categoriesHTML = categories.map(cat => {
+        const items = restaurantData.filter(item => item.category === cat);
+        let itemsHTML = items.map(item => `
+            <div style="background: white; border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 10px;">
+                <div style="font-size: 40px; margin-bottom: 5px;">${item.img}</div>
+                <h4 style="margin: 0 0 3px 0; font-size: 14px;">${item.name}</h4>
+                <p style="margin: 0 0 5px 0; font-size: 11px; color: #777;">${item.desc}</p>
+                <p style="margin: 0 0 10px 0; font-size: 11px; color: #0284c7; font-weight: bold;">${item.restaurant}</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold; color: #0f172a;">${item.price} ج.م</span>
+                    <button onclick="addToCart('${item.id}', 'restaurant')" style="background: #10b981; color: white; border: none; border-radius: 8px; padding: 5px 12px; cursor: pointer; font-weight: bold;">إضافة</button>
+                </div>
+            </div>
+        `).join('');
+        
+        return `
+            <div style="margin-bottom: 25px;">
+                <h3 style="margin: 0 0 15px 0; color: #0f172a; font-size: 18px; border-right: 4px solid #10b981; padding-right: 10px;">${cat}</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">${itemsHTML}</div>
+            </div>
+        `;
+    }).join('');
+
+    return `<div style="margin-bottom: 100px;">${categoriesHTML}</div>`;
+}
+
+// --- 5. إدارة السلة والدفع (Cart & Checkout) ---
+
+function renderCartBar() {
+    return `
+        <div id="cart-bar" style="position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); display: none; justify-content: space-between; align-items: center; z-index: 1000;">
+            <div>
+                <span style="font-size: 12px; color: #777;">إجمالي السلة</span>
+                <h3 id="cart-total" style="margin: 0; color: #0f172a;">0 ج.م</h3>
+            </div>
+            <button onclick="openCheckoutModal()" style="background: #10b981; color: white; border: none; padding: 10px 25px; border-radius: 10px; font-weight: bold; cursor: pointer;">إتمام الطلب</button>
+        </div>
+    `;
+}
+
+function renderCheckoutModal() {
+    return `
+        <div id="checkout-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;">
+            <div style="background: white; padding: 20px; border-radius: 20px; width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto; text-align: right;">
+                <h3 style="margin-top: 0; color: #0f172a; text-align: center;">تأكيد الطلب والدفع</h3>
+                <p style="font-size: 14px; color: #777; display: flex; justify-content: space-between;">
+                    <span>إجمالي الطلب:</span>
+                    <strong style="color: #ef4444; font-size: 18px;" id="modal-total">0 ج.م</strong>
+                </p>
+                <div style="margin: 15px 0;">
+                    <label style="font-size: 14px; font-weight: bold; color: #333;">📍 موقعك الجغرافي (للدليفري):</label>
+                    <button onclick="getLocation()" id="location-btn" style="width: 100%; padding: 10px; margin-top: 5px; background: #e0f2fe; color: #0284c7; border: 1px dashed #0284c7; border-radius: 8px; cursor: pointer; font-weight: bold;">تحديد موقعي الحالي</button>
+                    <p id="location-status" style="font-size: 12px; color: #10b981; margin: 5px 0 0 0; display: none;">✅ تم تحديد الموقع بنجاح</p>
+                </div>
+                <div style="margin: 15px 0;">
+                    <label style="font-size: 14px; font-weight: bold; color: #333;">💳 طريقة الدفع:</label>
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 5px;">
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
+                            <input type="radio" name="paymentMethod" value="wasla" checked>
+                            <span style="flex: 1;">محفظة وصلة (رصيدك: <span id="modal-wallet">0</span> ج.م)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
+                            <input type="radio" name="paymentMethod" value="vodafone">
+                            <span style="flex: 1;">فودافون كاش 📱</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
+                            <input type="radio" name="paymentMethod" value="instapay">
+                            <span style="flex: 1;">إنستاباي 🏦</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
+                            <input type="radio" name="paymentMethod" value="cash">
+                            <span style="flex: 1;">كاش عند الاستلام 💵</span>
+                        </label>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button onclick="processPayment()" style="flex: 2; background: #10b981; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">تأكيد ودفع</button>
+                    <button onclick="closeCheckoutModal()" style="flex: 1; background: #e2e8f0; color: #333; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+window.addToCart = function(itemId, type) {
+    let itemData = type === 'grocery' ? groceryData : restaurantData;
+    const product = itemData.find(p => p.id === itemId);
+
+    if (product.isFlash) {
+        let currentQty = currentCart[itemId] ? currentCart[itemId].qty : 0;
+        if (currentQty >= product.stock) return showToast("أقصى كمية متاحة من هذا العرض! ⚠️");
+    }
+    
+    if (currentCart[itemId]) {
+        currentCart[itemId].qty += 1;
+    } else {
+        currentCart[itemId] = { qty: 1, type: type };
+    }
+    
+    updateCartUI();
+    showToast(`تمت إضافة ${product.name} للسلة 🛒`);
+};
+
+function updateCartUI() {
+    const cartBar = document.getElementById('cart-bar');
+    const cartTotal = document.getElementById('cart-total');
+    if(!cartBar) return;
+
+    let total = 0, itemsCount = 0;
+    
+    for (const [id, item] of Object.entries(currentCart)) {
+        let itemData = item.type === 'grocery' ? groceryData : restaurantData;
+        const product = itemData.find(p => p.id === id);
+        if (product) { 
+            total += product.price * item.qty; 
+            itemsCount += item.qty; 
+        }
+    }
+    
+    if (itemsCount > 0) {
+        cartBar.style.display = 'flex';
+        cartTotal.innerText = `${total} ج.م (${itemsCount} منتجات)`;
+    } else {
+        cartBar.style.display = 'none';
+    }
+}
+
+window.openCheckoutModal = function() {
+    let total = 0;
+    for (const [id, item] of Object.entries(currentCart)) {
+        let itemData = item.type === 'grocery' ? groceryData : restaurantData;
+        const product = itemData.find(p => p.id === id);
+        if (product) total += product.price * item.qty;
+    }
+    
+    let currentWallet = typeof walletBalance !== 'undefined' ? walletBalance : (parseFloat(localStorage.getItem('wasla_wallet_balance')) || 0);
+    
+    document.getElementById('modal-total').innerText = `${total} ج.م`;
+    document.getElementById('modal-wallet').innerText = `${currentWallet} ج.م`;
+    document.getElementById('checkout-modal').style.display = 'flex';
+    document.getElementById('checkout-modal').dataset.total = total;
+};
+
+window.closeCheckoutModal = function() {
+    document.getElementById('checkout-modal').style.display = 'none';
+};
+
+window.processPayment = function() {
+    const total = parseFloat(document.getElementById('checkout-modal').dataset.total);
+    const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+    if (!userLocation) {
+        if (!confirm("أنت لم تحدد موقعك الجغرافي. هل تريد الاستمرار؟ (سيتصل بك الدليفري)")) return;
+    }
+
+    if (method === 'wasla') {
+        let currentWallet = typeof walletBalance !== 'undefined' ? walletBalance : (parseFloat(localStorage.getItem('wasla_wallet_balance')) || 0);
+        if (currentWallet < total) return showToast("رصيد محفظة وصلة غير كافٍ! ❌");
+        
+        if (typeof walletBalance !== 'undefined') {
+            window.walletBalance -= total;
+            if (typeof updateWalletUI === 'function') updateWalletUI();
+        } else {
+            localStorage.setItem('wasla_wallet_balance', currentWallet - total);
+        }
+        placeOrder(total, method, 'تم الدفع من محفظة وصلة');
+    } 
+    else if (method === 'vodafone' || method === 'instapay') {
+        showToast("جاري التحويل لبوابة الدفع...");
+        setTimeout(() => {
+            placeOrder(total, method, `تم الدفع عبر ${method === 'vodafone' ? 'فودافون كاش' : 'إنستاباي'}`);
+        }, 1500);
+    } 
+    else if (method === 'cash') {
+        placeOrder(total, method, 'الدفع كاش عند الاستلام');
+    }
+};
+
+function placeOrder(total, method, paymentNote) {
+    const newOrder = {
+        id: (currentView === 'grocery' ? 'SM' : 'FD') + Math.floor(Math.random() * 100000),
+        items: JSON.parse(JSON.stringify(currentCart)), // Deep copy
+        total: total,
+        paymentMethod: method,
+        paymentNote: paymentNote,
+        location: userLocation,
+        status: 'pending', 
+        date: new Date().toLocaleString('ar-EG'),
+        orderType: currentView 
+    };
+
+    let allOrders = JSON.parse(localStorage.getItem('wasla_all_orders')) || [];
+    allOrders.push(newOrder);
+    localStorage.setItem('wasla_all_orders', JSON.stringify(allOrders));
+
+    currentCart = {};
+    updateCartUI();
+    closeCheckoutModal();
+    userLocation = null;
+    
+    showToast(`تم تأكيد طلبك بنجاح! 🎉`);
+    
+    simulateOrderTracking(newOrder.id);
+    
+    setTimeout(() => { closeHub(); openMyOrders(); }, 1000);
+}
+
+// --- 6. تتبع الطلب (Order Tracking) ---
+
+window.openMyOrders = function() {
+    const hubContainer = document.getElementById('wasla-hub-view');
+    const orders = JSON.parse(localStorage.getItem('wasla_all_orders')) || [];
+    orders.sort((a, b) => b.id.localeCompare(a.id));
+
+    let ordersHTML = orders.map(o => {
+        let step2 = '⏳', step3 = '⏳', step4 = '⏳';
+        let color2 = '#ccc', color3 = '#ccc', color4 = '#ccc';
+        
+        if (o.status === 'preparing') { step2 = '✅'; color2 = '#10b981'; step3 = '👨‍🍳'; }
+        if (o.status === 'on_way') { step2 = '✅'; step3 = '✅'; color2 = '#10b981'; color3 = '#10b981'; step4 = '🛵'; }
+        if (o.status === 'delivered') { step2 = '✅'; step3 = '✅'; step4 = '✅'; color2 = '#10b981'; color3 = '#10b981'; color4 = '#10b981'; }
+
+        let mapBtn = o.location ? `<a href="https://www.google.com/maps?q=${o.location.lat},${o.location.lng}" target="_blank" style="display:inline-block; margin-top:5px; font-size:12px; color:#0284c7; text-decoration:none;">📍 عرض موقع التوصيل</a>` : '';
+        let icon = o.orderType === 'grocery' ? '🛒' : '🍔';
+
+        return `
+            <div style="background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: bold; color: #333;">${icon} طلب #${o.id}</span>
+                    <span style="color: #ef4444; font-weight: bold;">${o.total} ج.م</span>
+                </div>
+                <p style="font-size: 12px; color: #777;">التاريخ: ${o.date} | الدفع: ${o.paymentNote}</p>
+                ${mapBtn}
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; position: relative;">
+                    <div style="position: absolute; top: 15px; left: 10%; right: 10%; height: 2px; background: #eee; z-index: 1;"></div>
+                    
+                    <div style="z-index: 2; text-align: center; width: 25%;">
+                        <div style="width: 30px; height: 30px; background: #10b981; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: white;">✅</div>
+                        <p style="font-size: 10px; margin: 5px 0 0 0;">تم الطلب</p>
+                    </div>
+                    <div style="z-index: 2; text-align: center; width: 25%;">
+                        <div style="width: 30px; height: 30px; background: ${o.status === 'pending' ? '#fff' : color2}; border: 2px solid ${o.status === 'pending' ? '#ccc' : color2}; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: ${o.status === 'pending' ? '#ccc' : 'white'}; font-size: 12px;">${step2}</div>
+                        <p style="font-size: 10px; margin: 5px 0 0 0; color: ${o.status === 'pending' ? '#ccc' : '#333'};">جاري التجهيز</p>
+                    </div>
+                    <div style="z-index: 2; text-align: center; width: 25%;">
+                        <div style="width: 30px; height: 30px; background: ${o.status === 'on_way' || o.status === 'delivered' ? color3 : '#fff'}; border: 2px solid ${o.status === 'on_way' || o.status === 'delivered' ? color3 : '#ccc'}; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: ${o.status === 'on_way' || o.status === 'delivered' ? 'white' : '#ccc'}; font-size: 12px;">${step3}</div>
+                        <p style="font-size: 10px; margin: 5px 0 0 0; color: ${o.status === 'on_way' || o.status === 'delivered' ? '#333' : '#ccc'};">في الطريق</p>
+                    </div>
+                    <div style="z-index: 2; text-align: center; width: 25%;">
+                        <div style="width: 30px; height: 30px; background: ${o.status === 'delivered' ? color4 : '#fff'}; border: 2px solid ${o.status === 'delivered' ? color4 : '#ccc'}; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: ${o.status === 'delivered' ? 'white' : '#ccc'}; font-size: 12px;">${step4}</div>
+                        <p style="font-size: 10px; margin: 5px 0 0 0; color: ${o.status === 'delivered' ? '#333' : '#ccc'};">تم التسليم</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    if(orders.length === 0) ordersHTML = `<div style="text-align: center; padding: 50px; color: #777;">لا توجد طلبات سابقة حتى الآن 📦</div>`;
+
+    hubContainer.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: #0f172a; font-size: 20px;">📦 طلباتي</h2>
+            <button onclick="renderHubUI()" style="background: #e2e8f0; color: #334155; border: none; border-radius: 10px; padding: 8px 15px; cursor: pointer; font-weight: bold;">العودة للتسوق</button>
+        </div>
+        ${ordersHTML}
+    `;
+};
+
+function simulateOrderTracking(orderId) {
+    let orders = JSON.parse(localStorage.getItem('wasla_all_orders')) || [];
+    let index = orders.findIndex(o => o.id === orderId);
+    if(index === -1) return;
+
+    // محاكاة تغيير الحالة (للتجربة فقط)
+    setTimeout(() => { updateOrderStatus(index, 'preparing'); }, 10000);
+    setTimeout(() => { updateOrderStatus(index, 'on_way'); }, 20000);
+    setTimeout(() => { updateOrderStatus(index, 'delivered'); }, 30000);
+}
+
+function updateOrderStatus(index, status) {
+    let orders = JSON.parse(localStorage.getItem('wasla_all_orders')) || [];
+    if(orders[index]) {
+        orders[index].status = status;
+        localStorage.setItem('wasla_all_orders', JSON.stringify(orders));
+        // تحديث الواجهة لو مفتوحة على "طلباتي"
+        if(document.getElementById('wasla-hub-view') && document.getElementById('wasla-hub-view').innerHTML.includes('طلباتي')) {
+            openMyOrders();
+        }
+    }
+}
+
+// --- 7. الدوال المساعدة (Helpers) ---
+
+window.getLocation = function() {
+    const btn = document.getElementById('location-btn');
+    const status = document.getElementById('location-status');
+    btn.innerText = "جاري تحديد الموقع...";
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                userLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+                btn.style.display = 'none';
+                status.style.display = 'block';
+            },
+            (error) => {
+                btn.innerText = "تحديد موقعي الحالي";
+                showToast("تعذر تحديد الموقع. تأكد من تفعيل الـ GPS. ⚠️");
+            }
+        );
+    } else {
+        btn.innerText = "تحديد موقعي الحالي";
+        showToast("متصفحك لا يدعم تحديد الموقع ❌");
+    }
+};
+
+window.submitCustomRequest = function() {
+    const input = document.getElementById('custom-request-input').value.trim();
+    if(!input) return showToast("اكتب طلبك الأول! ✍️");
+    
+    let requests = JSON.parse(localStorage.getItem('wasla_custom_requests')) || [];
+    requests.push({ id: Date.now(), request: input, date: new Date().toLocaleString('ar-EG') });
+    localStorage.setItem('wasla_custom_requests', JSON.stringify(requests));
+    
+    document.getElementById('custom-request-input').value = '';
+    showToast("تم إرسال طلبك، هنرد عليك قريب! 🚀");
+};
+
+function startFlashTimer() {
+    const timerElement = document.getElementById('flash-timer');
+    if(!timerElement) return;
+    let timeLeft = 2 * 60 * 60; 
+    if(flashTimerInterval) clearInterval(flashTimerInterval);
+    flashTimerInterval = setInterval(() => {
+        if (timeLeft <= 0) { 
+            clearInterval(flashTimerInterval); 
+            timerElement.innerText = "انتهى العرض!"; 
+            timerElement.style.background = "#ccc"; 
+            return; 
+        }
+        const h = Math.floor(timeLeft / 3600), m = Math.floor((timeLeft % 3600) / 60), s = timeLeft % 60;
+        timerElement.innerText = `⏳ ${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        timeLeft--;
+    }, 1000);
+}
+
+window.closeHub = function() {
+    document.getElementById('wasla-hub-view').style.display = 'none';
+    if(flashTimerInterval) clearInterval(flashTimerInterval);
+    const mainContainer = document.querySelector('.container') || document.querySelector('main') || document.querySelector('.app-container'); 
+    if(mainContainer) mainContainer.style.display = 'block';
+};
+
+function showToast(message) {
+    let toast = document.getElementById('wasla-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'wasla-toast';
+        toast.style.cssText = "position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 25px; border-radius: 30px; z-index: 9999; font-family: 'Cairo', sans-serif; transition: opacity 0.3s; font-size: 14px;";
+        document.body.appendChild(toast);
+    }
+    toast.innerText = message;
+    toast.style.opacity = '1';
+    setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+}
+
+// --- 8. ربط الأزرار في الواجهة الرئيسية ---
+document.addEventListener('DOMContentLoaded', () => {
+    const bindCard = (keyword, viewAction) => {
+        // البحث في العناصر اللي ممكن تكون كروت الخدمات
+        document.querySelectorAll('div, button, a, .service-card, .category-card').forEach(el => {
+            if(el.innerText && el.innerText.includes(keyword) && !el.classList.contains('hub-bound')) {
+                el.classList.add('hub-bound'); 
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', (e) => { 
+                    e.preventDefault(); 
+                    viewAction(); 
+                });
+            }
+        });
+    };
+    
+    // ربط كارت السوبر ماركت
+    bindCard('السوبر ماركت', openGrocery);
+    // ربط كارت المطاعم (لو الكارت مكتوب عليه مطاعم أو فاست فود)
+    bindCard('المطاعم', openRestaurants); 
+    bindCard('الفاست فود', openRestaurants); 
+});
 </script>
 </body>
 </html>
