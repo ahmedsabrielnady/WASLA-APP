@@ -354,6 +354,11 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
             <div class="cat-icon" style="background: #FFF7ED; color: #EA580C;"><i class="fa-solid fa-cart-shopping"></i></div>
             <h3>السوبر ماركت</h3><p>كل احتياجات البيت</p>
         </div>
+        <!-- كارت المطاعم المضافة -->
+        <div class="cat-card" onclick="openSection('restaurants')">
+            <div class="cat-icon" style="background: #FEF2F2; color: #E11D48;"><i class="fa-solid fa-burger"></i></div>
+            <h3>الفاست فود والمطاعم</h3><p>برجر، بيتزا، وكريب</p>
+        </div>
         <div class="cat-card" onclick="openSection('maintenance')">
             <div class="cat-icon" style="background: #FEF2F2; color: #E11D48;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
             <h3>الصيانة المنزلية</h3><p>سباكة وكهرباء</p>
@@ -551,7 +556,6 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
             </div>
         </div>
 
-        <!-- لوحة النتائج المرفوعة الجديدة -->
         <div class="doc-panel" id="doc-results-panel" style="display:none; border-color:#F59E0B;">
             <div class="doc-panel-header" style="border-color:#F59E0B;">
                 <h3 style="color:#F59E0B;"><i class="fa-solid fa-file-medical-alt"></i> نتائج أشعة/تحاليل مرفوعة (تحتاج مراجعة)</h3>
@@ -772,6 +776,8 @@ button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outlin
 
 <script>
 // ==========================================
+// الجزء الثاني (JavaScript) سيأتي في الرسالة التالية...
+// ==========================================
 // 1. المتغيرات والإعدادات الأساسية
 // ==========================================
 const savedTheme = localStorage.getItem('wasla_theme') || 'light';
@@ -782,7 +788,7 @@ let currentDeliveryFee = parseInt(localStorage.getItem('wasla_delivery_fee')) ||
 const commissionRate = 0.10;
 let selectedPayMethod = 'cash';
 
-// بيانات المحفظة (تجريبية)
+// بيانات المحفظة (مشتركة بين كل الأقسام)
 let walletBalance = parseInt(localStorage.getItem('wasla_wallet_balance')) || 1000;
 let walletLocked = parseInt(localStorage.getItem('wasla_wallet_locked')) || 0;
 
@@ -878,7 +884,7 @@ function toggleGPS() {
 }
 
 // ==========================================
-// 3. نظام التوصيل
+// 3. نظام التوصيل المستقل (Delivery)
 // ==========================================
 let pickupCoords = null;
 let dropoffCoords = null;
@@ -1015,14 +1021,11 @@ function renderDoctorDashboard() {
         `).join('');
     }
 
-    // عرض النتائج المرفوعة
     let uploadedLabs = [];
     getLocalBookings().forEach(b => {
         b.labs.forEach((l, index) => {
-            // معالجة لو الداتا قديمة (نص بدل object)
             const labStatus = typeof l === 'string' ? 'pending' : l.status;
             const labText = typeof l === 'string' ? l : l.text;
-            
             if(labStatus === 'uploaded') {
                 uploadedLabs.push({ patientName: b.patientName, bookingId: b.id, labIndex: index, text: labText });
             }
@@ -1047,7 +1050,6 @@ function renderDoctorDashboard() {
         resultsPanel.style.display = 'none';
     }
 
-    // تحديث إشعار البادج في الهيدر
     checkDoctorNotifications();
 }
 
@@ -1072,7 +1074,6 @@ function checkDoctorNotifications() {
     }
 }
 
-// --- مودال مراجعة الطبيب ---
 function openDoctorReview(bookingId, labIndex) {
     currentReviewBookingId = bookingId;
     currentReviewLabIndex = labIndex;
@@ -1082,7 +1083,7 @@ function openDoctorReview(bookingId, labIndex) {
     
     document.getElementById('review-patient-name').innerText = booking.patientName;
     document.getElementById('review-test-name').innerText = labText;
-    document.getElementById('doc-review-note').value = ''; // تفريغ الملاحظات
+    document.getElementById('doc-review-note').value = '';
     openModal('doctor-review-modal');
 }
 
@@ -1092,7 +1093,6 @@ function submitReview(action) {
     const note = document.getElementById('doc-review-note').value;
     
     if(bIndex > -1) {
-        // تأكد إنها object
         if(typeof bookings[bIndex].labs[currentReviewLabIndex] === 'string') {
             bookings[bIndex].labs[currentReviewLabIndex] = { text: bookings[bIndex].labs[currentReviewLabIndex], status: 'pending' };
         }
@@ -1112,7 +1112,6 @@ function submitReview(action) {
     }
 }
 
-// --- مودال رفع النتيجة (للمريض) ---
 function openUploadModal(bookingId, labIndex) {
     currentUploadBookingId = bookingId;
     currentUploadLabIndex = labIndex;
@@ -1128,7 +1127,6 @@ function submitUploadResult() {
     const bIndex = bookings.findIndex(b => b.id === currentUploadBookingId);
     
     if(bIndex > -1) {
-        // تأكد إنها object
         if(typeof bookings[bIndex].labs[currentUploadLabIndex] === 'string') {
             bookings[bIndex].labs[currentUploadLabIndex] = { text: bookings[bIndex].labs[currentUploadLabIndex], status: 'pending' };
         }
@@ -1136,7 +1134,7 @@ function submitUploadResult() {
         saveLocalBookings(bookings);
         closeModal('upload-result-modal');
         showToast('تم رفع النتيجة بنجاح، الطبيب سيقوم بمراجعتها.');
-        loadEMR(); // تحديث شاشة المريض
+        loadEMR(); 
     }
 }
 
@@ -1182,9 +1180,14 @@ let activeBookingForDoctor = null;
 function getLocalBookings() { return JSON.parse(localStorage.getItem('wasla_bookings') || '[]'); }
 function saveLocalBookings(bookings) { localStorage.setItem('wasla_bookings', JSON.stringify(bookings)); }
 
+// ** دالة ربط الأقسام الرئيسية (المربوطة بالأزرار في الرئيسية) **
 function openSection(section) {
     if(section === 'medical') {
         navigateTo('medical'); 
+    } else if (section === 'shopping') {
+        openGrocery();
+    } else if (section === 'restaurants') {
+        openRestaurants();
     } else {
         showToast('هذا القسم سيتم إضافته قريباً!');
     }
@@ -1199,9 +1202,6 @@ function switchMedTab(tabId, btn) {
     if(tabId === 'symptoms') renderSymptoms();
 }
 
-// ==========================================
-// 7. الميزات الجديدة (ذكاء وصلة المطور)
-// ==========================================
 function askWaslaAI() {
     const input = document.getElementById('ai-input').value.toLowerCase();
     const resultDiv = document.getElementById('ai-result');
@@ -1214,33 +1214,15 @@ function askWaslaAI() {
         let suggestedSpec = 'باطنة'; 
         let found = false;
         
-        if(input.match(/(ركبة|ركبتي|رقبة|رقبتي|ظهر|ضهر|ضهري|عضم|عظام|خشونة|مفاصل|كتف|كتفي|كعب|قدمي|إيدي)/)) {
-            suggestedSpec = 'عظام'; found = true;
-        } 
-        else if(input.match(/(قلب|قلبي|صدر|صدي|ضربات|خفقان)/)) {
-            suggestedSpec = 'قلب'; found = true;
-        }
-        else if(input.match(/(أذن|ودني|أنف|مناخيري|زور|زوري|حلق|حلقي|لوز)/)) {
-            suggestedSpec = 'أنف وأذن'; found = true;
-        }
-        else if(input.match(/(بول|تبول|حرقان|كلى|كليتي|حجر|مسالك)/)) {
-            suggestedSpec = 'مسالك'; found = true;
-        }
-        else if(input.match(/(سن|سناني|ضرس|ضروسي|لثة|لثتي|فم|فمي)/)) {
-            suggestedSpec = 'أسنان'; found = true;
-        }
-        else if(input.match(/(طفل|طفلي|بيبي|رضيع|سخونية|سخونة|حرارة|برد|كحة|كحه|رشح|إسهال)/)) {
-            suggestedSpec = 'أطفال'; found = true;
-        }
-        else if(input.match(/(عين|عيني|نظر|زغللة|رؤية)/)) {
-            suggestedSpec = 'عيون'; found = true;
-        }
-        else if(input.match(/(جلد|جلدي|حساسية|هرش|طفح|بقع|حبوب)/)) {
-            suggestedSpec = 'جلدية'; found = true;
-        }
-        else if(input.match(/(بطن|بطني|معدة|معدتي|قولون|قولوني|صداع|صدع|دوخة|مغص|ترجيع)/)) {
-            suggestedSpec = 'باطنة'; found = true;
-        }
+        if(input.match(/(ركبة|ركبتي|رقبة|رقبتي|ظهر|ضهر|ضهري|عضم|عظام|خشونة|مفاصل|كتف|كتفي|كعب|قدمي|إيدي)/)) { suggestedSpec = 'عظام'; found = true; } 
+        else if(input.match(/(قلب|قلبي|صدر|صدي|ضربات|خفقان)/)) { suggestedSpec = 'قلب'; found = true; }
+        else if(input.match(/(أذن|ودني|أنف|مناخيري|زور|زوري|حلق|حلقي|لوز)/)) { suggestedSpec = 'أنف وأذن'; found = true; }
+        else if(input.match(/(بول|تبول|حرقان|كلى|كليتي|حجر|مسالك)/)) { suggestedSpec = 'مسالك'; found = true; }
+        else if(input.match(/(سن|سناني|ضرس|ضروسي|لثة|لثتي|فم|فمي)/)) { suggestedSpec = 'أسنان'; found = true; }
+        else if(input.match(/(طفل|طفلي|بيبي|رضيع|سخونية|سخونة|حرارة|برد|كحة|كحه|رشح|إسهال)/)) { suggestedSpec = 'أطفال'; found = true; }
+        else if(input.match(/(عين|عيني|نظر|زغللة|رؤية)/)) { suggestedSpec = 'عيون'; found = true; }
+        else if(input.match(/(جلد|جلدي|حساسية|هرش|طفح|بقع|حبوب)/)) { suggestedSpec = 'جلدية'; found = true; }
+        else if(input.match(/(بطن|بطني|معدة|معدتي|قولون|قولوني|صداع|صدع|دوخة|مغص|ترجيع)/)) { suggestedSpec = 'باطنة'; found = true; }
 
         if(found) {
             resultDiv.innerHTML = `
@@ -1257,13 +1239,6 @@ function askWaslaAI() {
     }, 1500);
 }
 
-function setReminder() {
-    showToast('⏰ تم تفعيل تذكير الدواء! سيتم إشعارك بمواعيد الجرعات.');
-}
-
-// ==========================================
-// 8. الأطباء والحجز والدفع
-// ==========================================
 function setAge(age) {
     currentAgeFilter = age;
     document.getElementById('age-adult').classList.toggle('active', age === 'adult');
@@ -1338,7 +1313,6 @@ function openBooking(id) {
     document.getElementById('slot-group').style.display = 'block';
     
     selectPaymentMethod('cash', document.querySelectorAll('.pay-method-btn')[0]);
-    
     openModal('booking-modal');
 
     const today = new Date().toISOString().split('T')[0];
@@ -1368,7 +1342,6 @@ function openNurseBooking(price, serviceName) {
     document.getElementById('gps-status').innerText = '';
     
     selectPaymentMethod('cash', document.querySelectorAll('.pay-method-btn')[0]);
-    
     openModal('booking-modal');
 }
 
@@ -1437,7 +1410,6 @@ function submitBooking() {
     }
     
     navigateTo('mybookings');
-    
     btn.textContent = 'تأكيد الحجز'; btn.disabled = false;
 }
 
@@ -1459,7 +1431,6 @@ function submitDoctorRequest() {
         if(type === 'prescription') {
             bookings[index].meds.push({ text: details, pharmacy: null });
         } else {
-            // إضافة طلب أشعة بحالة pending
             bookings[index].labs.push({ text: details, status: 'pending' });
         }
         saveLocalBookings(bookings);
@@ -1516,7 +1487,6 @@ function loadEMR() {
     }
 
     const labsList = document.getElementById('labs-list');
-    // تعديل: جلب معلومات الحجز مع التحاليل وحل مشكلة undefined
     let labs = [];
     bookings.forEach(b => {
         b.labs.forEach((l, index) => {
@@ -1545,7 +1515,6 @@ function loadEMR() {
                         <i class="fa-solid fa-check-double"></i> تم مراجعة النتيجة (سليمة)
                         ${l.note ? `<div style="margin-top:5px; border-top:1px solid #A7F3D0; padding-top:5px; font-weight:normal; text-align:right;">ملاحظات الطبيب: ${l.note}</div>` : ''}
                     </div>` :
-                    // followup
                     `<div style="background:#FFF7ED; color:#EA580C; padding:10px; border-radius:8px; font-size:12px; font-weight:bold; text-align:center; margin-top:10px;">
                         <i class="fa-solid fa-calendar-plus"></i> الطبيب يطلب متابعة
                         ${l.note ? `<div style="margin-top:5px; border-top:1px solid #FED7AA; padding-top:5px; font-weight:normal; text-align:right; color:#9A3412;">ملاحظات الطبيب: ${l.note}</div>` : ''}
@@ -1660,333 +1629,14 @@ function updateWalletUI() {
     localStorage.setItem('wasla_wallet_locked', walletLocked);
 }
 
-// التشغيل الأولي
-updateFinancialUI();
-updateWalletUI();
-checkDoctorNotifications();
+function setReminder() {
+    showToast('⏰ تم تفعيل تذكير الدواء! سيتم إشعارك بمواعيد الجرعات.');
+}
 
 // =========================================================================
-// 🛒 WASLA SUPERMARKET & FLASH DEALS MODULE (الموديول المتكامل للسوبر ماركت)
+// 🛒 WASLA GROCERY & RESTAURANTS MODULE (نظيف وموحد)
 // =========================================================================
 
-// 1. قاعدة البيانات (المنتجات العادية + لقطات اليوم + صندوق المفاجآت)
-const supermarketData = [
-    // 🔥 قسم لقطات اليوم (صلاحية قريبة - أسعار خرافية)
-    { id: 'f1', name: 'جبنة رومي قديمة', price: 60, originalPrice: 120, category: 'ألبان', unit: 'نصف كيلو', img: '🧀', isFlash: true, stock: 3, discount: '50%', expiry: 'صلاحية: 3 أيام' },
-    { id: 'f2', name: 'عصير جهينة برتقال', price: 7, originalPrice: 15, category: 'مشروبات', unit: 'كرتونة', img: '🧃', isFlash: true, stock: 5, discount: '53%', expiry: 'صلاحية: أسبوع' },
-    { id: 'f3', name: 'كرواسون بالشوكولاتة', price: 10, originalPrice: 20, category: 'مخبوزات', unit: 'قطعة', img: '🥐', isFlash: true, stock: 2, discount: '50%', expiry: 'مخبوز اليوم' },
-    
-    // 🎁 صندوق المفاجآت (Surprise Box)
-    { id: 's1', name: 'صندوق مفاجآت وصلة', price: 50, originalPrice: 150, category: 'عروض', unit: 'بوكس', img: '🎁', isFlash: true, isSurprise: true, stock: 10, discount: '66%', expiry: 'كمية محدودة' },
-
-    // 🛍️ منتجات البقالة العادية
-    { id: 'p1', name: 'لبن جهينة كامل الدسم', price: 38, category: 'ألبان', unit: '1 لتر', img: '🥛', isFlash: false },
-    { id: 'p2', name: 'زيت عافية ذرة', price: 85, category: 'زيوت', unit: '1 لتر', img: '🛢️', isFlash: false },
-    { id: 'p3', name: 'شيبسي شيتوس', price: 10, category: 'سناكس', unit: 'كيس', img: '🍟', isFlash: false },
-    { id: 'p4', name: 'عيش فينو طازج', price: 5, category: 'مخبوزات', unit: 'ربطة', img: '🥖', isFlash: false },
-    { id: 'p5', name: 'بيض بلدي', price: 65, category: 'أساسيات', unit: 'طبق (30)', img: '🥚', isFlash: false },
-    { id: 'p6', name: 'أرز مصري فاخر', price: 32, category: 'أساسيات', unit: '1 كيلو', img: '🍚', isFlash: false }
-];
-
-let smCart = {}; // سلة المشتريات
-let flashTimerInterval = null; // متغير للمؤقت التنازلي
-
-// 2. دالة فتح واجهة السوبر ماركت
-function openSupermarket() {
-    // إخفاء الواجهة الرئيسية
-    const mainContainer = document.querySelector('.container') || document.querySelector('main'); 
-    if(mainContainer) mainContainer.style.display = 'none';
-
-    // إنشاء أو إظهار حاوية السوبر ماركت
-    let smContainer = document.getElementById('supermarket-view');
-    if (!smContainer) {
-        smContainer = document.createElement('div');
-        smContainer.id = 'supermarket-view';
-        smContainer.style.cssText = "padding: 20px; direction: rtl; font-family: 'Cairo', sans-serif; background: #f8f9fa; min-height: 100vh; position: relative;";
-        document.body.appendChild(smContainer);
-    }
-    
-    renderSupermarketUI();
-    smContainer.style.display = 'block';
-}
-
-// 3. رسم واجهة السوبر ماركت
-function renderSupermarketUI() {
-    const smContainer = document.getElementById('supermarket-view');
-    
-    const flashProducts = supermarketData.filter(p => p.isFlash);
-    const normalProducts = supermarketData.filter(p => !p.isFlash);
-
-    // بناء كروت "لقطة اليوم" وصندوق المفاجآت
-    let flashHTML = flashProducts.map(p => `
-        <div class="product-card" style="background: #fff; border: 2px solid ${p.isSurprise ? '#a855f7' : '#fca5a5'}; border-radius: 15px; padding: 15px; text-align: center; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-            
-            <div style="position: absolute; top: -10px; right: -10px; background: ${p.isSurprise ? '#a855f7' : '#ef4444'}; color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; transform: rotate(10deg); box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 2;">
-                ${p.isSurprise ? 'بوكس غامض 🎁' : 'خصم ' + p.discount + ' 🔥'}
-            </div>
-
-            <div style="font-size: 40px; margin-bottom: 10px;">${p.img}</div>
-            <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #333; height: 40px; overflow: hidden;">${p.name}</h4>
-            
-            <div style="display: flex; justify-content: center; align-items: center; gap: 5px; margin-bottom: 5px;">
-                <span style="text-decoration: line-through; color: #999; font-size: 12px;">${p.originalPrice} ج.م</span>
-                <span style="font-weight: bold; color: ${p.isSurprise ? '#a855f7' : '#ef4444'}; font-size: 16px;">${p.price} ج.م</span>
-            </div>
-            
-            <div style="font-size: 11px; color: #777; margin-bottom: 5px;">${p.expiry}</div>
-            <div style="font-size: 12px; color: #ef4444; margin-bottom: 10px; font-weight: bold;">
-                ⏳ باقي ${p.stock} قطع بس!
-            </div>
-            
-            <button onclick="addToCart('${p.id}')" style="background: ${p.isSurprise ? '#a855f7' : '#ef4444'}; color: white; border: none; border-radius: 8px; padding: 8px; width: 100%; cursor: pointer; font-weight: bold; transition: 0.2s;">
-                ${p.isSurprise ? 'افتح البوكس' : 'اقتنص الفرصة'}
-            </button>
-        </div>
-    `).join('');
-
-    // بناء كروت المنتجات العادية
-    let normalHTML = normalProducts.map(p => `
-        <div class="product-card" style="background: white; border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-            <div style="font-size: 40px; margin-bottom: 10px;">${p.img}</div>
-            <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #333; height: 40px;">${p.name}</h4>
-            <p style="margin: 0 0 10px 0; font-size: 12px; color: #777;">${p.unit}</p>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: bold; color: #0f172a;">${p.price} ج.م</span>
-                <button onclick="addToCart('${p.id}')" style="background: #e0f2fe; color: #0284c7; border: none; border-radius: 8px; padding: 5px 10px; cursor: pointer; font-weight: bold;">+</button>
-            </div>
-        </div>
-    `).join('');
-
-    smContainer.innerHTML = `
-        <!-- الهيدر -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin: 0; color: #0f172a; font-size: 20px;">🛒 سوبر ماركت وصلة</h2>
-            <button onclick="closeSupermarket()" style="background: #e2e8f0; color: #334155; border: none; border-radius: 10px; padding: 8px 15px; cursor: pointer; font-weight: bold;">رجوع</button>
-        </div>
-
-        <!-- قسم لقطة اليوم -->
-        <div style="margin-bottom: 30px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 10px; border: 1px solid #fee2e2;">
-                <h3 style="margin: 0; color: #ef4444; font-size: 16px;">⚡ لقطة اليوم (كميات محدودة)</h3>
-                <span id="flash-timer" style="background: #ef4444; color: white; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: bold; font-family: monospace;">--:--:--</span>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-                ${flashHTML}
-            </div>
-        </div>
-
-        <!-- قسم المنتجات العادية -->
-        <div style="margin-bottom: 100px;">
-            <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">🛍️ منتجات البقالة</h3>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-                ${normalHTML}
-            </div>
-        </div>
-
-        <!-- شريط السلة السفلي -->
-        <div id="cart-bar" style="position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); display: none; justify-content: space-between; align-items: center; z-index: 1000;">
-            <div>
-                <span style="font-size: 12px; color: #777;">إجمالي السلة</span>
-                <h3 id="cart-total" style="margin: 0; color: #0f172a;">0 ج.م</h3>
-            </div>
-            <button onclick="openCheckoutModal()" style="background: #10b981; color: white; border: none; padding: 10px 25px; border-radius: 10px; font-weight: bold; cursor: pointer;">إتمام الطلب</button>
-        </div>
-
-        <!-- مودال الدفع (مخفي افتراضياً) -->
-        <div id="checkout-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
-            <div style="background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 400px; text-align: center;">
-                <h3 style="margin-top: 0; color: #0f172a;">إتمام الطلب</h3>
-                <p style="color: #777; font-size: 14px;">إجمالي الطلب: <strong style="color: #ef4444; font-size: 18px;" id="modal-total">0 ج.م</strong></p>
-                <p style="color: #0284c7; font-size: 14px; background: #e0f2fe; padding: 10px; border-radius: 10px;">رصيد محفظتك: <strong id="modal-wallet">0 ج.م</strong></p>
-                
-                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-                    <button onclick="processPayment('wallet')" style="background: #0284c7; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">الدفع من المحفظة 💳</button>
-                    <button onclick="processPayment('cash')" style="background: #10b981; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">الدفع كاش عند الاستلام 💵</button>
-                    <button onclick="closeCheckoutModal()" style="background: transparent; color: #777; border: none; padding: 10px; cursor: pointer;">إلغاء</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    updateCartUI();
-    startFlashTimer(); // تشغيل المؤقت
-}
-
-// 4. دالة المؤقت التنازلي (للعروض)
-function startFlashTimer() {
-    const timerElement = document.getElementById('flash-timer');
-    if(!timerElement) return;
-
-    let timeLeft = 2 * 60 * 60; // ساعتين (بالثواني)
-    if(flashTimerInterval) clearInterval(flashTimerInterval);
-
-    flashTimerInterval = setInterval(() => {
-        if (timeLeft <= 0) {
-            clearInterval(flashTimerInterval);
-            timerElement.innerText = "انتهى العرض!";
-            timerElement.style.background = "#d1d5db";
-            return;
-        }
-        const h = Math.floor(timeLeft / 3600);
-        const m = Math.floor((timeLeft % 3600) / 60);
-        const s = timeLeft % 60;
-        timerElement.innerText = `⏳ ${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        timeLeft--;
-    }, 1000);
-}
-
-// 5. إضافة منتج للسلة (مع مراعاة الكميات المحدودة)
-window.addToCart = function(productId) {
-    const product = supermarketData.find(p => p.id === productId);
-    
-    if (product.isFlash) {
-        let currentQty = smCart[productId] || 0;
-        if (currentQty >= product.stock) {
-            showToast("عذراً، لقد حجزت أقصى كمية متاحة من هذا العرض! ⚠️");
-            return;
-        }
-    }
-
-    smCart[productId] = (smCart[productId] || 0) + 1;
-    updateCartUI();
-    showToast(product.isFlash ? "لقطة رائعة! تمت الإضافة ⚡" : "تمت الإضافة للسلة 🛒");
-};
-
-// 6. تحديث السلة
-function updateCartUI() {
-    const cartBar = document.getElementById('cart-bar');
-    const cartTotal = document.getElementById('cart-total');
-    
-    let total = 0;
-    let itemsCount = 0;
-
-    for (const [id, qty] of Object.entries(smCart)) {
-        const product = supermarketData.find(p => p.id === id);
-        if (product) {
-            total += product.price * qty;
-            itemsCount += qty;
-        }
-    }
-
-    if (itemsCount > 0) {
-        cartBar.style.display = 'flex';
-        cartTotal.innerText = `${total} ج.م (${itemsCount} منتجات)`;
-    } else {
-        cartBar.style.display = 'none';
-    }
-}
-
-// 7. فتح نافذة الدفع (Checkout Modal)
-window.openCheckoutModal = function() {
-    let total = 0;
-    for (const [id, qty] of Object.entries(smCart)) {
-        const product = supermarketData.find(p => p.id === id);
-        if (product) total += product.price * qty;
-    }
-
-    // التحقق من وجود متغير المحفظة في الكود الأساسي (من الصورة 3)
-    let currentWallet = typeof walletBalance !== 'undefined' ? walletBalance : 0;
-
-    document.getElementById('modal-total').innerText = `${total} ج.م`;
-    document.getElementById('modal-wallet').innerText = `${currentWallet} ج.م`;
-    
-    const modal = document.getElementById('checkout-modal');
-    modal.style.display = 'flex';
-    
-    // حفظ الإجمالي مؤقتاً لاستخدامه في الدفع
-    modal.dataset.total = total;
-};
-
-window.closeCheckoutModal = function() {
-    document.getElementById('checkout-modal').style.display = 'none';
-};
-
-// 8. معالجة الدفع
-window.processPayment = function(method) {
-    const modal = document.getElementById('checkout-modal');
-    const total = parseFloat(modal.dataset.total);
-    
-    if (method === 'wallet') {
-        // التأكد من وجود متغير المحفظة
-        let currentWallet = typeof walletBalance !== 'undefined' ? walletBalance : 0;
-        
-        if (currentWallet >= total) {
-            // خصم من المحفظة
-            window.walletBalance -= total; 
-            
-            // تحديث واجهة المحفظة (الدالة موجودة في كودك الأساسي)
-            if(typeof updateWalletUI === 'function') {
-                updateWalletUI();
-            } else {
-                localStorage.setItem('wasla_wallet_balance', window.walletBalance);
-            }
-            
-            placeSupermarketOrder(total, 'wallet');
-        } else {
-            showToast("رصيد المحفظة غير كافٍ! يرجى الشحن أولاً. ❌");
-        }
-    } else if (method === 'cash') {
-        placeSupermarketOrder(total, 'cash');
-    }
-};
-
-// 9. تسجيل الطلب بنجاح
-function placeSupermarketOrder(total, paymentMethod) {
-    const newOrder = {
-        id: 'SM' + Date.now(),
-        items: smCart,
-        total: total,
-        paymentMethod: paymentMethod,
-        status: 'pending', 
-        date: new Date().toLocaleString('ar-EG')
-    };
-
-    let smOrders = JSON.parse(localStorage.getItem('wasla_sm_orders')) || [];
-    smOrders.push(newOrder);
-    localStorage.setItem('wasla_sm_orders', JSON.stringify(smOrders));
-
-    // تصفير السلة وإغلاق الواجهات
-    smCart = {};
-    updateCartUI();
-    closeCheckoutModal();
-    
-    showToast(`تم استلام طلبك بنجاح! 🚀 (${paymentMethod === 'wallet' ? 'مدفوع من المحفظة' : 'كاش عند الاستلام'})`);
-    
-    setTimeout(() => {
-        closeSupermarket();
-    }, 2000);
-}
-
-// 10. إغلاق الواجهة والعودة للرئيسية
-window.closeSupermarket = function() {
-    document.getElementById('supermarket-view').style.display = 'none';
-    if(flashTimerInterval) clearInterval(flashTimerInterval); // إيقاف المؤقت لتوفير الذاكرة
-    const mainContainer = document.querySelector('.container') || document.querySelector('main'); 
-    if(mainContainer) mainContainer.style.display = 'block';
-};
-
-// ربط زر السوبر ماركت في الواجهة الرئيسية
-document.addEventListener('DOMContentLoaded', () => {
-    // الكود ده بيدور على أي عنصر فيه كلمة "السوبر ماركت" ويخليه يفتح الواجهة
-    const allElements = document.querySelectorAll('div, button, a');
-    allElements.forEach(el => {
-        if(el.innerText && el.innerText.includes('السوبر ماركت') && !el.classList.contains('sm-bound')) {
-            el.classList.add('sm-bound');
-            el.style.cursor = 'pointer';
-            el.addEventListener('click', (e) => {
-                e.preventDefault();
-                openSupermarket();
-            });
-        }
-    });
-});
-   // =========================================================================
-// 🚀 WASLA ULTIMATE HUB - (Grocery + Restaurants + Flash Deals + Tracking)
-// =========================================================================
-
-// --- 1. قواعد البيانات (Data) ---
-
-// أ. السوبر ماركت (مع لقطات اليوم)
 const groceryData = [
     { id: 'f1', name: 'جبنة رومي قديمة', price: 60, originalPrice: 120, unit: 'نصف كيلو', img: '🧀', isFlash: true, stock: 3, discount: '50%', expiry: 'صلاحية: 3 أيام' },
     { id: 'f2', name: 'عصير جهينة برتقال', price: 7, originalPrice: 15, unit: 'كرتونة', img: '🧃', isFlash: true, stock: 5, discount: '53%', expiry: 'صلاحية: أسبوع' },
@@ -2000,7 +1650,6 @@ const groceryData = [
     { id: 'g6', name: 'أرز مصري فاخر', price: 32, unit: '1 كيلو', img: '🍚', isFlash: false }
 ];
 
-// ب. المطاعم (Fast Food)
 const restaurantData = [
     { id: 'r1', name: 'بوفالو برجر', desc: 'برجر لحم بقري مشوي مع صوص خاص', price: 85, category: 'برجر', img: '🍔', restaurant: 'Buffalo Burger' },
     { id: 'r2', name: 'دبل تشيز برجر', desc: 'قطعتين لحم مع جبنة شيدر مذابة', price: 120, category: 'برجر', img: '🍔', restaurant: 'Burger King' },
@@ -2014,17 +1663,14 @@ const restaurantData = [
     { id: 'r10', name: 'ساندوتش فاهيتا', desc: 'شرائح دجاج مع فلفل ألوان وجبنة', price: 75, category: 'ساندوتشات', img: '🥙', restaurant: 'سينابون' }
 ];
 
-// --- 2. المتغيرات العامة (State) ---
-let currentCart = {}; // { id: { qty, type } }
+let currentCart = {}; 
 let currentView = 'grocery'; 
 let flashTimerInterval = null;
 let userLocation = null;
 
-// --- 3. دوال التحكم في الواجهات (UI Controllers) ---
-
 window.openGrocery = function() {
     currentView = 'grocery';
-    currentCart = {}; // تصفير السلة عند تغيير القسم
+    currentCart = {}; 
     renderHubUI();
 };
 
@@ -2035,11 +1681,9 @@ window.openRestaurants = function() {
 };
 
 function renderHubUI() {
-    // إخفاء الواجهة الرئيسية
-    const mainContainer = document.querySelector('.container') || document.querySelector('main') || document.querySelector('.app-container'); 
+    const mainContainer = document.querySelector('.container') || document.querySelector('main'); 
     if(mainContainer) mainContainer.style.display = 'none';
 
-    // إنشاء حاوية الوصلة
     let hubContainer = document.getElementById('wasla-hub-view');
     if (!hubContainer) {
         hubContainer = document.createElement('div');
@@ -2048,7 +1692,6 @@ function renderHubUI() {
         document.body.appendChild(hubContainer);
     }
     
-    // الهيدر المشترك
     let headerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2 style="margin: 0; color: #0f172a; font-size: 20px;">
@@ -2061,27 +1704,23 @@ function renderHubUI() {
         </div>
     `;
 
-    // مربع "أكتب وأطلب"
     let customRequestHTML = `
         <div style="background: white; padding: 15px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
             <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #333;">مش لاقي حاجة معينة؟ اطلبها وإحنا نجبهالك! 🛵</h4>
             <div style="display: flex; gap: 10px;">
-                <input type="text" id="custom-request-input" placeholder="اكتب اسم المنتج أو الوجبة..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Cairo'; outline: none;">
+                <input type="text" id="custom-request-input" placeholder="اكتب اسم المنتج..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Cairo'; outline: none;">
                 <button onclick="submitCustomRequest()" style="background: #0f172a; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">اطلب</button>
             </div>
         </div>
     `;
 
     let contentHTML = currentView === 'grocery' ? renderGroceryContent() : renderRestaurantContent();
-
     hubContainer.innerHTML = headerHTML + customRequestHTML + contentHTML + renderCartBar() + renderCheckoutModal();
     
     updateCartUI();
     if (currentView === 'grocery') startFlashTimer();
     hubContainer.style.display = 'block';
 }
-
-// --- 4. دوال بناء المحتوى (Content Builders) ---
 
 function renderGroceryContent() {
     const flashProducts = groceryData.filter(p => p.isFlash);
@@ -2159,8 +1798,6 @@ function renderRestaurantContent() {
     return `<div style="margin-bottom: 100px;">${categoriesHTML}</div>`;
 }
 
-// --- 5. إدارة السلة والدفع (Cart & Checkout) ---
-
 function renderCartBar() {
     return `
         <div id="cart-bar" style="position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); display: none; justify-content: space-between; align-items: center; z-index: 1000;">
@@ -2184,7 +1821,7 @@ function renderCheckoutModal() {
                 </p>
                 <div style="margin: 15px 0;">
                     <label style="font-size: 14px; font-weight: bold; color: #333;">📍 موقعك الجغرافي (للدليفري):</label>
-                    <button onclick="getLocation()" id="location-btn" style="width: 100%; padding: 10px; margin-top: 5px; background: #e0f2fe; color: #0284c7; border: 1px dashed #0284c7; border-radius: 8px; cursor: pointer; font-weight: bold;">تحديد موقعي الحالي</button>
+                    <button onclick="getHubLocation()" id="location-btn" style="width: 100%; padding: 10px; margin-top: 5px; background: #e0f2fe; color: #0284c7; border: 1px dashed #0284c7; border-radius: 8px; cursor: pointer; font-weight: bold;">تحديد موقعي الحالي</button>
                     <p id="location-status" style="font-size: 12px; color: #10b981; margin: 5px 0 0 0; display: none;">✅ تم تحديد الموقع بنجاح</p>
                 </div>
                 <div style="margin: 15px 0;">
@@ -2209,7 +1846,7 @@ function renderCheckoutModal() {
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button onclick="processPayment()" style="flex: 2; background: #10b981; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">تأكيد ودفع</button>
+                    <button onclick="processHubPayment()" style="flex: 2; background: #10b981; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">تأكيد ودفع</button>
                     <button onclick="closeCheckoutModal()" style="flex: 1; background: #e2e8f0; color: #333; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">إلغاء</button>
                 </div>
             </div>
@@ -2268,10 +1905,8 @@ window.openCheckoutModal = function() {
         if (product) total += product.price * item.qty;
     }
     
-    let currentWallet = typeof walletBalance !== 'undefined' ? walletBalance : (parseFloat(localStorage.getItem('wasla_wallet_balance')) || 0);
-    
     document.getElementById('modal-total').innerText = `${total} ج.م`;
-    document.getElementById('modal-wallet').innerText = `${currentWallet} ج.م`;
+    document.getElementById('modal-wallet').innerText = `${walletBalance} ج.م`;
     document.getElementById('checkout-modal').style.display = 'flex';
     document.getElementById('checkout-modal').dataset.total = total;
 };
@@ -2280,7 +1915,30 @@ window.closeCheckoutModal = function() {
     document.getElementById('checkout-modal').style.display = 'none';
 };
 
-window.processPayment = function() {
+window.getHubLocation = function() {
+    const btn = document.getElementById('location-btn');
+    const status = document.getElementById('location-status');
+    btn.innerText = "جاري تحديد الموقع...";
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                userLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+                btn.style.display = 'none';
+                status.style.display = 'block';
+            },
+            (error) => {
+                btn.innerText = "تحديد موقعي الحالي";
+                showToast("تعذر تحديد الموقع. تأكد من تفعيل الـ GPS. ⚠️");
+            }
+        );
+    } else {
+        btn.innerText = "تحديد موقعي الحالي";
+        showToast("متصفحك لا يدعم تحديد الموقع ❌");
+    }
+};
+
+window.processHubPayment = function() {
     const total = parseFloat(document.getElementById('checkout-modal').dataset.total);
     const method = document.querySelector('input[name="paymentMethod"]:checked').value;
 
@@ -2289,15 +1947,9 @@ window.processPayment = function() {
     }
 
     if (method === 'wasla') {
-        let currentWallet = typeof walletBalance !== 'undefined' ? walletBalance : (parseFloat(localStorage.getItem('wasla_wallet_balance')) || 0);
-        if (currentWallet < total) return showToast("رصيد محفظة وصلة غير كافٍ! ❌");
-        
-        if (typeof walletBalance !== 'undefined') {
-            window.walletBalance -= total;
-            if (typeof updateWalletUI === 'function') updateWalletUI();
-        } else {
-            localStorage.setItem('wasla_wallet_balance', currentWallet - total);
-        }
+        if (walletBalance < total) return showToast("رصيد محفظة وصلة غير كافٍ! ❌");
+        walletBalance -= total;
+        updateWalletUI();
         placeOrder(total, method, 'تم الدفع من محفظة وصلة');
     } 
     else if (method === 'vodafone' || method === 'instapay') {
@@ -2314,7 +1966,7 @@ window.processPayment = function() {
 function placeOrder(total, method, paymentNote) {
     const newOrder = {
         id: (currentView === 'grocery' ? 'SM' : 'FD') + Math.floor(Math.random() * 100000),
-        items: JSON.parse(JSON.stringify(currentCart)), // Deep copy
+        items: JSON.parse(JSON.stringify(currentCart)), 
         total: total,
         paymentMethod: method,
         paymentNote: paymentNote,
@@ -2339,8 +1991,6 @@ function placeOrder(total, method, paymentNote) {
     
     setTimeout(() => { closeHub(); openMyOrders(); }, 1000);
 }
-
-// --- 6. تتبع الطلب (Order Tracking) ---
 
 window.openMyOrders = function() {
     const hubContainer = document.getElementById('wasla-hub-view');
@@ -2406,7 +2056,6 @@ function simulateOrderTracking(orderId) {
     let index = orders.findIndex(o => o.id === orderId);
     if(index === -1) return;
 
-    // محاكاة تغيير الحالة (للتجربة فقط)
     setTimeout(() => { updateOrderStatus(index, 'preparing'); }, 10000);
     setTimeout(() => { updateOrderStatus(index, 'on_way'); }, 20000);
     setTimeout(() => { updateOrderStatus(index, 'delivered'); }, 30000);
@@ -2417,37 +2066,11 @@ function updateOrderStatus(index, status) {
     if(orders[index]) {
         orders[index].status = status;
         localStorage.setItem('wasla_all_orders', JSON.stringify(orders));
-        // تحديث الواجهة لو مفتوحة على "طلباتي"
         if(document.getElementById('wasla-hub-view') && document.getElementById('wasla-hub-view').innerHTML.includes('طلباتي')) {
             openMyOrders();
         }
     }
 }
-
-// --- 7. الدوال المساعدة (Helpers) ---
-
-window.getLocation = function() {
-    const btn = document.getElementById('location-btn');
-    const status = document.getElementById('location-status');
-    btn.innerText = "جاري تحديد الموقع...";
-    
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                userLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-                btn.style.display = 'none';
-                status.style.display = 'block';
-            },
-            (error) => {
-                btn.innerText = "تحديد موقعي الحالي";
-                showToast("تعذر تحديد الموقع. تأكد من تفعيل الـ GPS. ⚠️");
-            }
-        );
-    } else {
-        btn.innerText = "تحديد موقعي الحالي";
-        showToast("متصفحك لا يدعم تحديد الموقع ❌");
-    }
-};
 
 window.submitCustomRequest = function() {
     const input = document.getElementById('custom-request-input').value.trim();
@@ -2482,45 +2105,14 @@ function startFlashTimer() {
 window.closeHub = function() {
     document.getElementById('wasla-hub-view').style.display = 'none';
     if(flashTimerInterval) clearInterval(flashTimerInterval);
-    const mainContainer = document.querySelector('.container') || document.querySelector('main') || document.querySelector('.app-container'); 
+    const mainContainer = document.querySelector('.container') || document.querySelector('main'); 
     if(mainContainer) mainContainer.style.display = 'block';
 };
 
-function showToast(message) {
-    let toast = document.getElementById('wasla-toast');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'wasla-toast';
-        toast.style.cssText = "position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 25px; border-radius: 30px; z-index: 9999; font-family: 'Cairo', sans-serif; transition: opacity 0.3s; font-size: 14px;";
-        document.body.appendChild(toast);
-    }
-    toast.innerText = message;
-    toast.style.opacity = '1';
-    setTimeout(() => { toast.style.opacity = '0'; }, 3000);
-}
-
-// --- 8. ربط الأزرار في الواجهة الرئيسية ---
-document.addEventListener('DOMContentLoaded', () => {
-    const bindCard = (keyword, viewAction) => {
-        // البحث في العناصر اللي ممكن تكون كروت الخدمات
-        document.querySelectorAll('div, button, a, .service-card, .category-card').forEach(el => {
-            if(el.innerText && el.innerText.includes(keyword) && !el.classList.contains('hub-bound')) {
-                el.classList.add('hub-bound'); 
-                el.style.cursor = 'pointer';
-                el.addEventListener('click', (e) => { 
-                    e.preventDefault(); 
-                    viewAction(); 
-                });
-            }
-        });
-    };
-    
-    // ربط كارت السوبر ماركت
-    bindCard('السوبر ماركت', openGrocery);
-    // ربط كارت المطاعم (لو الكارت مكتوب عليه مطاعم أو فاست فود)
-    bindCard('المطاعم', openRestaurants); 
-    bindCard('الفاست فود', openRestaurants); 
-});
+// التشغيل الأولي
+updateFinancialUI();
+updateWalletUI();
+checkDoctorNotifications();
 </script>
 </body>
 </html>
