@@ -1,329 +1,798 @@
-<!-- ═════════════════════════════════════════════════════════════
-     WASLA MEDICAL MODULE (Patient + Doctor Flow)
-     يعتمد على WaslaCore الموجود في الملف
-═════════════════════════════════════════════════════════════ -->
-<style>
-    /* ستايلات خاصة بالقطاع الطبي فقط لتجنب التداخل */
-    .med-hero { background: linear-gradient(135deg, #059669, #10B981); color: #fff; border-radius: 20px; padding: 24px; margin-bottom: 20px; }
-    .med-hero h1 { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
-    .med-hero p { font-size: 13px; opacity: 0.9; }
-    
-    .med-search-box { background: #fff; border-radius: 14px; padding: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 16px; }
-    .med-search-box input { border: none; outline: none; width: 100%; font-family: inherit; font-size: 14px; font-weight: 700; }
-    
-    .doctor-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px; margin-bottom: 12px; display: flex; gap: 14px; cursor: pointer; transition: 0.2s; }
-    .doctor-card:hover { border-color: #059669; box-shadow: 0 8px 24px rgba(5, 150, 105, 0.08); transform: translateY(-2px); }
-    .doc-avatar { width: 60px; height: 60px; border-radius: 14px; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
-    .doc-info { flex: 1; }
-    .doc-name { font-size: 16px; font-weight: 900; color: #0F172A; margin-bottom: 2px; }
-    .doc-spec { font-size: 12px; color: #059669; font-weight: 800; margin-bottom: 6px; }
-    .doc-meta { font-size: 11px; color: #64748B; font-weight: 700; display: flex; gap: 12px; }
-    .doc-price { text-align: center; display: flex; flex-direction: column; justify-content: center; }
-    .doc-price-num { font-size: 18px; font-weight: 900; color: #0F172A; }
-    .doc-price-label { font-size: 10px; color: #64748B; font-weight: 700; }
-    
-    .slot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
-    .slot-btn { padding: 10px; border: 1.5px solid #E2E8F0; border-radius: 10px; background: #fff; font-family: inherit; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.2s; }
-    .slot-btn.active { background: #059669; color: #fff; border-color: #059669; }
-    .slot-btn.disabled { background: #F1F5F9; color: #94A3B8; border-color: #F1F5F9; text-decoration: line-through; cursor: not-allowed; }
-    
-    .queue-card { background: linear-gradient(135deg, #064E3B, #059669); color: #fff; border-radius: 20px; padding: 24px; text-align: center; margin-bottom: 16px; }
-    .queue-num { font-size: 64px; font-weight: 900; line-height: 1; margin: 10px 0; }
-</style>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <title>وصلة | WASLA - المنصة الشاملة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* =========================================
+           1. إعدادات الألوان والثيم (CSS)
+           ========================================= */
+        :root {
+            --brand: #059669;
+            --brand-light: #D1FAE5;
+            --brand-gradient: linear-gradient(135deg, #10B981, #0284C7);
+            --dark: #0F172A;
+            --bg: #F4F7FB;
+            --card: #FFFFFF;
+            --text: #1E293B;
+            --muted: #64748B;
+            --border: #E2E8F0;
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366);
+            --wallet-gradient: linear-gradient(135deg, #7C3AED, #4F46E5);
+            --delivery-gradient: linear-gradient(135deg, #F59E0B, #EA580C);
+            --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05);
+            --shadow-md: 0 10px 25px -3px rgba(0,0,0,0.08);
+            --ticker-bg: #FFFBEB;
+            --ticker-text: #B45309;
+        }
 
-<script>
-(function WASLA_MEDICAL_MODULE() {
-    'use strict';
-    
-    // التأكد من وجود النواة
-    if (!window.WaslaCore || !window.Auth || !window.Router) {
-        console.error('❌ Medical Module requires WaslaCore, Auth, and Router.');
-        return;
-    }
+        [data-theme="dark"] {
+            --brand: #10B981;
+            --brand-light: #064E3B;
+            --brand-gradient: linear-gradient(135deg, #059669, #0369A1);
+            --dark: #F8FAFC;
+            --bg: #0B1120;
+            --card: #1E293B;
+            --text: #F1F5F9;
+            --muted: #94A3B8;
+            --border: #334155;
+            --nav-bg: rgba(30, 41, 59, 0.95);
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.3);
+            --shadow-md: 0 10px 25px rgba(0,0,0,0.4);
+            --ticker-bg: #451A03;
+            --ticker-text: #FDE68A;
+        }
 
-    const { Utils, UI, Store } = window.WaslaCore;
-    const Session = window.Auth;
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Cairo', sans-serif; padding-bottom: 80px; transition: 0.3s; overflow-x: hidden; }
+        button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outline: none; }
 
-    // ══════════════════════════════════════════════════════════════
-    // 1. شاشة الأطباء (Medical Hub)
-    // ══════════════════════════════════════════════════════════════
-    window.Router.register('medical', (el) => {
-        const db = Store.load();
-        const doctors = db.doctors || [];
+        /* شاشات التطبيق */
+        .app-view { display: none; animation: fadeIn 0.4s ease; }
+        .app-view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        el.innerHTML = `
-            <div class="med-hero">
-                <h1>احجز مع نخبة الأطباء</h1>
-                <p>صحتك أولوية. احجز موعدك، ادفع العربون، وتابع دورك لحظة بلحظة.</p>
-            </div>
+        /* الهيدر */
+        .top-header { background: var(--card); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .logo-box { width: 48px; height: 48px; background: var(--logo-gradient); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 15px rgba(255,51,102,0.3); position: relative; overflow: hidden; }
+        .logo-box::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); transform: skewX(-25deg); animation: shine 4s infinite; }
+        @keyframes shine { 100% { left: 200%; } }
+        .logo-w { font-family: 'Fredoka One', cursive; color: white; font-size: 32px; margin-top: -4px; z-index: 1; }
+        .brand-text h1 { font-family: 'Tajawal', sans-serif; font-size: 26px; font-weight: 900; color: var(--dark); line-height: 1; margin-bottom: 4px; }
+        .brand-text span { font-family: 'Tajawal', sans-serif; font-size: 11px; font-weight: 900; background: var(--logo-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 5px; display: inline-block; transform: scaleY(1.1); }
+        .header-icons { display: flex; gap: 8px; }
+        .icon-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; }
+        .icon-btn.active { background: var(--brand-light); color: var(--brand); border-color: var(--brand); }
+        .icon-btn:active { transform: scale(0.9); box-shadow: 0 0 15px var(--brand); color: var(--brand); }
 
-            <div class="med-search-box">
-                <i class="fa-solid fa-magnifying-glass" style="color: #94A3B8;"></i>
-                <input type="text" placeholder="ابحث باسم الطبيب أو التخصص..." oninput="MedicalUI.filterDocs(this.value)">
-            </div>
+        /* الشريط الإعلاني المتحرك (Ticker) */
+        .ticker-wrap { width: 100%; overflow: hidden; background: var(--ticker-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 8px 0; box-shadow: var(--shadow-sm); }
+        .ticker-label { background: var(--ticker-text); color: white; padding: 2px 10px; font-size: 11px; font-weight: 800; border-radius: 0 10px 10px 0; margin-left: 10px; z-index: 2; flex-shrink: 0; }
+        .ticker-content { display: flex; white-space: nowrap; animation: ticker 18s linear infinite; }
+        .ticker-content span { color: var(--ticker-text); font-size: 13px; font-weight: 800; padding-left: 50px; }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-            <div id="doctors-list">
-                ${MedicalUI.renderDoctors(doctors)}
-            </div>
-        `;
-    });
+        /* الترحيب */
+        .welcome-area { padding: 20px 20px 10px; }
+        .welcome-area p { font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+        .welcome-area h2 { font-size: 22px; font-weight: 900; color: var(--dark); }
 
-    // ══════════════════════════════════════════════════════════════
-    // 2. وظائف واجهة المريض
-    // ══════════════════════════════════════════════════════════════
-    window.MedicalUI = {
-        renderDoctors: function(doctors) {
-            if (!doctors.length) return `<div style="text-align:center; padding:40px; color:#64748B;">لا يوجد أطباء متاحون حالياً.</div>`;
-            
-            return doctors.map(doc => `
-                <div class="doctor-card" onclick="MedicalUI.openBooking('${doc.id}')">
-                    <div class="doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
-                    <div class="doc-info">
-                        <div class="doc-name">${doc.name}</div>
-                        <div class="doc-spec">${doc.spec}</div>
-                        <div class="doc-meta">
-                            <span><i class="fa-solid fa-location-dot"></i> ${doc.area}</span>
-                            <span><i class="fa-solid fa-star" style="color:#F59E0B;"></i> ${doc.rating || 4.8}</span>
-                        </div>
-                    </div>
-                    <div class="doc-price">
-                        <div class="doc-price-num">${doc.price}</div>
-                        <div class="doc-price-label">ج.م / كشف</div>
-                    </div>
-                </div>
-            `).join('');
-        },
+        /* شريط البحث */
+        .search-container { padding: 0 20px 15px; display: flex; gap: 10px; }
+        .search-box { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 15px; display: flex; align-items: center; padding: 0 15px; box-shadow: var(--shadow-sm); cursor: pointer; }
+        .search-box input { width: 100%; border: none; background: transparent; padding: 15px 0; font-family: 'Cairo'; font-size: 14px; color: var(--text); outline: none; pointer-events: none; }
+        .search-box i { color: var(--muted); font-size: 18px; }
+        .mic-btn { width: 50px; height: 50px; border-radius: 15px; background: var(--brand-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: var(--shadow-sm); }
+        .mic-btn:active { transform: scale(0.9); box-shadow: 0 0 15px var(--brand); }
+
+        /* =========================================
+           Smart Search Overlay (جديد)
+           ========================================= */
+        .search-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 2000; transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
+        .search-overlay.open { transform: translateY(0); }
+        .search-header { padding: 15px 20px; display: flex; gap: 10px; align-items: center; background: var(--card); border-bottom: 1px solid var(--border); }
+        .search-header .search-box { box-shadow: none; background: var(--bg); }
+        .search-header .search-box input { pointer-events: auto; }
+        .search-cancel { font-size: 14px; font-weight: 800; color: var(--brand); cursor: pointer; }
+        .search-content { padding: 20px; overflow-y: auto; flex: 1; }
+        .search-section-title { font-size: 13px; font-weight: 800; color: var(--muted); margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .search-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 25px; }
+        .search-tag { background: var(--card); border: 1px solid var(--border); padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: 700; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .search-tag:active { background: var(--brand-light); border-color: var(--brand); color: var(--brand); }
+        .search-tag i { color: var(--muted); }
+        .search-results-list { display: flex; flex-direction: column; gap: 10px; }
+
+        /* البانر الرئيسي (الهالة) */
+        .hero { background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: 24px; margin: 0 20px 20px; padding: 30px 25px; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(16, 185, 129, 0.4); border-radius: 50%; filter: blur(50px); animation: pulseHalo 4s infinite alternate; }
+        @keyframes pulseHalo { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0.2; } }
+        .hero h1 { font-size: 24px; font-weight: 900; margin-bottom: 8px; line-height: 1.4; position: relative; z-index: 1; }
+        .hero p { font-size: 13px; color: #94A3B8; position: relative; z-index: 1; }
+
+        /* الأقسام */
+        .section-title { padding: 0 20px; margin: 10px 0 15px; font-size: 18px; font-weight: 900; color: var(--dark); display: flex; justify-content: space-between; }
+        .categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
+        .cat-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; box-shadow: var(--shadow-sm); cursor: pointer; transition: 0.2s; }
+        .cat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+        .cat-card:active { transform: scale(0.95); box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); border-color: var(--brand); }
+        .cat-icon { width: 55px; height: 55px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 15px; transition: 0.3s; }
+        .cat-card:active .cat-icon { transform: scale(1.1); }
+        .cat-card h3 { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
+        .cat-card p { font-size: 12px; color: var(--muted); }
+
+        /* =========================================
+           Skeleton Loading (جديد)
+           ========================================= */
+        .skeleton-view { padding: 20px; display: none; }
+        .skeleton-view.active { display: block; }
+        .skeleton-header { height: 60px; width: 100%; background: var(--card); border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); }
+        .skeleton-card { height: 120px; width: 100%; background: var(--card); border-radius: 20px; margin-bottom: 15px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+        .skeleton-shimmer { position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation: shimmer 1.5s infinite; }
+        [data-theme="dark"] .skeleton-shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+
+        /* =========================================
+           شاشات الأقسام (Placeholders) + Waitlist
+           ========================================= */
+        .section-header { display: flex; align-items: center; gap: 15px; padding: 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 70px; z-index: 90; }
+        .back-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 18px; cursor: pointer; }
+        .section-header h2 { font-size: 20px; font-weight: 900; color: var(--dark); }
+        .placeholder-content { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; }
+        .placeholder-icon { width: 100px; height: 100px; border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 45px; margin-bottom: 20px; box-shadow: var(--shadow-md); }
+        .placeholder-content h3 { font-size: 22px; font-weight: 900; color: var(--dark); margin-bottom: 10px; }
+        .placeholder-content p { font-size: 14px; color: var(--muted); max-width: 300px; line-height: 1.8; margin-bottom: 20px; }
         
-        filterDocs: function(query) {
-            const db = Store.load();
-            const q = query.toLowerCase();
-            const filtered = (db.doctors || []).filter(d => 
-                d.name.toLowerCase().includes(q) || d.spec.toLowerCase().includes(q)
-            );
-            document.getElementById('doctors-list').innerHTML = this.renderDoctors(filtered);
-        },
+        /* شريط التقدم وقائمة الانتظار */
+        .progress-container { width: 100%; max-width: 300px; margin-bottom: 25px; }
+        .progress-text { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: var(--muted); margin-bottom: 8px; }
+        .progress-bar-bg { width: 100%; height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--brand-gradient); border-radius: 5px; width: 0%; transition: width 1s ease; }
+        
+        .waitlist-badge { background: var(--brand-light); color: var(--brand); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 6px; }
+        
+        .notify-btn { padding: 15px 30px; border-radius: 15px; background: var(--brand-gradient); color: white; font-weight: 800; font-size: 16px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+        .notify-btn:active { transform: scale(0.95); }
+        .notify-btn.notified { background: var(--card); border: 2px solid var(--brand); color: var(--brand); box-shadow: none; cursor: default; }
 
-        // فتح شاشة الحجز
-        openBooking: function(docId) {
-            const user = Session.getCurrentUser();
-            if (!user) {
-                UI.toast('يجب تسجيل الدخول أولاً', 'error');
-                window.AuthUI.open('login');
+        /* =========================================
+           شاشة التوصيل (Delivery View)
+           ========================================= */
+        .delivery-header { display: flex; align-items: center; gap: 15px; padding: 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 70px; z-index: 90; }
+        .delivery-header h2 { font-size: 20px; font-weight: 900; color: var(--dark); }
+        .delivery-form { padding: 20px; }
+        .delivery-banner { background: var(--delivery-gradient); border-radius: 20px; padding: 25px; color: white; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-md); }
+        .delivery-banner h1 { font-size: 24px; font-weight: 900; margin-bottom: 5px; }
+        .delivery-banner p { font-size: 13px; opacity: 0.9; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+        .input-field { width: 100%; padding: 12px 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; font-family: 'Cairo'; color: var(--text); font-size: 14px; outline: none; }
+        .input-field:focus { border-color: var(--brand); }
+        .location-btn { width: 100%; padding: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-family: 'Cairo'; font-weight: 700; color: var(--text); margin-bottom: 15px; }
+        .location-btn.active { background: var(--brand-light); border-color: var(--brand); color: var(--brand); }
+        .location-btn i { font-size: 20px; }
+        .gps-text { font-size: 11px; color: var(--muted); text-align: center; margin-top: -10px; margin-bottom: 15px; display: block; }
+        .delivery-submit { width: 100%; padding: 16px; border-radius: 14px; background: var(--delivery-gradient); color: white; font-weight: 900; font-size: 16px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3); margin-top: 10px; }
+        .delivery-submit:active { transform: scale(0.96); }
+
+        /* شريط التنبيهات اللايف */
+        .live-banner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: var(--card); border-radius: 15px; padding: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 9999; transition: 0.5s; border-right: 5px solid var(--brand); }
+        .live-banner.show { top: 20px; }
+        .live-banner i { font-size: 28px; color: var(--brand); }
+        .live-banner h4 { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 3px; }
+        .live-banner p { font-size: 12px; color: var(--muted); }
+
+        /* =========================================
+           Bottom Nav (Bubble Animation) - جديد
+           ========================================= */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding: 12px 0; z-index: 100; backdrop-filter: blur(10px); height: 75px; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: transparent; color: var(--muted); font-size: 10px; font-weight: 700; width: 20%; transition: 0.3s; position: relative; }
+        
+        .nav-icon-wrap { position: relative; display: flex; align-items: center; justify-content: center; width: 45px; height: 30px; transition: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 2; }
+        .nav-icon-wrap i { font-size: 20px; transition: 0.3s; }
+        
+        .nav-item.active .nav-icon-wrap { transform: translateY(-20px); }
+        .nav-item.active .nav-icon-wrap i { color: #fff; }
+        
+        .nav-item.active .nav-icon-wrap::before { content: ''; position: absolute; width: 45px; height: 45px; background: var(--brand); border-radius: 50%; top: -7px; z-index: -1; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4); animation: popBubble 0.3s ease-out forwards; }
+        .nav-item.active span { transform: translateY(-15px); color: var(--brand); font-weight: 900; }
+
+        @keyframes popBubble {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* المودالات */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+        .modal-content { background: var(--card); width: 92%; max-width: 450px; border-radius: 24px; padding: 25px; transform: translateY(20px); transition: 0.3s; max-height: 90vh; overflow-y: auto; }
+        .modal-overlay.open .modal-content { transform: translateY(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .close-btn { background: var(--bg); width: 35px; height: 35px; border-radius: 50%; color: var(--text); display: flex; align-items: center; justify-content: center; }
+        .submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--brand-gradient); color: white; font-weight: 800; font-size: 15px; }
+        .submit-btn:active { transform: scale(0.96); box-shadow: 0 0 15px var(--brand); }
+        .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--dark); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 3000; text-align:center; width: 85%; max-width: 400px; }
+        .toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+    </style>
+</head>
+<body>
+
+    <!-- شريط التنبيهات اللايف -->
+    <div id="live-banner" class="live-banner">
+        <i class="fa-solid fa-bell"></i>
+        <div>
+            <h4 id="banner-title">إشعار جديد</h4>
+            <p id="banner-desc">تفاصيل العرض</p>
+        </div>
+    </div>
+
+    <!-- الهيدر -->
+    <header class="top-header">
+        <div class="brand">
+            <div class="logo-box"><div class="logo-w">W</div></div>
+            <div class="brand-text"><h1>وصلة</h1><span>WASLA</span></div>
+        </div>
+        <div class="header-icons">
+            <button class="icon-btn" onclick="showToast('لا توجد إشعارات جديدة')"><i class="fa-regular fa-bell"></i></button>
+            <button class="icon-btn" id="gps-btn" onclick="toggleGPS()"><i class="fa-solid fa-location-dot"></i></button>
+            <button class="icon-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
+        </div>
+    </header>
+
+    <!-- الشريط الإعلاني المتحرك (Ticker) -->
+    <div class="ticker-wrap">
+        <div class="ticker-label">عروض 📢</div>
+        <div class="ticker-content">
+            <span>🔥 عرض خاص: توصيل مجاني لأول 100 طلب في شبين القناطر! 🔥</span>
+            <span>✨ خصم 20% على الكشف الطبي باستخدام كود WASLA20 ✨</span>
+            <span>🚀 محل جديد انضم لوضلة: خصم 15% على أول طلب 🚀</span>
+        </div>
+    </div>
+
+    <!-- ==================== Smart Search Overlay (جديد) ==================== -->
+    <div class="search-overlay" id="search-overlay">
+        <div class="search-header">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="search-input" placeholder="ابحث عن خدمة..." oninput="handleSearch(this.value)">
+            </div>
+            <div class="search-cancel" onclick="closeSearch()">إلغاء</div>
+        </div>
+        <div class="search-content" id="search-content">
+            <div class="search-section-title">آخر ما بحثت عنه <i class="fa-solid fa-clock-rotate-left"></i></div>
+            <div class="search-tags">
+                <div class="search-tag" onclick="executeSearch('دكتور أسنان')"><i class="fa-solid fa-magnifying-glass"></i> دكتور أسنان</div>
+                <div class="search-tag" onclick="executeSearch('سوبر ماركت')"><i class="fa-solid fa-magnifying-glass"></i> سوبر ماركت</div>
+            </div>
+
+            <div class="search-section-title">الأكثر طلباً 🔥</div>
+            <div class="search-tags">
+                <div class="search-tag" onclick="executeSearch('صيدلية')"><i class="fa-solid fa-fire" style="color:#EA580C"></i> صيدلية</div>
+                <div class="search-tag" onclick="executeSearch('مغسلة سيارات')"><i class="fa-solid fa-fire" style="color:#EA580C"></i> مغسلة سيارات</div>
+                <div class="search-tag" onclick="executeSearch('سباك')"><i class="fa-solid fa-fire" style="color:#EA580C"></i> سباك</div>
+            </div>
+
+            <div class="search-section-title">تصفح الأقسام <i class="fa-solid fa-layer-group"></i></div>
+            <div class="search-tags">
+                <div class="search-tag" onclick="executeSearch('طبيب')"><i class="fa-solid fa-heart-pulse"></i> الصحة</div>
+                <div class="search-tag" onclick="executeSearch('سيارة')"><i class="fa-solid fa-car"></i> السيارات</div>
+                <div class="search-tag" onclick="executeSearch('مدرس')"><i class="fa-solid fa-graduation-cap"></i> التعليم</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== الشاشات (Views) ==================== -->
+    <main id="view-home" class="app-view active">
+        <div class="welcome-area">
+            <p><i class="fa-solid fa-location-dot" style="color:var(--brand)"></i> شبين القناطر، القليوبية</p>
+            <h2>أهلاً بك يا أحمد 👋</h2>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box" onclick="openSearch()">
+                <input type="text" placeholder="ابحث عن دكتور، سيارة، أو مطعم..." readonly>
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+            <button class="mic-btn" onclick="startVoiceSearch()"><i class="fa-solid fa-microphone"></i></button>
+        </div>
+
+        <div class="hero">
+            <h1>كل احتياجاتك،<br>أقرب مع وصلة.</h1>
+            <p>الصحة، السيارات، التعليم، التسوق والصيانة في مكان واحد.</p>
+        </div>
+
+        <div class="section-title"><span>اكتشف الأقسام</span></div>
+        <div class="categories-grid">
+            <div class="cat-card" onclick="openSection('medical')">
+                <div class="cat-icon" style="background: #ECFDF5; color: #059669;"><i class="fa-solid fa-heart-pulse"></i></div>
+                <h3>الصحة والطب</h3><p>أطباء، صيدليات، وتمريض</p>
+            </div>
+            <div class="cat-card" onclick="openSection('cars')">
+                <div class="cat-icon" style="background: #E0F2FE; color: #0284C7;"><i class="fa-solid fa-car"></i></div>
+                <h3>خدمات السيارات</h3><p>صيانة، غسيل، وسحب</p>
+            </div>
+            <div class="cat-card" onclick="openSection('education')">
+                <div class="cat-icon" style="background: #F3E8FF; color: #7C3AED;"><i class="fa-solid fa-graduation-cap"></i></div>
+                <h3>وصلة للتعليم</h3><p>مدرسون ومجموعات</p>
+            </div>
+            <div class="cat-card" onclick="openSection('shopping')">
+                <div class="cat-icon" style="background: #FFF7ED; color: #EA580C;"><i class="fa-solid fa-cart-shopping"></i></div>
+                <h3>السوبر ماركت</h3><p>كل احتياجات البيت</p>
+            </div>
+            <div class="cat-card" onclick="openSection('maintenance')">
+                <div class="cat-icon" style="background: #FEF2F2; color: #E11D48;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                <h3>الصيانة المنزلية</h3><p>سباكة وكهرباء</p>
+            </div>
+            <div class="cat-card" onclick="openSection('delivery')">
+                <div class="cat-icon" style="background: #FFF7ED; color: #F59E0B;"><i class="fa-solid fa-motorcycle"></i></div>
+                <h3>توصيل مجاني</h3><p>أي حاجة توصلك في دقايق</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== Skeleton Loading View (جديد) ==================== -->
+    <div id="view-skeleton" class="app-view">
+        <div class="skeleton-view active">
+            <div class="skeleton-header"><div class="skeleton-shimmer"></div></div>
+            <div class="skeleton-card"><div class="skeleton-shimmer"></div></div>
+            <div class="skeleton-card"><div class="skeleton-shimmer"></div></div>
+            <div class="skeleton-card"><div class="skeleton-shimmer"></div></div>
+            <div class="skeleton-card"><div class="skeleton-shimmer"></div></div>
+        </div>
+    </div>
+
+    <!-- ==================== شاشة التوصيل ==================== -->
+    <div id="view-delivery" class="app-view">
+        <div class="delivery-header">
+            <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
+            <h2>توصيل مجاني</h2>
+        </div>
+        <div class="delivery-form">
+            <div class="delivery-banner">
+                <h1>عايز توصل إيه؟ 🛵</h1>
+                <p>إحنا بنوصل أي حاجة لأي حد في شبين القناطر مجاناً!</p>
+            </div>
+            <div class="input-group">
+                <label>نوع الشحنة / الحاجة اللي عايز توصلها</label>
+                <input type="text" id="delivery-item" class="input-field" placeholder="مثال: شنطة، فلوس، أوراق، هدية...">
+            </div>
+            <div class="input-group">
+                <label>رقم تليفونك</label>
+                <input type="tel" id="delivery-phone" class="input-field" placeholder="01xxxxxxxxx">
+            </div>
+            <div class="input-group">
+                <label>موقع الاستلام (من فين؟)</label>
+                <button class="location-btn" id="pickup-btn" onclick="getLocation('pickup')">
+                    <span>تحديد موقع الاستلام</span>
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                </button>
+                <span class="gps-text" id="pickup-status">لم يتم تحديد الموقع بعد</span>
+            </div>
+            <div class="input-group">
+                <label>موقع التسليم (لحد فين؟)</label>
+                <button class="location-btn" id="dropoff-btn" onclick="getLocation('dropoff')">
+                    <span>تحديد موقع التسليم</span>
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                </button>
+                <span class="gps-text" id="dropoff-status">لم يتم تحديد الموقع بعد</span>
+            </div>
+            <button class="delivery-submit" onclick="submitDelivery()">اطلب التوصيل الآن</button>
+        </div>
+    </div>
+
+    <!-- ==================== شاشات الأقسام (Placeholders + Waitlist) ==================== -->
+    
+    <!-- القسم الطبي -->
+    <div id="view-medical" class="app-view">
+        <div class="section-header">
+            <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
+            <h2>الصحة والطب</h2>
+        </div>
+        <div class="placeholder-content">
+            <div class="placeholder-icon" style="background: #ECFDF5; color: #059669;"><i class="fa-solid fa-heart-pulse"></i></div>
+            <h3>قسم الطب قيد الإنشاء</h3>
+            <p>قريباً جداً هنقدر نحجز أطباء، نتابع دورنا في العيادة، ونشتري مستلزمات طبية.</p>
+            
+            <div class="waitlist-badge"><i class="fa-solid fa-users"></i> <span id="count-medical">1,245</span> شخص في قائمة الانتظار</div>
+            
+            <div class="progress-container">
+                <div class="progress-text"><span>جاري بناء القسم</span><span>80%</span></div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 80%;"></div></div>
+            </div>
+
+            <button id="btn-medical" class="notify-btn" onclick="joinWaitlist('medical', this)"><i class="fa-solid fa-bell"></i> بلغني عند الافتتاح</button>
+        </div>
+    </div>
+
+    <!-- قسم السيارات -->
+    <div id="view-cars" class="app-view">
+        <div class="section-header">
+            <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
+            <h2>خدمات السيارات</h2>
+        </div>
+        <div class="placeholder-content">
+            <div class="placeholder-icon" style="background: #E0F2FE; color: #0284C7;"><i class="fa-solid fa-car"></i></div>
+            <h3>قسم السيارات قيد الإنشاء</h3>
+            <p>قريباً هنوفر لك مغسلة سيارات، ونش، وشحن بطارية وميكانيكي ييجي لحد عندك.</p>
+            
+            <div class="waitlist-badge"><i class="fa-solid fa-users"></i> <span id="count-cars">850</span> شخص في قائمة الانتظار</div>
+            
+            <div class="progress-container">
+                <div class="progress-text"><span>جاري بناء القسم</span><span>65%</span></div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 65%;"></div></div>
+            </div>
+
+            <button id="btn-cars" class="notify-btn" onclick="joinWaitlist('cars', this)"><i class="fa-solid fa-bell"></i> بلغني عند الافتتاح</button>
+        </div>
+    </div>
+
+    <!-- قسم التعليم -->
+    <div id="view-education" class="app-view">
+        <div class="section-header">
+            <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
+            <h2>وصلة للتعليم</h2>
+        </div>
+        <div class="placeholder-content">
+            <div class="placeholder-icon" style="background: #F3E8FF; color: #7C3AED;"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h3>قسم التعليم قيد الإنشاء</h3>
+            <p>قريباً هنقدر نحجز مجموعات دراسية، ونشوف المدرسين المتاحين في منطقتك.</p>
+            
+            <div class="waitlist-badge"><i class="fa-solid fa-users"></i> <span id="count-education">2,100</span> شخص في قائمة الانتظار</div>
+            
+            <div class="progress-container">
+                <div class="progress-text"><span>جاري بناء القسم</span><span>45%</span></div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 45%;"></div></div>
+            </div>
+
+            <button id="btn-education" class="notify-btn" onclick="joinWaitlist('education', this)"><i class="fa-solid fa-bell"></i> بلغني عند الافتتاح</button>
+        </div>
+    </div>
+
+    <!-- قسم السوبر ماركت -->
+    <div id="view-shopping" class="app-view">
+        <div class="section-header">
+            <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
+            <h2>السوبر ماركت</h2>
+        </div>
+        <div class="placeholder-content">
+            <div class="placeholder-icon" style="background: #FFF7ED; color: #EA580C;"><i class="fa-solid fa-cart-shopping"></i></div>
+            <h3>قسم التسوق قيد الإنشاء</h3>
+            <p>قريباً هنوفر لك كل احتياجات البيت من السوبر ماركت لحد باب البيت.</p>
+            
+            <div class="waitlist-badge"><i class="fa-solid fa-users"></i> <span id="count-shopping">3,420</span> شخص في قائمة الانتظار</div>
+            
+            <div class="progress-container">
+                <div class="progress-text"><span>جاري بناء القسم</span><span>90%</span></div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 90%;"></div></div>
+            </div>
+
+            <button id="btn-shopping" class="notify-btn" onclick="joinWaitlist('shopping', this)"><i class="fa-solid fa-bell"></i> بلغني عند الافتتاح</button>
+        </div>
+    </div>
+
+    <!-- قسم الصيانة -->
+    <div id="view-maintenance" class="app-view">
+        <div class="section-header">
+            <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
+            <h2>الصيانة المنزلية</h2>
+        </div>
+        <div class="placeholder-content">
+            <div class="placeholder-icon" style="background: #FEF2F2; color: #E11D48;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+            <h3>قسم الصيانة قيد الإنشاء</h3>
+            <p>قريباً هنوفر لك سباك، كهربائي، ونجار موثوق في أسرع وقت.</p>
+            
+            <div class="waitlist-badge"><i class="fa-solid fa-users"></i> <span id="count-maintenance">1,100</span> شخص في قائمة الانتظار</div>
+            
+            <div class="progress-container">
+                <div class="progress-text"><span>جاري بناء القسم</span><span>30%</span></div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 30%;"></div></div>
+            </div>
+
+            <button id="btn-maintenance" class="notify-btn" onclick="joinWaitlist('maintenance', this)"><i class="fa-solid fa-bell"></i> بلغني عند الافتتاح</button>
+        </div>
+    </div>
+
+
+    <!-- ==================== مودال الشكاوى ==================== -->
+    <div class="modal-overlay" id="complaint-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>الشكاوى والاقتراحات</h2>
+                <button class="close-btn" onclick="closeModal('complaint-modal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="input-group">
+                <label>نوع الرسالة</label>
+                <select class="input-field">
+                    <option>اقتراح لتطوير المنصة</option>
+                    <option>شكوى بخصوص خدمة</option>
+                    <option>مشكلة تقنية</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>تفاصيل الرسالة</label>
+                <textarea class="input-field" placeholder="اكتب تفاصيل..."></textarea>
+            </div>
+            <button class="submit-btn" onclick="closeModal('complaint-modal'); showToast('تم إرسال رسالتك بنجاح!')">إرسال</button>
+        </div>
+    </div>
+
+    <!-- ==================== الشريط السفلي (Bottom Nav - Bubble) ==================== -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="navigateTo('home', this)">
+            <div class="nav-icon-wrap"><i class="fa-solid fa-house"></i></div>
+            <span>الرئيسية</span>
+        </button>
+        <button class="nav-item" onclick="showToast('قريباً')">
+            <div class="nav-icon-wrap"><i class="fa-solid fa-box"></i></div>
+            <span>طلباتي</span>
+        </button>
+        <button class="nav-item" onclick="openModal('complaint-modal')">
+            <div class="nav-icon-wrap"><i class="fa-solid fa-headset"></i></div>
+            <span>الدعم</span>
+        </button>
+        <button class="nav-item" onclick="showToast('محفظتك: 150 ج.م')">
+            <div class="nav-icon-wrap"><i class="fa-solid fa-wallet"></i></div>
+            <span>المحفظة</span>
+        </button>
+        <button class="nav-item" onclick="showToast('قريباً')">
+            <div class="nav-icon-wrap"><i class="fa-solid fa-user"></i></div>
+            <span>حسابي</span>
+        </button>
+    </nav>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // ==========================================
+        // الجزء الأول: السكريبت الأساسي
+        // ==========================================
+
+        // 1. الثيم (الوضع الليلي)
+        const savedTheme = localStorage.getItem('wasla_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        if(savedTheme === 'dark') document.getElementById('theme-icon').className = 'fa-solid fa-sun';
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('wasla_theme', next);
+            document.getElementById('theme-icon').className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+
+        // 2. التنقل بين الشاشات (مع Skeleton Loading)
+        let currentView = 'home';
+
+        function navigateTo(viewId, btnElement = null) {
+            // تحديث الـ Bottom Nav
+            if (btnElement) {
+                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+                btnElement.classList.add('active');
+            } else {
+                // لو جاي من كارت مش من الناف بار، نفعل زرار الرئيسية
+                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+                document.querySelector('.nav-item').classList.add('active');
+            }
+
+            // لو بترجع للرئيسية مباشرة
+            if (viewId === 'home') {
+                document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+                document.getElementById('view-home').classList.add('active');
+                currentView = 'home';
+                window.scrollTo(0, 0);
                 return;
             }
 
-            const db = Store.load();
-            const doc = db.doctors.find(d => d.id === docId);
-            if (!doc) return;
+            // محاكاة التحميل (Skeleton)
+            document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+            document.getElementById('view-skeleton').classList.add('active');
+            window.scrollTo(0, 0);
 
-            // توليد المواعيد (محاكاة: من 5 عصراً لـ 9 مساءً كل 20 دقيقة)
-            const slots = [];
-            for(let h=17; h<21; h++) {
-                slots.push(`${h}:00`, `${h}:20`, `${h}:40`);
-            }
+            setTimeout(() => {
+                document.getElementById('view-skeleton').classList.remove('active');
+                const target = document.getElementById('view-' + viewId);
+                if(target) target.classList.add('active');
+                currentView = viewId;
+            }, 600); // 600ms تأخير وهمي
+        }
 
-            const body = document.getElementById('modal-generic-body');
-            body.innerHTML = `
-                <button class="modal-close" onclick="UI.modal('modal-generic', { open: false })"><i class="fa-solid fa-xmark"></i></button>
-                <h3 style="font-size:18px; font-weight:900; margin-bottom:4px;">حجز موعد</h3>
-                <p style="font-size:13px; color:#64748B; margin-bottom:16px;">${doc.name} - ${doc.spec}</p>
-                
-                <label class="label">اختر التاريخ</label>
-                <input type="date" id="book-date" class="input" value="${new Date().toISOString().split('T')[0]}" min="${new Date().toISOString().split('T')[0]}" style="margin-bottom:12px;">
-                
-                <label class="label">المواعيد المتاحة</label>
-                <div class="slot-grid">
-                    ${slots.map(s => `<button class="slot-btn" onclick="MedicalUI.selectSlot(this, '${s}')">${s}</button>`).join('')}
+        // 3. المودالات والإشعارات
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // 4. فتح الأقسام
+        function openSection(section) {
+            navigateTo(section);
+        }
+
+        // 5. البحث الذكي (Smart Search)
+        function openSearch() {
+            document.getElementById('search-overlay').classList.add('open');
+            setTimeout(() => document.getElementById('search-input').focus(), 300);
+        }
+        function closeSearch() {
+            document.getElementById('search-overlay').classList.remove('open');
+            document.getElementById('search-input').value = '';
+            // إعادة ضبط المحتوى الأصلي
+            document.getElementById('search-content').innerHTML = `
+                <div class="search-section-title">آخر ما بحثت عنه <i class="fa-solid fa-clock-rotate-left"></i></div>
+                <div class="search-tags">
+                    <div class="search-tag" onclick="executeSearch('دكتور أسنان')"><i class="fa-solid fa-magnifying-glass"></i> دكتور أسنان</div>
+                    <div class="search-tag" onclick="executeSearch('سوبر ماركت')"><i class="fa-solid fa-magnifying-glass"></i> سوبر ماركت</div>
                 </div>
-
-                <div style="background:#F8FAFC; padding:16px; border-radius:12px; margin:16px 0; text-align:center;">
-                    <div style="font-size:12px; font-weight:800; color:#64748B;">قيمة الكشف</div>
-                    <div style="font-size:24px; font-weight:900; color:#059669;">${doc.price} ج.م</div>
+                <div class="search-section-title">الأكثر طلباً 🔥</div>
+                <div class="search-tags">
+                    <div class="search-tag" onclick="executeSearch('صيدلية')"><i class="fa-solid fa-fire" style="color:#EA580C"></i> صيدلية</div>
+                    <div class="search-tag" onclick="executeSearch('مغسلة سيارات')"><i class="fa-solid fa-fire" style="color:#EA580C"></i> مغسلة سيارات</div>
+                    <div class="search-tag" onclick="executeSearch('سباك')"><i class="fa-solid fa-fire" style="color:#EA580C"></i> سباك</div>
                 </div>
-
-                <button class="btn btn-primary btn-block" onclick="MedicalUI.submitBooking('${doc.id}')">
-                    <i class="fa-solid fa-check"></i> تأكيد الحجز
-                </button>
+                <div class="search-section-title">تصفح الأقسام <i class="fa-solid fa-layer-group"></i></div>
+                <div class="search-tags">
+                    <div class="search-tag" onclick="executeSearch('طبيب')"><i class="fa-solid fa-heart-pulse"></i> الصحة</div>
+                    <div class="search-tag" onclick="executeSearch('سيارة')"><i class="fa-solid fa-car"></i> السيارات</div>
+                    <div class="search-tag" onclick="executeSearch('مدرس')"><i class="fa-solid fa-graduation-cap"></i> التعليم</div>
+                </div>
             `;
-            UI.modal('modal-generic', { open: true });
-        },
-
-        selectedSlot: null,
-        selectSlot: function(btn, time) {
-            document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            this.selectedSlot = time;
-        },
-
-        submitBooking: function(docId) {
-            if (!this.selectedSlot) return UI.toast('الرجاء اختيار موعد', 'error');
-            
-            const date = document.getElementById('book-date').value;
-            const user = Session.getCurrentUser();
-            const db = Store.load();
-            const doc = db.doctors.find(d => d.id === docId);
-
-            // إنشاء الحجز
-            const appointment = {
-                id: Utils.id('apt'),
-                patientId: user.id,
-                patientName: user.name,
-                doctorId: doc.id,
-                doctorName: doc.name,
-                doctorSpec: doc.spec,
-                date: date,
-                slot: this.selectedSlot,
-                price: doc.price,
-                status: 'waiting', // waiting, in-progress, completed, canceled
-                createdAt: Date.now()
-            };
-
-            db.appointments.push(appointment);
-            Store.save(db);
-
-            UI.modal('modal-generic', { open: false });
-            UI.toast('✅ تم تأكيد الحجز بنجاح!');
-            
-            // توجيه المريض لشاشة تتبع الدور
-            window.Router.go('queue', { appointmentId: appointment.id });
         }
-    };
-
-    // ══════════════════════════════════════════════════════════════
-    // 3. شاشة تتبع الدور (Queue)
-    // ══════════════════════════════════════════════════════════════
-    window.Router.register('queue', (el, params) => {
-        const db = Store.load();
-        const apptId = params.appointmentId;
-        
-        // لو مفيش ID، نجيب آخر حجز نشط للمريض
-        const user = Session.getCurrentUser();
-        const appt = apptId 
-            ? db.appointments.find(a => a.id === apptId)
-            : db.appointments.filter(a => a.patientId === user.id && a.status === 'waiting').pop();
-
-        if (!appt) {
-            el.innerHTML = `<div style="text-align:center; padding:40px;">لا يوجد حجز نشط حالياً.</div>`;
-            return;
-        }
-
-        // حساب الترتيب (كام واحد قبله في نفس اليوم)
-        const sameDayAppts = db.appointments
-            .filter(a => a.doctorId === appt.doctorId && a.date === appt.date && a.status === 'waiting')
-            .sort((a, b) => a.createdAt - b.createdAt);
-        
-        const position = sameDayAppts.findIndex(a => a.id === appt.id) + 1;
-        const ahead = position - 1;
-
-        el.innerHTML = `
-            <div class="queue-card">
-                <div style="font-size:14px; font-weight:800; opacity:0.9;">دورك في طابور</div>
-                <div style="font-size:18px; font-weight:900; margin-top:4px;">${appt.doctorName}</div>
-                <div class="queue-num">${position}</div>
-                <div style="font-size:13px; font-weight:800;">فاضل ${ahead} حالة قبلك</div>
-            </div>
-
-            <div style="background:#fff; border:1px solid #E2E8F0; border-radius:16px; padding:16px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                    <span style="color:#64748B; font-size:13px; font-weight:700;">التاريخ:</span>
-                    <span style="font-weight:900; font-size:13px;">${appt.date}</span>
-                </div>
-                <div style="display:flex; justify-content:space-between;">
-                    <span style="color:#64748B; font-size:13px; font-weight:700;">الوقت:</span>
-                    <span style="font-weight:900; font-size:13px;">${appt.slot}</span>
-                </div>
-            </div>
-            
-            <button class="btn btn-ghost btn-block" style="margin-top:16px;" onclick="Router.go('home')">
-                <i class="fa-solid fa-house"></i> العودة للرئيسية
-            </button>
-        `;
-    });
-
-    // ══════════════════════════════════════════════════════════════
-    // 4. شاشة عيادتي (Doctor Dashboard)
-    // ══════════════════════════════════════════════════════════════
-    window.Router.register('clinic', (el) => {
-        const user = Session.getCurrentUser();
-        // التأكد إنه دكتور
-        if (!user || !user.contexts.includes('doctor')) {
-            el.innerHTML = `<div style="text-align:center; padding:40px;">غير مصرح لك بدخول هذه الصفحة.</div>`;
-            return;
-        }
-
-        const db = Store.load();
-        const docId = 'd1'; // نفترض إنه دكتور 1 للتجربة
-        const today = new Date().toISOString().split('T')[0];
-        
-        const myAppts = db.appointments.filter(a => a.doctorId === docId && a.date === today && a.status !== 'completed');
-        const current = myAppts.find(a => a.status === 'in-progress');
-        const waiting = myAppts.filter(a => a.status === 'waiting');
-
-        el.innerHTML = `
-            <div style="background:#0F172A; color:#fff; border-radius:20px; padding:24px; margin-bottom:20px;">
-                <h1 style="font-size:20px; font-weight:900; margin-bottom:4px;">عيادتي اليوم</h1>
-                <p style="font-size:13px; opacity:0.8;">إدارة المرضى واستدعاء الحالات.</p>
-            </div>
-
-            ${current ? `
-                <div style="background:#ECFDF5; border:1px solid #059669; border-radius:16px; padding:16px; margin-bottom:16px;">
-                    <div style="font-size:12px; color:#059669; font-weight:900; margin-bottom:4px;">المريض الحالي</div>
-                    <div style="font-size:16px; font-weight:900;">${current.patientName}</div>
-                    <div style="font-size:13px; color:#64748B; margin-top:4px;">${current.slot}</div>
-                    <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="ClinicUI.complete('${current.id}')">
-                        <i class="fa-solid fa-check"></i> إنهاء الزيارة
-                    </button>
-                </div>
-            ` : waiting.length ? `
-                <button class="btn btn-primary btn-block btn-lg" style="margin-bottom:16px;" onclick="ClinicUI.callNext('${docId}')">
-                    <i class="fa-solid fa-bullhorn"></i> استدعاء المريض التالي
-                </button>
-            ` : `
-                <div style="text-align:center; padding:40px; color:#64748B;">لا يوجد مرضى في الانتظار.</div>
-            `}
-
-            <h3 style="font-size:16px; font-weight:900; margin-bottom:12px;">قائمة الانتظار (${waiting.length})</h3>
-            ${waiting.map(a => `
-                <div style="background:#fff; border:1px solid #E2E8F0; border-radius:12px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between;">
-                    <div>
-                        <div style="font-weight:900; font-size:14px;">${a.patientName}</div>
-                        <div style="font-size:12px; color:#64748B;">${a.slot}</div>
+        function handleSearch(val) {
+            const content = document.getElementById('search-content');
+            if (val.trim() === '') {
+                closeSearch(); // إعادة ضبط لو فاضي
+                openSearch();
+                return;
+            }
+            // محاكاة نتائج البحث
+            content.innerHTML = `
+                <div class="search-section-title">نتائج البحث عن: "${val}"</div>
+                <div class="search-results-list">
+                    <div class="search-tag" style="justify-content: flex-start; padding: 15px;">
+                        <i class="fa-solid fa-magnifying-glass" style="color: var(--brand)"></i> 
+                        <span>${val} - طبيب متاح الآن</span>
                     </div>
-                    <button class="btn btn-ghost btn-sm" onclick="ClinicUI.callPatient('${a.id}')">استدعاء</button>
+                    <div class="search-results-list" style="margin-top:10px;">
+                         <div class="search-tag" style="justify-content: flex-start; padding: 15px;">
+                            <i class="fa-solid fa-location-dot" style="color: var(--brand)"></i> 
+                            <span>${val} - عيادة في شبين القناطر</span>
+                        </div>
+                    </div>
                 </div>
-            `).join('')}
-        `;
-    });
+            `;
+        }
+        function executeSearch(val) {
+            closeSearch();
+            showToast(`جاري البحث عن: ${val}`);
+            setTimeout(() => navigateTo('skeleton'), 500); // نستخدم الـ Skeleton الموجود
+        }
 
-    window.ClinicUI = {
-        callNext: function(docId) {
-            const db = Store.load();
-            const today = new Date().toISOString().split('T')[0];
-            const next = db.appointments.find(a => a.doctorId === docId && a.date === today && a.status === 'waiting');
-            if (next) this.callPatient(next.id);
-        },
-        callPatient: function(aptId) {
-            const db = Store.load();
-            const appt = db.appointments.find(a => a.id === aptId);
-            if (appt) {
-                appt.status = 'in-progress';
-                Store.save(db);
-                UI.toast('تم استدعاء المريض');
-                window.Router.go('clinic'); // إعادة تحميل الصفحة
-            }
-        },
-        complete: function(aptId) {
-            const db = Store.load();
-            const appt = db.appointments.find(a => a.id === aptId);
-            if (appt) {
-                appt.status = 'completed';
-                Store.save(db);
-                UI.toast('تم إنهاء الزيارة');
-                window.Router.go('clinic');
+        // 6. البحث الصوتي
+        function startVoiceSearch() {
+            showToast('جاري الاستماع لطلبك... 🎤');
+            setTimeout(() => {
+                executeSearch("دكتور أسنان قريب");
+            }, 2000);
+        }
+
+        // 7. الجي بي إس والإشعارات اللايف
+        let gpsActive = false;
+        function toggleGPS() {
+            const btn = document.getElementById('gps-btn');
+            gpsActive = !gpsActive;
+            if(gpsActive) {
+                btn.classList.add('active');
+                showToast('تم تفعيل تتبع الموقع (محاكاة)');
+                setTimeout(() => {
+                    const banner = document.getElementById('live-banner');
+                    document.getElementById('banner-title').innerText = 'إنت قريب من صيدلية العزبي!';
+                    document.getElementById('banner-desc').innerText = 'خصم 10% على وصلة لو اشتريت دلوقتي.';
+                    banner.classList.add('show');
+                    setTimeout(() => banner.classList.remove('show'), 5000);
+                }, 2000);
+            } else {
+                btn.classList.remove('active');
+                showToast('تم إيقاف تتبع الموقع');
             }
         }
-    };
 
-    console.log('✅ [WASLA MEDICAL] Module Loaded Successfully.');
-})();
-</script>
+        // 8. قائمة الانتظار (Waitlist)
+        function joinWaitlist(section, btn) {
+            // التأكد إنه مسجل قبل كده
+            if(localStorage.getItem('waitlist_' + section)) {
+                return showToast('أنت مسجل بالفعل في قائمة الانتظار!');
+            }
+
+            // تحديث الواجهة
+            btn.classList.add('notified');
+            btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> تم تسجيلك بنجاح`;
+            btn.onclick = null;
+
+            // زيادة العداد
+            const countEl = document.getElementById('count-' + section);
+            let currentCount = parseInt(countEl.innerText.replace(/,/g, ''));
+            let newCount = currentCount + 1;
+            countEl.innerText = newCount.toLocaleString('en-US'); // عشان الفاصلة
+
+            // حفظ الحالة
+            localStorage.setItem('waitlist_' + section, 'true');
+            showToast('تم تسجيل اهتمامك! هنبلغك أول ما القسم يفتح.');
+        }
+
+        // استرجاع حالة قائمة الانتظار عند فتح الصفحة
+        window.onload = function() {
+            ['medical', 'cars', 'education', 'shopping', 'maintenance'].forEach(section => {
+                if(localStorage.getItem('waitlist_' + section)) {
+                    const btn = document.getElementById('btn-' + section);
+                    if(btn) {
+                        btn.classList.add('notified');
+                        btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> أنت في قائمة الانتظار`;
+                        btn.onclick = null;
+                    }
+                }
+            });
+        }
+
+        // 9. نظام التوصيل
+        let pickupCoords = null;
+        let dropoffCoords = null;
+
+        function getLocation(type) {
+            if(!navigator.geolocation) return showToast('المتصفح لا يدعم الموقع');
+            const btn = document.getElementById(type + '-btn');
+            const status = document.getElementById(type + '-status');
+            status.innerText = 'جاري تحديد الموقع...';
+
+            navigator.geolocation.getCurrentPosition(pos => {
+                const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                if(type === 'pickup') pickupCoords = coords; else dropoffCoords = coords;
+                btn.classList.add('active');
+                btn.innerHTML = `<span>تم تحديد الموقع ✅</span><i class="fa-solid fa-check"></i>`;
+                status.innerHTML = `<span style="color:#059669">تم تحديد الموقع بنجاح</span>`;
+            }, err => {
+                const coords = { lat: 30.3128, lng: 31.3234 };
+                if(type === 'pickup') pickupCoords = coords; else dropoffCoords = coords;
+                btn.classList.add('active');
+                btn.innerHTML = `<span>تم تحديد الموقع (تجريبي) ✅</span><i class="fa-solid fa-check"></i>`;
+                status.innerHTML = `<span style="color:#059669">تم استخدام موقع افتراضي (شبين)</span>`;
+            });
+        }
+
+        function submitDelivery() {
+            const item = document.getElementById('delivery-item').value;
+            const phone = document.getElementById('delivery-phone').value;
+
+            if(!item || !phone) return showToast('يرجى إدخال تفاصيل الشحنة ورقم الهاتف');
+            if(!pickupCoords) return showToast('يرجى تحديد موقع الاستلام');
+            if(!dropoffCoords) return showToast('يرجى تحديد موقع التسليم');
+
+            const btn = document.querySelector('.delivery-submit');
+            btn.innerText = 'جاري إرسال الطلب...';
+
+            setTimeout(() => {
+                btn.innerText = 'اطلب التوصيل الآن';
+                showToast('تم استلام طلبك! مندوب وصلة في الطريق إليك.');
+                document.getElementById('delivery-item').value = '';
+                document.getElementById('delivery-phone').value = '';
+                pickupCoords = null; dropoffCoords = null;
+                document.getElementById('pickup-btn').classList.remove('active');
+                document.getElementById('pickup-btn').innerHTML = `<span>تحديد موقع الاستلام</span><i class="fa-solid fa-location-crosshairs"></i>`;
+                document.getElementById('pickup-status').innerText = 'لم يتم تحديد الموقع بعد';
+                document.getElementById('dropoff-btn').classList.remove('active');
+                document.getElementById('dropoff-btn').innerHTML = `<span>تحديد موقع التسليم</span><i class="fa-solid fa-location-crosshairs"></i>`;
+                document.getElementById('dropoff-status').innerText = 'لم يتم تحديد الموقع بعد';
+                navigateTo('home');
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
