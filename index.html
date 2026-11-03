@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- مكتبات Firebase (تم تحديثها عشان تشمل الدخول والخروج) -->
+    <!-- مكتبات Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -242,11 +242,38 @@
         .toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
 
         /* =========================================
-           Auth Styles (جديد)
+           Auth Styles
            ========================================= */
         .auth-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
         .auth-tab { flex: 1; text-align: center; padding: 10px; font-weight: 800; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s; }
         .auth-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+
+        /* =========================================
+           Account Page Styles
+           ========================================= */
+        .profile-header { background: var(--brand-gradient); border-radius: 0 0 30px 30px; padding: 40px 20px 30px; text-align: center; color: white; margin-bottom: 20px; position: relative; }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: white; color: var(--brand); font-size: 32px; font-weight: 900; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .profile-name { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+        .profile-id { font-size: 13px; font-weight: 700; opacity: 0.9; background: rgba(255,255,255,0.2); display: inline-block; padding: 4px 12px; border-radius: 20px; margin-top: 8px; }
+        .settings-list { padding: 0 20px; }
+        .settings-item { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; display: flex; align-items: center; gap: 15px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+        .settings-item:active { transform: scale(0.98); }
+        .settings-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .settings-text { flex: 1; font-size: 15px; font-weight: 800; color: var(--text); }
+        .logout-btn { width: 100%; padding: 15px; background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; border-radius: 16px; font-weight: 900; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 20px; }
+
+        /* =========================================
+           Medical Page Styles
+           ========================================= */
+        .doc-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; display: flex; gap: 15px; margin-bottom: 12px; box-shadow: var(--shadow-sm); }
+        .doc-avatar { width: 60px; height: 60px; border-radius: 14px; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+        .doc-info { flex: 1; }
+        .doc-name { font-size: 16px; font-weight: 900; color: var(--text); margin-bottom: 2px; }
+        .doc-spec { font-size: 12px; color: var(--brand); font-weight: 800; margin-bottom: 6px; }
+        .doc-meta { font-size: 11px; color: var(--muted); font-weight: 700; display: flex; gap: 10px; }
+        .doc-price { text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .doc-price-num { font-size: 18px; font-weight: 900; color: var(--text); }
+        .doc-price-label { font-size: 10px; color: var(--muted); font-weight: 700; }
     </style>
 </head>
 <body>
@@ -273,7 +300,7 @@
         </div>
     </header>
 
-    <!-- الشريط الإعلاني المتحرك (Ticker) -->
+    <!-- الشريط الإعلاني المتحرك -->
     <div class="ticker-wrap">
         <div class="ticker-label">عروض 📢</div>
         <div class="ticker-content">
@@ -375,6 +402,30 @@
         </div>
     </div>
 
+    <!-- ==================== شاشة الحساب (Account View) ==================== -->
+    <div id="view-account" class="app-view">
+        <div class="profile-header">
+            <div class="profile-avatar" id="account-avatar">U</div>
+            <div class="profile-name" id="account-name">مستخدم وصلة</div>
+            <div class="profile-id" id="account-wasla-id">WASLA-XXXXX</div>
+        </div>
+        <div class="settings-list">
+            <div class="settings-item" onclick="showToast('قريباً')">
+                <div class="settings-icon" style="background:#ECFDF5; color:#059669;"><i class="fa-solid fa-receipt"></i></div>
+                <div class="settings-text">طلباتي السابقة</div>
+                <i class="fa-solid fa-chevron-left" style="color:var(--muted);"></i>
+            </div>
+            <div class="settings-item" onclick="showToast('قريباً')">
+                <div class="settings-icon" style="background:#FFF7ED; color:#EA580C;"><i class="fa-solid fa-wallet"></i></div>
+                <div class="settings-text">محفظتي</div>
+                <i class="fa-solid fa-chevron-left" style="color:var(--muted);"></i>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">
+                <i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج
+            </button>
+        </div>
+    </div>
+
     <!-- ==================== شاشة التوصيل ==================== -->
     <div id="view-delivery" class="app-view">
         <div class="delivery-header">
@@ -414,31 +465,41 @@
         </div>
     </div>
 
-    <!-- ==================== شاشات الأقسام (Placeholders + Waitlist) ==================== -->
-    
-    <!-- القسم الطبي -->
+    <!-- ==================== شاشة القطاع الطبي ==================== -->
     <div id="view-medical" class="app-view">
         <div class="section-header">
             <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
             <h2>الصحة والطب</h2>
         </div>
-        <div class="placeholder-content">
-            <div class="placeholder-icon" style="background: #ECFDF5; color: #059669;"><i class="fa-solid fa-heart-pulse"></i></div>
-            <h3>قسم الطب قيد الإنشاء</h3>
-            <p>قريباً جداً هنقدر نحجز أطباء، نتابع دورنا في العيادة، ونشتري مستلزمات طبية.</p>
-            
-            <div class="waitlist-badge"><i class="fa-solid fa-users"></i> <span id="count-medical">1,245</span> شخص في قائمة الانتظار</div>
-            
-            <div class="progress-container">
-                <div class="progress-text"><span>جاري بناء القسم</span><span>80%</span></div>
-                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 80%;"></div></div>
+        <div style="padding: 20px;">
+            <div class="search-box" style="margin-bottom: 20px; background: var(--bg);">
+                <i class="fa-solid fa-magnifying-glass" style="color: var(--muted);"></i>
+                <input type="text" placeholder="ابحث باسم الطبيب أو التخصص..." style="pointer-events: auto;">
             </div>
 
-            <button id="btn-medical" class="notify-btn" onclick="joinWaitlist('medical', this)"><i class="fa-solid fa-bell"></i> بلغني عند الافتتاح</button>
+            <div class="doc-card">
+                <div class="doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+                <div class="doc-info">
+                    <div class="doc-name">د. محمد الشريف</div>
+                    <div class="doc-spec">باطنة وكبد</div>
+                    <div class="doc-meta"><span><i class="fa-solid fa-location-dot"></i> بورسعيد</span><span><i class="fa-solid fa-star" style="color:#F59E0B;"></i> 4.9</span></div>
+                </div>
+                <div class="doc-price"><div class="doc-price-num">250</div><div class="doc-price-label">ج.م</div></div>
+            </div>
+
+            <div class="doc-card">
+                <div class="doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+                <div class="doc-info">
+                    <div class="doc-name">د. سارة أحمد</div>
+                    <div class="doc-spec">أطفال</div>
+                    <div class="doc-meta"><span><i class="fa-solid fa-location-dot"></i> المحطة</span><span><i class="fa-solid fa-star" style="color:#F59E0B;"></i> 4.8</span></div>
+                </div>
+                <div class="doc-price"><div class="doc-price-num">200</div><div class="doc-price-label">ج.م</div></div>
+            </div>
         </div>
     </div>
 
-    <!-- قسم السيارات -->
+    <!-- ==================== شاشات الأقسام (Placeholders) ==================== -->
     <div id="view-cars" class="app-view">
         <div class="section-header">
             <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
@@ -460,7 +521,6 @@
         </div>
     </div>
 
-    <!-- قسم التعليم -->
     <div id="view-education" class="app-view">
         <div class="section-header">
             <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
@@ -482,7 +542,6 @@
         </div>
     </div>
 
-    <!-- قسم السوبر ماركت -->
     <div id="view-shopping" class="app-view">
         <div class="section-header">
             <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
@@ -504,7 +563,6 @@
         </div>
     </div>
 
-    <!-- قسم الصيانة -->
     <div id="view-maintenance" class="app-view">
         <div class="section-header">
             <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
@@ -525,7 +583,6 @@
             <button id="btn-maintenance" class="notify-btn" onclick="joinWaitlist('maintenance', this)"><i class="fa-solid fa-bell"></i> بلغني عند الافتتاح</button>
         </div>
     </div>
-
 
     <!-- ==================== مودال الشكاوى ==================== -->
     <div class="modal-overlay" id="complaint-modal">
@@ -550,7 +607,7 @@
         </div>
     </div>
 
-    <!-- ==================== Auth Modal (تسجيل الدخول / إنشاء حساب) ==================== -->
+    <!-- ==================== Auth Modal ==================== -->
     <div class="modal-overlay" id="auth-modal">
         <div class="modal-content">
             <button class="close-btn" style="position: absolute; top: 15px; left: 15px;" onclick="closeModal('auth-modal')"><i class="fa-solid fa-xmark"></i></button>
@@ -565,7 +622,6 @@
                 <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">حساب جديد</div>
             </div>
 
-            <!-- Form Register -->
             <div id="form-register" style="display: none;">
                 <div class="input-group">
                     <label>الاسم بالكامل</label>
@@ -582,7 +638,6 @@
                 <button class="submit-btn" onclick="handleRegister()">إنشاء الحساب</button>
             </div>
 
-            <!-- Form Login -->
             <div id="form-login">
                 <div class="input-group">
                     <label>البريد الإلكتروني</label>
@@ -597,7 +652,7 @@
         </div>
     </div>
 
-    <!-- ==================== الشريط السفلي (Bottom Nav) ==================== -->
+    <!-- ==================== الشريط السفلي ==================== -->
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="navigateTo('home', this)">
             <div class="nav-icon-wrap"><i class="fa-solid fa-house"></i></div>
@@ -623,11 +678,8 @@
 
     <div id="toast" class="toast"></div>
 
+    <!-- ==================== السكريبت ==================== -->
     <script>
-        // ==========================================
-        // الجزء الأول: السكريبت الأساسي
-        // ==========================================
-
         // 1. الثيم (الوضع الليلي)
         const savedTheme = localStorage.getItem('wasla_theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
@@ -641,40 +693,33 @@
             document.getElementById('theme-icon').className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
         }
 
-        // 2. التنقل بين الشاشات (مع Skeleton Loading)
+        // 2. التنقل بين الشاشات
         let currentView = 'home';
 
         function navigateTo(viewId, btnElement = null) {
-            // تحديث الـ Bottom Nav
             if (btnElement) {
                 document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
                 btnElement.classList.add('active');
             } else {
-                // لو جاي من كارت مش من الناف بار، نفعل زرار الرئيسية
                 document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
                 document.querySelector('.nav-item').classList.add('active');
             }
 
-            // لو بترجع للرئيسية مباشرة
-            if (viewId === 'home') {
-                document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
-                document.getElementById('view-home').classList.add('active');
-                currentView = 'home';
-                window.scrollTo(0, 0);
-                return;
-            }
-
-            // محاكاة التحميل (Skeleton)
             document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-skeleton').classList.add('active');
-            window.scrollTo(0, 0);
-
-            setTimeout(() => {
-                document.getElementById('view-skeleton').classList.remove('active');
+            
+            if (viewId !== 'home' && viewId !== 'account') {
+                document.getElementById('view-skeleton').classList.add('active');
+                window.scrollTo(0, 0);
+                setTimeout(() => {
+                    document.getElementById('view-skeleton').classList.remove('active');
+                    const target = document.getElementById('view-' + viewId);
+                    if(target) target.classList.add('active');
+                }, 600);
+            } else {
                 const target = document.getElementById('view-' + viewId);
                 if(target) target.classList.add('active');
-                currentView = viewId;
-            }, 600); // 600ms تأخير وهمي
+                window.scrollTo(0, 0);
+            }
         }
 
         // 3. المودالات والإشعارات
@@ -696,7 +741,7 @@
             }
         }
 
-        // 5. البحث الذكي (Smart Search)
+        // 5. البحث الذكي
         function openSearch() {
             document.getElementById('search-overlay').classList.add('open');
             setTimeout(() => document.getElementById('search-input').focus(), 300);
@@ -704,7 +749,6 @@
         function closeSearch() {
             document.getElementById('search-overlay').classList.remove('open');
             document.getElementById('search-input').value = '';
-            // إعادة ضبط المحتوى الأصلي
             document.getElementById('search-content').innerHTML = `
                 <div class="search-section-title">آخر ما بحثت عنه <i class="fa-solid fa-clock-rotate-left"></i></div>
                 <div class="search-tags">
@@ -728,11 +772,8 @@
         function handleSearch(val) {
             const content = document.getElementById('search-content');
             if (val.trim() === '') {
-                closeSearch(); // إعادة ضبط لو فاضي
-                openSearch();
-                return;
+                closeSearch(); openSearch(); return;
             }
-            // محاكاة نتائج البحث
             content.innerHTML = `
                 <div class="search-section-title">نتائج البحث عن: "${val}"</div>
                 <div class="search-results-list">
@@ -752,18 +793,14 @@
         function executeSearch(val) {
             closeSearch();
             showToast(`جاري البحث عن: ${val}`);
-            setTimeout(() => navigateTo('skeleton'), 500); // نستخدم الـ Skeleton الموجود
+            setTimeout(() => navigateTo('medical'), 500); 
         }
 
-        // 6. البحث الصوتي
+        // 6. البحث الصوتي والـ GPS
         function startVoiceSearch() {
             showToast('جاري الاستماع لطلبك... 🎤');
-            setTimeout(() => {
-                executeSearch("دكتور أسنان قريب");
-            }, 2000);
+            setTimeout(() => executeSearch("دكتور أسنان قريب"), 2000);
         }
-
-        // 7. الجي بي إس والإشعارات اللايف
         let gpsActive = false;
         function toggleGPS() {
             const btn = document.getElementById('gps-btn');
@@ -784,32 +821,23 @@
             }
         }
 
-        // 8. قائمة الانتظار (Waitlist)
+        // 7. قائمة الانتظار
         function joinWaitlist(section, btn) {
-            // التأكد إنه مسجل قبل كده
             if(localStorage.getItem('waitlist_' + section)) {
                 return showToast('أنت مسجل بالفعل في قائمة الانتظار!');
             }
-
-            // تحديث الواجهة
             btn.classList.add('notified');
             btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> تم تسجيلك بنجاح`;
             btn.onclick = null;
-
-            // زيادة العداد
             const countEl = document.getElementById('count-' + section);
             let currentCount = parseInt(countEl.innerText.replace(/,/g, ''));
-            let newCount = currentCount + 1;
-            countEl.innerText = newCount.toLocaleString('en-US'); // عشان الفاصلة
-
-            // حفظ الحالة
+            countEl.innerText = (currentCount + 1).toLocaleString('en-US');
             localStorage.setItem('waitlist_' + section, 'true');
             showToast('تم تسجيل اهتمامك! هنبلغك أول ما القسم يفتح.');
         }
 
-        // استرجاع حالة قائمة الانتظار عند فتح الصفحة
         window.onload = function() {
-            ['medical', 'cars', 'education', 'shopping', 'maintenance'].forEach(section => {
+            ['cars', 'education', 'shopping', 'maintenance'].forEach(section => {
                 if(localStorage.getItem('waitlist_' + section)) {
                     const btn = document.getElementById('btn-' + section);
                     if(btn) {
@@ -821,7 +849,7 @@
             });
         }
 
-        // 9. نظام التوصيل
+        // 8. نظام التوصيل
         let pickupCoords = null;
         let dropoffCoords = null;
 
@@ -874,10 +902,8 @@
         }
 
         // ==========================================
-        // 10. Firebase Integration (الربط المباشر)
+        // 9. Firebase Integration & Auth
         // ==========================================
-        
-        // 1. إعدادات Firebase (من لوحة التحكم)
         const firebaseConfig = {
             apiKey: "AIzaSyC7187h2gddC7neGyoOQ-rxqlFYJCjVBM4",
             authDomain: "wasla-204cb.firebaseapp.com",
@@ -888,12 +914,17 @@
             measurementId: "G-NCXMYYBS5P"
         };
 
-        // 2. تهيئة Firebase
         const app = window.firebaseModules.initializeApp(firebaseConfig);
         const auth = window.firebaseModules.getAuth(app);
         const db = window.firebaseModules.getFirestore(app);
 
-        // 3. دالة إنشاء حساب جديد
+        function switchAuthTab(type) {
+            document.getElementById('tab-login').classList.toggle('active', type === 'login');
+            document.getElementById('tab-register').classList.toggle('active', type === 'register');
+            document.getElementById('form-login').style.display = (type === 'login') ? 'block' : 'none';
+            document.getElementById('form-register').style.display = (type === 'register') ? 'block' : 'none';
+        }
+
         async function handleRegister() {
             const name = document.getElementById('reg-name').value;
             const email = document.getElementById('reg-email').value;
@@ -920,7 +951,6 @@
             }
         }
 
-        // 4. دالة تسجيل الدخول
         async function handleLogin() {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
@@ -936,34 +966,24 @@
             }
         }
 
-        // 5. دالة تسجيل الخروج
         async function handleLogout() {
             try {
                 await window.firebaseModules.signOut(auth);
                 showToast('تم تسجيل الخروج');
+                navigateTo('home');
             } catch (err) {
                 showToast('حدث خطأ');
             }
         }
 
-        // 6. دالة فحص حالة المستخدم
         function checkAuth() {
             if (auth.currentUser) {
-                if(confirm("هل تريد تسجيل الخروج؟")) handleLogout();
+                navigateTo('account');
             } else {
                 openModal('auth-modal');
             }
         }
 
-        // 7. دالة تبديل التابات في شاشة الدخول
-        function switchAuthTab(type) {
-            document.getElementById('tab-login').classList.toggle('active', type === 'login');
-            document.getElementById('tab-register').classList.toggle('active', type === 'register');
-            document.getElementById('form-login').style.display = (type === 'login') ? 'block' : 'none';
-            document.getElementById('form-register').style.display = (type === 'register') ? 'block' : 'none';
-        }
-
-        // 8. مراقبة حالة الدخول (لتحديث الواجهة)
         window.firebaseModules.onAuthStateChanged(auth, async (user) => {
             const accountText = document.getElementById('nav-account-text');
             const welcomeText = document.getElementById('welcome-text');
@@ -975,6 +995,10 @@
                         const userData = userDoc.data();
                         if(welcomeText) welcomeText.innerText = `أهلاً بك يا ${userData.fullName} 👋`;
                         if(accountText) accountText.innerText = userData.fullName.split(' ')[0];
+                        
+                        document.getElementById('account-name').innerText = userData.fullName;
+                        document.getElementById('account-wasla-id').innerText = userData.waslaId;
+                        document.getElementById('account-avatar').innerText = userData.fullName.charAt(0);
                     }
                 } catch(e) { console.log("Error fetching user data"); }
             } else {
@@ -984,32 +1008,6 @@
         });
 
         console.log('✅ Firebase Client Ready!');
-   /* =========================================
-   Account Page Styles
-   ========================================= */
-.profile-header { background: var(--brand-gradient); border-radius: 0 0 30px 30px; padding: 40px 20px 30px; text-align: center; color: white; margin-bottom: 20px; position: relative; }
-.profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: white; color: var(--brand); font-size: 32px; font-weight: 900; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
-.profile-name { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
-.profile-id { font-size: 13px; font-weight: 700; opacity: 0.9; background: rgba(255,255,255,0.2); display: inline-block; padding: 4px 12px; border-radius: 20px; margin-top: 8px; }
-.settings-list { padding: 0 20px; }
-.settings-item { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; display: flex; align-items: center; gap: 15px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
-.settings-item:active { transform: scale(0.98); }
-.settings-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.settings-text { flex: 1; font-size: 15px; font-weight: 800; color: var(--text); }
-.logout-btn { width: 100%; padding: 15px; background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; border-radius: 16px; font-weight: 900; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 20px; }
-
-/* =========================================
-   Medical Page Styles
-   ========================================= */
-.doc-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; display: flex; gap: 15px; margin-bottom: 12px; box-shadow: var(--shadow-sm); }
-.doc-avatar { width: 60px; height: 60px; border-radius: 14px; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
-.doc-info { flex: 1; }
-.doc-name { font-size: 16px; font-weight: 900; color: var(--text); margin-bottom: 2px; }
-.doc-spec { font-size: 12px; color: var(--brand); font-weight: 800; margin-bottom: 6px; }
-.doc-meta { font-size: 11px; color: var(--muted); font-weight: 700; display: flex; gap: 10px; }
-.doc-price { text-align: center; display: flex; flex-direction: column; justify-content: center; }
-.doc-price-num { font-size: 18px; font-weight: 900; color: var(--text); }
-.doc-price-label { font-size: 10px; color: var(--muted); font-weight: 700; }
- </script>
+    </script>
 </body>
 </html>
