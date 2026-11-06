@@ -297,16 +297,20 @@ a { text-decoration: none; }
 </nav>
 
 <div id="toast" class="toast"></div>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // =========================================
-// ⚙️ الإعدادات — غيّر القيم دي بس
+// ⚙️ الإعدادات — رقمك هنا + بيانات السيرفر
 // =========================================
-const WASLA_PHONE = '201555196375';           // ← رقم واتساب (20 + الرقم بدون 0)
-const WASLA_PHONE_DISPLAY = '01555196375';  // ← الرقم اللي يظهر للناس
-const FORMSPREE_URL = '';                      // ← سيبها فاضية أو حط رابط Formspree
+const WASLA_PHONE = '20155196375';           // ← رقمك اللي أنت حطيته
+const WASLA_PHONE_DISPLAY = '0155196375';    // ← الرقم اللي يظهر للناس
 
-// تحديث رقم التليفون في الصفحة
+// ⚠️ بيانات السيرفر بتاعتك
+const SUPABASE_URL = 'https://fdduzcytuhoelnnejgkl.supabase.co'; 
+const SUPABASE_ANON_KEY = 'sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 document.getElementById('phone-link').href = 'tel:+' + WASLA_PHONE;
 document.getElementById('phone-display').innerText = WASLA_PHONE_DISPLAY;
 
@@ -326,8 +330,15 @@ function showToast(msg) {
 }
 
 // =========================================
-// الثيم
+// التنقل والثيم
 // =========================================
+function navigateTo(viewId) {
+    document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+    const target = document.getElementById('view-' + viewId);
+    if(target) target.classList.add('active');
+    window.scrollTo(0, 0);
+}
+
 const savedTheme = localStorage.getItem('wasla_theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 if(savedTheme === 'dark') document.getElementById('theme-icon').className = 'fa-solid fa-sun';
@@ -341,82 +352,15 @@ function toggleTheme() {
 }
 
 // =========================================
-// التنقل
-// =========================================
-function navigateTo(viewId) {
-    document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
-    const target = document.getElementById('view-' + viewId);
-    if(target) target.classList.add('active');
-    window.scrollTo(0, 0);
-}
-
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-// =========================================
-// الأقسام — كل قسم بيفتح واتساب برسالة جاهزة
-// =========================================
-function orderSector(sector) {
-    const messages = {
-        medical:     'السلام عليكم 👋\nعايز أحجز دكتور من وصلة.\n\nالتخصص المطلوب: ',
-        cars:        'السلام عليكم 👋\nعايز خدمة سيارة من وصلة.\n\nنوع الخدمة (صيانة/غسيل/كهرباء/...): ',
-        education:   'السلام عليكم 👋\nعايز مدرس من وصلة.\n\nالمادة: \nالصف الدراسي: ',
-        shopping:    'السلام عليكم 👋\nعايز أطلب من سوبر ماركت وصلة.\n\nالأصناف المطلوبة: ',
-        maintenance: 'السلام عليكم 👋\nعايز فني من وصلة.\n\nنوع المشكلة (سباكة/كهرباء/تكييف/...): '
-    };
-    openWhatsApp(messages[sector] || 'السلام عليكم، عايز أستخدم وصلة');
-}
-
-// =========================================
-// البحث
-// =========================================
-function submitSearch() {
-    const q = document.getElementById('search-input').value.trim();
-    if(!q) {
-        showToast('اكتب اللي بتدور عليه الأول');
-        return;
-    }
-    openWhatsApp(`السلام عليكم 👋\nبدور على: ${q}\n\nممكن تساعدوني؟`);
-}
-
-function startVoiceSearch() {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(!SR) {
-        showToast('البحث الصوتي مش متاح — اطلب على واتساب');
-        openWhatsApp('السلام عليكم، عايز أطلب خدمة من وصلة');
-        return;
-    }
-    const rec = new SR();
-    rec.lang = 'ar-EG';
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-    showToast('بتكلم... 🎤');
-    rec.onresult = (e) => {
-        const text = e.results[0][0].transcript;
-        document.getElementById('search-input').value = text;
-        openWhatsApp(`السلام عليكم 👋\nعايز: ${text}`);
-    };
-    rec.onerror = () => showToast('مش سمعت كويس — حاول تاني');
-    try { rec.start(); } catch(e) { showToast('حصلت مشكلة في المايك'); }
-}
-
-// =========================================
-// GPS في الهيدر
+// GPS
 // =========================================
 function toggleGPS() {
     const btn = document.getElementById('gps-btn');
     if(!navigator.geolocation) return showToast('المتصفح مش بيدعم الموقع');
-    
     btn.classList.add('active');
     navigator.geolocation.getCurrentPosition(
-        pos => {
-            showToast(`موقعك: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
-        },
-        () => {
-            btn.classList.remove('active');
-            showToast('محتاج إذن الموقع عشان نحدد مكانك');
-        },
-        { timeout: 10000 }
+        pos => showToast(`موقعك: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`),
+        () => { btn.classList.remove('active'); showToast('محتاج إذن الموقع'); }
     );
 }
 
@@ -425,15 +369,9 @@ function toggleGPS() {
 // =========================================
 let pickupCoords = null;
 let dropoffCoords = null;
-let pickupManual = '';
-let dropoffManual = '';
 
 function getLocation(type) {
-    if(!navigator.geolocation) {
-        showManualAddress(type);
-        return;
-    }
-    
+    if(!navigator.geolocation) { showManualAddress(type); return; }
     const btn = document.getElementById(type + '-btn');
     const status = document.getElementById(type + '-status');
     status.innerText = 'جاري تحديد الموقع...';
@@ -444,16 +382,12 @@ function getLocation(type) {
             const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
             if(type === 'pickup') pickupCoords = coords;
             else dropoffCoords = coords;
-            
             btn.classList.add('active');
             btn.disabled = false;
             btn.innerHTML = '<span>تم تحديد الموقع ✅</span><i class="fa-solid fa-check"></i>';
             status.innerHTML = '<span style="color:#059669">تم تحديد الموقع بنجاح</span>';
         },
-        () => {
-            btn.disabled = false;
-            showManualAddress(type);
-        },
+        () => { btn.disabled = false; showManualAddress(type); },
         { timeout: 10000, enableHighAccuracy: true }
     );
 }
@@ -462,7 +396,7 @@ function showManualAddress(type) {
     const btn = document.getElementById(type + '-btn');
     const status = document.getElementById(type + '-status');
     btn.innerHTML = '<span>اكتب العنوان تحت</span><i class="fa-solid fa-pen"></i>';
-    status.innerHTML = `<input type="text" id="${type}-manual-input" class="input-field" style="margin-top:8px" placeholder="اسم الشارع + علامة مميزة" oninput="document.getElementById('${type}-manual-input')">`;
+    status.innerHTML = `<input type="text" id="${type}-manual-input" class="input-field" style="margin-top:8px" placeholder="اسم الشارع + علامة مميزة">`;
 }
 
 async function submitDelivery() {
@@ -477,49 +411,34 @@ async function submitDelivery() {
     if(!dropoffCoords && !dropoffManualVal) return showToast('حدد موقع التسليم');
     
     const btn = document.getElementById('delivery-btn');
-    const originalText = btn.innerText;
     btn.innerText = 'جاري الإرسال...';
     btn.disabled = true;
+
+    // 1. الحفظ في قاعدة البيانات (Supabase)
+    try {
+        await supabase.from('orders').insert([{ 
+            customer_name: 'عميل توصيل', 
+            customer_phone: phone, 
+            sector: 'توصيل', 
+            details: `الشحنة: ${item} | من: ${pickupManualVal || 'GPS'} إلى: ${dropoffManualVal || 'GPS'}`,
+            status: 'new'
+        }]);
+    } catch(e) { console.log("DB Error:", e); }
     
-    const payload = {
-        item, phone,
-        pickup: pickupCoords ? `${pickupCoords.lat},${pickupCoords.lng}` : pickupManualVal,
-        dropoff: dropoffCoords ? `${dropoffCoords.lat},${dropoffCoords.lng}` : dropoffManualVal,
-        pickup_map: pickupCoords ? `https://maps.google.com/?q=${pickupCoords.lat},${pickupCoords.lng}` : '',
-        dropoff_map: dropoffCoords ? `https://maps.google.com/?q=${dropoffCoords.lat},${dropoffCoords.lng}` : '',
-        time: new Date().toLocaleString('ar-EG')
-    };
-    
-    // محاولة إرسال Formspree (اختياري)
-    if(FORMSPREE_URL) {
-        try {
-            await fetch(FORMSPREE_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-        } catch(e) {}
-    }
-    
-    // بناء رسالة الواتساب
+    // 2. فتح الواتساب
     const waMsg = 
         `*🛵 طلب توصيل جديد - وصلة*\n\n` +
         `📦 الشحنة: ${item}\n` +
         `📱 التليفون: ${phone}\n\n` +
         `📍 من: ${pickupManualVal || 'موقع GPS'}\n` +
-        (pickupCoords ? `🗺️ ${payload.pickup_map}\n` : '') +
-        `\n🎯 إلى: ${dropoffManualVal || 'موقع GPS'}\n` +
-        (dropoffCoords ? `🗺️ ${payload.dropoff_map}\n` : '') +
-        `\n⏰ ${payload.time}`;
+        `🎯 إلى: ${dropoffManualVal || 'موقع GPS'}\n` +
+        `\n⏰ ${new Date().toLocaleString('ar-EG')}`;
     
-    // تصفير الحقول
     document.getElementById('delivery-item').value = '';
     document.getElementById('delivery-phone').value = '';
     pickupCoords = null; dropoffCoords = null;
-    resetLocationBtn('pickup');
-    resetLocationBtn('dropoff');
-    btn.innerText = originalText;
-    btn.disabled = false;
+    resetLocationBtn('pickup'); resetLocationBtn('dropoff');
+    btn.innerText = 'اطلب التوصيل الآن'; btn.disabled = false;
     
     showToast('جاري فتح واتساب...');
     setTimeout(() => openWhatsApp(waMsg), 500);
@@ -528,37 +447,120 @@ async function submitDelivery() {
 function resetLocationBtn(type) {
     const btn = document.getElementById(type + '-btn');
     const status = document.getElementById(type + '-status');
-    btn.classList.remove('active');
-    btn.disabled = false;
-    if(type === 'pickup') {
-        btn.innerHTML = '<span>تحديد موقع الاستلام</span><i class="fa-solid fa-location-crosshairs"></i>';
-    } else {
-        btn.innerHTML = '<span>تحديد موقع التسليم</span><i class="fa-solid fa-location-crosshairs"></i>';
-    }
+    btn.classList.remove('active'); btn.disabled = false;
+    btn.innerHTML = type === 'pickup' ? '<span>تحديد موقع الاستلام</span><i class="fa-solid fa-location-crosshairs"></i>' : '<span>تحديد موقع التسليم</span><i class="fa-solid fa-location-crosshairs"></i>';
     status.innerText = 'لم يتم تحديد الموقع بعد';
 }
 
 // =========================================
-// الشكاوى — بتروح واتساب
+// الصيانة
 // =========================================
-function submitComplaint() {
-    const type = document.getElementById('complaint-type').value;
-    const text = document.getElementById('complaint-text').value.trim();
-    if(!text) return showToast('اكتب تفاصيل الرسالة');
-    
-    openWhatsApp(`*📩 رسالة من وصلة*\n\nالنوع: ${type}\n\nالتفاصيل:\n${text}`);
-    document.getElementById('complaint-text').value = '';
-    closeModal('complaint-modal');
+let selectedMaintService = '';
+
+function selectMaintService(element, serviceName) {
+    document.querySelectorAll('#maint-services-grid .service-card').forEach(c => c.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedMaintService = serviceName;
+}
+
+async function submitMaintRequest() {
+    const name = document.getElementById('maint-name').value.trim();
+    const phone = document.getElementById('maint-phone').value.trim();
+    const desc = document.getElementById('maint-desc').value.trim();
+
+    if(!selectedMaintService) return showToast('اختار نوع الصيانة الأول');
+    if(!name) return showToast('اكتب اسمك');
+    if(!phone || phone.length < 10) return showToast('رقم التليفون غلط');
+    if(!desc) return showToast('اكتب تفاصيل المشكلة');
+
+    // 1. الحفظ في قاعدة البيانات (Supabase)
+    try {
+        await supabase.from('orders').insert([{ 
+            customer_name: name, 
+            customer_phone: phone, 
+            sector: 'صيانة - ' + selectedMaintService, 
+            details: desc,
+            status: 'new'
+        }]);
+    } catch(e) { console.log("DB Error:", e); }
+
+    // 2. فتح الواتساب
+    const waMsg = 
+        `*🔧 طلب صيانة جديد - وصلة*\n\n` +
+        `🛠️ الخدمة: ${selectedMaintService}\n` +
+        `👤 الاسم: ${name}\n` +
+        `📱 التليفون: ${phone}\n\n` +
+        `📝 المشكلة: ${desc}\n` +
+        `\n⏰ ${new Date().toLocaleString('ar-EG')}`;
+
+    document.getElementById('maint-name').value = '';
+    document.getElementById('maint-phone').value = '';
+    document.getElementById('maint-desc').value = '';
+    document.querySelectorAll('#maint-services-grid .service-card').forEach(c => c.classList.remove('selected'));
+    selectedMaintService = '';
+
+    showToast('جاري تحويلك للواتساب...');
+    setTimeout(() => openWhatsApp(waMsg), 500);
 }
 
 // =========================================
-// تحذير إذا لم يتم إعداد الرقم
+// تسجيل الفنيين
 // =========================================
-if(WASLA_PHONE === '201000000000') {
-    setTimeout(() => {
-        showToast('⚠️ غيّر WASLA_PHONE لرقمك الحقيقي قبل النشر');
-    }, 2000);
+async function submitProviderApplication() {
+    const name = document.getElementById('provider-name').value.trim();
+    const phone = document.getElementById('provider-phone').value.trim();
+    const craft = document.getElementById('provider-craft').value;
+    const area = document.getElementById('provider-area').value.trim() || 'غير محدد';
+
+    if(!name) return showToast('اكتب اسمك');
+    if(!phone || phone.length < 10) return showToast('رقم التليفون غلط');
+
+    const waMsg = 
+        `*💼 طلب انضمام فني - وصلة*\n\n` +
+        `👤 الاسم: ${name}\n` +
+        `📱 التليفون: ${phone}\n` +
+        `🛠️ التخصص: ${craft}\n` +
+        `📍 المنطقة: ${area}\n` +
+        `\n⏰ ${new Date().toLocaleString('ar-EG')}`;
+
+    document.getElementById('provider-name').value = '';
+    document.getElementById('provider-phone').value = '';
+    document.getElementById('provider-area').value = '';
+
+    showToast('جاري إرسال طلبك...');
+    setTimeout(() => openWhatsApp(waMsg), 500);
 }
-</script>
-</body>
-</html>
+
+// =========================================
+// أقسام عامة
+// =========================================
+function orderSector(sector) {
+    const messages = {
+        medical:     'السلام عليكم 👋\nعايز أحجز دكتور من وصلة.\n\nالتخصص المطلوب: ',
+        cars:        'السلام عليكم 👋\nعايز خدمة سيارة من وصلة.\n\nنوع الخدمة: ',
+        education:   'السلام عليكم 👋\nعايز مدرس من وصلة.\n\nالمادة: \nالصف: ',
+        shopping:    'السلام عليكم 👋\nعايز أطلب من سوبر ماركت وصلة.\n\nالأصناف: '
+    };
+    openWhatsApp(messages[sector] || 'السلام عليكم، عايز أستخدم وصلة');
+}
+
+function submitSearch() {
+    const q = document.getElementById('search-input').value.trim();
+    if(!q) return showToast('اكتب اللي بتدور عليه');
+    openWhatsApp(`السلام عليكم 👋\nبدور على: ${q}`);
+}
+
+function startVoiceSearch() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR) { showToast('البحث الصوتي مش متاح'); return; }
+    const rec = new SR();
+    rec.lang = 'ar-EG';
+    showToast('بتكلم... 🎤');
+    rec.onresult = (e) => {
+        const text = e.results[0][0].transcript;
+        document.getElementById('search-input').value = text;
+        openWhatsApp(`السلام عليكم 👋\nعايز: ${text}`);
+    };
+    try { rec.start(); } catch(e) {}
+}
+  </script>
