@@ -15,8 +15,8 @@
   --dark: #0F172A; --bg: #F4F7FB; --card: #FFFFFF; --text: #1E293B; --muted: #64748B; --border: #E2E8F0;
   --nav-bg: rgba(255, 255, 255, 0.95);
   --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366); 
-  --wallet-gradient: linear-gradient(135deg, #7C3AED, #4F46E5);
   --delivery-gradient: linear-gradient(135deg, #F59E0B, #EA580C);
+  --maint-gradient: linear-gradient(135deg, #E11D48, #BE123C);
   --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05); --shadow-md: 0 10px 25px -3px rgba(0,0,0,0.08);
   --ticker-bg: #FFFBEB; --ticker-text: #B45309;
 }
@@ -57,7 +57,6 @@ a { text-decoration: none; }
 .welcome-area { padding: 20px 20px 10px; }
 .welcome-area p { font-size: 13px; color: var(--muted); margin-bottom: 5px; }
 .welcome-area h2 { font-size: 22px; font-weight: 900; color: var(--dark); }
-
 .phone-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--brand-light); color: var(--brand); padding: 8px 14px; border-radius: 20px; font-weight: 800; font-size: 13px; margin-top: 12px; border: 1px solid var(--brand); }
 .phone-chip i { font-size: 14px; }
 
@@ -84,26 +83,44 @@ a { text-decoration: none; }
 .cat-card h3 { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
 .cat-card p { font-size: 12px; color: var(--muted); }
 
-.delivery-header { display: flex; align-items: center; gap: 15px; padding: 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 70px; z-index: 90; }
-.back-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 18px; }
-.delivery-header h2 { font-size: 20px; font-weight: 900; color: var(--dark); }
-.delivery-form { padding: 20px; }
-.delivery-banner { background: var(--delivery-gradient); border-radius: 20px; padding: 25px; color: white; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-md); }
-.delivery-banner h1 { font-size: 24px; font-weight: 900; margin-bottom: 5px; }
-.delivery-banner p { font-size: 13px; opacity: 0.9; }
+.inner-header { display: flex; align-items: center; gap: 15px; padding: 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 70px; z-index: 90; }
+.back-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 18px; cursor: pointer; }
+.inner-header h2 { font-size: 20px; font-weight: 900; color: var(--dark); }
+
+.sector-form-area { padding: 20px; }
+.sector-banner { border-radius: 20px; padding: 25px; color: white; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-md); }
+.banner-delivery { background: var(--delivery-gradient); }
+.banner-maint { background: var(--maint-gradient); }
+.sector-banner h1 { font-size: 24px; font-weight: 900; margin-bottom: 5px; }
+.sector-banner p { font-size: 13px; opacity: 0.9; }
 
 .input-group { margin-bottom: 15px; }
 .input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
 .input-field { width: 100%; padding: 12px 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; font-family: 'Cairo'; color: var(--text); font-size: 14px; outline: none; }
 .input-field:focus { border-color: var(--brand); }
 
-.location-btn { width: 100%; padding: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-family: 'Cairo'; font-weight: 700; color: var(--text); margin-bottom: 15px; }
+.location-btn { width: 100%; padding: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-family: 'Cairo'; font-weight: 700; color: var(--text); margin-bottom: 15px; cursor: pointer; }
 .location-btn.active { background: #ECFDF5; border-color: #10B981; color: #047857; }
 .location-btn i { font-size: 20px; }
 .gps-text { font-size: 11px; color: var(--muted); text-align: center; margin-top: -10px; margin-bottom: 15px; display: block; }
 
-.delivery-submit { width: 100%; padding: 16px; border-radius: 14px; background: var(--delivery-gradient); color: white; font-weight: 900; font-size: 16px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3); margin-top: 10px; }
-.delivery-submit:active { transform: scale(0.96); }
+.sector-submit { width: 100%; padding: 16px; border-radius: 14px; color: white; font-weight: 900; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; }
+.btn-maint { background: var(--maint-gradient); box-shadow: 0 4px 15px rgba(225, 29, 72, 0.3); }
+.btn-delivery { background: var(--delivery-gradient); box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3); }
+.sector-submit:active { transform: scale(0.96); }
+
+.services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
+.service-card { background: var(--card); border: 2px solid var(--border); border-radius: 16px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; }
+.service-card.selected { border-color: var(--maint-gradient); background: #FFF1F2; }
+.service-card i { font-size: 28px; color: var(--maint-gradient); margin-bottom: 10px; display: block; }
+.service-card span { font-size: 13px; font-weight: 800; color: var(--dark); }
+
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding: 12px 0; z-index: 100; backdrop-filter: blur(10px); }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; color: var(--muted); font-size: 10px; font-weight: 700; width: 20%; transition: 0.2s; cursor: pointer; }
+.nav-item.active { color: var(--brand); }
+.nav-item i { font-size: 20px; margin-bottom: 2px; transition: 0.3s; }
+.nav-item:active { transform: scale(0.85); }
+.nav-item:active i { color: var(--brand); filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6)); transform: translateY(-3px); }
 
 .live-banner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; border-radius: 15px; padding: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 9999; transition: 0.5s; border-right: 5px solid var(--brand); }
 .live-banner.show { top: 20px; }
@@ -111,28 +128,14 @@ a { text-decoration: none; }
 .live-banner h4 { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 3px; }
 .live-banner p { font-size: 12px; color: var(--muted); }
 
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding: 12px 0; z-index: 100; backdrop-filter: blur(10px); }
-.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; color: var(--muted); font-size: 10px; font-weight: 700; width: 20%; transition: 0.2s; }
-.nav-item.active { color: var(--brand); }
-.nav-item i { font-size: 20px; margin-bottom: 2px; transition: 0.3s; }
-.nav-item:active { transform: scale(0.85); }
-.nav-item:active i { color: var(--brand); filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6)); transform: translateY(-3px); }
-
-.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
-.modal-overlay.open { opacity: 1; visibility: visible; }
-.modal-content { background: var(--card); width: 92%; max-width: 450px; border-radius: 24px; padding: 25px; transform: translateY(20px); transition: 0.3s; max-height: 90vh; overflow-y: auto; }
-.modal-overlay.open .modal-content { transform: translateY(0); }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.modal-header h2 { font-size: 18px; color: var(--dark); }
-.close-btn { background: var(--bg); width: 35px; height: 35px; border-radius: 50%; color: var(--text); display: flex; align-items: center; justify-content: center; }
-.submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--brand-gradient); color: white; font-weight: 800; font-size: 15px; }
-.submit-btn:active { transform: scale(0.96); box-shadow: 0 0 15px var(--brand); }
-
 .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--dark); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 3000; text-align:center; width: 85%; max-width: 400px; }
 .toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
 
 .whatsapp-float { position: fixed; bottom: 92px; left: 20px; width: 56px; height: 56px; border-radius: 50%; background: #25D366; color: white; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5); z-index: 99; cursor: pointer; transition: 0.2s; border: none; }
 .whatsapp-float:active { transform: scale(0.9); }
+
+.provider-banner { background: linear-gradient(135deg, #F59E0B, #D97706); color: white; border-radius: 20px; padding: 25px; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-md); }
+.provider-banner h1 { font-size: 24px; font-weight: 900; margin-bottom: 5px; }
 </style>
 </head>
 <body>
@@ -167,12 +170,11 @@ a { text-decoration: none; }
 </div>
 
 <main id="view-home" class="app-view active">
-    
     <div class="welcome-area">
         <p><i class="fa-solid fa-location-dot" style="color:var(--brand)"></i> شبين القناطر، القليوبية</p>
         <h2>أهلاً بك في وصلة 👋</h2>
         <a href="#" id="phone-link" class="phone-chip">
-            <i class="fa-solid fa-phone"></i> اتصل بينا: <span id="phone-display">0100 000 0000</span>
+            <i class="fa-solid fa-phone"></i> اتصل بينا: <span id="phone-display">0155 196 375</span>
         </a>
     </div>
 
@@ -207,11 +209,10 @@ a { text-decoration: none; }
             <div class="cat-icon" style="background: #FFF7ED; color: #EA580C;"><i class="fa-solid fa-cart-shopping"></i></div>
             <h3>السوبر ماركت</h3><p>كل احتياجات البيت</p>
         </div>
-        <div class="cat-card" onclick="orderSector('maintenance')">
+        <div class="cat-card" onclick="navigateTo('maintenance')">
             <div class="cat-icon" style="background: #FEF2F2; color: #E11D48;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
             <h3>الصيانة المنزلية</h3><p>سباكة وكهرباء</p>
         </div>
-        
         <div class="cat-card" onclick="navigateTo('delivery')">
             <div class="cat-icon" style="background: #FFF7ED; color: #F59E0B;"><i class="fa-solid fa-motorcycle"></i></div>
             <h3>توصيل</h3><p>أي حاجة توصلك في دقايق</p>
@@ -220,13 +221,13 @@ a { text-decoration: none; }
 </main>
 
 <div id="view-delivery" class="app-view">
-    <div class="delivery-header">
-        <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
+    <div class="inner-header">
+        <div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div>
         <h2>توصيل</h2>
     </div>
 
-    <div class="delivery-form">
-        <div class="delivery-banner">
+    <div class="sector-form-area">
+        <div class="sector-banner banner-delivery">
             <h1>عايز توصل إيه؟ 🛵</h1>
             <p>بنوصل أي حاجة لأي حد في شبين القناطر</p>
         </div>
@@ -258,29 +259,85 @@ a { text-decoration: none; }
             <span class="gps-text" id="dropoff-status">لم يتم تحديد الموقع بعد</span>
         </div>
 
-        <button class="delivery-submit" id="delivery-btn" onclick="submitDelivery()">اطلب التوصيل الآن</button>
+        <button class="sector-submit btn-delivery" id="delivery-btn" onclick="submitDelivery()">اطلب التوصيل الآن</button>
     </div>
 </div>
 
-<div class="modal-overlay" id="complaint-modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>الشكاوى والاقتراحات</h2>
-            <button class="close-btn" onclick="closeModal('complaint-modal')"><i class="fa-solid fa-xmark"></i></button>
+<div id="view-maintenance" class="app-view">
+    <div class="inner-header">
+        <div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div>
+        <h2>الصيانة المنزلية</h2>
+    </div>
+
+    <div class="sector-form-area">
+        <div class="sector-banner banner-maint">
+            <h1>صيانة احترافية 🔧</h1>
+            <p>فنيين موثوقين في شبين القناطر</p>
+        </div>
+
+        <div class="input-group">
+            <label>اختار نوع الصيانة المطلوبة</label>
+            <div class="services-grid" id="maint-services-grid">
+                <div class="service-card" onclick="selectMaintService(this, 'سباكة')"><i class="fa-solid fa-faucet-drip"></i><span>سباكة</span></div>
+                <div class="service-card" onclick="selectMaintService(this, 'كهرباء')"><i class="fa-solid fa-bolt"></i><span>كهرباء</span></div>
+                <div class="service-card" onclick="selectMaintService(this, 'تكييف')"><i class="fa-solid fa-wind"></i><span>تكييف</span></div>
+                <div class="service-card" onclick="selectMaintService(this, 'نجارة')"><i class="fa-solid fa-hammer"></i><span>نجارة</span></div>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>اسمك</label>
+            <input type="text" id="maint-name" class="input-field" placeholder="الاسم بالكامل">
         </div>
         <div class="input-group">
-            <label>نوع الرسالة</label>
-            <select class="input-field" id="complaint-type">
-                <option>اقتراح لتطوير المنصة</option>
-                <option>شكوى بخصوص خدمة</option>
-                <option>مشكلة تقنية</option>
+            <label>رقم تليفونك</label>
+            <input type="tel" id="maint-phone" class="input-field" placeholder="01xxxxxxxxx">
+        </div>
+        <div class="input-group">
+            <label>وصف المشكلة / تفاصيل الطلب</label>
+            <textarea id="maint-desc" class="input-field" rows="3" placeholder="اكتب المشكلة..."></textarea>
+        </div>
+
+        <button class="sector-submit btn-maint" onclick="submitMaintRequest()">اطلب الفني الآن</button>
+    </div>
+</div>
+
+<div id="view-provider" class="app-view">
+    <div class="inner-header">
+        <div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div>
+        <h2>انضم كفني</h2>
+    </div>
+
+    <div class="sector-form-area">
+        <div class="provider-banner">
+            <h1>عايز تشتغل مع وصلة؟ 💼</h1>
+            <p>سجل بياناتك عشان نكلمك وتستلم طلبات</p>
+        </div>
+
+        <div class="input-group">
+            <label>الاسم بالكامل</label>
+            <input type="text" id="provider-name" class="input-field" placeholder="اسمك">
+        </div>
+        <div class="input-group">
+            <label>رقم التليفون (واتساب)</label>
+            <input type="tel" id="provider-phone" class="input-field" placeholder="01xxxxxxxxx">
+        </div>
+        <div class="input-group">
+            <label>تخصصك</label>
+            <select id="provider-craft" class="input-field">
+                <option value="سباك">سباك</option>
+                <option value="كهربائي">كهربائي</option>
+                <option value="فني تكييف">فني تكييف</option>
+                <option value="نجار">نجار</option>
+                <option value="مندوب توصيل">مندوب توصيل</option>
             </select>
         </div>
         <div class="input-group">
-            <label>تفاصيل الرسالة</label>
-            <textarea class="input-field" id="complaint-text" placeholder="اكتب تفاصيل..." rows="4"></textarea>
+            <label>المنطقة اللي بتغطيها (اختياري)</label>
+            <input type="text" id="provider-area" class="input-field" placeholder="مثال: شبين القناطر - الشارع الجديد">
         </div>
-        <button class="submit-btn" onclick="submitComplaint()">إرسال</button>
+
+        <button class="sector-submit btn-maint" onclick="submitProviderApplication()" style="background: linear-gradient(135deg, #F59E0B, #D97706);">إرسال طلب الانضمام</button>
     </div>
 </div>
 
@@ -291,25 +348,32 @@ a { text-decoration: none; }
 <nav class="bottom-nav">
     <button class="nav-item active" onclick="navigateTo('home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
     <button class="nav-item" onclick="showToast('طلباتي — قريباً')"><i class="fa-solid fa-box"></i><span>طلباتي</span></button>
-    <button class="nav-item" onclick="openModal('complaint-modal')"><i class="fa-solid fa-headset"></i><span>الدعم</span></button>
-    <button class="nav-item" onclick="showToast('المحفظة — قريباً')"><i class="fa-solid fa-wallet"></i><span>المحفظة</span></button>
+    <button class="nav-item" onclick="navigateTo('provider')"><i class="fa-solid fa-briefcase"></i><span>انضم كفني</span></button>
     <button class="nav-item" onclick="showToast('حسابي — قريباً')"><i class="fa-solid fa-user"></i><span>حسابي</span></button>
 </nav>
 
 <div id="toast" class="toast"></div>
+
+<!-- استدعاء مكتبة Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // =========================================
-// ⚙️ الإعدادات — رقمك هنا + بيانات السيرفر
+// ⚙️ الإعدادات
 // =========================================
-const WASLA_PHONE = '20155196375';           // ← رقمك اللي أنت حطيته
-const WASLA_PHONE_DISPLAY = '0155196375';    // ← الرقم اللي يظهر للناس
+const WASLA_PHONE = '20155196375';           // ← رقمك
+const WASLA_PHONE_DISPLAY = '0155 196 375';  
 
-// ⚠️ بيانات السيرفر بتاعتك
+// بيانات السيرفر
 const SUPABASE_URL = 'https://fdduzcytuhoelnnejgkl.supabase.co'; 
 const SUPABASE_ANON_KEY = 'sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// تهيئة Supabase بشكل آمن (لو حصل مشكلة في النت متأثرش على الواتساب)
+let supabaseClient = null;
+try {
+    if (window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+} catch(e) { console.log("Supabase Init Error:", e); }
 
 document.getElementById('phone-link').href = 'tel:+' + WASLA_PHONE;
 document.getElementById('phone-display').innerText = WASLA_PHONE_DISPLAY;
@@ -319,7 +383,7 @@ document.getElementById('phone-display').innerText = WASLA_PHONE_DISPLAY;
 // =========================================
 function openWhatsApp(message) {
     const url = `https://wa.me/${WASLA_PHONE}?text=${encodeURIComponent(message)}`;
-    window.location.href = url;
+    window.open(url, '_blank'); // فتح في تاب جديد لضمان العمل على كل المتصفحات
 }
 
 function showToast(msg) { 
@@ -329,9 +393,6 @@ function showToast(msg) {
     setTimeout(() => t.classList.remove('show'), 3000); 
 }
 
-// =========================================
-// التنقل والثيم
-// =========================================
 function navigateTo(viewId) {
     document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
     const target = document.getElementById('view-' + viewId);
@@ -351,9 +412,6 @@ function toggleTheme() {
     document.getElementById('theme-icon').className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
 }
 
-// =========================================
-// GPS
-// =========================================
 function toggleGPS() {
     const btn = document.getElementById('gps-btn');
     if(!navigator.geolocation) return showToast('المتصفح مش بيدعم الموقع');
@@ -414,18 +472,18 @@ async function submitDelivery() {
     btn.innerText = 'جاري الإرسال...';
     btn.disabled = true;
 
-    // 1. الحفظ في قاعدة البيانات (Supabase)
-    try {
-        await supabase.from('orders').insert([{ 
-            customer_name: 'عميل توصيل', 
-            customer_phone: phone, 
-            sector: 'توصيل', 
-            details: `الشحنة: ${item} | من: ${pickupManualVal || 'GPS'} إلى: ${dropoffManualVal || 'GPS'}`,
-            status: 'new'
-        }]);
-    } catch(e) { console.log("DB Error:", e); }
+    if(supabaseClient) {
+        try {
+            await supabaseClient.from('orders').insert([{ 
+                customer_name: 'عميل توصيل', 
+                customer_phone: phone, 
+                sector: 'توصيل', 
+                details: `الشحنة: ${item} | من: ${pickupManualVal || 'GPS'} إلى: ${dropoffManualVal || 'GPS'}`,
+                status: 'new'
+            }]);
+        } catch(e) { console.log("DB Error:", e); }
+    }
     
-    // 2. فتح الواتساب
     const waMsg = 
         `*🛵 طلب توصيل جديد - وصلة*\n\n` +
         `📦 الشحنة: ${item}\n` +
@@ -473,18 +531,18 @@ async function submitMaintRequest() {
     if(!phone || phone.length < 10) return showToast('رقم التليفون غلط');
     if(!desc) return showToast('اكتب تفاصيل المشكلة');
 
-    // 1. الحفظ في قاعدة البيانات (Supabase)
-    try {
-        await supabase.from('orders').insert([{ 
-            customer_name: name, 
-            customer_phone: phone, 
-            sector: 'صيانة - ' + selectedMaintService, 
-            details: desc,
-            status: 'new'
-        }]);
-    } catch(e) { console.log("DB Error:", e); }
+    if(supabaseClient) {
+        try {
+            await supabaseClient.from('orders').insert([{ 
+                customer_name: name, 
+                customer_phone: phone, 
+                sector: 'صيانة - ' + selectedMaintService, 
+                details: desc,
+                status: 'new'
+            }]);
+        } catch(e) { console.log("DB Error:", e); }
+    }
 
-    // 2. فتح الواتساب
     const waMsg = 
         `*🔧 طلب صيانة جديد - وصلة*\n\n` +
         `🛠️ الخدمة: ${selectedMaintService}\n` +
@@ -503,9 +561,6 @@ async function submitMaintRequest() {
     setTimeout(() => openWhatsApp(waMsg), 500);
 }
 
-// =========================================
-// تسجيل الفنيين
-// =========================================
 async function submitProviderApplication() {
     const name = document.getElementById('provider-name').value.trim();
     const phone = document.getElementById('provider-phone').value.trim();
@@ -531,9 +586,6 @@ async function submitProviderApplication() {
     setTimeout(() => openWhatsApp(waMsg), 500);
 }
 
-// =========================================
-// أقسام عامة
-// =========================================
 function orderSector(sector) {
     const messages = {
         medical:     'السلام عليكم 👋\nعايز أحجز دكتور من وصلة.\n\nالتخصص المطلوب: ',
@@ -563,4 +615,6 @@ function startVoiceSearch() {
     };
     try { rec.start(); } catch(e) {}
 }
-  </script>
+</script>
+</body>
+</html>
