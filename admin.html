@@ -9,118 +9,141 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-:root{--b:#10B981;--bd:#059669;--bl:#D1FAE5;--bg:#F8FAFC;--c:#FFFFFF;--t:#0F172A;--m:#64748B;--br:#E2E8F0;--nav:rgba(255,255,255,0.95);--sh:0 4px 6px -1px rgba(0,0,0,0.05);--shl:0 10px 25px -3px rgba(0,0,0,0.08);--rad:16px;}
-[data-theme="dark"]{--bg:#0B1120;--c:#1E293B;--t:#F1F5F9;--m:#94A3B8;--br:#334155;--bl:#064E3B;--nav:rgba(30,41,59,0.95);--sh:0 4px 6px rgba(0,0,0,0.3);--shl:0 10px 25px rgba(0,0,0,0.4);}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;font-family:'Cairo',sans-serif;}
-body{background:var(--bg);color:var(--t);padding-bottom:70px;overflow-x:hidden;transition:0.3s;line-height:1.5;}
-a{text-decoration:none;color:inherit;} button{font-family:inherit;cursor:pointer;border:none;background:none;outline:none;}
-h1,h2,h3,h4{font-family:'Tajawal',sans-serif;}
+/* ==================== Design System & Variables ==================== */
+:root {
+  --b: #10B981; --bd: #059669; --bl: #D1FAE5;
+  --bg: #F8FAFC; --c: #FFFFFF; --t: #0F172A; --m: #64748B; --br: #E2E8F0;
+  --nav: rgba(255,255,255,0.95);
+  --sh: 0 4px 6px -1px rgba(0,0,0,0.05);
+  --shl: 0 10px 25px -3px rgba(0,0,0,0.08);
+  --rad: 16px;
+  /* Sector Specific Colors */
+  --edu: #84cc16; --edu-bg: #f7fee7; --edu-dark: #65a30d;
+  --med: #0284c7; --med-bg: #f0f9ff; --med-dark: #0369a1;
+  --maint: #ea580c; --maint-bg: #fff7ed; --maint-dark: #c2410c;
+  --cars: #475569; --cars-bg: #f8fafc; --cars-dark: #334155;
+  --market: #db2777; --market-bg: #fdf2f8; --market-dark: #be185d;
+  --del: #8b5cf6; --del-bg: #f5f3ff; --del-dark: #6d28d9;
+}
+[data-theme="dark"] {
+  --bg: #0B1120; --c: #1E293B; --t: #F1F5F9; --m: #94A3B8; --br: #334155;
+  --bl: #064E3B; --nav: rgba(30,41,59,0.95);
+  --sh: 0 4px 6px rgba(0,0,0,0.3); --shl: 0 10px 25px rgba(0,0,0,0.4);
+  --edu-bg: #0f172a; --med-bg: #0f172a; --maint-bg: #0f172a; --cars-bg: #0f172a; --market-bg: #0f172a; --del-bg: #0f172a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: 'Cairo', sans-serif; }
+body { background: var(--bg); color: var(--t); padding-bottom: 75px; overflow-x: hidden; transition: 0.3s; line-height: 1.5; }
+a { text-decoration: none; color: inherit; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; outline: none; }
+h1, h2, h3, h4 { font-family: 'Tajawal', sans-serif; }
 
-/* Navigation & Shell */
-header{background:var(--c);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--br);box-shadow:var(--sh);}
-.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;font-family:'Tajawal';}
-.logo i{background:linear-gradient(135deg,#FF6B4A,#FF3366);color:#fff;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Cairo';font-size:20px;}
-.h-icons{display:flex;gap:8px;}
-.h-btn{width:36px;height:36px;border-radius:50%;background:var(--bg);border:1px solid var(--br);color:var(--t);display:flex;align-items:center;justify-content:center;font-size:16px;transition:0.2s;}
-.h-btn:active{transform:scale(0.9);color:var(--b);border-color:var(--b);}
-.ticker{background:var(--bl);color:var(--bd);padding:8px 0;overflow:hidden;display:flex;font-size:12px;font-weight:700;border-bottom:1px solid var(--br);white-space:nowrap;}
-.ticker div{animation:ticker 20s linear infinite;display:inline-block;padding-left:50px;}
-@keyframes ticker{0%{transform:translateX(0);}100%{transform:translateX(100%);}}
-.sidebar{position:fixed;top:0;right:-280px;width:280px;height:100vh;background:var(--c);z-index:1000;transition:0.3s;box-shadow:-5px 0 15px rgba(0,0,0,0.1);display:flex;flex-direction:column;}
-.sidebar.open{right:0;}
-.sidebar-head{padding:20px;border-bottom:1px solid var(--br);display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:20px;}
-.sidebar-nav{padding:20px;flex:1;overflow-y:auto;}
-.s-nav-item{display:flex;align-items:center;gap:15px;padding:12px 15px;border-radius:10px;font-weight:700;color:var(--m);margin-bottom:8px;transition:0.2s;}
-.s-nav-item:hover,.s-nav-item.active{background:var(--bl);color:var(--b);}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;opacity:0;visibility:hidden;transition:0.3s;}
-.overlay.open{opacity:1;visibility:visible;}
+/* ==================== App Shell ==================== */
+header { background: var(--c); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--br); box-shadow: var(--sh); }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 22px; font-family: 'Tajawal'; }
+.logo i { background: linear-gradient(135deg,#FF6B4A,#FF3366); color:#fff; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:'Cairo'; font-size:20px; }
+.h-icons { display: flex; gap: 8px; }
+.h-btn { width:36px; height:36px; border-radius:50%; background:var(--bg); border:1px solid var(--br); color:var(--t); display:flex; align-items:center; justify-content:center; font-size:16px; transition:0.2s; }
+.h-btn:active { transform: scale(0.9); color: var(--b); border-color: var(--b); }
+.ticker { background: var(--bl); color: var(--bd); padding: 8px 0; overflow: hidden; display: flex; font-size: 12px; font-weight: 700; border-bottom: 1px solid var(--br); white-space: nowrap; }
+.ticker div { animation: ticker 20s linear infinite; display: inline-block; padding-left: 50px; }
+@keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }
+
+/* Sidebar */
+.sidebar { position: fixed; top: 0; right: -280px; width: 280px; height: 100vh; background: var(--c); z-index: 1000; transition: 0.3s; box-shadow: -5px 0 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+.sidebar.open { right: 0; }
+.sidebar-head { padding: 20px; border-bottom: 1px solid var(--br); display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 20px; }
+.sidebar-nav { padding: 20px; flex: 1; overflow-y: auto; }
+.s-nav-item { display: flex; align-items: center; gap: 15px; padding: 12px 15px; border-radius: 10px; font-weight: 700; color: var(--m); margin-bottom: 8px; transition: 0.2s; }
+.s-nav-item:hover, .s-nav-item.active { background: var(--bl); color: var(--b); }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; opacity: 0; visibility: hidden; transition: 0.3s; }
+.overlay.open { opacity: 1; visibility: visible; }
 
 /* Layout & Animations */
-.view{display:none;padding:16px;animation:fadeIn 0.3s ease;}
-.view.active{display:block;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-.sec-title{font-size:20px;font-weight:900;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
-.sec-title i{color:var(--b);}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.card{background:var(--c);border:1px solid var(--br);border-radius:var(--rad);padding:16px;box-shadow:var(--sh);}
-.btn{width:100%;padding:12px;border-radius:10px;background:var(--b);color:#fff;font-weight:800;font-size:15px;display:flex;justify-content:center;align-items:center;gap:8px;transition:0.2s;}
-.btn:active{transform:scale(0.97);}
-.input-group{margin-bottom:12px;}
-.input-group label{display:block;font-size:12px;font-weight:700;color:var(--m);margin-bottom:6px;}
-.input-group input,.input-group select,.input-group textarea{width:100%;padding:12px;border:1px solid var(--br);border-radius:10px;background:var(--bg);color:var(--t);font-family:inherit;font-size:14px;outline:none;}
-.input-group input:focus,.input-group select:focus{border-color:var(--b);}
+.view { display: none; padding: 16px; animation: fadeIn 0.3s ease; }
+.view.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.sec-title { font-size: 20px; font-weight: 900; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.sec-title i { color: var(--b); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.card { background: var(--c); border: 1px solid var(--br); border-radius: var(--rad); padding: 16px; box-shadow: var(--sh); }
+.btn { width: 100%; padding: 12px; border-radius: 10px; background: var(--b); color: #fff; font-weight: 800; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
+.btn:active { transform: scale(0.97); }
+.input-group { margin-bottom: 12px; }
+.input-group label { display: block; font-size: 12px; font-weight: 700; color: var(--m); margin-bottom: 6px; }
+.input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px; border: 1px solid var(--br); border-radius: 10px; background: var(--bg); color: var(--t); font-family: inherit; font-size: 14px; outline: none; }
+.input-group input:focus, .input-group select:focus { border-color: var(--b); }
 
-/* Sectors - Home */
-.cat-card{display:flex;flex-direction:column;align-items:flex-start;padding:16px;border-radius:var(--rad);background:var(--c);border:1px solid var(--br);box-shadow:var(--sh);position:relative;overflow:hidden;}
-.cat-icon{width:45px;height:45px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;}
-.cat-card h3{font-size:15px;margin-bottom:4px;}
-.cat-card p{font-size:11px;color:var(--m);}
+/* ==================== Home ==================== */
+.cat-card { display: flex; flex-direction: column; align-items: flex-start; padding: 16px; border-radius: var(--rad); background: var(--c); border: 1px solid var(--br); box-shadow: var(--sh); position: relative; overflow: hidden; }
+.cat-icon { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 12px; }
+.cat-card h3 { font-size: 15px; margin-bottom: 4px; }
+.cat-card p { font-size: 11px; color: var(--m); }
 
-/* Theme: Education (Creative/Green) */
-.theme-edu{background:#f7fee7;}
-[data-theme="dark"] .theme-edu{background:#0f172a;}
-.edu-banner{background:#84cc16;color:#fff;padding:20px;border-radius:20px;text-align:center;margin-bottom:20px;}
-.edu-card{background:#fff;border-radius:20px;padding:16px;margin-bottom:16px;box-shadow:0 8px 20px rgba(132,204,22,0.15);border:1px solid #d9f99d;position:relative;}
-[data-theme="dark"] .edu-card{background:#1e293b;border-color:#334155;}
-.edu-tag{background:#ecfccb;color:#65a30d;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;display:inline-block;margin-bottom:8px;}
-.edu-price{font-size:18px;font-weight:900;color:#84cc16;}
-.edu-price span{font-size:12px;color:#a3a3a3;text-decoration:line-through;margin-right:6px;}
-.teacher-card{background:#fff;border-radius:16px;padding:12px;text-align:center;border:1px solid #e5e7eb;}
-[data-theme="dark"] .teacher-card{background:#1e293b;border-color:#334155;}
-.teacher-card img{width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto 10px;border:3px solid #84cc16;}
-.social-links{display:flex;justify-content:center;gap:6px;margin-top:10px;}
-.social-links a{width:28px;height:28px;border-radius:50%;border:1px solid #84cc16;color:#84cc16;display:flex;align-items:center;justify-content:center;font-size:12px;}
+/* ==================== Education Theme ==================== */
+.theme-edu { background: var(--edu-bg); }
+.edu-banner { background: var(--edu); color: #fff; padding: 24px; border-radius: 24px; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(132,204,22,0.2); }
+.edu-card { background: var(--c); border-radius: 20px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shl); border: 1px solid var(--br); position: relative; }
+.edu-tag { background: var(--edu-bg); color: var(--edu-dark); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; display: inline-block; margin-bottom: 8px; }
+[data-theme="dark"] .edu-tag { background: #334155; color: #a3e635; }
+.edu-price { font-size: 18px; font-weight: 900; color: var(--edu); }
+.edu-price span { font-size: 12px; color: var(--m); text-decoration: line-through; margin-right: 6px; }
+.teacher-card { background: var(--c); border-radius: 16px; padding: 16px; text-align: center; border: 1px solid var(--br); box-shadow: var(--sh); }
+.teacher-card img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto 10px; border: 3px solid var(--edu); }
+.social-links { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
+.social-links a { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--edu); color: var(--edu); display: flex; align-items: center; justify-content: center; font-size: 14px; }
 
-/* Theme: Medical (Trust/Blue) */
-.theme-med{background:#f0f9ff;}
-[data-theme="dark"] .theme-med{background:#0f172a;}
-.doc-card{background:#fff;border-radius:16px;padding:16px;border:1px solid #e0f2fe;display:flex;gap:12px;align-items:center;margin-bottom:12px;}
-[data-theme="dark"] .doc-card{background:#1e293b;border-color:#334155;}
-.doc-img{width:60px;height:60px;border-radius:50%;background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center;font-size:24px;}
-.doc-info h4{font-size:15px;color:#0369a1;}
-[data-theme="dark"] .doc-info h4{color:#38bdf8;}
-.doc-info p{font-size:12px;color:#64748b;}
-.stars{color:#f59e0b;font-size:12px;margin-top:4px;}
+/* ==================== Medical Theme ==================== */
+.theme-med { background: var(--med-bg); }
+.doc-card { background: var(--c); border-radius: 16px; padding: 16px; border: 1px solid var(--br); display: flex; gap: 12px; align-items: center; margin-bottom: 12px; box-shadow: var(--sh); }
+.doc-img { width: 64px; height: 64px; border-radius: 16px; background: var(--med-bg); color: var(--med); display: flex; align-items: center; justify-content: center; font-size: 28px; }
+.doc-info h4 { font-size: 16px; color: var(--med-dark); }
+[data-theme="dark"] .doc-info h4 { color: #38bdf8; }
+.doc-info p { font-size: 12px; color: var(--m); margin-top: 2px; }
+.stars { color: #f59e0b; font-size: 12px; margin-top: 4px; }
+.filter-pill { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; border: 1px solid var(--br); background: var(--c); color: var(--m); }
+.filter-pill.active { background: var(--med); color: #fff; border-color: var(--med); }
 
-/* Theme: Maintenance/Cars (Industrial/Orange) */
-.theme-maint{background:#f8fafc;}
-[data-theme="dark"] .theme-maint{background:#0f172a;}
-.industrial-card{background:#fff;border:2px solid #cbd5e1;border-radius:8px;padding:16px;margin-bottom:12px;border-right:6px solid #f97316;}
-[data-theme="dark"] .industrial-card{background:#1e293b;border-color:#334155;border-right-color:#ea580c;}
-.ind-icon{color:#f97316;font-size:24px;margin-bottom:10px;}
+/* ==================== Maintenance & Cars Theme ==================== */
+.theme-maint { background: var(--maint-bg); }
+.theme-cars { background: var(--cars-bg); }
+.industrial-card { background: var(--c); border: 1px solid var(--br); border-radius: 12px; padding: 16px; margin-bottom: 12px; border-right: 6px solid var(--maint); box-shadow: var(--sh); }
+.theme-cars .industrial-card { border-right-color: var(--cars); }
+.ind-icon { color: var(--maint); font-size: 28px; margin-bottom: 12px; }
+.theme-cars .ind-icon { color: var(--cars); }
 
-/* Theme: Delivery/E-commerce (Vibrant/Purple) */
-.theme-del{background:#faf5ff;}
-[data-theme="dark"] .theme-del{background:#0f172a;}
-.del-box{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;border-radius:20px;padding:24px;text-align:center;margin-bottom:20px;}
-.loc-btn{width:100%;padding:14px;border-radius:12px;border:1px solid #c4b5fd;background:#fff;color:#6d28d9;font-weight:800;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-[data-theme="dark"] .loc-btn{background:#1e293b;border-color:#334155;color:#a78bfa;}
-.loc-btn.active{background:#f3e8ff;border-color:#8b5cf6;}
+/* ==================== Market & Delivery Theme ==================== */
+.theme-market { background: var(--market-bg); }
+.theme-del { background: var(--del-bg); }
+.del-box { background: linear-gradient(135deg, var(--del), var(--del-dark)); color: #fff; border-radius: 24px; padding: 30px 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(139,92,246,0.2); }
+.loc-btn { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--br); background: var(--c); color: var(--t); font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; transition: 0.2s; }
+.loc-btn.active { border-color: var(--del); background: var(--del-bg); color: var(--del-dark); }
 
-/* My Orders */
-.order-card{background:var(--c);border:1px solid var(--br);border-radius:12px;padding:16px;margin-bottom:12px;border-right:4px solid var(--b);}
-.order-head{display:flex;justify-content:space-between;margin-bottom:8px;}
-.order-status{font-size:11px;padding:2px 8px;border-radius:10px;background:#fef3c7;color:#d97706;font-weight:800;}
+/* ==================== My Orders ==================== */
+.order-card { background: var(--c); border: 1px solid var(--br); border-radius: 16px; padding: 16px; margin-bottom: 12px; border-right: 5px solid var(--b); box-shadow: var(--sh); }
+.order-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.order-status { font-size: 11px; padding: 4px 10px; border-radius: 10px; background: var(--bl); color: var(--bd); font-weight: 800; }
+.order-date { font-size: 12px; color: var(--m); }
 
-/* FAQ */
-details{background:var(--c);border:1px solid var(--br);border-radius:10px;margin-bottom:8px;overflow:hidden;}
-summary{padding:14px;font-weight:700;font-size:14px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;}
-summary::-webkit-details-marker{display:none;}
-details[open] summary{border-bottom:1px solid var(--br);color:var(--b);}
-.faq-content{padding:14px;font-size:13px;color:var(--m);}
+/* ==================== FAQ ==================== */
+details { background: var(--c); border: 1px solid var(--br); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+summary { padding: 16px; font-weight: 700; font-size: 14px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+summary::-webkit-details-marker { display: none; }
+details[open] summary { border-bottom: 1px solid var(--br); color: var(--b); }
+.faq-content { padding: 16px; font-size: 13px; color: var(--m); background: var(--bg); }
 
-/* Bottom Nav */
-.b-nav{position:fixed;bottom:0;left:0;right:0;background:var(--nav);border-top:1px solid var(--br);display:flex;justify-content:space-around;padding:8px 0;backdrop-filter:blur(10px);z-index:100;}
-.b-item{display:flex;flex-direction:column;align-items:center;font-size:10px;color:var(--m);font-weight:700;gap:4px;}
-.b-item.active,.b-item:active{color:var(--b);}
-.b-item i{font-size:18px;}
+/* ==================== Bottom Nav ==================== */
+.b-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav); border-top: 1px solid var(--br); display: flex; justify-content: space-around; padding: 10px 0; backdrop-filter: blur(10px); z-index: 100; }
+.b-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--m); font-weight: 700; gap: 4px; transition: 0.2s; }
+.b-item.active, .b-item:active { color: var(--b); }
+.b-item i { font-size: 20px; }
 
-.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-20px);background:var(--t);color:var(--bg);padding:10px 20px;border-radius:30px;font-weight:700;font-size:14px;opacity:0;visibility:hidden;transition:0.3s;z-index:9999;}
-.toast.show{opacity:1;visibility:visible;transform:translate(-50%,0);}
+.toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--t); color: var(--bg); padding: 12px 24px; border-radius: 30px; font-weight: 700; font-size: 14px; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 9999; }
+.toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
 </style>
 </head>
 <body>
 
+<!-- Sidebar & Overlay -->
 <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 <div class="sidebar" id="sidebar">
     <div class="sidebar-head">
@@ -139,6 +162,7 @@ details[open] summary{border-bottom:1px solid var(--br);color:var(--b);}
     </div>
 </div>
 
+<!-- Header -->
 <header>
     <div class="logo"><i class="fa-solid fa-w">W</i> وصلة</div>
     <div class="h-icons">
@@ -147,36 +171,37 @@ details[open] summary{border-bottom:1px solid var(--br);color:var(--b);}
     </div>
 </header>
 
+<!-- Ticker -->
 <div class="ticker">
     <div>🔥 أهلاً بيك في منصة وصلة - شبين القناطر | جرب خدماتنا واستفيد بأفضل العروض | خدمة توصيل سريعة داخل المدينة 🚀</div>
 </div>
 
-<!-- Home -->
+<!-- ==================== HOME VIEW ==================== -->
 <main id="view-home" class="view active">
     <div class="sec-title">اكتشف خدماتنا</div>
     <div class="grid-2">
         <div class="cat-card" onclick="nav('med')">
-            <div class="cat-icon" style="background:#e0f2fe;color:#0284c7;"><i class="fa-solid fa-heart-pulse"></i></div>
+            <div class="cat-icon" style="background:var(--med-bg);color:var(--med);"><i class="fa-solid fa-heart-pulse"></i></div>
             <h3>الصحة والطب</h3><p>أطباء وتمريض</p>
         </div>
         <div class="cat-card" onclick="nav('edu')">
-            <div class="cat-icon" style="background:#ecfccb;color:#65a30d;"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div class="cat-icon" style="background:var(--edu-bg);color:var(--edu-dark);"><i class="fa-solid fa-graduation-cap"></i></div>
             <h3>التعليم</h3><p>دورات ومدرسين</p>
         </div>
         <div class="cat-card" onclick="nav('maint')">
-            <div class="cat-icon" style="background:#ffedd5;color:#ea580c;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+            <div class="cat-icon" style="background:var(--maint-bg);color:var(--maint);"><i class="fa-solid fa-screwdriver-wrench"></i></div>
             <h3>الصيانة</h3><p>سباكة وكهرباء</p>
         </div>
         <div class="cat-card" onclick="nav('cars')">
-            <div class="cat-icon" style="background:#f1f5f9;color:#475569;"><i class="fa-solid fa-car"></i></div>
+            <div class="cat-icon" style="background:var(--cars-bg);color:var(--cars-dark);"><i class="fa-solid fa-car"></i></div>
             <h3>السيارات</h3><p>غسيل وصيانة</p>
         </div>
         <div class="cat-card" onclick="nav('market')">
-            <div class="cat-icon" style="background:#fce7f3;color:#db2777;"><i class="fa-solid fa-cart-shopping"></i></div>
+            <div class="cat-icon" style="background:var(--market-bg);color:var(--market);"><i class="fa-solid fa-cart-shopping"></i></div>
             <h3>سوبر ماركت</h3><p>طلبات البيت</p>
         </div>
         <div class="cat-card" onclick="nav('delivery')">
-            <div class="cat-icon" style="background:#f3e8ff;color:#9333ea;"><i class="fa-solid fa-motorcycle"></i></div>
+            <div class="cat-icon" style="background:var(--del-bg);color:var(--del);"><i class="fa-solid fa-motorcycle"></i></div>
             <h3>توصيل</h3><p>أي حاجة لأي حد</p>
         </div>
     </div>
@@ -186,11 +211,11 @@ details[open] summary{border-bottom:1px solid var(--br);color:var(--b);}
     <details><summary>هل التوصيل متاح لكل شبين؟ <i class="fa-solid fa-chevron-down"></i></summary><div class="faq-content">حالياً نغطي شبين القناطر بالكامل والمناطق المجاورة.</div></details>
 </main>
 
-<!-- Education -->
+<!-- ==================== EDUCATION VIEW ==================== -->
 <main id="view-edu" class="view theme-edu">
     <div class="edu-banner">
         <h2>منصة التعليم</h2>
-        <p style="font-size:12px;margin-top:5px;">أفضل المعلمين والدورات</p>
+        <p style="font-size:12px;margin-top:5px;opacity:0.9;">أفضل المعلمين والدورات</p>
     </div>
     
     <div class="sec-title">المعلمين المميزين</div>
@@ -198,13 +223,13 @@ details[open] summary{border-bottom:1px solid var(--br);color:var(--b);}
         <div class="teacher-card">
             <img src="https://ui-avatars.com/api/?name=أحمد+محمد&background=84cc16&color=fff" alt="Teacher">
             <h4 style="font-size:14px;">أ. أحمد محمد</h4>
-            <p style="font-size:11px;color:#65a30d;">الفيزياء</p>
+            <p style="font-size:11px;color:var(--edu-dark);">الفيزياء</p>
             <div class="social-links"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
         </div>
         <div class="teacher-card">
             <img src="https://ui-avatars.com/api/?name=سارة+علي&background=84cc16&color=fff" alt="Teacher">
             <h4 style="font-size:14px;">أ. سارة علي</h4>
-            <p style="font-size:11px;color:#65a30d;">الكيمياء</p>
+            <p style="font-size:11px;color:var(--edu-dark);">الكيمياء</p>
             <div class="social-links"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
         </div>
     </div>
@@ -216,18 +241,19 @@ details[open] summary{border-bottom:1px solid var(--br);color:var(--b);}
         <p style="font-size:12px;color:var(--m);margin-bottom:12px;">مع أ. أحمد محمد - 3 محاضرات مكثفة</p>
         <div style="display:flex;justify-content:space-between;align-items:center;">
             <div class="edu-price"><span>400 ج</span> 350 ج</div>
-            <button class="btn" style="width:auto;padding:8px 16px;background:#84cc16;" onclick="requestService('edu', 'دورة فيزياء')">سجل الآن</button>
+            <button class="btn" style="width:auto;padding:8px 16px;background:var(--edu);" onclick="requestService('edu', 'دورة فيزياء')">سجل الآن</button>
         </div>
     </div>
 </main>
 
-<!-- Medical -->
+<!-- ==================== MEDICAL VIEW ==================== -->
 <main id="view-med" class="view theme-med">
-    <div class="sec-title" style="color:#0284c7;">احجز مع طبيبك</div>
+    <div class="sec-title" style="color:var(--med-dark);">احجز مع طبيبك</div>
     <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:10px;">
-        <span style="background:#0284c7;color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;white-space:nowrap;">الكل</span>
-        <span style="background:#e0f2fe;color:#0284c7;padding:6px 12px;border-radius:20px;font-size:12px;white-space:nowrap;">باطنة</span>
-        <span style="background:#e0f2fe;color:#0284c7;padding:6px 12px;border-radius:20px;font-size:12px;white-space:nowrap;">أسنان</span>
+        <button class="filter-pill active">الكل</button>
+        <button class="filter-pill">باطنة</button>
+        <button class="filter-pill">أسنان</button>
+        <button class="filter-pill">عظام</button>
     </div>
     
     <div class="doc-card">
@@ -237,7 +263,7 @@ details[open] summary{border-bottom:1px solid var(--br);color:var(--b);}
             <p>استشاري باطنة - شبين القناطر</p>
             <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i> (4.5)</div>
         </div>
-        <button class="btn" style="width:auto;padding:8px 12px;background:#0284c7;" onclick="requestService('med', 'د. محمد عبد الله')">حجز</button>
+        <button class="btn" style="width:auto;padding:8px 12px;background:var(--med);" onclick="requestService('med', 'د. محمد عبد الله')">حجز</button>
     </div>
     
     <div class="doc-card">
@@ -247,56 +273,56 @@ details[open] summary{border-bottom:1px solid var(--br);color:var(--b);}
             <p>أخصائي أسنان وتجميل</p>
             <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i> (5.0)</div>
         </div>
-        <button class="btn" style="width:auto;padding:8px 12px;background:#0284c7;" onclick="requestService('med', 'د. سارة خالد')">حجز</button>
+        <button class="btn" style="width:auto;padding:8px 12px;background:var(--med);" onclick="requestService('med', 'د. سارة خالد')">حجز</button>
     </div>
 </main>
 
-<!-- Maintenance -->
+<!-- ==================== MAINTENANCE VIEW ==================== -->
 <main id="view-maint" class="view theme-maint">
-    <div class="sec-title" style="color:#ea580c;">خدمات الصيانة المنزلية</div>
+    <div class="sec-title" style="color:var(--maint-dark);">خدمات الصيانة المنزلية</div>
     <div class="industrial-card">
         <div class="ind-icon"><i class="fa-solid fa-faucet-drip"></i></div>
         <h3 style="font-size:16px;margin-bottom:4px;">سباكة</h3>
         <p style="font-size:12px;color:var(--m);margin-bottom:12px;">تسريب مياه، تركيب أدوات صحية</p>
-        <button class="btn" style="background:#ea580c;" onclick="requestService('maint', 'سباكة')">اطلب فني</button>
+        <button class="btn" style="background:var(--maint);" onclick="requestService('maint', 'سباكة')">اطلب فني</button>
     </div>
     <div class="industrial-card">
         <div class="ind-icon"><i class="fa-solid fa-bolt"></i></div>
         <h3 style="font-size:16px;margin-bottom:4px;">كهرباء</h3>
         <p style="font-size:12px;color:var(--m);margin-bottom:12px;">أعطال، تركيب إضاءة، لوحات</p>
-        <button class="btn" style="background:#ea580c;" onclick="requestService('maint', 'كهرباء')">اطلب فني</button>
+        <button class="btn" style="background:var(--maint);" onclick="requestService('maint', 'كهرباء')">اطلب فني</button>
     </div>
 </main>
 
-<!-- Cars -->
-<main id="view-cars" class="view theme-maint">
-    <div class="sec-title" style="color:#475569;">خدمات السيارات</div>
-    <div class="industrial-card" style="border-right-color:#475569;">
-        <div class="ind-icon" style="color:#475569;"><i class="fa-solid fa-car-side"></i></div>
+<!-- ==================== CARS VIEW ==================== -->
+<main id="view-cars" class="view theme-cars">
+    <div class="sec-title" style="color:var(--cars-dark);">خدمات السيارات</div>
+    <div class="industrial-card" style="border-right-color:var(--cars);">
+        <div class="ind-icon" style="color:var(--cars);"><i class="fa-solid fa-car-side"></i></div>
         <h3 style="font-size:16px;margin-bottom:4px;">غسيل سيارات</h3>
         <p style="font-size:12px;color:var(--m);margin-bottom:12px;">غسيل داخلي وخارجي</p>
-        <button class="btn" style="background:#475569;" onclick="requestService('cars', 'غسيل')">احجز</button>
+        <button class="btn" style="background:var(--cars);" onclick="requestService('cars', 'غسيل')">احجز</button>
     </div>
-    <div class="industrial-card" style="border-right-color:#475569;">
-        <div class="ind-icon" style="color:#475569;"><i class="fa-solid fa-truck-pickup"></i></div>
+    <div class="industrial-card" style="border-right-color:var(--cars);">
+        <div class="ind-icon" style="color:var(--cars);"><i class="fa-solid fa-truck-pickup"></i></div>
         <h3 style="font-size:16px;margin-bottom:4px;">ونش وسحب</h3>
         <p style="font-size:12px;color:var(--m);margin-bottom:12px;">إنقاذ سيارات على الطريق</p>
-        <button class="btn" style="background:#475569;" onclick="requestService('cars', 'ونش')">اطلب ونش</button>
+        <button class="btn" style="background:var(--cars);" onclick="requestService('cars', 'ونش')">اطلب ونش</button>
     </div>
 </main>
 
-<!-- Supermarket -->
-<main id="view-market" class="view">
-    <div class="sec-title" style="color:#db2777;">سوبر ماركت</div>
+<!-- ==================== MARKET VIEW ==================== -->
+<main id="view-market" class="view theme-market">
+    <div class="sec-title" style="color:var(--market-dark);">سوبر ماركت</div>
     <div class="card" style="margin-bottom:12px;">
         <h3 style="font-size:15px;">اكتب طلبك</h3>
         <p style="font-size:12px;color:var(--m);margin-bottom:12px;">اكتب قائمة المشتريات وسنقوم بتوصيلها لك.</p>
-        <div class="input-group"><textarea id="market-list" rows="3" placeholder="مثال: 2 كيلو طماطم، عيش، جبنة..."></textarea></div>
-        <button class="btn" style="background:#db2777;" onclick="submitForm('market')">إرسال الطلب</button>
+        <div class="input-group"><textarea id="market-list" rows="4" placeholder="مثال: 2 كيلو طماطم، عيش، جبنة..."></textarea></div>
+        <button class="btn" style="background:var(--market);" onclick="submitForm('market')">إرسال الطلب</button>
     </div>
 </main>
 
-<!-- Delivery -->
+<!-- ==================== DELIVERY VIEW ==================== -->
 <main id="view-delivery" class="view theme-del">
     <div class="del-box">
         <h2>توصيل سريع</h2>
@@ -316,17 +342,17 @@ details[open] summary{border-bottom:1px solid var(--br);color:var(--b);}
             <label>موقع التسليم (لحد فين؟)</label>
             <button class="loc-btn" id="btn-dropoff" onclick="getLocation('dropoff')"><span id="txt-dropoff">تحديد الموقع</span><i class="fa-solid fa-location-crosshairs"></i></button>
         </div>
-        <button class="btn" style="background:#8b5cf6;" onclick="submitForm('delivery')">تأكيد التوصيل</button>
+        <button class="btn" style="background:var(--del);" onclick="submitForm('delivery')">تأكيد التوصيل</button>
     </div>
 </main>
 
-<!-- My Orders -->
+<!-- ==================== MY ORDERS VIEW ==================== -->
 <main id="view-orders" class="view">
     <div class="sec-title">سجل طلباتي</div>
     <div id="orders-container"></div>
 </main>
 
-<!-- Modal -->
+<!-- ==================== MODAL ==================== -->
 <div id="modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;">
     <div style="background:var(--c);width:100%;max-width:400px;border-radius:20px;padding:20px;position:relative;">
         <button onclick="closeModal()" style="position:absolute;top:15px;left:15px;color:var(--m);"><i class="fa-solid fa-xmark"></i></button>
@@ -340,6 +366,7 @@ details[open] summary{border-bottom:1px solid var(--br);color:var(--b);}
 
 <div class="toast" id="toast">تم الحفظ بنجاح</div>
 
+<!-- ==================== BOTTOM NAV ==================== -->
 <nav class="b-nav">
     <div class="b-item active" onclick="nav('home')"><i class="fa-solid fa-house"></i>الرئيسية</div>
     <div class="b-item" onclick="nav('orders')"><i class="fa-solid fa-box"></i>طلباتي</div>
@@ -352,7 +379,7 @@ const PHONE = "201000000000"; // Replace with actual phone
 let currentReq = null;
 let coords = { pickup: null, dropoff: null };
 
-// Theme
+// Theme Management
 if(localStorage.getItem('theme')==='dark') { document.documentElement.setAttribute('data-theme','dark'); document.getElementById('themeIcon').className='fa-solid fa-sun'; }
 function toggleTheme(){
     const isDark = document.documentElement.getAttribute('data-theme')==='dark';
@@ -362,7 +389,7 @@ function toggleTheme(){
     document.getElementById('themeIcon').className = next==='dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
 }
 
-// Nav
+// Navigation
 function toggleMenu(){
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('overlay').classList.toggle('open');
@@ -371,6 +398,11 @@ function nav(id){
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
     document.getElementById('view-'+id).classList.add('active');
     if(id==='orders') renderOrders();
+    // Update bottom nav active state
+    document.querySelectorAll('.b-item').forEach(b=>b.classList.remove('active'));
+    if(id==='home') document.querySelector('.b-item:nth-child(1)').classList.add('active');
+    if(id==='orders') document.querySelector('.b-item:nth-child(2)').classList.add('active');
+    if(id==='market') document.querySelector('.b-item:nth-child(3)').classList.add('active');
     toggleMenu();
     window.scrollTo(0,0);
 }
@@ -444,7 +476,7 @@ function finalizeOrder(){
     orders.unshift(currentReq);
     localStorage.setItem('wasla_orders', JSON.stringify(orders));
     
-    // WhatsApp Message
+    // Build WhatsApp Message
     let msg = `*طلب جديد من وصلة*\n\n👤 الاسم: ${name}\n📱 التليفون: ${phone}\n🛠️ الخدمة: ${currentReq.name}\n`;
     if(currentReq.item) msg += `📦 الشحنة: ${currentReq.item}\n`;
     if(currentReq.list) msg += `🛒 الطلبات: ${currentReq.list}\n`;
@@ -479,10 +511,10 @@ function renderOrders(){
         return `
         <div class="order-card">
             <div class="order-head">
-                <h4 style="font-size:14px;color:var(--b);">${o.name}</h4>
+                <h4 style="font-size:15px;color:var(--b);">${o.name}</h4>
                 <span class="order-status">${o.status}</span>
             </div>
-            <p style="font-size:12px;color:var(--m);">${new Date(o.date).toLocaleDateString('ar-EG')} - ${o.customer.name}</p>
+            <p class="order-date">${new Date(o.date).toLocaleDateString('ar-EG')} - ${o.customer.name}</p>
             ${o.item ? `<p style="font-size:13px;margin-top:8px;">الشحنة: ${o.item}</p>` : ''}
             ${o.list ? `<p style="font-size:13px;margin-top:8px;">الطلبات: ${o.list}</p>` : ''}
             ${mapBtn}
