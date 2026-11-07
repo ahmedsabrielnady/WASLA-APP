@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WASLA OS | لوحة التحكم</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -37,18 +37,37 @@
         .view-section { display: none; animation: slideUp 0.3s ease-out; }
         .view-section.active { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .sidebar { transform: translateX(100%); transition: transform 0.3s ease-in-out; }
+        .sidebar.open { transform: translateX(0); }
+        @media (min-width: 768px) {
+            .sidebar { transform: translateX(0) !important; position: static !important; }
+        }
+        .sidebar-backdrop { display: none; opacity: 0; transition: opacity 0.3s; }
+        .sidebar-backdrop.open { display: block; opacity: 1; }
+        
+        .notification-dropdown { display: none; position: absolute; top: 100%; left: 0; margin-top: 10px; width: 320px; z-index: 1000; }
+        .notification-dropdown.open { display: block; animation: fadeIn 0.2s; }
+        .pulse-dot { animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; }
+        @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
     </style>
 </head>
 <body class="bg-bg dark:bg-bg-dark text-slate-800 dark:text-slate-100 font-sans antialiased overflow-hidden h-screen flex">
 
+    <!-- خلفية الشريط الجانبي للموبايل -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop fixed inset-0 bg-black/50 z-40" onclick="toggleSidebar()"></div>
+
     <!-- Sidebar -->
-    <aside id="sidebar" class="fixed inset-y-0 right-0 w-64 bg-surface dark:bg-surface-dark border-l border-border dark:border-border-dark z-50 flex flex-col shadow-xl md:static md:shadow-none transform transition-transform duration-300 translate-x-0">
-        <div class="h-16 flex items-center gap-3 px-6 border-b border-border dark:border-border-dark shrink-0">
-            <div class="w-10 h-10 rounded-xl bg-brand flex items-center justify-center text-white font-black text-xl shadow-lg shadow-brand/30">W</div>
-            <div>
-                <h1 class="font-black text-lg leading-none text-slate-900 dark:text-white">WASLA OS</h1>
-                <span class="text-[10px] font-bold text-brand tracking-widest">FOUNDER CONSOLE</span>
+    <aside id="sidebar" class="sidebar fixed inset-y-0 right-0 w-64 bg-surface dark:bg-surface-dark border-l border-border dark:border-border-dark z-50 flex flex-col shadow-xl">
+        <div class="h-16 flex items-center justify-between px-6 border-b border-border dark:border-border-dark shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-brand flex items-center justify-center text-white font-black text-xl shadow-lg shadow-brand/30">W</div>
+                <div>
+                    <h1 class="font-black text-lg leading-none text-slate-900 dark:text-white">WASLA OS</h1>
+                    <span class="text-[10px] font-bold text-brand tracking-widest">FOUNDER CONSOLE</span>
+                </div>
             </div>
+            <button onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
         </div>
         
         <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
@@ -75,12 +94,31 @@
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full overflow-hidden relative">
         <!-- Header -->
-        <header class="h-16 bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark flex items-center justify-between px-6 shrink-0">
+        <header class="h-16 bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark flex items-center justify-between px-6 shrink-0 relative z-50">
             <div class="flex items-center gap-4">
-                <button onclick="document.getElementById('sidebar').classList.toggle('translate-x-full')" class="md:hidden text-slate-500 hover:text-brand"><i class="fa-solid fa-bars text-xl"></i></button>
-                <h2 class="font-black text-lg text-slate-900 dark:text-white hidden sm:block" id="header-title">لوحة القيادة</h2>
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-brand"><i class="fa-solid fa-bars text-xl"></i></button>
+                <h2 class="font-black text-lg text-slate-900 dark:text-white" id="header-title">لوحة القيادة</h2>
             </div>
             <div class="flex items-center gap-4">
+                <!-- إشعارات -->
+                <div class="relative">
+                    <button onclick="toggleNotifications()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-brand transition-colors relative">
+                        <i class="fa-solid fa-bell"></i>
+                        <span id="notif-badge" class="hidden absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-surface dark:border-surface-dark pulse-dot"></span>
+                    </button>
+                    
+                    <!-- قائمة الإشعارات -->
+                    <div id="notif-dropdown" class="notification-dropdown bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl shadow-xl overflow-hidden">
+                        <div class="p-3 border-b border-border dark:border-border-dark flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                            <h4 class="font-bold text-sm text-slate-800 dark:text-white">الإشعارات</h4>
+                            <span class="text-xs text-brand cursor-pointer hover:underline" onclick="clearNotifications()">مسح الكل</span>
+                        </div>
+                        <div class="max-h-64 overflow-y-auto" id="notif-list">
+                            <p class="text-center text-sm text-slate-500 py-6">لا توجد إشعارات جديدة</p>
+                        </div>
+                    </div>
+                </div>
+
                 <button onclick="fetchAllData()" class="text-brand text-sm font-bold hover:underline"><i class="fa-solid fa-rotate mr-1"></i> تحديث</button>
                 <button onclick="document.documentElement.classList.toggle('dark'); if(ordersChart) renderChart();" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-brand transition-colors">
                     <i class="fa-solid fa-moon dark:hidden"></i><i class="fa-solid fa-sun hidden dark:block"></i>
@@ -242,14 +280,18 @@
     <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full font-bold text-sm shadow-2xl z-[200] opacity-0 transition-opacity duration-300 pointer-events-none">تم التحديث بنجاح</div>
 
     <script>
+        // ⚠️ تم تغيير اسم المتغير لـ supabaseClient عشان ميتعارضش مع مكتبة Supabase
         const SUPABASE_URL = 'https://fdduzcytuhoelnnejgkl.supabase.co'; 
         const SUPABASE_ANON_KEY = 'sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529';
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
         let ordersData = [];
         let providersData = [];
         let currentOrderId = null;
         let ordersChart = null;
+        let notifications = [];
+        let unreadCount = 0;
 
         // ==================== UI HELPERS ====================
         function showToast(msg, isError = false) {
@@ -260,6 +302,46 @@
             setTimeout(() => toast.classList.add('opacity-0'), 3000);
         }
 
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebar-backdrop').classList.toggle('open');
+        }
+
+        function toggleNotifications() {
+            document.getElementById('notif-dropdown').classList.toggle('open');
+            if (unreadCount > 0) {
+                unreadCount = 0;
+                document.getElementById('notif-badge').classList.add('hidden');
+            }
+        }
+
+        function clearNotifications() {
+            notifications = [];
+            document.getElementById('notif-list').innerHTML = '<p class="text-center text-sm text-slate-500 py-6">لا توجد إشعارات جديدة</p>';
+        }
+
+        function addNotification(title, desc, isNew = true) {
+            notifications.unshift({ title, desc, time: new Date() });
+            const list = document.getElementById('notif-list');
+            
+            if (isNew) {
+                unreadCount++;
+                document.getElementById('notif-badge').classList.remove('hidden');
+                showToast(title + " - " + desc);
+            }
+
+            if (notifications.length === 1) list.innerHTML = '';
+            
+            const html = `
+                <div class="p-3 border-b border-border dark:border-border-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <p class="text-sm font-bold text-slate-800 dark:text-white">${title}</p>
+                    <p class="text-xs text-slate-500">${desc}</p>
+                    <p class="text-[10px] text-slate-400 mt-1">${new Date().toLocaleTimeString('ar-EG')}</p>
+                </div>
+            `;
+            list.insertAdjacentHTML('afterbegin', html);
+        }
+
         function switchView(viewId) {
             document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
             document.getElementById('btn-' + viewId).classList.add('active');
@@ -267,7 +349,11 @@
             document.getElementById('view-' + viewId).classList.add('active');
             const titles = { dashboard: 'لوحة القيادة', orders: 'إدارة الطلبات', providers: 'مقدمي الخدمات' };
             document.getElementById('header-title').innerText = titles[viewId];
-            if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('translate-x-full');
+            
+            if(window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.remove('open');
+                document.getElementById('sidebar-backdrop').classList.remove('open');
+            }
         }
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
@@ -275,22 +361,27 @@
 
         // ==================== DATA FETCHING ====================
         async function fetchAllData() {
-            await Promise.all([fetchOrders(), fetchProviders()]);
-            updateDashboard();
-            renderChart();
-            renderActivityFeed();
-            renderOrdersTable();
-            renderProvidersTable();
-        }
+            try {
+                const [ordersRes, providersRes] = await Promise.all([
+                    supabaseClient.from('orders').select('*').order('created_at', { ascending: false }),
+                    supabaseClient.from('providers').select('*').order('created_at', { ascending: false })
+                ]);
+                
+                if (ordersRes.error) throw ordersRes.error;
+                if (providersRes.error) throw providersRes.error;
 
-        async function fetchOrders() {
-            const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-            if (!error) ordersData = data || [];
-        }
+                ordersData = ordersRes.data || [];
+                providersData = providersRes.data || [];
 
-        async function fetchProviders() {
-            const { data, error } = await supabase.from('providers').select('*').order('created_at', { ascending: false });
-            if (!error) providersData = data || [];
+                updateDashboard();
+                renderChart();
+                renderActivityFeed();
+                renderOrdersTable();
+                renderProvidersTable();
+            } catch (err) {
+                console.error("Fetch error:", err);
+                showToast("حدث خطأ في جلب البيانات: " + err.message, true);
+            }
         }
 
         // ==================== DASHBOARD ====================
@@ -303,10 +394,14 @@
         }
 
         function renderChart() {
-            const ctx = document.getElementById('ordersChart').getContext('2d');
+            const canvas = document.getElementById('ordersChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
             const textColor = isDark ? '#94A3B8' : '#64748B';
+            
             if (ordersChart) ordersChart.destroy();
+            
             ordersChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -340,12 +435,15 @@
         // ==================== ORDERS TABLE ====================
         function renderOrdersTable() {
             const tbody = document.getElementById('orders-table-body');
+            if (!tbody) return;
             const statusFilter = document.getElementById('filter-status').value;
             const searchTerm = document.getElementById('table-search').value.toLowerCase();
             let filtered = ordersData;
             if (statusFilter !== 'all') filtered = filtered.filter(o => o.status === statusFilter);
             if (searchTerm) filtered = filtered.filter(o => o.customer_name.toLowerCase().includes(searchTerm) || o.customer_phone.includes(searchTerm));
+            
             if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-slate-500">لا توجد طلبات مطابقة</td></tr>'; return; }
+            
             tbody.innerHTML = filtered.map(o => {
                 let badge = o.status === 'new' ? '<span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">جديد</span>' : 
                             o.status === 'in_progress' ? '<span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">قيد التنفيذ</span>' : 
@@ -372,6 +470,7 @@
         // ==================== PROVIDERS TABLE ====================
         function renderProvidersTable() {
             const tbody = document.getElementById('providers-table-body');
+            if (!tbody) return;
             if (providersData.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-slate-500">لا يوجد مقدمي خدمة مسجلين</td></tr>'; return; }
             tbody.innerHTML = providersData.map(p => `
                 <tr class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
@@ -436,7 +535,9 @@
             const oldProviderId = ordersData[orderIndex].provider_id;
             ordersData[orderIndex].status = newStatus;
             ordersData[orderIndex].provider_id = newProviderId;
-            const { error } = await supabase.from('orders').update({ status: newStatus, provider_id: newProviderId }).eq('id', currentOrderId);
+            
+            const { error } = await supabaseClient.from('orders').update({ status: newStatus, provider_id: newProviderId }).eq('id', currentOrderId);
+            
             if (error) {
                 showToast("فشل تحديث الطلب", true);
                 ordersData[orderIndex].status = oldStatus;
@@ -459,7 +560,9 @@
             const phone = document.getElementById('p-phone').value.trim();
             const craft = document.getElementById('p-craft').value;
             if (!name || !phone) return showToast("يرجى ملء جميع الحقول", true);
-            const { error } = await supabase.from('providers').insert([{ name, phone, craft }]);
+            
+            const { error } = await supabaseClient.from('providers').insert([{ name, phone, craft }]);
+            
             if (error) return showToast("فشل إضافة الفني", true);
             showToast("تم إضافة الفني بنجاح");
             closeModal('provider-modal');
@@ -469,13 +572,35 @@
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', () => {
             if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('dark');
+            
             fetchAllData();
-            supabase.channel('custom-all-channel')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => fetchAllData())
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'providers' }, () => fetchAllData())
+
+            supabaseClient.channel('custom-all-channel')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, payload => {
+                    const newOrder = payload.new;
+                    addNotification("طلب جديد!", `${newOrder.customer_name} - ${newOrder.sector}`);
+                    fetchAllData();
+                })
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'providers' }, payload => {
+                    const newProvider = payload.new;
+                    addNotification("فني جديد سجل!", `${newProvider.name} - ${newProvider.craft}`);
+                    fetchAllData();
+                })
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, () => {
+                    fetchAllData();
+                })
                 .subscribe();
+            
             document.getElementById('order-modal').addEventListener('click', (e) => { if (e.target.id === 'order-modal') closeModal('order-modal'); });
             document.getElementById('provider-modal').addEventListener('click', (e) => { if (e.target.id === 'provider-modal') closeModal('provider-modal'); });
+            
+            document.addEventListener('click', function(event) {
+                const dropdown = document.getElementById('notif-dropdown');
+                const btn = event.target.closest('button');
+                if (dropdown.classList.contains('open') && (!btn || !btn.querySelector('.fa-bell'))) {
+                    dropdown.classList.remove('open');
+                }
+            });
         });
     </script>
 </body>
