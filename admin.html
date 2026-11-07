@@ -16,7 +16,7 @@
   --nav: rgba(255,255,255,0.95);
   --sh: 0 4px 6px -1px rgba(0,0,0,0.05);
   --shl: 0 10px 25px -3px rgba(0,0,0,0.08);
-  --rad: 16px;
+  --rad: 12px; /* تم تعديل نصف القطر ليكون 12px بدلاً من 16px ليتناسب مع نمط Udemy */
   /* Sector Specific Colors */
   --edu: #84cc16; --edu-bg: #f7fee7; --edu-dark: #65a30d;
   --med: #0284c7; --med-bg: #f0f9ff; --med-dark: #0369a1;
@@ -79,20 +79,24 @@ header { background: var(--c); padding: 12px 16px; display: flex; justify-conten
 .cat-card h3 { font-size: 15px; margin-bottom: 4px; }
 .cat-card p { font-size: 11px; color: var(--m); }
 
-/* ==================== Education Theme ==================== */
+/* ==================== Education Theme (Inspired by Udemy & Skillshare) ==================== */
 .theme-edu { background: var(--edu-bg); }
 .edu-banner { background: var(--edu); color: #fff; padding: 24px; border-radius: 24px; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(132,204,22,0.2); }
-.edu-card { background: var(--c); border-radius: 20px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shl); border: 1px solid var(--br); position: relative; }
+.edu-card { background: var(--c); border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shl); border: 1px solid var(--br); position: relative; }
 .edu-tag { background: var(--edu-bg); color: var(--edu-dark); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; display: inline-block; margin-bottom: 8px; }
 [data-theme="dark"] .edu-tag { background: #334155; color: #a3e635; }
 .edu-price { font-size: 18px; font-weight: 900; color: var(--edu); }
 .edu-price span { font-size: 12px; color: var(--m); text-decoration: line-through; margin-right: 6px; }
-.teacher-card { background: var(--c); border-radius: 16px; padding: 16px; text-align: center; border: 1px solid var(--br); box-shadow: var(--sh); }
-.teacher-card img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto 10px; border: 3px solid var(--edu); }
-.social-links { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
-.social-links a { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--edu); color: var(--edu); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.teacher-card { background: var(--c); border-radius: 16px; padding: 0; text-align: center; border: 1px solid var(--br); box-shadow: var(--sh); overflow: hidden; }
+.teacher-card img { width: 100%; height: 140px; object-fit: cover; margin: 0; border: none; } /* Edge-to-Edge image like Skillshare */
+.teacher-card .t-info { padding: 12px; }
+.teacher-card h4 { font-size: 14px; margin-bottom: 2px; }
+.teacher-card p { font-size: 11px; color: var(--edu-dark); }
+.social-links { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
+.social-links a { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--br); color: var(--m); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.social-links a:hover { border-color: var(--edu); color: var(--edu); }
 
-/* ==================== Medical Theme ==================== */
+/* ==================== Medical Theme (Inspired by Chat for impact) ==================== */
 .theme-med { background: var(--med-bg); }
 .doc-card { background: var(--c); border-radius: 16px; padding: 16px; border: 1px solid var(--br); display: flex; gap: 12px; align-items: center; margin-bottom: 12px; box-shadow: var(--sh); }
 .doc-img { width: 64px; height: 64px; border-radius: 16px; background: var(--med-bg); color: var(--med); display: flex; align-items: center; justify-content: center; font-size: 28px; }
@@ -103,20 +107,24 @@ header { background: var(--c); padding: 12px 16px; display: flex; justify-conten
 .filter-pill { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; border: 1px solid var(--br); background: var(--c); color: var(--m); }
 .filter-pill.active { background: var(--med); color: #fff; border-color: var(--med); }
 
-/* ==================== Maintenance & Cars Theme ==================== */
+/* ==================== Maintenance & Cars Theme (Inspired by Yellowbird) ==================== */
 .theme-maint { background: var(--maint-bg); }
 .theme-cars { background: var(--cars-bg); }
-.industrial-card { background: var(--c); border: 1px solid var(--br); border-radius: 12px; padding: 16px; margin-bottom: 12px; border-right: 6px solid var(--maint); box-shadow: var(--sh); }
+.industrial-card { background: var(--c); border: 2px solid var(--br); border-radius: 8px; padding: 16px; margin-bottom: 12px; border-right: 6px solid var(--maint); box-shadow: var(--sh); }
 .theme-cars .industrial-card { border-right-color: var(--cars); }
 .ind-icon { color: var(--maint); font-size: 28px; margin-bottom: 12px; }
 .theme-cars .ind-icon { color: var(--cars); }
+.ind-btn { width: 100%; padding: 12px; border-radius: 8px; background: var(--maint); color: #fff; font-weight: 800; border: none; }
+.theme-cars .ind-btn { background: var(--cars); }
 
-/* ==================== Market & Delivery Theme ==================== */
+/* ==================== Market & Delivery Theme (Inspired by Magic Spoon) ==================== */
 .theme-market { background: var(--market-bg); }
 .theme-del { background: var(--del-bg); }
 .del-box { background: linear-gradient(135deg, var(--del), var(--del-dark)); color: #fff; border-radius: 24px; padding: 30px 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(139,92,246,0.2); }
 .loc-btn { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--br); background: var(--c); color: var(--t); font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; transition: 0.2s; }
 .loc-btn.active { border-color: var(--del); background: var(--del-bg); color: var(--del-dark); }
+.market-card { background: var(--c); border-radius: 16px; padding: 20px; box-shadow: var(--sh); border: 1px solid var(--br); }
+.market-btn { width: 100%; padding: 14px; border-radius: 50px; background: var(--market); color: #fff; font-weight: 800; font-size: 16px; border: 2px solid var(--market-dark); }
 
 /* ==================== My Orders ==================== */
 .order-card { background: var(--c); border: 1px solid var(--br); border-radius: 16px; padding: 16px; margin-bottom: 12px; border-right: 5px solid var(--b); box-shadow: var(--sh); }
@@ -221,16 +229,20 @@ details[open] summary { border-bottom: 1px solid var(--br); color: var(--b); }
     <div class="sec-title">المعلمين المميزين</div>
     <div class="grid-2" style="margin-bottom:20px;">
         <div class="teacher-card">
-            <img src="https://ui-avatars.com/api/?name=أحمد+محمد&background=84cc16&color=fff" alt="Teacher">
-            <h4 style="font-size:14px;">أ. أحمد محمد</h4>
-            <p style="font-size:11px;color:var(--edu-dark);">الفيزياء</p>
-            <div class="social-links"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
+            <img src="https://ui-avatars.com/api/?name=أحمد+محمد&background=84cc16&color=fff&size=140" alt="Teacher">
+            <div class="t-info">
+                <h4>أ. أحمد محمد</h4>
+                <p>الفيزياء</p>
+                <div class="social-links"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
+            </div>
         </div>
         <div class="teacher-card">
-            <img src="https://ui-avatars.com/api/?name=سارة+علي&background=84cc16&color=fff" alt="Teacher">
-            <h4 style="font-size:14px;">أ. سارة علي</h4>
-            <p style="font-size:11px;color:var(--edu-dark);">الكيمياء</p>
-            <div class="social-links"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
+            <img src="https://ui-avatars.com/api/?name=سارة+علي&background=84cc16&color=fff&size=140" alt="Teacher">
+            <div class="t-info">
+                <h4>أ. سارة علي</h4>
+                <p>الكيمياء</p>
+                <div class="social-links"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
+            </div>
         </div>
     </div>
 
@@ -241,7 +253,7 @@ details[open] summary { border-bottom: 1px solid var(--br); color: var(--b); }
         <p style="font-size:12px;color:var(--m);margin-bottom:12px;">مع أ. أحمد محمد - 3 محاضرات مكثفة</p>
         <div style="display:flex;justify-content:space-between;align-items:center;">
             <div class="edu-price"><span>400 ج</span> 350 ج</div>
-            <button class="btn" style="width:auto;padding:8px 16px;background:var(--edu);" onclick="requestService('edu', 'دورة فيزياء')">سجل الآن</button>
+            <button class="btn" style="width:auto;padding:8px 16px;background:transparent;border:1.5px solid var(--edu);color:var(--edu);" onclick="requestService('edu', 'دورة فيزياء')">سجل الآن</button>
         </div>
     </div>
 </main>
@@ -258,22 +270,22 @@ details[open] summary { border-bottom: 1px solid var(--br); color: var(--b); }
     
     <div class="doc-card">
         <div class="doc-img"><i class="fa-solid fa-user-doctor"></i></div>
-        <div class="doc-info">
+        <div class="doc-info" style="flex:1;">
             <h4>د. محمد عبد الله</h4>
             <p>استشاري باطنة - شبين القناطر</p>
             <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i> (4.5)</div>
         </div>
-        <button class="btn" style="width:auto;padding:8px 12px;background:var(--med);" onclick="requestService('med', 'د. محمد عبد الله')">حجز</button>
+        <button class="btn" style="width:auto;padding:8px 16px;background:var(--med);border-radius:50px;" onclick="requestService('med', 'د. محمد عبد الله')">حجز</button>
     </div>
     
     <div class="doc-card">
         <div class="doc-img"><i class="fa-solid fa-tooth"></i></div>
-        <div class="doc-info">
+        <div class="doc-info" style="flex:1;">
             <h4>د. سارة خالد</h4>
             <p>أخصائي أسنان وتجميل</p>
             <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i> (5.0)</div>
         </div>
-        <button class="btn" style="width:auto;padding:8px 12px;background:var(--med);" onclick="requestService('med', 'د. سارة خالد')">حجز</button>
+        <button class="btn" style="width:auto;padding:8px 16px;background:var(--med);border-radius:50px;" onclick="requestService('med', 'د. سارة خالد')">حجز</button>
     </div>
 </main>
 
@@ -284,13 +296,13 @@ details[open] summary { border-bottom: 1px solid var(--br); color: var(--b); }
         <div class="ind-icon"><i class="fa-solid fa-faucet-drip"></i></div>
         <h3 style="font-size:16px;margin-bottom:4px;">سباكة</h3>
         <p style="font-size:12px;color:var(--m);margin-bottom:12px;">تسريب مياه، تركيب أدوات صحية</p>
-        <button class="btn" style="background:var(--maint);" onclick="requestService('maint', 'سباكة')">اطلب فني</button>
+        <button class="ind-btn" onclick="requestService('maint', 'سباكة')">اطلب فني</button>
     </div>
     <div class="industrial-card">
         <div class="ind-icon"><i class="fa-solid fa-bolt"></i></div>
         <h3 style="font-size:16px;margin-bottom:4px;">كهرباء</h3>
         <p style="font-size:12px;color:var(--m);margin-bottom:12px;">أعطال، تركيب إضاءة، لوحات</p>
-        <button class="btn" style="background:var(--maint);" onclick="requestService('maint', 'كهرباء')">اطلب فني</button>
+        <button class="ind-btn" onclick="requestService('maint', 'كهرباء')">اطلب فني</button>
     </div>
 </main>
 
@@ -301,24 +313,24 @@ details[open] summary { border-bottom: 1px solid var(--br); color: var(--b); }
         <div class="ind-icon" style="color:var(--cars);"><i class="fa-solid fa-car-side"></i></div>
         <h3 style="font-size:16px;margin-bottom:4px;">غسيل سيارات</h3>
         <p style="font-size:12px;color:var(--m);margin-bottom:12px;">غسيل داخلي وخارجي</p>
-        <button class="btn" style="background:var(--cars);" onclick="requestService('cars', 'غسيل')">احجز</button>
+        <button class="ind-btn" onclick="requestService('cars', 'غسيل')">احجز</button>
     </div>
     <div class="industrial-card" style="border-right-color:var(--cars);">
         <div class="ind-icon" style="color:var(--cars);"><i class="fa-solid fa-truck-pickup"></i></div>
         <h3 style="font-size:16px;margin-bottom:4px;">ونش وسحب</h3>
         <p style="font-size:12px;color:var(--m);margin-bottom:12px;">إنقاذ سيارات على الطريق</p>
-        <button class="btn" style="background:var(--cars);" onclick="requestService('cars', 'ونش')">اطلب ونش</button>
+        <button class="ind-btn" onclick="requestService('cars', 'ونش')">اطلب ونش</button>
     </div>
 </main>
 
 <!-- ==================== MARKET VIEW ==================== -->
 <main id="view-market" class="view theme-market">
     <div class="sec-title" style="color:var(--market-dark);">سوبر ماركت</div>
-    <div class="card" style="margin-bottom:12px;">
-        <h3 style="font-size:15px;">اكتب طلبك</h3>
+    <div class="market-card">
+        <h3 style="font-size:16px;">اكتب طلبك</h3>
         <p style="font-size:12px;color:var(--m);margin-bottom:12px;">اكتب قائمة المشتريات وسنقوم بتوصيلها لك.</p>
         <div class="input-group"><textarea id="market-list" rows="4" placeholder="مثال: 2 كيلو طماطم، عيش، جبنة..."></textarea></div>
-        <button class="btn" style="background:var(--market);" onclick="submitForm('market')">إرسال الطلب</button>
+        <button class="market-btn" onclick="submitForm('market')">إرسال الطلب</button>
     </div>
 </main>
 
@@ -329,7 +341,7 @@ details[open] summary { border-bottom: 1px solid var(--br); color: var(--b); }
         <p style="font-size:12px;opacity:0.9;margin-top:4px;">أي حاجة في أي مكان</p>
     </div>
     
-    <div class="card" style="border:none;box-shadow:none;background:transparent;padding:0;">
+    <div class="market-card">
         <div class="input-group">
             <label>إيه اللي عايز توصله؟</label>
             <input type="text" id="del-item" placeholder="شنطة، أوراق، طلب مطعم...">
@@ -342,7 +354,7 @@ details[open] summary { border-bottom: 1px solid var(--br); color: var(--b); }
             <label>موقع التسليم (لحد فين؟)</label>
             <button class="loc-btn" id="btn-dropoff" onclick="getLocation('dropoff')"><span id="txt-dropoff">تحديد الموقع</span><i class="fa-solid fa-location-crosshairs"></i></button>
         </div>
-        <button class="btn" style="background:var(--del);" onclick="submitForm('delivery')">تأكيد التوصيل</button>
+        <button class="market-btn" style="background:var(--del);border-color:var(--del-dark);" onclick="submitForm('delivery')">تأكيد التوصيل</button>
     </div>
 </main>
 
