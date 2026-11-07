@@ -261,19 +261,12 @@
         }
 
         function switchView(viewId) {
-            // Update Nav
             document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
             document.getElementById('btn-' + viewId).classList.add('active');
-            
-            // Update Sections
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
             document.getElementById('view-' + viewId).classList.add('active');
-
-            // Update Header Title
             const titles = { dashboard: 'لوحة القيادة', orders: 'إدارة الطلبات', providers: 'مقدمي الخدمات' };
             document.getElementById('header-title').innerText = titles[viewId];
-
-            // Mobile sidebar close
             if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('translate-x-full');
         }
 
@@ -313,9 +306,7 @@
             const ctx = document.getElementById('ordersChart').getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
             const textColor = isDark ? '#94A3B8' : '#64748B';
-
             if (ordersChart) ordersChart.destroy();
-
             ordersChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -351,25 +342,19 @@
             const tbody = document.getElementById('orders-table-body');
             const statusFilter = document.getElementById('filter-status').value;
             const searchTerm = document.getElementById('table-search').value.toLowerCase();
-
             let filtered = ordersData;
             if (statusFilter !== 'all') filtered = filtered.filter(o => o.status === statusFilter);
             if (searchTerm) filtered = filtered.filter(o => o.customer_name.toLowerCase().includes(searchTerm) || o.customer_phone.includes(searchTerm));
-
             if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-slate-500">لا توجد طلبات مطابقة</td></tr>'; return; }
-
             tbody.innerHTML = filtered.map(o => {
                 let badge = o.status === 'new' ? '<span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">جديد</span>' : 
                             o.status === 'in_progress' ? '<span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">قيد التنفيذ</span>' : 
                             '<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">مكتمل</span>';
-                
-                // Find Provider Name
                 let providerName = 'غير محدد';
                 if (o.provider_id) {
                     const provider = providersData.find(p => p.id === o.provider_id);
                     if (provider) providerName = provider.name;
                 }
-
                 return `
                     <tr class="order-row transition-colors" onclick="openOrderModal('${o.id}')">
                         <td class="px-6 py-4 font-bold text-slate-900 dark:text-white">#${o.id.substring(0, 6)}</td>
@@ -388,7 +373,6 @@
         function renderProvidersTable() {
             const tbody = document.getElementById('providers-table-body');
             if (providersData.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-slate-500">لا يوجد مقدمي خدمة مسجلين</td></tr>'; return; }
-
             tbody.innerHTML = providersData.map(p => `
                 <tr class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
                     <td class="px-6 py-4 font-bold text-slate-900 dark:text-white">${p.name}</td>
@@ -405,14 +389,11 @@
             const order = ordersData.find(o => o.id === orderId);
             if (!order) return;
             currentOrderId = orderId;
-            
-            // Build Provider Options
             let providerOptions = '<option value="">-- غير محدد --</option>';
             providersData.forEach(p => {
                 const selected = order.provider_id === p.id ? 'selected' : '';
                 providerOptions += `<option value="${p.id}" ${selected}>${p.name} (${p.craft})</option>`;
             });
-
             document.getElementById('modal-title').innerText = `تفاصيل الطلب #${order.id.substring(0, 6)}`;
             document.getElementById('modal-content').innerHTML = `
                 <div class="grid grid-cols-2 gap-4">
@@ -449,18 +430,13 @@
             if (!currentOrderId) return;
             const newStatus = document.getElementById('modal-status-select').value;
             const newProviderId = document.getElementById('modal-provider-select').value || null;
-            
             const orderIndex = ordersData.findIndex(o => o.id === currentOrderId);
             if (orderIndex === -1) return;
-            
-            // Optimistic UI
             const oldStatus = ordersData[orderIndex].status;
             const oldProviderId = ordersData[orderIndex].provider_id;
             ordersData[orderIndex].status = newStatus;
             ordersData[orderIndex].provider_id = newProviderId;
-
             const { error } = await supabase.from('orders').update({ status: newStatus, provider_id: newProviderId }).eq('id', currentOrderId);
-            
             if (error) {
                 showToast("فشل تحديث الطلب", true);
                 ordersData[orderIndex].status = oldStatus;
@@ -482,12 +458,9 @@
             const name = document.getElementById('p-name').value.trim();
             const phone = document.getElementById('p-phone').value.trim();
             const craft = document.getElementById('p-craft').value;
-
             if (!name || !phone) return showToast("يرجى ملء جميع الحقول", true);
-
             const { error } = await supabase.from('providers').insert([{ name, phone, craft }]);
             if (error) return showToast("فشل إضافة الفني", true);
-
             showToast("تم إضافة الفني بنجاح");
             closeModal('provider-modal');
             fetchAllData();
@@ -497,13 +470,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('dark');
             fetchAllData();
-            
-            // Real-time subscription
             supabase.channel('custom-all-channel')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => fetchAllData())
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'providers' }, () => fetchAllData())
                 .subscribe();
-
             document.getElementById('order-modal').addEventListener('click', (e) => { if (e.target.id === 'order-modal') closeModal('order-modal'); });
             document.getElementById('provider-modal').addEventListener('click', (e) => { if (e.target.id === 'provider-modal') closeModal('provider-modal'); });
         });
