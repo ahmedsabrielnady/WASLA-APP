@@ -4,751 +4,420 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#059669">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>وصلة | WASLA - المنصة الشاملة</title>
+<title>وصلة | WASLA - Super App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-/* ==========================================================================
-   1. DESIGN SYSTEM & VARIABLES (Enterprise Grade)
-   ========================================================================== */
+/* ==================== 1. SYSTEM VARIABLES ==================== */
 :root {
-  /* Brand Colors */
-  --brand: #059669; 
-  --brand-light: #D1FAE5; 
-  --brand-gradient: linear-gradient(135deg, #10B981, #0284C7);
-  --brand-glow: rgba(5, 150, 105, 0.4);
+  --brand: #059669; --brand-light: #D1FAE5; --brand-gradient: linear-gradient(135deg, #10B981, #0284C7);
+  --dark: #0F172A; --bg: #F4F7FB; --card: #FFFFFF; --text: #1E293B; --muted: #64748B; --border: #E2E8F0;
+  --nav-bg: rgba(255, 255, 255, 0.85); --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366);
   
-  /* Neutrals */
-  --dark: #0F172A; 
-  --bg: #F4F7FB; 
-  --card: #FFFFFF; 
-  --text: #1E293B; 
-  --muted: #64748B; 
-  --border: #E2E8F0;
-  --nav-bg: rgba(255, 255, 255, 0.85); 
-  
-  /* Logo */
-  --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366); 
-  
-  /* Sector Specific Colors */
-  --med: #0284c7; --med-bg: #f0f9ff; --med-dark: #0369a1; --med-glow: rgba(2, 132, 199, 0.3);
-  --edu: #84cc16; --edu-bg: #f7fee7; --edu-dark: #65a30d; --edu-glow: rgba(132, 204, 22, 0.3);
-  --maint: #ea580c; --maint-bg: #fff7ed; --maint-dark: #c2410c; --maint-glow: rgba(234, 88, 12, 0.3);
-  --cars: #475569; --cars-bg: #f8fafc; --cars-dark: #334155; --cars-glow: rgba(71, 85, 105, 0.3);
-  --market: #db2777; --market-bg: #fdf2f8; --market-dark: #be185d; --market-glow: rgba(219, 39, 119, 0.3);
-  --del: #8b5cf6; --del-bg: #f5f3ff; --del-dark: #6d28d9; --del-glow: rgba(139, 92, 246, 0.3);
+  --med: #0284c7; --med-bg: #f0f9ff; --med-dark: #0369a1;
+  --edu: #84cc16; --edu-bg: #f7fee7; --edu-dark: #65a30d;
+  --maint: #ea580c; --maint-bg: #fff7ed; --maint-dark: #c2410c;
+  --cars: #475569; --cars-bg: #f8fafc; --cars-dark: #334155;
+  --market: #db2777; --market-bg: #fdf2f8; --market-dark: #be185d;
+  --del: #8b5cf6; --del-bg: #f5f3ff; --del-dark: #6d28d9;
+  --ai-glow: 0 0 20px rgba(16, 185, 129, 0.5);
 
-  /* Shadows & Elevation */
-  --shadow-sm: 0 4px 12px rgba(0,0,0,0.03); 
-  --shadow-md: 0 12px 32px rgba(0,0,0,0.06);
-  --shadow-lg: 0 24px 48px rgba(0,0,0,0.08);
-  --shadow-inset: inset 0 2px 4px rgba(0,0,0,0.05);
-  
-  /* Ticker */
-  --ticker-bg: #FFFBEB; 
-  --ticker-text: #B45309;
-  
-  /* Border Radius */
-  --rad-sm: 12px;
-  --rad: 20px;
-  --rad-lg: 28px;
-  
-  /* Animation Curves */
-  --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --shadow-sm: 0 4px 12px rgba(0,0,0,0.03); --shadow-md: 0 12px 32px rgba(0,0,0,0.06);
+  --rad: 20px; --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1); --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 [data-theme="dark"] {
   --brand: #10B981; --brand-light: #064E3B; --brand-gradient: linear-gradient(135deg, #059669, #0369A1);
   --dark: #F8FAFC; --bg: #0B1120; --card: #1E293B; --text: #F1F5F9; --muted: #94A3B8; --border: #334155;
-  --nav-bg: rgba(30, 41, 59, 0.85); 
-  --shadow-sm: 0 4px 12px rgba(0,0,0,0.2); 
-  --shadow-md: 0 12px 32px rgba(0,0,0,0.3);
-  --shadow-lg: 0 24px 48px rgba(0,0,0,0.5);
-  --ticker-bg: #451A03; --ticker-text: #FDE68A;
+  --nav-bg: rgba(30, 41, 59, 0.85);
   --med-bg: #0f172a; --edu-bg: #0f172a; --maint-bg: #0f172a; --cars-bg: #0f172a; --market-bg: #0f172a; --del-bg: #0f172a;
 }
 
-/* ==========================================================================
-   2. GLOBAL RESET & TYPOGRAPHY
-   ========================================================================== */
-* { 
-  box-sizing: border-box; 
-  margin: 0; 
-  padding: 0; 
-  -webkit-tap-highlight-color: transparent; 
-  font-family: 'Cairo', sans-serif; 
-}
-body { 
-  background-color: var(--bg); 
-  color: var(--text); 
-  padding-bottom: 90px; 
-  overflow-x: hidden; 
-  line-height: 1.6; 
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-button, .interactive { 
-  transition: all 0.4s var(--ease-smooth); 
-  user-select: none;
-}
-button { 
-  font-family: inherit; 
-  cursor: pointer; 
-  border: none; 
-  outline: none; 
-  background: none; 
-  position: relative;
-  overflow: hidden; 
-}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: 'Cairo', sans-serif; }
+body { background-color: var(--bg); color: var(--text); padding-bottom: 90px; overflow-x: hidden; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; cursor: pointer; border: none; outline: none; background: none; transition: 0.3s var(--ease-smooth); }
 a { text-decoration: none; color: inherit; }
 h1, h2, h3, h4 { font-family: 'Tajawal', sans-serif; font-weight: 800; }
 
-/* ==========================================================================
-   3. ANIMATIONS & KEYFRAMES (Cinematic Feel)
-   ========================================================================== */
-@keyframes fadeInScale {
-  0% { opacity: 0; transform: scale(0.95); }
-  100% { opacity: 1; transform: scale(1); }
-}
-@keyframes slideUpFade {
-  0% { opacity: 0; transform: translateY(40px); filter: blur(4px); }
-  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
-}
-@keyframes shimmer {
-  0% { background-position: -1000px 0; }
-  100% { background-position: 1000px 0; }
-}
-@keyframes pulseHalo {
-  0% { transform: scale(1); opacity: 0.6; }
-  100% { transform: scale(1.3); opacity: 0.2; }
-}
-@keyframes shine {
-  100% { left: 200%; }
-}
-@keyframes ripple {
-  to { transform: scale(4); opacity: 0; }
-}
-@keyframes float {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-  100% { transform: translateY(0); }
-}
-@keyframes slideUpSheet {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-@keyframes ticker {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-}
+/* ==================== 2. ANIMATIONS ==================== */
+@keyframes slideUpFade { 0% { opacity: 0; transform: translateY(30px); filter: blur(4px); } 100% { opacity: 1; transform: translateY(0); filter: blur(0); } }
+@keyframes pulseHalo { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.3); opacity: 0.2; } }
+@keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
+@keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+@keyframes typeWriter { from { width: 0; } to { width: 100%; } }
+@keyframes blink { 50% { border-color: transparent; } }
 
-/* ==========================================================================
-   4. APP VIEWS & PAGE TRANSITIONS
-   ========================================================================== */
-.app-view { 
-  display: none; 
-  min-height: 100vh;
-}
-.app-view.active { 
-  display: block; 
-  animation: slideUpFade 0.5s var(--ease-smooth) forwards; 
-}
+.app-view { display: none; min-height: 100vh; }
+.app-view.active { display: block; animation: slideUpFade 0.5s var(--ease-smooth) forwards; }
 
-/* Staggered Entrance for Cards */
-.stagger-item {
-  opacity: 0;
-  animation: slideUpFade 0.5s var(--ease-smooth) forwards;
-}
-.stagger-item:nth-child(1) { animation-delay: 0.05s; }
-.stagger-item:nth-child(2) { animation-delay: 0.10s; }
-.stagger-item:nth-child(3) { animation-delay: 0.15s; }
-.stagger-item:nth-child(4) { animation-delay: 0.20s; }
-.stagger-item:nth-child(5) { animation-delay: 0.25s; }
-.stagger-item:nth-child(6) { animation-delay: 0.30s; }
-
-/* ==========================================================================
-   5. PREMIUM HEADER & TICKER
-   ========================================================================== */
-.top-header { 
-  background: var(--nav-bg); 
-  backdrop-filter: blur(20px); 
-  -webkit-backdrop-filter: blur(20px);
-  padding: 12px 20px; 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  position: sticky; 
-  top: 0; 
-  z-index: 100; 
-  border-bottom: 1px solid rgba(255,255,255,0.1); 
-  box-shadow: var(--shadow-sm); 
-}
+/* ==================== 3. HEADER & NAV ==================== */
+.top-header { background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.1); box-shadow: var(--shadow-sm); }
 .brand { display: flex; align-items: center; gap: 12px; }
-.logo-box { 
-  width: 48px; height: 48px; 
-  background: var(--logo-gradient); 
-  border-radius: 14px; 
-  display: flex; align-items: center; justify-content: center; 
-  box-shadow: 0 8px 20px rgba(255,51,102,0.4); 
-  position: relative; overflow: hidden; 
-}
-.logo-box::after { 
-  content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; 
-  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%); 
-  transform: skewX(-25deg); animation: shine 5s infinite; 
-}
+.logo-box { width: 48px; height: 48px; background: var(--logo-gradient); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(255,51,102,0.4); position: relative; overflow: hidden; }
 .logo-w { font-family: 'Fredoka One', cursive; color: white; font-size: 32px; margin-top: -4px; z-index: 1; }
-.brand-text h1 { font-size: 26px; font-weight: 900; color: var(--dark); line-height: 1; margin-bottom: 4px; }
-.brand-text span { 
-  font-size: 11px; font-weight: 900; 
-  background: var(--logo-gradient); 
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
-  letter-spacing: 5px; display: inline-block; transform: scaleY(1.1); 
-}
+.brand-text h1 { font-size: 24px; color: var(--dark); line-height: 1; margin-bottom: 4px; }
+.brand-text span { font-size: 11px; font-weight: 900; background: var(--logo-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 5px; }
+.icon-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--card); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: var(--shadow-sm); }
+.icon-btn:active { transform: scale(0.9); color: var(--brand); border-color: var(--brand); }
 
-.header-icons { display: flex; gap: 10px; }
-.icon-btn { 
-  width: 42px; height: 42px; border-radius: 50%; background: var(--card); border: 1px solid var(--border); 
-  color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 18px; 
-  box-shadow: var(--shadow-sm); position: relative;
-}
-.icon-btn::before {
-  content: ''; position: absolute; inset: 0; border-radius: 50%; background: var(--brand); opacity: 0; transition: 0.3s;
-}
-.icon-btn:active::before { opacity: 0.1; }
-.icon-btn:active { transform: scale(0.9) rotate(15deg); color: var(--brand); border-color: var(--brand); }
-
-.ticker-wrap { 
-  width: 100%; overflow: hidden; background: var(--ticker-bg); border-bottom: 1px solid var(--border); 
-  display: flex; align-items: center; padding: 8px 0; position: relative;
-}
-.ticker-label { 
-  background: var(--ticker-text); color: white; padding: 2px 12px; font-size: 11px; font-weight: 800; 
-  border-radius: 0 10px 10px 0; margin-left: 10px; z-index: 2; flex-shrink: 0; box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-}
-.ticker-content { display: flex; white-space: nowrap; animation: ticker 30s linear infinite; }
-.ticker-content span { color: var(--ticker-text); font-size: 13px; font-weight: 800; padding-left: 50px; }
-
-/* ==========================================================================
-   6. HOME VIEW & INTERACTIVE HALO CARDS
-   ========================================================================== */
+/* ==================== 4. HOME ==================== */
 .welcome-area { padding: 24px 20px 10px; }
-.welcome-area p { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
-.welcome-area h2 { font-size: 24px; color: var(--dark); }
-
-.hero { 
-  background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: var(--rad-lg); margin: 0 20px 24px; 
-  padding: 36px 28px; color: white; box-shadow: var(--shadow-lg); position: relative; overflow: hidden; 
-}
-.hero::before { 
-  content: ''; position: absolute; top: -50%; right: -20%; width: 300px; height: 300px; 
-  background: radial-gradient(circle, rgba(16,185,129,0.5) 0%, transparent 70%); 
-  animation: pulseHalo 6s infinite alternate var(--ease-smooth); filter: blur(30px); 
-}
+.hero { background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: 28px; margin: 0 20px 24px; padding: 36px 28px; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -50%; right: -20%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(16,185,129,0.4) 0%, transparent 70%); animation: pulseHalo 6s infinite alternate; filter: blur(30px); }
 .hero h1 { font-size: 26px; margin-bottom: 10px; position: relative; z-index: 1; }
 .hero p { font-size: 14px; color: #94A3B8; position: relative; z-index: 1; }
-
 .section-title { padding: 0 24px; margin: 20px 0 16px; font-size: 20px; color: var(--dark); }
 .categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 0 20px; }
-.cat-card { 
-  background: var(--card); border: 1px solid var(--border); border-radius: var(--rad); 
-  padding: 20px; display: flex; flex-direction: column; align-items: flex-start; 
-  box-shadow: var(--shadow-sm); cursor: pointer; position: relative; overflow: hidden;
-}
-/* Interactive Halo Effect */
-.cat-card::before {
-  content: ''; position: absolute; inset: 0; border-radius: inherit;
-  background: radial-gradient(circle at center, rgba(16,185,129,0.1) 0%, transparent 70%);
-  opacity: 0; transition: opacity 0.4s;
-}
-.cat-card:active::before, .cat-card:hover::before { opacity: 1; }
-.cat-card:active { transform: translateY(4px) scale(0.96); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-.cat-icon { width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 16px; position: relative; z-index: 1;}
-.cat-card h3 { font-size: 16px; margin-bottom: 4px; color: var(--dark); position: relative; z-index: 1;}
-.cat-card p { font-size: 12px; color: var(--muted); position: relative; z-index: 1;}
+.cat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--rad); padding: 20px; display: flex; flex-direction: column; align-items: flex-start; box-shadow: var(--shadow-sm); cursor: pointer; position: relative; overflow: hidden; }
+.cat-card:active { transform: translateY(2px) scale(0.96); }
+.cat-icon { width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 16px; }
+.cat-card h3 { font-size: 16px; color: var(--dark); margin-bottom: 4px; }
+.cat-card p { font-size: 12px; color: var(--muted); }
 
-/* ==========================================================================
-   7. INNER HEADERS & SECTOR FORMS
-   ========================================================================== */
+/* ==================== 5. INNER VIEWS COMMON ==================== */
 .inner-header { display: flex; align-items: center; gap: 16px; padding: 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 73px; z-index: 90; }
 .back-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: var(--shadow-sm); }
-.back-btn:active { transform: scale(0.9); background: var(--border); }
 .inner-header h2 { font-size: 22px; color: var(--dark); }
-.sector-form-area { padding: 20px; animation: fadeInScale 0.4s ease; }
+.sector-form-area { padding: 20px; animation: slideUpFade 0.4s ease; }
 
-.input-group { margin-bottom: 18px; position: relative; }
-.input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
-.input-field { 
-  width: 100%; padding: 14px 18px; background: var(--card); border: 2px solid var(--border); 
-  border-radius: var(--rad-sm); color: var(--text); font-size: 15px; box-shadow: var(--shadow-sm); 
-  transition: 0.3s; outline: none;
-}
-.input-field:focus { border-color: var(--brand); box-shadow: 0 0 0 4px var(--brand-light); }
-
-.sector-submit { 
-  width: 100%; padding: 16px; border-radius: var(--rad-sm); color: white; font-weight: 900; font-size: 16px; 
-  margin-top: 10px; cursor: pointer; border: none; position: relative; overflow: hidden;
-  transition: transform 0.2s var(--ease-elastic), box-shadow 0.3s;
-}
-.sector-submit:active { transform: scale(0.96); }
-.btn-med { background: var(--med); box-shadow: 0 8px 20px var(--med-glow); }
-.btn-edu { background: transparent; border: 2px solid var(--edu); color: var(--edu); box-shadow: none; }
-.btn-edu:active { background: var(--edu); color: white; }
-.btn-maint { background: var(--maint); box-shadow: 0 8px 20px var(--maint-glow); }
-.btn-cars { background: var(--cars); box-shadow: 0 8px 20px var(--cars-glow); }
-.btn-market { background: var(--market); box-shadow: 0 8px 20px var(--market-glow); border-radius: 50px; }
-.btn-del { background: var(--del); box-shadow: 0 8px 20px var(--del-glow); border-radius: 50px; }
-
-/* ==========================================================================
-   8. SECTOR SPECIFIC CARDS
-   ========================================================================== */
-/* Medical */
+/* ==================== 6. UNIQUE SECTOR UIs ==================== */
+/* MEDICAL (Vezeeta Style) */
+#view-medical { background: var(--med-bg); }
 .doc-card { background: var(--card); border-radius: var(--rad); padding: 18px; border: 1px solid var(--border); display: flex; gap: 16px; align-items: center; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
-.doc-card:active { transform: scale(0.98); box-shadow: var(--shadow-md); }
 .doc-img { width: 68px; height: 68px; border-radius: 20px; background: var(--med-bg); color: var(--med); display: flex; align-items: center; justify-content: center; font-size: 30px; }
-.stars { color: #f59e0b; font-size: 12px; margin-top: 6px; letter-spacing: 2px; }
+.stars { color: #f59e0b; font-size: 12px; margin-top: 6px; }
+.btn-med { background: var(--med); color: white; border-radius: 50px; padding: 10px 20px; font-weight: 800; }
 
-/* Education */
-.teacher-card { background: var(--card); border-radius: var(--rad); padding: 0; text-align: center; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); }
-.teacher-card:active { transform: scale(0.97); }
-.teacher-card img { width: 100%; height: 120px; object-fit: cover; transition: 0.3s; }
-.teacher-card:active img { transform: scale(1.05); }
+/* EDUCATION (Udemy Style) */
+#view-education { background: var(--edu-bg); }
+.teacher-card { background: var(--card); border-radius: var(--rad); overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid var(--border); text-align: center; }
+.teacher-card img { width: 100%; height: 140px; object-fit: cover; }
 .edu-card { background: var(--card); border-radius: var(--rad); padding: 20px; border: 1px solid var(--border); margin-bottom: 16px; box-shadow: var(--shadow-sm); }
 .edu-tag { background: var(--edu-bg); color: var(--edu-dark); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; display: inline-block; margin-bottom: 12px; }
+.btn-edu { border: 2px solid var(--edu); color: var(--edu); border-radius: 50px; padding: 8px 24px; font-weight: 800; background: transparent; }
 
-/* Industrial */
-.industrial-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--rad); padding: 20px; margin-bottom: 16px; border-right: 6px solid var(--maint); box-shadow: var(--shadow-sm); }
-.theme-cars .industrial-card { border-right-color: var(--cars); }
-.ind-icon { font-size: 32px; margin-bottom: 12px; }
+/* MARKET (Talabat Style - Grid) */
+#view-market { background: var(--market-bg); }
+.product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.product-card { background: var(--card); border-radius: 12px; padding: 12px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.product-img { width: 100%; height: 90px; background: var(--bg); border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 24px; }
+.btn-market { background: var(--market); color: white; border-radius: 50px; padding: 14px; width: 100%; font-weight: 900; border: 2px solid var(--market-dark); }
 
-/* Delivery */
-.location-btn { width: 100%; padding: 16px; background: var(--card); border: 2px solid var(--border); border-radius: var(--rad-sm); display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 15px; margin-bottom: 12px; transition: 0.3s; }
-.location-btn.active { border-color: var(--del); background: var(--del-bg); color: var(--del-dark); box-shadow: 0 0 15px var(--del-glow); }
+/* DELIVERY (Uber Style) */
+#view-delivery { background: var(--del-bg); }
+.map-placeholder { width: 100%; height: 200px; background: #e2e8f0; border-radius: var(--rad); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 2px dashed var(--del); }
+.map-placeholder i { font-size: 50px; color: var(--del); opacity: 0.5; }
+.location-btn { width: 100%; padding: 16px; background: var(--card); border: 2px solid var(--border); border-radius: var(--rad-sm); display: flex; justify-content: space-between; align-items: center; font-weight: 800; margin-bottom: 12px; }
+.location-btn.active { border-color: var(--del); background: var(--del-bg); color: var(--del-dark); }
+.btn-del { background: var(--del); color: white; border-radius: 50px; padding: 16px; width: 100%; font-weight: 900; }
 
-/* ==========================================================================
-   9. MY ORDERS (EMPTY & POPULATED STATES)
-   ========================================================================== */
-.orders-list { padding: 20px; }
-.order-card { background: var(--card); border-radius: var(--rad); padding: 18px; border: 1px solid var(--border); margin-bottom: 16px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
-.order-card::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 6px; background: var(--brand); }
-.order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--border); }
-.order-status { background: var(--brand-light); color: var(--brand); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; }
-.order-date { font-size: 12px; color: var(--muted); }
-.order-body p { font-size: 14px; color: var(--text); margin-bottom: 6px; }
-.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
-.empty-state i { font-size: 60px; color: var(--border); margin-bottom: 20px; }
+/* MAINTENANCE & CARS (Industrial) */
+#view-maintenance { background: var(--maint-bg); }
+#view-cars { background: var(--cars-bg); }
+.industrial-card { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; border-right: 6px solid var(--maint); }
+.industrial-card.cars { border-right-color: var(--cars); }
+.btn-ind { background: var(--maint); color: white; padding: 14px; border-radius: 8px; width: 100%; font-weight: 900; }
+.btn-ind.cars { background: var(--cars); }
 
-/* ==========================================================================
-   10. BOTTOM NAV & FLOATING BUTTONS
-   ========================================================================== */
-.bottom-nav { 
-  position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); 
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; 
-  align-items: center; padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); z-index: 100; box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
-}
-.nav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; font-weight: 700; width: 25%; transition: 0.3s var(--ease-elastic); cursor: pointer; }
+/* ==================== 7. AUTH & PROFILE ==================== */
+.auth-container { padding: 40px 20px; text-align: center; }
+.auth-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); font-family: inherit; }
+.btn-auth { width: 100%; padding: 15px; border-radius: 12px; background: var(--brand); color: white; font-weight: 800; font-size: 16px; margin-bottom: 10px; }
+.profile-card { background: var(--card); border-radius: var(--rad); padding: 30px 20px; text-align: center; box-shadow: var(--shadow-sm); margin: 20px; }
+.avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--brand-light); color: var(--brand); font-size: 32px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+
+/* ==================== 8. WASLA AI ASSISTANT ==================== */
+.ai-float { position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: var(--brand-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: var(--ai-glow); z-index: 1000; cursor: pointer; animation: float 3s infinite; }
+.ai-chat { position: fixed; bottom: 90px; right: 20px; width: calc(100% - 40px); max-width: 350px; height: 450px; background: var(--card); border-radius: var(--rad); box-shadow: var(--shadow-md); z-index: 1001; display: none; flex-direction: column; overflow: hidden; border: 1px solid var(--border); }
+.ai-chat.open { display: flex; animation: slideUpFade 0.3s ease; }
+.ai-header { background: var(--brand-gradient); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+.ai-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 14px; }
+.msg.bot { background: var(--bg); color: var(--text); align-self: flex-start; border-bottom-right-radius: 0; }
+.msg.user { background: var(--brand); color: white; align-self: flex-end; border-bottom-left-radius: 0; }
+.ai-input-area { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: var(--card); }
+.ai-input { flex: 1; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg); outline: none; }
+.ai-send { width: 40px; height: 40px; border-radius: 50%; background: var(--brand); color: white; display: flex; align-items: center; justify-content: center; }
+
+/* ==================== 9. BOTTOM NAV & MISC ==================== */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); z-index: 100; }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; font-weight: 700; transition: 0.3s; }
 .nav-item.active { color: var(--brand); transform: translateY(-4px); }
-.nav-item.active i { font-size: 22px; filter: drop-shadow(0 4px 8px var(--brand-glow)); }
 .nav-item i { font-size: 20px; }
 
-.whatsapp-float { 
-  position: fixed; bottom: calc(90px + env(safe-area-inset-bottom)); left: 20px; width: 60px; height: 60px; border-radius: 50%; 
-  background: #25D366; color: white; display: flex; align-items: center; justify-content: center; 
-  font-size: 30px; box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4); z-index: 99; cursor: pointer;
-  animation: float 3s ease-in-out infinite;
-}
-.whatsapp-float:active { transform: scale(0.9) !important; }
-
-/* ==========================================================================
-   11. CUSTOM BOTTOM SHEET (REPLACING PROMPT)
-   ========================================================================== */
 .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 2000; display: none; opacity: 0; transition: 0.3s; }
 .sheet-overlay.active { display: block; opacity: 1; }
-.bottom-sheet { 
-  position: fixed; bottom: -100%; left: 0; right: 0; background: var(--card); 
-  border-radius: 24px 24px 0 0; z-index: 2001; padding: 24px 20px calc(24px + env(safe-area-inset-bottom)); 
-  box-shadow: 0 -10px 40px rgba(0,0,0,0.2); transition: bottom 0.4s var(--ease-elastic);
-}
+.bottom-sheet { position: fixed; bottom: -100%; left: 0; right: 0; background: var(--card); border-radius: 24px 24px 0 0; z-index: 2001; padding: 24px 20px calc(24px + env(safe-area-inset-bottom)); box-shadow: var(--shadow-md); transition: bottom 0.4s var(--ease-elastic); }
 .bottom-sheet.active { bottom: 0; }
 .sheet-handle { width: 40px; height: 5px; background: var(--border); border-radius: 10px; margin: 0 auto 20px; }
-.sheet-title { font-size: 20px; font-weight: 900; color: var(--dark); margin-bottom: 20px; text-align: center; }
 
-/* ==========================================================================
-   12. TOAST NOTIFICATIONS
-   ========================================================================== */
-.toast { 
-  position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); 
-  background: var(--dark); color: white; padding: 14px 28px; border-radius: 30px; 
-  font-weight: 700; box-shadow: var(--shadow-lg); opacity: 0; visibility: hidden; 
-  transition: 0.4s var(--ease-elastic); z-index: 3000; text-align:center; width: 85%; max-width: 400px; 
-}
+.toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--dark); color: white; padding: 14px 28px; border-radius: 30px; font-weight: 700; opacity: 0; visibility: hidden; transition: 0.4s; z-index: 3000; text-align: center; }
 .toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
-
-/* ==========================================================================
-   13. SKELETON LOADERS
-   ========================================================================== */
-.skeleton { 
-  background: linear-gradient(90deg, var(--border) 25%, var(--bg) 50%, var(--border) 75%); 
-  background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--rad-sm); 
-}
-.skeleton-card { height: 120px; margin-bottom: 16px; border-radius: var(--rad); }
-.skeleton-text { height: 20px; width: 60%; margin-bottom: 10px; }
 
 </style>
 </head>
 <body>
 
-<!-- ==========================================================================
-     HEADER
-     ========================================================================== -->
+<!-- HEADER -->
 <header class="top-header">
     <div class="brand">
         <div class="logo-box"><div class="logo-w">W</div></div>
         <div class="brand-text"><h1>وصلة</h1><span>WASLA</span></div>
     </div>
-    <div class="header-icons">
+    <div style="display:flex; gap:10px;">
         <button class="icon-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
+        <button class="icon-btn" onclick="navigateTo('profile')"><i class="fa-solid fa-user"></i></button>
     </div>
 </header>
 
-<!-- ==========================================================================
-     TICKER
-     ========================================================================== -->
-<div class="ticker-wrap">
-    <div class="ticker-label">وصلة 📢</div>
-    <div class="ticker-content">
-        <span>✅ وصلة شغالة في شبين القناطر — اطلب دلوقتي على واتساب</span>
-        <span>⚡ توصيل سريع داخل المدينة</span>
-        <span>🔧 فنيين • أطباء • مدرسين • سوبر ماركت • سيارات</span>
-    </div>
-</div>
-
-<!-- ==========================================================================
-     VIEW: HOME
-     ========================================================================== -->
+<!-- ==================== HOME ==================== -->
 <main id="view-home" class="app-view active">
     <div class="welcome-area">
-        <p><i class="fa-solid fa-location-dot" style="color:var(--brand)"></i> شبين القناطر، القليوبية</p>
-        <h2>أهلاً بك في وصلة 👋</h2>
+        <p style="color:var(--muted); font-size:14px;"><i class="fa-solid fa-location-dot" style="color:var(--brand)"></i> شبين القناطر</p>
+        <h2 id="home-username">أهلاً بك 👋</h2>
     </div>
-
     <div class="hero">
         <h1>كل احتياجاتك،<br>أقرب مع وصلة.</h1>
-        <p>الصحة، السيارات، التعليم، التسوق والصيانة في مكان واحد.</p>
+        <p>منصة متكاملة.. مدعومة بالذكاء الاصطناعي.</p>
     </div>
-
     <div class="section-title">اكتشف الأقسام</div>
     <div class="categories-grid">
-        <div class="cat-card stagger-item" onclick="orderSector('medical')">
+        <div class="cat-card" onclick="navigateTo('medical')">
             <div class="cat-icon" style="background: var(--med-bg); color: var(--med);"><i class="fa-solid fa-heart-pulse"></i></div>
             <h3>الصحة والطب</h3><p>أطباء وتمريض</p>
         </div>
-        <div class="cat-card stagger-item" onclick="orderSector('cars')">
-            <div class="cat-icon" style="background: var(--cars-bg); color: var(--cars-dark);"><i class="fa-solid fa-car"></i></div>
-            <h3>خدمات السيارات</h3><p>صيانة، غسيل، وسحب</p>
-        </div>
-        <div class="cat-card stagger-item" onclick="orderSector('education')">
+        <div class="cat-card" onclick="navigateTo('education')">
             <div class="cat-icon" style="background: var(--edu-bg); color: var(--edu-dark);"><i class="fa-solid fa-graduation-cap"></i></div>
-            <h3>وصلة للتعليم</h3><p>مدرسون ومجموعات</p>
+            <h3>وصلة للتعليم</h3><p>مدرسون ودورات</p>
         </div>
-        <div class="cat-card stagger-item" onclick="orderSector('shopping')">
+        <div class="cat-card" onclick="navigateTo('market')">
             <div class="cat-icon" style="background: var(--market-bg); color: var(--market);"><i class="fa-solid fa-cart-shopping"></i></div>
-            <h3>السوبر ماركت</h3><p>كل احتياجات البيت</p>
+            <h3>السوبر ماركت</h3><p>طلبات البيت</p>
         </div>
-        <div class="cat-card stagger-item" onclick="navigateTo('maintenance')">
+        <div class="cat-card" onclick="navigateTo('delivery')">
+            <div class="cat-icon" style="background: var(--del-bg); color: var(--del);"><i class="fa-solid fa-motorcycle"></i></div>
+            <h3>توصيل</h3><p>أي حاجة توصلك</p>
+        </div>
+        <div class="cat-card" onclick="navigateTo('maintenance')">
             <div class="cat-icon" style="background: var(--maint-bg); color: var(--maint);"><i class="fa-solid fa-screwdriver-wrench"></i></div>
             <h3>الصيانة المنزلية</h3><p>سباكة وكهرباء</p>
         </div>
-        <div class="cat-card stagger-item" onclick="navigateTo('delivery')">
-            <div class="cat-icon" style="background: var(--del-bg); color: var(--del);"><i class="fa-solid fa-motorcycle"></i></div>
-            <h3>توصيل</h3><p>أي حاجة توصلك</p>
+        <div class="cat-card" onclick="navigateTo('cars')">
+            <div class="cat-icon" style="background: var(--cars-bg); color: var(--cars-dark);"><i class="fa-solid fa-car"></i></div>
+            <h3>خدمات السيارات</h3><p>غسيل وصيانة</p>
         </div>
     </div>
 </main>
 
-<!-- ==========================================================================
-     VIEW: MY ORDERS
-     ========================================================================== -->
-<div id="view-orders" class="app-view">
-    <div class="inner-header">
-        <div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div>
-        <h2>طلباتي</h2>
-    </div>
-    <div class="orders-list" id="orders-container">
-        <!-- Orders will be injected here via JS -->
-    </div>
-</div>
-
-<!-- ==========================================================================
-     VIEW: MEDICAL
-     ========================================================================== -->
-<div id="view-medical" class="app-view" style="background: var(--med-bg);">
-    <div class="inner-header">
-        <div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div>
-        <h2>احجز مع طبيبك</h2>
-    </div>
+<!-- ==================== MEDICAL (Vezeeta Style) ==================== -->
+<div id="view-medical" class="app-view">
+    <div class="inner-header"><div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>الصحة والطب</h2></div>
     <div class="sector-form-area">
-        <div id="med-skeleton">
-            <div class="skeleton skeleton-card"></div>
-            <div class="skeleton skeleton-card"></div>
+        <div class="doc-card">
+            <div class="doc-img"><i class="fa-solid fa-user-doctor"></i></div>
+            <div style="flex:1;">
+                <h4 style="color:var(--med-dark);">د. محمد عبد الله</h4>
+                <p style="font-size:12px; color:var(--muted);">استشاري باطنة</p>
+                <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i> (4.5)</div>
+            </div>
+            <button class="btn-med" onclick="orderSector('طبي', 'حجز د. محمد عبد الله')">حجز</button>
         </div>
-        <div id="med-content" style="display:none;">
-            <div class="doc-card stagger-item">
-                <div class="doc-img"><i class="fa-solid fa-user-doctor"></i></div>
-                <div style="flex:1;">
-                    <h4 style="color:var(--med-dark); font-size:17px;">د. محمد عبد الله</h4>
-                    <p style="font-size:12px; color:var(--muted);">استشاري باطنة - شبين القناطر</p>
-                    <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i> (4.5)</div>
-                </div>
-                <button class="sector-submit btn-med" style="width:auto; padding:10px 20px; border-radius:50px; font-size:14px;" onclick="orderSector('medical')">حجز</button>
+        <div class="doc-card">
+            <div class="doc-img"><i class="fa-solid fa-tooth"></i></div>
+            <div style="flex:1;">
+                <h4 style="color:var(--med-dark);">د. سارة خالد</h4>
+                <p style="font-size:12px; color:var(--muted);">أخصائي أسنان</p>
+                <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i> (5.0)</div>
             </div>
-            <div class="doc-card stagger-item">
-                <div class="doc-img"><i class="fa-solid fa-tooth"></i></div>
-                <div style="flex:1;">
-                    <h4 style="color:var(--med-dark); font-size:17px;">د. سارة خالد</h4>
-                    <p style="font-size:12px; color:var(--muted);">أخصائي أسنان وتجميل</p>
-                    <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i> (5.0)</div>
-                </div>
-                <button class="sector-submit btn-med" style="width:auto; padding:10px 20px; border-radius:50px; font-size:14px;" onclick="orderSector('medical')">حجز</button>
-            </div>
+            <button class="btn-med" onclick="orderSector('طبي', 'حجز د. سارة خالد')">حجز</button>
         </div>
     </div>
 </div>
 
-<!-- ==========================================================================
-     VIEW: EDUCATION
-     ========================================================================== -->
-<div id="view-education" class="app-view" style="background: var(--edu-bg);">
-    <div class="inner-header">
-        <div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div>
-        <h2>منصة التعليم</h2>
-    </div>
+<!-- ==================== EDUCATION (Udemy Style) ==================== -->
+<div id="view-education" class="app-view">
+    <div class="inner-header"><div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>وصلة للتعليم</h2></div>
     <div class="sector-form-area">
-        <div id="edu-skeleton">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px;">
-                <div class="skeleton skeleton-card" style="height:180px;"></div>
-                <div class="skeleton skeleton-card" style="height:180px;"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+            <div class="teacher-card">
+                <img src="https://ui-avatars.com/api/?name=أحمد&background=84cc16&color=fff" alt="Teacher">
+                <div style="padding:10px;"><h4>أ. أحمد</h4><p style="font-size:11px; color:var(--edu-dark);">الفيزياء</p></div>
+            </div>
+            <div class="teacher-card">
+                <img src="https://ui-avatars.com/api/?name=سارة&background=84cc16&color=fff" alt="Teacher">
+                <div style="padding:10px;"><h4>أ. سارة</h4><p style="font-size:11px; color:var(--edu-dark);">الكيمياء</p></div>
             </div>
         </div>
-        <div id="edu-content" style="display:none;">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px;">
-                <div class="teacher-card stagger-item">
-                    <img src="https://ui-avatars.com/api/?name=أحمد+محمد&background=84cc16&color=fff&size=120" alt="Teacher">
-                    <div style="padding:12px;">
-                        <h4 style="font-size:15px; margin-bottom:2px;">أ. أحمد محمد</h4>
-                        <p style="font-size:12px; color:var(--edu-dark);">الفيزياء</p>
-                    </div>
-                </div>
-                <div class="teacher-card stagger-item">
-                    <img src="https://ui-avatars.com/api/?name=سارة+علي&background=84cc16&color=fff&size=120" alt="Teacher">
-                    <div style="padding:12px;">
-                        <h4 style="font-size:15px; margin-bottom:2px;">أ. سارة علي</h4>
-                        <p style="font-size:12px; color:var(--edu-dark);">الكيمياء</p>
-                    </div>
-                </div>
-            </div>
-            <div class="edu-card stagger-item">
-                <span class="edu-tag">الثانوية العامة</span>
-                <h3 style="font-size:18px; margin-bottom:8px;">مراجعة ليلة الامتحان - فيزياء</h3>
-                <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">مع أ. أحمد محمد - 3 محاضرات مكثفة</p>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="font-size:20px; font-weight:900; color:var(--edu);"><span style="font-size:14px; color:var(--muted); text-decoration:line-through; margin-left:8px;">400 ج</span> 350 ج</div>
-                    <button class="sector-submit btn-edu" style="width:auto; padding:10px 24px; font-size:14px;" onclick="orderSector('education')">سجل الآن</button>
-                </div>
+        <div class="edu-card">
+            <span class="edu-tag">الثانوية العامة</span>
+            <h3 style="margin-bottom:10px;">مراجعة ليلة الامتحان - فيزياء</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:900; color:var(--edu-dark); font-size:18px;">350 ج</span>
+                <button class="btn-edu" onclick="orderSector('تعليمي', 'دورة فيزياء - 350 ج')">سجل الآن</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ==========================================================================
-     VIEW: MAINTENANCE
-     ========================================================================== -->
-<div id="view-maintenance" class="app-view" style="background: var(--maint-bg);">
-    <div class="inner-header">
-        <div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div>
-        <h2>الصيانة المنزلية</h2>
-    </div>
+<!-- ==================== MARKET (Talabat Style Grid) ==================== -->
+<div id="view-market" class="app-view">
+    <div class="inner-header"><div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>سوبر ماركت</h2></div>
     <div class="sector-form-area">
-        <div class="industrial-card stagger-item">
-            <div class="ind-icon" style="color:var(--maint);"><i class="fa-solid fa-faucet-drip"></i></div>
-            <h3 style="font-size:18px; margin-bottom:6px;">سباكة</h3>
-            <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">تسريب مياه، تركيب أدوات صحية</p>
-            <button class="sector-submit btn-maint" onclick="orderSector('maintenance')">اطلب فني</button>
-        </div>
-        <div class="industrial-card stagger-item">
-            <div class="ind-icon" style="color:var(--maint);"><i class="fa-solid fa-bolt"></i></div>
-            <h3 style="font-size:18px; margin-bottom:6px;">كهرباء</h3>
-            <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">أعطال، تركيب إضاءة، لوحات</p>
-            <button class="sector-submit btn-maint" onclick="orderSector('maintenance')">اطلب فني</button>
-        </div>
-    </div>
-</div>
-
-<!-- ==========================================================================
-     VIEW: CARS
-     ========================================================================== -->
-<div id="view-cars" class="app-view" style="background: var(--cars-bg);">
-    <div class="inner-header">
-        <div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div>
-        <h2>خدمات السيارات</h2>
-    </div>
-    <div class="sector-form-area">
-        <div class="industrial-card stagger-item" style="border-right-color:var(--cars);">
-            <div class="ind-icon" style="color:var(--cars);"><i class="fa-solid fa-car-side"></i></div>
-            <h3 style="font-size:18px; margin-bottom:6px;">غسيل سيارات</h3>
-            <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">غسيل داخلي وخارجي</p>
-            <button class="sector-submit btn-cars" onclick="orderSector('cars')">احجز</button>
-        </div>
-        <div class="industrial-card stagger-item" style="border-right-color:var(--cars);">
-            <div class="ind-icon" style="color:var(--cars);"><i class="fa-solid fa-truck-pickup"></i></div>
-            <h3 style="font-size:18px; margin-bottom:6px;">ونش وسحب</h3>
-            <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">إنقاذ سيارات على الطريق</p>
-            <button class="sector-submit btn-cars" onclick="orderSector('cars')">اطلب ونش</button>
-        </div>
-    </div>
-</div>
-
-<!-- ==========================================================================
-     VIEW: MARKET
-     ========================================================================== -->
-<div id="view-market" class="app-view" style="background: var(--market-bg);">
-    <div class="inner-header">
-        <div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div>
-        <h2>سوبر ماركت</h2>
-    </div>
-    <div class="sector-form-area">
-        <div class="market-card stagger-item" style="background:var(--card); border-radius:var(--rad); padding:20px; box-shadow:var(--shadow-md);">
-            <h3 style="font-size:18px; margin-bottom:8px;">اكتب طلبك</h3>
-            <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">اكتب قائمة المشتريات وسنقوم بتوصيلها لك.</p>
-            <div class="input-group">
-                <textarea id="market-list" class="input-field" rows="4" placeholder="مثال: 2 كيلو طماطم، عيش، جبنة..."></textarea>
+        <div class="product-grid">
+            <div class="product-card" onclick="orderSector('سوبر ماركت', 'شراء طماطم')">
+                <div class="product-img"><i class="fa-solid fa-apple-whole" style="color:#ef4444;"></i></div>
+                <h4>طماطم (كيلو)</h4><p style="color:var(--market); font-weight:900;">15 ج</p>
             </div>
-            <button class="sector-submit btn-market" onclick="orderSector('shopping')">إرسال الطلب</button>
+            <div class="product-card" onclick="orderSector('سوبر ماركت', 'شراء موز')">
+                <div class="product-img"><i class="fa-solid fa-lemon" style="color:#facc15;"></i></div>
+                <h4>موز (كيلو)</h4><p style="color:var(--market); font-weight:900;">25 ج</p>
+            </div>
+            <div class="product-card" onclick="orderSector('سوبر ماركت', 'شراء لبن')">
+                <div class="product-img"><i class="fa-solid fa-bottle-water" style="color:#3b82f6;"></i></div>
+                <h4>لبن (لتر)</h4><p style="color:var(--market); font-weight:900;">35 ج</p>
+            </div>
+            <div class="product-card" onclick="orderSector('سوبر ماركت', 'شراء خبز')">
+                <div class="product-img"><i class="fa-solid fa-bread-slice" style="color:#d97706;"></i></div>
+                <h4>خبز فينو</h4><p style="color:var(--market); font-weight:900;">10 ج</p>
+            </div>
         </div>
+        <button class="btn-market" style="margin-top:20px;" onclick="navigateTo('market-cart')">عرض السلة وإتمام الطلب</button>
     </div>
 </div>
 
-<!-- ==========================================================================
-     VIEW: DELIVERY
-     ========================================================================== -->
-<div id="view-delivery" class="app-view" style="background: var(--del-bg);">
-    <div class="inner-header">
-        <div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div>
-        <h2>توصيل</h2>
-    </div>
+<!-- ==================== DELIVERY (Uber Style) ==================== -->
+<div id="view-delivery" class="app-view">
+    <div class="inner-header"><div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>توصيل سريع</h2></div>
     <div class="sector-form-area">
-        <div class="market-card stagger-item" style="background:var(--card); border-radius:var(--rad); padding:20px; box-shadow:var(--shadow-md);">
-            <div class="input-group">
-                <label>إيه اللي عايز توصله؟</label>
-                <input type="text" id="del-item" class="input-field" placeholder="شنطة، أوراق، طلب مطعم...">
-            </div>
-            <div class="input-group">
-                <label>موقع الاستلام (من فين؟)</label>
-                <button class="location-btn" id="btn-pickup" onclick="getLocation('pickup')"><span id="txt-pickup">تحديد الموقع</span><i class="fa-solid fa-location-crosshairs"></i></button>
-            </div>
-            <div class="input-group">
-                <label>موقع التسليم (لحد فين؟)</label>
-                <button class="location-btn" id="btn-dropoff" onclick="getLocation('dropoff')"><span id="txt-dropoff">تحديد الموقع</span><i class="fa-solid fa-location-crosshairs"></i></button>
-            </div>
-            <button class="sector-submit btn-del" onclick="orderSector('delivery')">تأكيد التوصيل</button>
+        <div class="map-placeholder">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <span style="position:absolute; bottom:10px; color:var(--del-dark); font-weight:bold;">الخريطة التفاعلية قريباً</span>
         </div>
+        <div class="input-group">
+            <input type="text" id="del-item" class="auth-input" placeholder="إيه اللي عايز توصله؟">
+        </div>
+        <button class="location-btn" id="btn-pickup" onclick="getLocation('pickup')"><span id="txt-pickup">📍 موقع الاستلام</span><i class="fa-solid fa-location-crosshairs"></i></button>
+        <button class="location-btn" id="btn-dropoff" onclick="getLocation('dropoff')"><span id="txt-dropoff">🎯 موقع التسليم</span><i class="fa-solid fa-location-crosshairs"></i></button>
+        <button class="btn-del" onclick="submitDelivery()">تأكيد التوصيل</button>
     </div>
 </div>
 
-<!-- ==========================================================================
-     VIEW: PROVIDER
-     ========================================================================== -->
-<div id="view-provider" class="app-view">
-    <div class="inner-header">
-        <div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div>
-        <h2>انضم كفني</h2>
-    </div>
+<!-- ==================== MAINTENANCE (Industrial) ==================== -->
+<div id="view-maintenance" class="app-view">
+    <div class="inner-header"><div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>الصيانة المنزلية</h2></div>
     <div class="sector-form-area">
-        <div style="background: linear-gradient(135deg, #F59E0B, #D97706); border-radius: var(--rad); padding: 30px 20px; color: white; text-align: center; margin-bottom: 24px; box-shadow: 0 12px 24px rgba(245, 158, 11, 0.3);" class="stagger-item">
-            <h1 style="font-size:26px; margin-bottom:8px;">عايز تشتغل مع وصلة؟ 💼</h1>
-            <p style="font-size:14px; opacity:0.9;">سجل بياناتك عشان نكلمك وتستلم طلبات</p>
+        <div class="industrial-card">
+            <h3><i class="fa-solid fa-faucet-drip" style="color:var(--maint);"></i> سباكة</h3>
+            <p style="color:var(--muted); font-size:13px; margin:10px 0;">تسريب مياه، تركيب أدوات صحية</p>
+            <button class="btn-ind" onclick="orderSector('صيانة', 'طلب فني سباكة')">اطلب فني</button>
         </div>
-        <div class="input-group stagger-item"><label>الاسم بالكامل</label><input type="text" id="provider-name" class="input-field" placeholder="اسمك"></div>
-        <div class="input-group stagger-item"><label>رقم التليفون</label><input type="tel" id="provider-phone" class="input-field" placeholder="01xxxxxxxxx"></div>
-        <div class="input-group stagger-item">
-            <label>تخصصك</label>
-            <select id="provider-craft" class="input-field">
-                <option value="سباك">سباك</option>
-                <option value="كهربائي">كهربائي</option>
-                <option value="فني تكييف">فني تكييف</option>
-                <option value="نجار">نجار</option>
-                <option value="مندوب توصيل">مندوب توصيل</option>
-            </select>
+        <div class="industrial-card">
+            <h3><i class="fa-solid fa-bolt" style="color:var(--maint);"></i> كهرباء</h3>
+            <p style="color:var(--muted); font-size:13px; margin:10px 0;">أعطال، تركيب إضاءة، لوحات</p>
+            <button class="btn-ind" onclick="orderSector('صيانة', 'طلب فني كهرباء')">اطلب فني</button>
         </div>
-        <button class="sector-submit stagger-item" style="background: linear-gradient(135deg, #F59E0B, #D97706); box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);" onclick="submitProviderApplication()">إرسال طلب الانضمام</button>
     </div>
 </div>
 
-<!-- ==========================================================================
-     FLOATING BUTTONS
-     ========================================================================== -->
-<button class="whatsapp-float" onclick="orderSector('general')" aria-label="واتساب"><i class="fa-brands fa-whatsapp"></i></button>
+<!-- ==================== CARS (Industrial) ==================== -->
+<div id="view-cars" class="app-view">
+    <div class="inner-header"><div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>خدمات السيارات</h2></div>
+    <div class="sector-form-area">
+        <div class="industrial-card cars">
+            <h3><i class="fa-solid fa-car-side" style="color:var(--cars);"></i> غسيل سيارات</h3>
+            <p style="color:var(--muted); font-size:13px; margin:10px 0;">غسيل داخلي وخارجي</p>
+            <button class="btn-ind cars" onclick="orderSector('سيارات', 'حجز غسيل سيارة')">احجز</button>
+        </div>
+        <div class="industrial-card cars">
+            <h3><i class="fa-solid fa-truck-pickup" style="color:var(--cars);"></i> ونش وسحب</h3>
+            <p style="color:var(--muted); font-size:13px; margin:10px 0;">إنقاذ سيارات على الطريق</p>
+            <button class="btn-ind cars" onclick="orderSector('سيارات', 'طلب ونش إنقاذ')">اطلب ونش</button>
+        </div>
+    </div>
+</div>
 
-<nav class="bottom-nav">
-    <button class="nav-item active" onclick="navigateTo('home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
-    <button class="nav-item" onclick="navigateTo('orders')"><i class="fa-solid fa-box"></i><span>طلباتي</span></button>
-    <button class="nav-item" onclick="navigateTo('provider')"><i class="fa-solid fa-briefcase"></i><span>انضم كفني</span></button>
-    <button class="nav-item" onclick="showToast('حسابي — قريباً')"><i class="fa-solid fa-user"></i><span>حسابي</span></button>
-</nav>
+<!-- ==================== PROFILE & AUTH ==================== -->
+<div id="view-profile" class="app-view">
+    <div class="inner-header"><div class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>حسابي</h2></div>
+    
+    <div id="auth-section" class="auth-container">
+        <h2 style="margin-bottom:20px;">تسجيل الدخول / إنشاء حساب</h2>
+        <input type="email" id="auth-email" class="auth-input" placeholder="البريد الإلكتروني">
+        <input type="password" id="auth-pass" class="auth-input" placeholder="كلمة المرور">
+        <button class="btn-auth" onclick="login()">دخول</button>
+        <button class="btn-auth" style="background:var(--muted);" onclick="register()">إنشاء حساب جديد</button>
+    </div>
 
-<!-- ==========================================================================
-     BOTTOM SHEET (CUSTOM PROMPT)
-     ========================================================================== -->
+    <div id="profile-section" style="display:none;">
+        <div class="profile-card">
+            <div class="avatar"><i class="fa-solid fa-user"></i></div>
+            <h3 id="profile-email">user@wasla.com</h3>
+            <p style="color:var(--muted); font-size:13px; margin-top:5px;">مرحباً بك في عائلة وصلة</p>
+            <button class="btn-auth" style="background:#ef4444; margin-top:20px;" onclick="logout()">تسجيل الخروج</button>
+        </div>
+        <div class="section-title">طلباتي السابقة</div>
+        <div id="orders-list" style="padding:0 20px;"></div>
+    </div>
+</div>
+
+<!-- ==================== AI ASSISTANT UI ==================== -->
+<div class="ai-float" onclick="toggleAI()"><i class="fa-solid fa-robot"></i></div>
+
+<div class="ai-chat" id="ai-chat">
+    <div class="ai-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <i class="fa-solid fa-robot"></i>
+            <div>
+                <h4 style="font-size:14px; margin:0;">Wasla AI</h4>
+                <span style="font-size:10px; opacity:0.8;">مساعدك الذكي</span>
+            </div>
+        </div>
+        <button onclick="toggleAI()" style="color:white;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="ai-messages" id="ai-messages">
+        <div class="msg bot">أهلاً بك! أنا Wasla AI. كيف أقدر أساعدك اليوم؟ يمكنك سؤالي عن "دكتور" أو "توصيل" أو "صيانة".</div>
+    </div>
+    <div class="ai-input-area">
+        <input type="text" id="ai-input" class="ai-input" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter') sendAIMsg()">
+        <button class="ai-send" onclick="sendAIMsg()"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<!-- BOTTOM SHEET (Phone Number) -->
 <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
 <div class="bottom-sheet" id="bottom-sheet">
     <div class="sheet-handle"></div>
-    <h3 class="sheet-title" id="sheet-title">تأكيد الطلب</h3>
-    <div class="input-group">
-        <label>رقم تليفونك (للتأكيد)</label>
-        <input type="tel" id="sheet-phone" class="input-field" placeholder="01xxxxxxxxx">
-    </div>
-    <button class="sector-submit btn-maint" id="sheet-submit" onclick="confirmSheet()">متابعة</button>
+    <h3 style="text-align:center; margin-bottom:20px;" id="sheet-title">تأكيد الطلب</h3>
+    <input type="tel" id="sheet-phone" class="auth-input" placeholder="رقم تليفونك للتأكيد">
+    <button class="btn-auth" id="sheet-btn" onclick="confirmSheet()">إرسال عبر الواتساب</button>
 </div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+    <div class="nav-item active" onclick="navigateTo('home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></div>
+    <div class="nav-item" onclick="navigateTo('profile')"><i class="fa-solid fa-box"></i><span>طلباتي</span></div>
+    <div class="nav-item" onclick="toggleAI()"><i class="fa-solid fa-robot"></i><span>المساعد</span></div>
+    <div class="nav-item" onclick="navigateTo('profile')"><i class="fa-solid fa-user"></i><span>حسابي</span></div>
+</nav>
 
 <div id="toast" class="toast"></div>
 
-<!-- ==========================================================================
-     JAVASCRIPT LOGIC
-     ========================================================================== -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- ==================== SCRIPT ==================== -->
 <script>
-// ============================================================================
-// 1. CONFIGURATION
-// ============================================================================
-const WASLA_PHONE = '201555196375'; 
 const SUPABASE_URL = 'https://fdduzcytuhoelnnejgkl.supabase.co'; 
 const SUPABASE_ANON_KEY = 'sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529';
+const WASLA_PHONE = '201555196375';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let supabaseClient = null;
-try {
-    if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} catch(e) { console.log("Supabase Init Error:", e); }
+let coords = { pickup: null, dropoff: null };
+let currentUser = null;
+let currentOrderPayload = null;
 
-// ============================================================================
-// 2. TOAST NOTIFICATION
-// ============================================================================
-function showToast(msg) { 
-    const t = document.getElementById('toast'); 
-    t.textContent = msg; 
-    t.classList.add('show'); 
-    setTimeout(() => t.classList.remove('show'), 3000); 
-}
-
-// ============================================================================
-// 3. NAVIGATION & VIEW TRANSITIONS
-// ============================================================================
+// ==================== NAVIGATION & THEME ====================
 function navigateTo(viewId) {
     document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
     const target = document.getElementById('view-' + viewId);
@@ -756,214 +425,224 @@ function navigateTo(viewId) {
         target.classList.add('active');
         window.scrollTo(0, 0);
     }
-    
-    // Update Bottom Nav State
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     if(viewId === 'home') document.querySelector('.nav-item:nth-child(1)').classList.add('active');
-    if(viewId === 'orders') {
-        document.querySelector('.nav-item:nth-child(2)').classList.add('active');
-        renderOrders();
-    }
-    if(viewId === 'provider') document.querySelector('.nav-item:nth-child(3)').classList.add('active');
-
-    // Simulate Skeleton Loading for Specific Views
-    if(viewId === 'medical') simulateLoading('med');
-    if(viewId === 'education') simulateLoading('edu');
+    if(viewId === 'profile') document.querySelector('.nav-item:nth-child(4)').classList.add('active');
 }
 
-function simulateLoading(prefix) {
-    const skeleton = document.getElementById(prefix + '-skeleton');
-    const content = document.getElementById(prefix + '-content');
-    if(skeleton && content) {
-        skeleton.style.display = 'block';
-        content.style.display = 'none';
-        setTimeout(() => {
-            skeleton.style.display = 'none';
-            content.style.display = 'block';
-        }, 800); // 800ms delay for realistic feel
-    }
-}
-
-// ============================================================================
-// 4. THEME MANAGEMENT
-// ============================================================================
 const savedTheme = localStorage.getItem('wasla_theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 if(savedTheme === 'dark') document.getElementById('theme-icon').className = 'fa-solid fa-sun';
-
 function toggleTheme() {
-    const html = document.documentElement;
-    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', next);
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('wasla_theme', next);
     document.getElementById('theme-icon').className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
 }
 
-// ============================================================================
-// 5. LOCATION LOGIC (DELIVERY)
-// ============================================================================
-let coords = { pickup: null, dropoff: null };
-
-function getLocation(type) {
-    if(!navigator.geolocation) return showToast('المتصفح لا يدعم الموقع');
-    const btn = document.getElementById('btn-' + type);
-    const txt = document.getElementById('txt-' + type);
-    txt.innerText = 'جاري التحديد...';
-    
-    navigator.geolocation.getCurrentPosition(
-        pos => {
-            coords[type] = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            btn.classList.add('active');
-            txt.innerText = 'تم تحديد الموقع ✅';
-        },
-        () => {
-            txt.innerText = 'فشل التحديد - اكتب العنوان';
-            coords[type] = 'manual';
-        },
-        { timeout: 10000, enableHighAccuracy: true }
-    );
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ============================================================================
-// 6. CUSTOM BOTTOM SHEET LOGIC
-// ============================================================================
-let currentOrderPayload = null;
+// ==================== AUTHENTICATION ====================
+async function checkSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if(session) {
+        currentUser = session.user;
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('profile-section').style.display = 'block';
+        document.getElementById('profile-email').innerText = currentUser.email;
+        document.getElementById('home-username').innerText = `أهلاً بك، ${currentUser.email.split('@')[0]} 👋`;
+        loadOrders();
+    } else {
+        document.getElementById('auth-section').style.display = 'block';
+        document.getElementById('profile-section').style.display = 'none';
+    }
+}
 
+async function register() {
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-pass').value;
+    if(!email || !password) return showToast('أدخل البريد وكلمة المرور');
+    
+    const { error } = await supabase.auth.signUp({ email, password });
+    if(error) return showToast(error.message);
+    showToast('تم إنشاء الحساب! يرجى تسجيل الدخول.');
+}
+
+async function login() {
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-pass').value;
+    if(!email || !password) return showToast('أدخل البريد وكلمة المرور');
+    
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if(error) return showToast(error.message);
+    showToast('تم تسجيل الدخول بنجاح');
+    checkSession();
+}
+
+async function logout() {
+    await supabase.auth.signOut();
+    currentUser = null;
+    checkSession();
+    navigateTo('home');
+}
+
+// ==================== ORDERS & DATABASE ====================
+function orderSector(sectorName, details) {
+    if(!currentUser) {
+        showToast('يرجى تسجيل الدخول أولاً');
+        navigateTo('profile');
+        return;
+    }
+    openSheet(`تأكيد طلب ${sectorName}`, { sectorName, details });
+}
+
+async function saveOrderToDB(payload) {
+    const { error } = await supabase.from('orders').insert([{
+        user_id: currentUser.id,
+        sector: payload.sectorName,
+        details: payload.details,
+        status: 'قيد المراجعة'
+    }]);
+    if(error) console.log('DB Error:', error);
+    
+    // Also send WhatsApp
+    const msg = `*طلب جديد - وصلة*\n\n👤 العميل: ${currentUser.email}\n📞 التليفون: ${payload.phone}\n🛠️ الخدمة: ${payload.sectorName}\n📝 التفاصيل: ${payload.details}`;
+    window.open(`https://wa.me/${WASLA_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
+    
+    showToast('تم تسجيل طلبك بنجاح!');
+    closeSheet();
+    loadOrders();
+    navigateTo('profile'); // Go to profile to see orders
+}
+
+async function loadOrders() {
+    if(!currentUser) return;
+    const list = document.getElementById('orders-list');
+    list.innerHTML = '<div style="text-align:center; padding:20px;">جاري التحميل...</div>';
+    
+    const { data, error } = await supabase.from('orders').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+    
+    if(error || data.length === 0) {
+        list.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">لا توجد طلبات سابقة</div>';
+        return;
+    }
+    
+    list.innerHTML = data.map(o => `
+        <div style="background:var(--card); padding:15px; border-radius:12px; margin-bottom:10px; border-right:4px solid var(--brand);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <strong>${o.sector}</strong>
+                <span style="font-size:11px; background:var(--brand-light); color:var(--brand); padding:2px 8px; border-radius:10px;">${o.status}</span>
+            </div>
+            <p style="font-size:13px; color:var(--muted);">${o.details}</p>
+            <p style="font-size:11px; color:var(--muted); margin-top:8px;">${new Date(o.created_at).toLocaleString('ar-EG')}</p>
+        </div>
+    `).join('');
+}
+
+// ==================== BOTTOM SHEET & FORM ====================
 function openSheet(title, payload) {
     currentOrderPayload = payload;
     document.getElementById('sheet-title').innerText = title;
     document.getElementById('sheet-overlay').classList.add('active');
     document.getElementById('bottom-sheet').classList.add('active');
-    document.getElementById('sheet-phone').focus();
 }
 
 function closeSheet() {
     document.getElementById('sheet-overlay').classList.remove('active');
     document.getElementById('bottom-sheet').classList.remove('active');
     document.getElementById('sheet-phone').value = '';
-    currentOrderPayload = null;
 }
 
 function confirmSheet() {
-    const phone = document.getElementById('sheet-phone').value.trim();
-    if(!phone || phone.length < 10) return showToast('أدخل رقم تليفون صحيح');
-    
-    if(currentOrderPayload) {
-        currentOrderPayload.phone = phone;
-        executeOrder(currentOrderPayload);
-    }
-    closeSheet();
+    const phone = document.getElementById('sheet-phone').value;
+    if(!phone || phone.length < 10) return showToast('أدخل رقم صحيح');
+    currentOrderPayload.phone = phone;
+    saveOrderToDB(currentOrderPayload);
 }
 
-// ============================================================================
-// 7. ORDER FLOW & WHATSAPP INTEGRATION
-// ============================================================================
-function orderSector(sector) {
-    let message = '';
-    let sectorName = '';
-    
-    if(sector === 'medical') { message = 'عايز أحجز دكتور من وصلة'; sectorName = 'طبي'; }
-    else if(sector === 'education') { message = 'عايز أحجز دورة تعليمية من وصلة'; sectorName = 'تعليمي'; }
-    else if(sector === 'maintenance') { message = 'عايز فني صيانة من وصلة'; sectorName = 'صيانة'; }
-    else if(sector === 'cars') { message = 'عايز خدمة سيارة من وصلة'; sectorName = 'سيارات'; }
-    else if(sector === 'shopping') {
-        const list = document.getElementById('market-list')?.value || '';
-        if(!list) return showToast('اكتب طلباتك أولاً');
-        message = `عايز أطلب من سوبر ماركت وصلة:\n${list}`; sectorName = 'سوبر ماركت';
-    }
-    else if(sector === 'delivery') {
-        const item = document.getElementById('del-item')?.value || '';
-        if(!item) return showToast('اكتب تفاصيل الشحنة');
-        if(!coords.pickup || !coords.dropoff) return showToast('حدد المواقع أولاً');
-        message = `عايز أطلب توصيل:\n📦 الشحنة: ${item}\n📍 من: ${coords.pickup.lat || 'يدوي'}\n🎯 إلى: ${coords.dropoff.lat || 'يدوي'}`; sectorName = 'توصيل';
-    }
-    else { message = 'السلام عليكم، عايز أستخدم وصلة'; sectorName = 'عام'; }
-
-    // Open Bottom Sheet to collect Phone Number
-    openSheet(`تأكيد طلب ${sectorName}`, { message, sectorName });
-}
-
-function executeOrder(payload) {
-    // 1. Build WhatsApp Message
-    const fullMsg = `*طلب جديد من وصلة - ${payload.sectorName}*\n\n📱 التليفون: ${payload.phone}\n\n${payload.message}`;
-    
-    // 2. Save to LocalStorage
-    saveOrderToLocal(payload);
-    
-    // 3. Open WhatsApp
-    window.open(`https://wa.me/${WASLA_PHONE}?text=${encodeURIComponent(fullMsg)}`, '_blank');
-    showToast('جاري فتح واتساب...');
-    
-    // 4. Redirect to Orders page after short delay
-    setTimeout(() => navigateTo('orders'), 1500);
-}
-
-// ============================================================================
-// 8. LOCAL STORAGE (MY ORDERS)
-// ============================================================================
-function saveOrderToLocal(payload) {
-    let orders = JSON.parse(localStorage.getItem('wasla_orders') || '[]');
-    orders.unshift({
-        id: Date.now(),
-        sector: payload.sectorName,
-        message: payload.message,
-        phone: payload.phone,
-        date: new Date().toISOString(),
-        status: 'قيد المراجعة'
+// ==================== DELIVERY LOGIC ====================
+function getLocation(type) {
+    const btn = document.getElementById('btn-' + type);
+    const txt = document.getElementById('txt-' + type);
+    txt.innerText = 'جاري التحديد...';
+    navigator.geolocation.getCurrentPosition(pos => {
+        coords[type] = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        btn.classList.add('active');
+        txt.innerText = 'تم تحديد الموقع ✅';
+    }, () => {
+        txt.innerText = 'فشل التحديد';
     });
-    localStorage.setItem('wasla_orders', JSON.stringify(orders));
 }
 
-function renderOrders() {
-    const container = document.getElementById('orders-container');
-    const orders = JSON.parse(localStorage.getItem('wasla_orders') || '[]');
-    
-    if(orders.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fa-solid fa-box-open"></i>
-                <h3>لا توجد طلبات سابقة</h3>
-                <p style="font-size:14px; margin-top:8px;">ابدأ باستخدام خدماتنا وستظهر طلباتك هنا.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = orders.map(order => `
-        <div class="order-card stagger-item">
-            <div class="order-header">
-                <h4 style="color:var(--brand);">${order.sector}</h4>
-                <span class="order-status">${order.status}</span>
-            </div>
-            <div class="order-body">
-                <p style="white-space:pre-wrap;">${order.message}</p>
-                <p style="font-size:12px; color:var(--muted); margin-top:12px;"><i class="fa-solid fa-clock"></i> ${new Date(order.date).toLocaleString('ar-EG')}</p>
-            </div>
-        </div>
-    `).join('');
+function submitDelivery() {
+    const item = document.getElementById('del-item').value;
+    if(!item) return showToast('اكتب تفاصيل الشحنة');
+    if(!coords.pickup || !coords.dropoff) return showToast('حدد المواقع أولاً');
+    orderSector('توصيل', `الشحنة: ${item}\n📍 من: GPS\n🎯 إلى: GPS`);
 }
 
-// ============================================================================
-// 9. PROVIDER APPLICATION
-// ============================================================================
-function submitProviderApplication() {
-    const name = document.getElementById('provider-name').value.trim();
-    const phone = document.getElementById('provider-phone').value.trim();
-    const craft = document.getElementById('provider-craft').value;
-    
-    if(!name || !phone || phone.length < 10) return showToast('أدخل بيانات صحيحة');
-    
-    const waMsg = `*💼 طلب انضمام فني - وصلة*\n\n👤 الاسم: ${name}\n📱 التليفون: ${phone}\n🛠️ التخصص: ${craft}`;
-    window.open(`https://wa.me/${WASLA_PHONE}?text=${encodeURIComponent(waMsg)}`, '_blank');
-    showToast('جاري إرسال طلبك...');
+// ==================== WASLA AI ASSISTANT (Rule-Based Simulator) ====================
+function toggleAI() {
+    document.getElementById('ai-chat').classList.toggle('open');
 }
 
-// ============================================================================
-// 10. INITIALIZATION
-// ============================================================================
+function sendAIMsg() {
+    const input = document.getElementById('ai-input');
+    const msg = input.value.trim();
+    if(!msg) return;
+    
+    addMsg(msg, 'user');
+    input.value = '';
+    
+    // Simulate AI Thinking (Typing)
+    setTimeout(() => {
+        let reply = "عذراً، لم أفهم قصدك. يمكنك تجربة كلمات مثل: 'دكتور'، 'توصيل'، 'صيانة'، أو 'سوبر ماركت'.";
+        let navigate = null;
+
+        if(msg.includes('دكتور') || msg.includes('طبيب') || msg.includes('صحة')) {
+            reply = "بالتأكيد! لدينا نخبة من الأطباء في شبين القناطر. هل تريد حجز موعد الآن؟ لقد فتحت لك قسم الصحة.";
+            navigate = 'medical';
+        } else if(msg.includes('توصيل') || msg.includes('مندوب') || msg.includes('شحن')) {
+            reply = "خدمة التوصيل جاهزة! يمكنك إرسال أي شيء داخل المدينة. لقد فتحت لك صفحة التوصيل.";
+            navigate = 'delivery';
+        } else if(msg.includes('صيانة') || msg.includes('سباك') || msg.includes('كهربائي')) {
+            reply = "فنيينا جاهزون لخدمتك 24/7. لقد فتحت لك قسم الصيانة المنزلية.";
+            navigate = 'maintenance';
+        } else if(msg.includes('سوبر ماركت') || msg.includes('طلب') || msg.includes('أكل')) {
+            reply = "أهلاً بك! يمكنك تصفح المنتجات وطلبها الآن. لقد فتحت لك السوبر ماركت.";
+            navigate = 'market';
+        } else if(msg.includes('تعليم') || msg.includes('مدرس') || msg.includes('دورة')) {
+            reply = "التعليم هو استثمارك الأفضل. لقد فتحت لك قسم الدورات التعليمية.";
+            navigate = 'education';
+        } else if(msg.includes('شكرا') || msg.includes('تمام')) {
+            reply = "العفو! أنا دائماً هنا لخدمتك في أي وقت. رحلة سعيدة مع وصلة!";
+        }
+
+        addMsg(reply, 'bot');
+        
+        if(navigate) {
+            setTimeout(() => navigateTo(navigate), 1500);
+        }
+    }, 1000);
+}
+
+function addMsg(text, sender) {
+    const container = document.getElementById('ai-messages');
+    const div = document.createElement('div');
+    div.className = `msg ${sender}`;
+    div.innerText = text;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+// ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
-    // Add safe-area padding for iOS PWA
-    document.body.style.paddingBottom = 'calc(90px + env(safe-area-inset-bottom))';
+    checkSession();
+    supabase.auth.onAuthStateChange(() => checkSession());
 });
 </script>
 </body>
