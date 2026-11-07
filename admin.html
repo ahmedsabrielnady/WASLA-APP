@@ -1,607 +1,495 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" class="dark">
+<html lang="ar" dir="rtl" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WASLA OS | لوحة التحكم</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Cairo', 'sans-serif'] },
-                    colors: {
-                        brand: { DEFAULT: '#10B981', dark: '#059669', light: '#D1FAE5' },
-                        surface: { DEFAULT: '#FFFFFF', dark: '#1E293B' },
-                        bg: { DEFAULT: '#F8FAFC', dark: '#0F172A' },
-                        border: { DEFAULT: '#E2E8F0', dark: '#334155' },
-                    }
-                }
-            }
-        }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #64748B; border-radius: 10px; }
-        .sidebar-link { transition: all 0.2s; }
-        .sidebar-link.active { background: rgba(16, 185, 129, 0.1); color: #10B981; border-right: 4px solid #10B981; }
-        .order-row:hover { background-color: rgba(16, 185, 129, 0.05); cursor: pointer; }
-        .modal-overlay { animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .view-section { display: none; animation: slideUp 0.3s ease-out; }
-        .view-section.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .sidebar { transform: translateX(100%); transition: transform 0.3s ease-in-out; }
-        .sidebar.open { transform: translateX(0); }
-        @media (min-width: 768px) {
-            .sidebar { transform: translateX(0) !important; position: static !important; }
-        }
-        .sidebar-backdrop { display: none; opacity: 0; transition: opacity 0.3s; }
-        .sidebar-backdrop.open { display: block; opacity: 1; }
-        
-        .notification-dropdown { display: none; position: absolute; top: 100%; left: 0; margin-top: 10px; width: 320px; z-index: 1000; }
-        .notification-dropdown.open { display: block; animation: fadeIn 0.2s; }
-        .pulse-dot { animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; }
-        @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#10B981">
+<title>وصلة | WASLA - منصة شبين القناطر</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--b:#10B981;--bd:#059669;--bl:#D1FAE5;--bg:#F8FAFC;--c:#FFFFFF;--t:#0F172A;--m:#64748B;--br:#E2E8F0;--nav:rgba(255,255,255,0.95);--sh:0 4px 6px -1px rgba(0,0,0,0.05);--shl:0 10px 25px -3px rgba(0,0,0,0.08);--rad:16px;}
+[data-theme="dark"]{--bg:#0B1120;--c:#1E293B;--t:#F1F5F9;--m:#94A3B8;--br:#334155;--bl:#064E3B;--nav:rgba(30,41,59,0.95);--sh:0 4px 6px rgba(0,0,0,0.3);--shl:0 10px 25px rgba(0,0,0,0.4);}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;font-family:'Cairo',sans-serif;}
+body{background:var(--bg);color:var(--t);padding-bottom:70px;overflow-x:hidden;transition:0.3s;line-height:1.5;}
+a{text-decoration:none;color:inherit;} button{font-family:inherit;cursor:pointer;border:none;background:none;outline:none;}
+h1,h2,h3,h4{font-family:'Tajawal',sans-serif;}
+
+/* Navigation & Shell */
+header{background:var(--c);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--br);box-shadow:var(--sh);}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;font-family:'Tajawal';}
+.logo i{background:linear-gradient(135deg,#FF6B4A,#FF3366);color:#fff;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Cairo';font-size:20px;}
+.h-icons{display:flex;gap:8px;}
+.h-btn{width:36px;height:36px;border-radius:50%;background:var(--bg);border:1px solid var(--br);color:var(--t);display:flex;align-items:center;justify-content:center;font-size:16px;transition:0.2s;}
+.h-btn:active{transform:scale(0.9);color:var(--b);border-color:var(--b);}
+.ticker{background:var(--bl);color:var(--bd);padding:8px 0;overflow:hidden;display:flex;font-size:12px;font-weight:700;border-bottom:1px solid var(--br);white-space:nowrap;}
+.ticker div{animation:ticker 20s linear infinite;display:inline-block;padding-left:50px;}
+@keyframes ticker{0%{transform:translateX(0);}100%{transform:translateX(100%);}}
+.sidebar{position:fixed;top:0;right:-280px;width:280px;height:100vh;background:var(--c);z-index:1000;transition:0.3s;box-shadow:-5px 0 15px rgba(0,0,0,0.1);display:flex;flex-direction:column;}
+.sidebar.open{right:0;}
+.sidebar-head{padding:20px;border-bottom:1px solid var(--br);display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:20px;}
+.sidebar-nav{padding:20px;flex:1;overflow-y:auto;}
+.s-nav-item{display:flex;align-items:center;gap:15px;padding:12px 15px;border-radius:10px;font-weight:700;color:var(--m);margin-bottom:8px;transition:0.2s;}
+.s-nav-item:hover,.s-nav-item.active{background:var(--bl);color:var(--b);}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;opacity:0;visibility:hidden;transition:0.3s;}
+.overlay.open{opacity:1;visibility:visible;}
+
+/* Layout & Animations */
+.view{display:none;padding:16px;animation:fadeIn 0.3s ease;}
+.view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.sec-title{font-size:20px;font-weight:900;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.sec-title i{color:var(--b);}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.card{background:var(--c);border:1px solid var(--br);border-radius:var(--rad);padding:16px;box-shadow:var(--sh);}
+.btn{width:100%;padding:12px;border-radius:10px;background:var(--b);color:#fff;font-weight:800;font-size:15px;display:flex;justify-content:center;align-items:center;gap:8px;transition:0.2s;}
+.btn:active{transform:scale(0.97);}
+.input-group{margin-bottom:12px;}
+.input-group label{display:block;font-size:12px;font-weight:700;color:var(--m);margin-bottom:6px;}
+.input-group input,.input-group select,.input-group textarea{width:100%;padding:12px;border:1px solid var(--br);border-radius:10px;background:var(--bg);color:var(--t);font-family:inherit;font-size:14px;outline:none;}
+.input-group input:focus,.input-group select:focus{border-color:var(--b);}
+
+/* Sectors - Home */
+.cat-card{display:flex;flex-direction:column;align-items:flex-start;padding:16px;border-radius:var(--rad);background:var(--c);border:1px solid var(--br);box-shadow:var(--sh);position:relative;overflow:hidden;}
+.cat-icon{width:45px;height:45px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;}
+.cat-card h3{font-size:15px;margin-bottom:4px;}
+.cat-card p{font-size:11px;color:var(--m);}
+
+/* Theme: Education (Creative/Green) */
+.theme-edu{background:#f7fee7;}
+[data-theme="dark"] .theme-edu{background:#0f172a;}
+.edu-banner{background:#84cc16;color:#fff;padding:20px;border-radius:20px;text-align:center;margin-bottom:20px;}
+.edu-card{background:#fff;border-radius:20px;padding:16px;margin-bottom:16px;box-shadow:0 8px 20px rgba(132,204,22,0.15);border:1px solid #d9f99d;position:relative;}
+[data-theme="dark"] .edu-card{background:#1e293b;border-color:#334155;}
+.edu-tag{background:#ecfccb;color:#65a30d;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;display:inline-block;margin-bottom:8px;}
+.edu-price{font-size:18px;font-weight:900;color:#84cc16;}
+.edu-price span{font-size:12px;color:#a3a3a3;text-decoration:line-through;margin-right:6px;}
+.teacher-card{background:#fff;border-radius:16px;padding:12px;text-align:center;border:1px solid #e5e7eb;}
+[data-theme="dark"] .teacher-card{background:#1e293b;border-color:#334155;}
+.teacher-card img{width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto 10px;border:3px solid #84cc16;}
+.social-links{display:flex;justify-content:center;gap:6px;margin-top:10px;}
+.social-links a{width:28px;height:28px;border-radius:50%;border:1px solid #84cc16;color:#84cc16;display:flex;align-items:center;justify-content:center;font-size:12px;}
+
+/* Theme: Medical (Trust/Blue) */
+.theme-med{background:#f0f9ff;}
+[data-theme="dark"] .theme-med{background:#0f172a;}
+.doc-card{background:#fff;border-radius:16px;padding:16px;border:1px solid #e0f2fe;display:flex;gap:12px;align-items:center;margin-bottom:12px;}
+[data-theme="dark"] .doc-card{background:#1e293b;border-color:#334155;}
+.doc-img{width:60px;height:60px;border-radius:50%;background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.doc-info h4{font-size:15px;color:#0369a1;}
+[data-theme="dark"] .doc-info h4{color:#38bdf8;}
+.doc-info p{font-size:12px;color:#64748b;}
+.stars{color:#f59e0b;font-size:12px;margin-top:4px;}
+
+/* Theme: Maintenance/Cars (Industrial/Orange) */
+.theme-maint{background:#f8fafc;}
+[data-theme="dark"] .theme-maint{background:#0f172a;}
+.industrial-card{background:#fff;border:2px solid #cbd5e1;border-radius:8px;padding:16px;margin-bottom:12px;border-right:6px solid #f97316;}
+[data-theme="dark"] .industrial-card{background:#1e293b;border-color:#334155;border-right-color:#ea580c;}
+.ind-icon{color:#f97316;font-size:24px;margin-bottom:10px;}
+
+/* Theme: Delivery/E-commerce (Vibrant/Purple) */
+.theme-del{background:#faf5ff;}
+[data-theme="dark"] .theme-del{background:#0f172a;}
+.del-box{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;border-radius:20px;padding:24px;text-align:center;margin-bottom:20px;}
+.loc-btn{width:100%;padding:14px;border-radius:12px;border:1px solid #c4b5fd;background:#fff;color:#6d28d9;font-weight:800;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+[data-theme="dark"] .loc-btn{background:#1e293b;border-color:#334155;color:#a78bfa;}
+.loc-btn.active{background:#f3e8ff;border-color:#8b5cf6;}
+
+/* My Orders */
+.order-card{background:var(--c);border:1px solid var(--br);border-radius:12px;padding:16px;margin-bottom:12px;border-right:4px solid var(--b);}
+.order-head{display:flex;justify-content:space-between;margin-bottom:8px;}
+.order-status{font-size:11px;padding:2px 8px;border-radius:10px;background:#fef3c7;color:#d97706;font-weight:800;}
+
+/* FAQ */
+details{background:var(--c);border:1px solid var(--br);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+summary{padding:14px;font-weight:700;font-size:14px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;}
+summary::-webkit-details-marker{display:none;}
+details[open] summary{border-bottom:1px solid var(--br);color:var(--b);}
+.faq-content{padding:14px;font-size:13px;color:var(--m);}
+
+/* Bottom Nav */
+.b-nav{position:fixed;bottom:0;left:0;right:0;background:var(--nav);border-top:1px solid var(--br);display:flex;justify-content:space-around;padding:8px 0;backdrop-filter:blur(10px);z-index:100;}
+.b-item{display:flex;flex-direction:column;align-items:center;font-size:10px;color:var(--m);font-weight:700;gap:4px;}
+.b-item.active,.b-item:active{color:var(--b);}
+.b-item i{font-size:18px;}
+
+.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-20px);background:var(--t);color:var(--bg);padding:10px 20px;border-radius:30px;font-weight:700;font-size:14px;opacity:0;visibility:hidden;transition:0.3s;z-index:9999;}
+.toast.show{opacity:1;visibility:visible;transform:translate(-50%,0);}
+</style>
 </head>
-<body class="bg-bg dark:bg-bg-dark text-slate-800 dark:text-slate-100 font-sans antialiased overflow-hidden h-screen flex">
+<body>
 
-    <!-- خلفية الشريط الجانبي للموبايل -->
-    <div id="sidebar-backdrop" class="sidebar-backdrop fixed inset-0 bg-black/50 z-40" onclick="toggleSidebar()"></div>
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+        <span>القائمة</span>
+        <button onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="sidebar-nav">
+        <a href="#" class="s-nav-item active" onclick="nav('home')"><i class="fa-solid fa-house"></i> الرئيسية</a>
+        <a href="#" class="s-nav-item" onclick="nav('med')"><i class="fa-solid fa-heart-pulse"></i> الصحة والطب</a>
+        <a href="#" class="s-nav-item" onclick="nav('edu')"><i class="fa-solid fa-graduation-cap"></i> التعليم</a>
+        <a href="#" class="s-nav-item" onclick="nav('maint')"><i class="fa-solid fa-screwdriver-wrench"></i> الصيانة</a>
+        <a href="#" class="s-nav-item" onclick="nav('cars')"><i class="fa-solid fa-car"></i> السيارات</a>
+        <a href="#" class="s-nav-item" onclick="nav('market')"><i class="fa-solid fa-cart-shopping"></i> السوبر ماركت</a>
+        <a href="#" class="s-nav-item" onclick="nav('delivery')"><i class="fa-solid fa-motorcycle"></i> التوصيل</a>
+        <a href="#" class="s-nav-item" onclick="nav('orders')"><i class="fa-solid fa-box"></i> طلباتي</a>
+    </div>
+</div>
 
-    <!-- Sidebar -->
-    <aside id="sidebar" class="sidebar fixed inset-y-0 right-0 w-64 bg-surface dark:bg-surface-dark border-l border-border dark:border-border-dark z-50 flex flex-col shadow-xl">
-        <div class="h-16 flex items-center justify-between px-6 border-b border-border dark:border-border-dark shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-brand flex items-center justify-center text-white font-black text-xl shadow-lg shadow-brand/30">W</div>
-                <div>
-                    <h1 class="font-black text-lg leading-none text-slate-900 dark:text-white">WASLA OS</h1>
-                    <span class="text-[10px] font-bold text-brand tracking-widest">FOUNDER CONSOLE</span>
-                </div>
-            </div>
-            <button onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+<header>
+    <div class="logo"><i class="fa-solid fa-w">W</i> وصلة</div>
+    <div class="h-icons">
+        <button class="h-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
+        <button class="h-btn" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
+    </div>
+</header>
+
+<div class="ticker">
+    <div>🔥 أهلاً بيك في منصة وصلة - شبين القناطر | جرب خدماتنا واستفيد بأفضل العروض | خدمة توصيل سريعة داخل المدينة 🚀</div>
+</div>
+
+<!-- Home -->
+<main id="view-home" class="view active">
+    <div class="sec-title">اكتشف خدماتنا</div>
+    <div class="grid-2">
+        <div class="cat-card" onclick="nav('med')">
+            <div class="cat-icon" style="background:#e0f2fe;color:#0284c7;"><i class="fa-solid fa-heart-pulse"></i></div>
+            <h3>الصحة والطب</h3><p>أطباء وتمريض</p>
         </div>
-        
-        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            <button onclick="switchView('dashboard')" id="btn-dashboard" class="sidebar-link active w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
-                <i class="fa-solid fa-chart-pie w-5"></i> لوحة القيادة
-            </button>
-            <button onclick="switchView('orders')" id="btn-orders" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
-                <i class="fa-solid fa-list-check w-5"></i> إدارة الطلبات
-                <span class="mr-auto bg-brand text-white text-[10px] px-2 py-0.5 rounded-full" id="nav-order-count">0</span>
-            </button>
-            <button onclick="switchView('providers')" id="btn-providers" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
-                <i class="fa-solid fa-users-gear w-5"></i> مقدمي الخدمات
-            </button>
-        </nav>
-        
-        <div class="p-4 border-t border-border dark:border-border-dark shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300"><i class="fa-solid fa-user-shield"></i></div>
-                <div><p class="text-sm font-bold text-slate-900 dark:text-white">المؤسس</p><p class="text-xs text-slate-500">Super Admin</p></div>
-            </div>
+        <div class="cat-card" onclick="nav('edu')">
+            <div class="cat-icon" style="background:#ecfccb;color:#65a30d;"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h3>التعليم</h3><p>دورات ومدرسين</p>
         </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-        <!-- Header -->
-        <header class="h-16 bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark flex items-center justify-between px-6 shrink-0 relative z-50">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-brand"><i class="fa-solid fa-bars text-xl"></i></button>
-                <h2 class="font-black text-lg text-slate-900 dark:text-white" id="header-title">لوحة القيادة</h2>
-            </div>
-            <div class="flex items-center gap-4">
-                <!-- إشعارات -->
-                <div class="relative">
-                    <button onclick="toggleNotifications()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-brand transition-colors relative">
-                        <i class="fa-solid fa-bell"></i>
-                        <span id="notif-badge" class="hidden absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-surface dark:border-surface-dark pulse-dot"></span>
-                    </button>
-                    
-                    <!-- قائمة الإشعارات -->
-                    <div id="notif-dropdown" class="notification-dropdown bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl shadow-xl overflow-hidden">
-                        <div class="p-3 border-b border-border dark:border-border-dark flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-                            <h4 class="font-bold text-sm text-slate-800 dark:text-white">الإشعارات</h4>
-                            <span class="text-xs text-brand cursor-pointer hover:underline" onclick="clearNotifications()">مسح الكل</span>
-                        </div>
-                        <div class="max-h-64 overflow-y-auto" id="notif-list">
-                            <p class="text-center text-sm text-slate-500 py-6">لا توجد إشعارات جديدة</p>
-                        </div>
-                    </div>
-                </div>
-
-                <button onclick="fetchAllData()" class="text-brand text-sm font-bold hover:underline"><i class="fa-solid fa-rotate mr-1"></i> تحديث</button>
-                <button onclick="document.documentElement.classList.toggle('dark'); if(ordersChart) renderChart();" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-brand transition-colors">
-                    <i class="fa-solid fa-moon dark:hidden"></i><i class="fa-solid fa-sun hidden dark:block"></i>
-                </button>
-            </div>
-        </header>
-
-        <!-- Scrollable Content Area -->
-        <div class="flex-1 overflow-y-auto p-4 sm:p-6">
-            
-            <!-- VIEW 1: DASHBOARD -->
-            <div id="view-dashboard" class="view-section active space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-surface dark:bg-surface-dark p-5 rounded-2xl border border-border dark:border-border-dark shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-box"></i></div>
-                        <div><p class="text-sm text-slate-500 dark:text-slate-400 font-bold">إجمالي الطلبات</p><h3 class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-total">0</h3></div>
-                    </div>
-                    <div class="bg-surface dark:bg-surface-dark p-5 rounded-2xl border border-border dark:border-border-dark shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-clock"></i></div>
-                        <div><p class="text-sm text-slate-500 dark:text-slate-400 font-bold">قيد التنفيذ</p><h3 class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-progress">0</h3></div>
-                    </div>
-                    <div class="bg-surface dark:bg-surface-dark p-5 rounded-2xl border border-border dark:border-border-dark shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-circle-check"></i></div>
-                        <div><p class="text-sm text-slate-500 dark:text-slate-400 font-bold">مكتملة</p><h3 class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-done">0</h3></div>
-                    </div>
-                    <div class="bg-surface dark:bg-surface-dark p-5 rounded-2xl border border-border dark:border-border-dark shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-users"></i></div>
-                        <div><p class="text-sm text-slate-500 dark:text-slate-400 font-bold">مقدمي الخدمات</p><h3 class="text-2xl font-black text-slate-900 dark:text-white" id="kpi-providers">0</h3></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 bg-surface dark:bg-surface-dark rounded-2xl border border-border dark:border-border-dark p-5 shadow-sm">
-                        <h3 class="font-bold text-slate-800 dark:text-white mb-4">توزيع الطلبات حسب الحالة</h3>
-                        <div class="relative h-64 w-full"><canvas id="ordersChart"></canvas></div>
-                    </div>
-                    <div class="bg-surface dark:bg-surface-dark rounded-2xl border border-border dark:border-border-dark p-5 shadow-sm flex flex-col">
-                        <h3 class="font-bold text-slate-800 dark:text-white mb-4">آخر النشاطات</h3>
-                        <div class="flex-1 overflow-y-auto space-y-4 pr-2" id="activity-feed"><p class="text-sm text-slate-500 text-center py-10">لا توجد نشاطات حديثة</p></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VIEW 2: ORDERS -->
-            <div id="view-orders" class="view-section space-y-6">
-                <div class="bg-surface dark:bg-surface-dark rounded-2xl border border-border dark:border-border-dark shadow-sm overflow-hidden flex flex-col">
-                    <div class="p-5 border-b border-border dark:border-border-dark flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <h3 class="font-bold text-slate-800 dark:text-white text-lg">سجل الطلبات</h3>
-                        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                            <select id="filter-status" onchange="renderOrdersTable()" class="bg-slate-100 dark:bg-slate-800 text-sm rounded-lg px-3 py-2 focus:outline-none border border-transparent dark:border-border-dark">
-                                <option value="all">كل الحالات</option>
-                                <option value="new">جديد</option>
-                                <option value="in_progress">قيد التنفيذ</option>
-                                <option value="done">مكتمل</option>
-                            </select>
-                            <input type="text" id="table-search" oninput="renderOrdersTable()" placeholder="بحث بالاسم أو الهاتف..." class="bg-slate-100 dark:bg-slate-800 text-sm rounded-lg px-4 py-2 focus:outline-none border border-transparent dark:border-border-dark w-full sm:w-48">
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-right text-sm whitespace-nowrap">
-                            <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-bold border-b border-border dark:border-border-dark">
-                                <tr>
-                                    <th class="px-6 py-4">رقم الطلب</th>
-                                    <th class="px-6 py-4">التاريخ</th>
-                                    <th class="px-6 py-4">القطاع</th>
-                                    <th class="px-6 py-4">العميل</th>
-                                    <th class="px-6 py-4">الفني المسؤول</th>
-                                    <th class="px-6 py-4">الحالة</th>
-                                    <th class="px-6 py-4">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="orders-table-body" class="divide-y divide-border dark:divide-border-dark">
-                                <tr><td colspan="7" class="text-center py-10 text-slate-500">جاري تحميل البيانات...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VIEW 3: PROVIDERS -->
-            <div id="view-providers" class="view-section space-y-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-slate-800 dark:text-white text-lg">إدارة مقدمي الخدمات (الفنيين)</h3>
-                    <button onclick="openProviderModal()" class="bg-brand text-white px-4 py-2 rounded-lg font-bold hover:bg-brand-dark transition-colors"><i class="fa-solid fa-plus mr-2"></i> إضافة فني</button>
-                </div>
-                <div class="bg-surface dark:bg-surface-dark rounded-2xl border border-border dark:border-border-dark shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-right text-sm whitespace-nowrap">
-                            <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-bold border-b border-border dark:border-border-dark">
-                                <tr>
-                                    <th class="px-6 py-4">الاسم</th>
-                                    <th class="px-6 py-4">رقم الهاتف</th>
-                                    <th class="px-6 py-4">التخصص</th>
-                                    <th class="px-6 py-4">الحالة</th>
-                                    <th class="px-6 py-4">تاريخ الانضمام</th>
-                                </tr>
-                            </thead>
-                            <tbody id="providers-table-body" class="divide-y divide-border dark:divide-border-dark">
-                                <tr><td colspan="5" class="text-center py-10 text-slate-500">جاري تحميل البيانات...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
+        <div class="cat-card" onclick="nav('maint')">
+            <div class="cat-icon" style="background:#ffedd5;color:#ea580c;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+            <h3>الصيانة</h3><p>سباكة وكهرباء</p>
         </div>
-    </main>
+        <div class="cat-card" onclick="nav('cars')">
+            <div class="cat-icon" style="background:#f1f5f9;color:#475569;"><i class="fa-solid fa-car"></i></div>
+            <h3>السيارات</h3><p>غسيل وصيانة</p>
+        </div>
+        <div class="cat-card" onclick="nav('market')">
+            <div class="cat-icon" style="background:#fce7f3;color:#db2777;"><i class="fa-solid fa-cart-shopping"></i></div>
+            <h3>سوبر ماركت</h3><p>طلبات البيت</p>
+        </div>
+        <div class="cat-card" onclick="nav('delivery')">
+            <div class="cat-icon" style="background:#f3e8ff;color:#9333ea;"><i class="fa-solid fa-motorcycle"></i></div>
+            <h3>توصيل</h3><p>أي حاجة لأي حد</p>
+        </div>
+    </div>
+    
+    <div class="sec-title" style="margin-top:24px;">الأسئلة الشائعة</div>
+    <details><summary>كيف أطلب خدمة؟ <i class="fa-solid fa-chevron-down"></i></summary><div class="faq-content">اختر القطاع، ادخل البيانات، واضغط إرسال. سيتم تحويلك للواتساب لتأكيد الطلب.</div></details>
+    <details><summary>هل التوصيل متاح لكل شبين؟ <i class="fa-solid fa-chevron-down"></i></summary><div class="faq-content">حالياً نغطي شبين القناطر بالكامل والمناطق المجاورة.</div></details>
+</main>
 
-    <!-- Modal: Order Details -->
-    <div id="order-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden items-center justify-center p-4 modal-overlay">
-        <div class="bg-surface dark:bg-surface-dark w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-border dark:border-border-dark">
-            <div class="p-6 border-b border-border dark:border-border-dark flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-                <h3 class="font-black text-lg text-slate-900 dark:text-white" id="modal-title">تفاصيل الطلب</h3>
-                <button onclick="closeModal('order-modal')" class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 space-y-4" id="modal-content"></div>
-            <div class="p-6 border-t border-border dark:border-border-dark bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
-                <button onclick="closeModal('order-modal')" class="px-5 py-2 rounded-lg font-bold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 transition-colors">إغلاق</button>
-                <button id="modal-save-btn" class="px-5 py-2 rounded-lg font-bold text-white bg-brand hover:bg-brand-dark transition-colors hidden">حفظ التغييرات</button>
-            </div>
+<!-- Education -->
+<main id="view-edu" class="view theme-edu">
+    <div class="edu-banner">
+        <h2>منصة التعليم</h2>
+        <p style="font-size:12px;margin-top:5px;">أفضل المعلمين والدورات</p>
+    </div>
+    
+    <div class="sec-title">المعلمين المميزين</div>
+    <div class="grid-2" style="margin-bottom:20px;">
+        <div class="teacher-card">
+            <img src="https://ui-avatars.com/api/?name=أحمد+محمد&background=84cc16&color=fff" alt="Teacher">
+            <h4 style="font-size:14px;">أ. أحمد محمد</h4>
+            <p style="font-size:11px;color:#65a30d;">الفيزياء</p>
+            <div class="social-links"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
+        </div>
+        <div class="teacher-card">
+            <img src="https://ui-avatars.com/api/?name=سارة+علي&background=84cc16&color=fff" alt="Teacher">
+            <h4 style="font-size:14px;">أ. سارة علي</h4>
+            <p style="font-size:11px;color:#65a30d;">الكيمياء</p>
+            <div class="social-links"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
         </div>
     </div>
 
-    <!-- Modal: Add Provider -->
-    <div id="provider-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden items-center justify-center p-4 modal-overlay">
-        <div class="bg-surface dark:bg-surface-dark w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-border dark:border-border-dark">
-            <div class="p-6 border-b border-border dark:border-border-dark flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-                <h3 class="font-black text-lg text-slate-900 dark:text-white">إضافة فني جديد</h3>
-                <button onclick="closeModal('provider-modal')" class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">الاسم</label>
-                    <input type="text" id="p-name" class="w-full bg-slate-50 dark:bg-slate-800 border border-border dark:border-border-dark rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand/50">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">رقم الهاتف</label>
-                    <input type="text" id="p-phone" class="w-full bg-slate-50 dark:bg-slate-800 border border-border dark:border-border-dark rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand/50">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">التخصص</label>
-                    <select id="p-craft" class="w-full bg-slate-50 dark:bg-slate-800 border border-border dark:border-border-dark rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand/50">
-                        <option value="سباك">سباك</option>
-                        <option value="كهربائي">كهربائي</option>
-                        <option value="فني تكييف">فني تكييف</option>
-                        <option value="نجار">نجار</option>
-                        <option value="مندوب توصيل">مندوب توصيل</option>
-                    </select>
-                </div>
-            </div>
-            <div class="p-6 border-t border-border dark:border-border-dark bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
-                <button onclick="closeModal('provider-modal')" class="px-5 py-2 rounded-lg font-bold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-700">إلغاء</button>
-                <button onclick="saveProvider()" class="px-5 py-2 rounded-lg font-bold text-white bg-brand hover:bg-brand-dark">حفظ</button>
-            </div>
+    <div class="sec-title">أحدث الدورات</div>
+    <div class="edu-card">
+        <span class="edu-tag">الثانوية العامة</span>
+        <h3 style="font-size:16px;margin-bottom:8px;">مراجعة ليلة الامتحان - فيزياء</h3>
+        <p style="font-size:12px;color:var(--m);margin-bottom:12px;">مع أ. أحمد محمد - 3 محاضرات مكثفة</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="edu-price"><span>400 ج</span> 350 ج</div>
+            <button class="btn" style="width:auto;padding:8px 16px;background:#84cc16;" onclick="requestService('edu', 'دورة فيزياء')">سجل الآن</button>
         </div>
     </div>
+</main>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full font-bold text-sm shadow-2xl z-[200] opacity-0 transition-opacity duration-300 pointer-events-none">تم التحديث بنجاح</div>
+<!-- Medical -->
+<main id="view-med" class="view theme-med">
+    <div class="sec-title" style="color:#0284c7;">احجز مع طبيبك</div>
+    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:10px;">
+        <span style="background:#0284c7;color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;white-space:nowrap;">الكل</span>
+        <span style="background:#e0f2fe;color:#0284c7;padding:6px 12px;border-radius:20px;font-size:12px;white-space:nowrap;">باطنة</span>
+        <span style="background:#e0f2fe;color:#0284c7;padding:6px 12px;border-radius:20px;font-size:12px;white-space:nowrap;">أسنان</span>
+    </div>
+    
+    <div class="doc-card">
+        <div class="doc-img"><i class="fa-solid fa-user-doctor"></i></div>
+        <div class="doc-info">
+            <h4>د. محمد عبد الله</h4>
+            <p>استشاري باطنة - شبين القناطر</p>
+            <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i> (4.5)</div>
+        </div>
+        <button class="btn" style="width:auto;padding:8px 12px;background:#0284c7;" onclick="requestService('med', 'د. محمد عبد الله')">حجز</button>
+    </div>
+    
+    <div class="doc-card">
+        <div class="doc-img"><i class="fa-solid fa-tooth"></i></div>
+        <div class="doc-info">
+            <h4>د. سارة خالد</h4>
+            <p>أخصائي أسنان وتجميل</p>
+            <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i> (5.0)</div>
+        </div>
+        <button class="btn" style="width:auto;padding:8px 12px;background:#0284c7;" onclick="requestService('med', 'د. سارة خالد')">حجز</button>
+    </div>
+</main>
 
-    <script>
-        // ⚠️ تم تغيير اسم المتغير لـ supabaseClient عشان ميتعارضش مع مكتبة Supabase
-        const SUPABASE_URL = 'https://fdduzcytuhoelnnejgkl.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529';
-        
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        let ordersData = [];
-        let providersData = [];
-        let currentOrderId = null;
-        let ordersChart = null;
-        let notifications = [];
-        let unreadCount = 0;
+<!-- Maintenance -->
+<main id="view-maint" class="view theme-maint">
+    <div class="sec-title" style="color:#ea580c;">خدمات الصيانة المنزلية</div>
+    <div class="industrial-card">
+        <div class="ind-icon"><i class="fa-solid fa-faucet-drip"></i></div>
+        <h3 style="font-size:16px;margin-bottom:4px;">سباكة</h3>
+        <p style="font-size:12px;color:var(--m);margin-bottom:12px;">تسريب مياه، تركيب أدوات صحية</p>
+        <button class="btn" style="background:#ea580c;" onclick="requestService('maint', 'سباكة')">اطلب فني</button>
+    </div>
+    <div class="industrial-card">
+        <div class="ind-icon"><i class="fa-solid fa-bolt"></i></div>
+        <h3 style="font-size:16px;margin-bottom:4px;">كهرباء</h3>
+        <p style="font-size:12px;color:var(--m);margin-bottom:12px;">أعطال، تركيب إضاءة، لوحات</p>
+        <button class="btn" style="background:#ea580c;" onclick="requestService('maint', 'كهرباء')">اطلب فني</button>
+    </div>
+</main>
 
-        // ==================== UI HELPERS ====================
-        function showToast(msg, isError = false) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.className = `fixed top-5 left-1/2 -translate-x-1/2 text-white px-6 py-3 rounded-full font-bold text-sm shadow-2xl z-[200] transition-opacity duration-300 pointer-events-none ${isError ? 'bg-red-600' : 'bg-slate-900 dark:bg-brand'}`;
-            toast.classList.remove('opacity-0');
-            setTimeout(() => toast.classList.add('opacity-0'), 3000);
-        }
+<!-- Cars -->
+<main id="view-cars" class="view theme-maint">
+    <div class="sec-title" style="color:#475569;">خدمات السيارات</div>
+    <div class="industrial-card" style="border-right-color:#475569;">
+        <div class="ind-icon" style="color:#475569;"><i class="fa-solid fa-car-side"></i></div>
+        <h3 style="font-size:16px;margin-bottom:4px;">غسيل سيارات</h3>
+        <p style="font-size:12px;color:var(--m);margin-bottom:12px;">غسيل داخلي وخارجي</p>
+        <button class="btn" style="background:#475569;" onclick="requestService('cars', 'غسيل')">احجز</button>
+    </div>
+    <div class="industrial-card" style="border-right-color:#475569;">
+        <div class="ind-icon" style="color:#475569;"><i class="fa-solid fa-truck-pickup"></i></div>
+        <h3 style="font-size:16px;margin-bottom:4px;">ونش وسحب</h3>
+        <p style="font-size:12px;color:var(--m);margin-bottom:12px;">إنقاذ سيارات على الطريق</p>
+        <button class="btn" style="background:#475569;" onclick="requestService('cars', 'ونش')">اطلب ونش</button>
+    </div>
+</main>
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('sidebar-backdrop').classList.toggle('open');
-        }
+<!-- Supermarket -->
+<main id="view-market" class="view">
+    <div class="sec-title" style="color:#db2777;">سوبر ماركت</div>
+    <div class="card" style="margin-bottom:12px;">
+        <h3 style="font-size:15px;">اكتب طلبك</h3>
+        <p style="font-size:12px;color:var(--m);margin-bottom:12px;">اكتب قائمة المشتريات وسنقوم بتوصيلها لك.</p>
+        <div class="input-group"><textarea id="market-list" rows="3" placeholder="مثال: 2 كيلو طماطم، عيش، جبنة..."></textarea></div>
+        <button class="btn" style="background:#db2777;" onclick="submitForm('market')">إرسال الطلب</button>
+    </div>
+</main>
 
-        function toggleNotifications() {
-            document.getElementById('notif-dropdown').classList.toggle('open');
-            if (unreadCount > 0) {
-                unreadCount = 0;
-                document.getElementById('notif-badge').classList.add('hidden');
-            }
-        }
+<!-- Delivery -->
+<main id="view-delivery" class="view theme-del">
+    <div class="del-box">
+        <h2>توصيل سريع</h2>
+        <p style="font-size:12px;opacity:0.9;margin-top:4px;">أي حاجة في أي مكان</p>
+    </div>
+    
+    <div class="card" style="border:none;box-shadow:none;background:transparent;padding:0;">
+        <div class="input-group">
+            <label>إيه اللي عايز توصله؟</label>
+            <input type="text" id="del-item" placeholder="شنطة، أوراق، طلب مطعم...">
+        </div>
+        <div class="input-group">
+            <label>موقع الاستلام (من فين؟)</label>
+            <button class="loc-btn" id="btn-pickup" onclick="getLocation('pickup')"><span id="txt-pickup">تحديد الموقع</span><i class="fa-solid fa-location-crosshairs"></i></button>
+        </div>
+        <div class="input-group">
+            <label>موقع التسليم (لحد فين؟)</label>
+            <button class="loc-btn" id="btn-dropoff" onclick="getLocation('dropoff')"><span id="txt-dropoff">تحديد الموقع</span><i class="fa-solid fa-location-crosshairs"></i></button>
+        </div>
+        <button class="btn" style="background:#8b5cf6;" onclick="submitForm('delivery')">تأكيد التوصيل</button>
+    </div>
+</main>
 
-        function clearNotifications() {
-            notifications = [];
-            document.getElementById('notif-list').innerHTML = '<p class="text-center text-sm text-slate-500 py-6">لا توجد إشعارات جديدة</p>';
-        }
+<!-- My Orders -->
+<main id="view-orders" class="view">
+    <div class="sec-title">سجل طلباتي</div>
+    <div id="orders-container"></div>
+</main>
 
-        function addNotification(title, desc, isNew = true) {
-            notifications.unshift({ title, desc, time: new Date() });
-            const list = document.getElementById('notif-list');
-            
-            if (isNew) {
-                unreadCount++;
-                document.getElementById('notif-badge').classList.remove('hidden');
-                showToast(title + " - " + desc);
-            }
+<!-- Modal -->
+<div id="modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;">
+    <div style="background:var(--c);width:100%;max-width:400px;border-radius:20px;padding:20px;position:relative;">
+        <button onclick="closeModal()" style="position:absolute;top:15px;left:15px;color:var(--m);"><i class="fa-solid fa-xmark"></i></button>
+        <h3 style="margin-bottom:15px;color:var(--t);" id="modal-title">تأكيد الطلب</h3>
+        <div class="input-group"><label>الاسم</label><input type="text" id="f-name" placeholder="اسمك"></div>
+        <div class="input-group"><label>رقم الهاتف</label><input type="tel" id="f-phone" placeholder="01xxxxxxxxx"></div>
+        <div class="input-group" id="f-extra-group" style="display:none;"><label>تفاصيل إضافية</label><textarea id="f-extra" rows="2"></textarea></div>
+        <button class="btn" id="modal-submit" onclick="finalizeOrder()">إرسال عبر واتساب</button>
+    </div>
+</div>
 
-            if (notifications.length === 1) list.innerHTML = '';
-            
-            const html = `
-                <div class="p-3 border-b border-border dark:border-border-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                    <p class="text-sm font-bold text-slate-800 dark:text-white">${title}</p>
-                    <p class="text-xs text-slate-500">${desc}</p>
-                    <p class="text-[10px] text-slate-400 mt-1">${new Date().toLocaleTimeString('ar-EG')}</p>
-                </div>
-            `;
-            list.insertAdjacentHTML('afterbegin', html);
-        }
+<div class="toast" id="toast">تم الحفظ بنجاح</div>
 
-        function switchView(viewId) {
-            document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('btn-' + viewId).classList.add('active');
-            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
-            document.getElementById('view-' + viewId).classList.add('active');
-            const titles = { dashboard: 'لوحة القيادة', orders: 'إدارة الطلبات', providers: 'مقدمي الخدمات' };
-            document.getElementById('header-title').innerText = titles[viewId];
-            
-            if(window.innerWidth < 768) {
-                document.getElementById('sidebar').classList.remove('open');
-                document.getElementById('sidebar-backdrop').classList.remove('open');
-            }
-        }
+<nav class="b-nav">
+    <div class="b-item active" onclick="nav('home')"><i class="fa-solid fa-house"></i>الرئيسية</div>
+    <div class="b-item" onclick="nav('orders')"><i class="fa-solid fa-box"></i>طلباتي</div>
+    <div class="b-item" onclick="nav('market')"><i class="fa-solid fa-cart-shopping"></i>الماركت</div>
+    <div class="b-item" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i>المزيد</div>
+</nav>
 
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
+<script>
+const PHONE = "201000000000"; // Replace with actual phone
+let currentReq = null;
+let coords = { pickup: null, dropoff: null };
 
-        // ==================== DATA FETCHING ====================
-        async function fetchAllData() {
-            try {
-                const [ordersRes, providersRes] = await Promise.all([
-                    supabaseClient.from('orders').select('*').order('created_at', { ascending: false }),
-                    supabaseClient.from('providers').select('*').order('created_at', { ascending: false })
-                ]);
-                
-                if (ordersRes.error) throw ordersRes.error;
-                if (providersRes.error) throw providersRes.error;
+// Theme
+if(localStorage.getItem('theme')==='dark') { document.documentElement.setAttribute('data-theme','dark'); document.getElementById('themeIcon').className='fa-solid fa-sun'; }
+function toggleTheme(){
+    const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+    const next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    document.getElementById('themeIcon').className = next==='dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+}
 
-                ordersData = ordersRes.data || [];
-                providersData = providersRes.data || [];
+// Nav
+function toggleMenu(){
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('open');
+}
+function nav(id){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+id).classList.add('active');
+    if(id==='orders') renderOrders();
+    toggleMenu();
+    window.scrollTo(0,0);
+}
 
-                updateDashboard();
-                renderChart();
-                renderActivityFeed();
-                renderOrdersTable();
-                renderProvidersTable();
-            } catch (err) {
-                console.error("Fetch error:", err);
-                showToast("حدث خطأ في جلب البيانات: " + err.message, true);
-            }
-        }
+// Toast
+function showToast(msg){
+    const t = document.getElementById('toast');
+    t.innerText = msg; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 3000);
+}
 
-        // ==================== DASHBOARD ====================
-        function updateDashboard() {
-            document.getElementById('kpi-total').innerText = ordersData.length;
-            document.getElementById('kpi-progress').innerText = ordersData.filter(o => o.status === 'in_progress').length;
-            document.getElementById('kpi-done').innerText = ordersData.filter(o => o.status === 'done').length;
-            document.getElementById('kpi-providers').innerText = providersData.length;
-            document.getElementById('nav-order-count').innerText = ordersData.filter(o => o.status === 'new').length;
-        }
-
-        function renderChart() {
-            const canvas = document.getElementById('ordersChart');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const isDark = document.documentElement.classList.contains('dark');
-            const textColor = isDark ? '#94A3B8' : '#64748B';
-            
-            if (ordersChart) ordersChart.destroy();
-            
-            ordersChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['جديد', 'قيد التنفيذ', 'مكتمل'],
-                    datasets: [{
-                        data: [
-                            ordersData.filter(o => o.status === 'new').length,
-                            ordersData.filter(o => o.status === 'in_progress').length,
-                            ordersData.filter(o => o.status === 'done').length
-                        ],
-                        backgroundColor: ['#3B82F6', '#F59E0B', '#10B981'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { family: 'Cairo' } } } }, cutout: '70%' }
-            });
-        }
-
-        function renderActivityFeed() {
-            const feed = document.getElementById('activity-feed');
-            const recent = ordersData.slice(0, 5);
-            if (recent.length === 0) { feed.innerHTML = '<p class="text-sm text-slate-500 text-center py-10">لا توجد نشاطات حديثة</p>'; return; }
-            feed.innerHTML = recent.map(o => `
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-brand/10 text-brand flex items-center justify-center shrink-0 mt-1"><i class="fa-solid fa-plus text-xs"></i></div>
-                    <div><p class="text-sm font-bold text-slate-800 dark:text-slate-200">طلب جديد من ${o.customer_name}</p><p class="text-xs text-slate-500">${o.sector} • ${new Date(o.created_at).toLocaleTimeString('ar-EG')}</p></div>
-                </div>
-            `).join('');
-        }
-
-        // ==================== ORDERS TABLE ====================
-        function renderOrdersTable() {
-            const tbody = document.getElementById('orders-table-body');
-            if (!tbody) return;
-            const statusFilter = document.getElementById('filter-status').value;
-            const searchTerm = document.getElementById('table-search').value.toLowerCase();
-            let filtered = ordersData;
-            if (statusFilter !== 'all') filtered = filtered.filter(o => o.status === statusFilter);
-            if (searchTerm) filtered = filtered.filter(o => o.customer_name.toLowerCase().includes(searchTerm) || o.customer_phone.includes(searchTerm));
-            
-            if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-slate-500">لا توجد طلبات مطابقة</td></tr>'; return; }
-            
-            tbody.innerHTML = filtered.map(o => {
-                let badge = o.status === 'new' ? '<span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">جديد</span>' : 
-                            o.status === 'in_progress' ? '<span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">قيد التنفيذ</span>' : 
-                            '<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">مكتمل</span>';
-                let providerName = 'غير محدد';
-                if (o.provider_id) {
-                    const provider = providersData.find(p => p.id === o.provider_id);
-                    if (provider) providerName = provider.name;
-                }
-                return `
-                    <tr class="order-row transition-colors" onclick="openOrderModal('${o.id}')">
-                        <td class="px-6 py-4 font-bold text-slate-900 dark:text-white">#${o.id.substring(0, 6)}</td>
-                        <td class="px-6 py-4 text-slate-500">${new Date(o.created_at).toLocaleDateString('ar-EG')}</td>
-                        <td class="px-6 py-4 font-bold">${o.sector}</td>
-                        <td class="px-6 py-4"><p class="font-bold text-slate-900 dark:text-white">${o.customer_name}</p><p class="text-xs text-slate-500">${o.customer_phone}</p></td>
-                        <td class="px-6 py-4 ${providerName === 'غير محدد' ? 'text-slate-400' : 'text-brand font-bold'}">${providerName}</td>
-                        <td class="px-6 py-4">${badge}</td>
-                        <td class="px-6 py-4"><button class="text-brand font-bold text-sm"><i class="fa-solid fa-eye"></i> عرض</button></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // ==================== PROVIDERS TABLE ====================
-        function renderProvidersTable() {
-            const tbody = document.getElementById('providers-table-body');
-            if (!tbody) return;
-            if (providersData.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-slate-500">لا يوجد مقدمي خدمة مسجلين</td></tr>'; return; }
-            tbody.innerHTML = providersData.map(p => `
-                <tr class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                    <td class="px-6 py-4 font-bold text-slate-900 dark:text-white">${p.name}</td>
-                    <td class="px-6 py-4 text-slate-500" dir="ltr">${p.phone}</td>
-                    <td class="px-6 py-4 font-bold text-brand">${p.craft}</td>
-                    <td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">نشط</span></td>
-                    <td class="px-6 py-4 text-slate-500">${new Date(p.created_at).toLocaleDateString('ar-EG')}</td>
-                </tr>
-            `).join('');
-        }
-
-        // ==================== MODALS LOGIC ====================
-        function openOrderModal(orderId) {
-            const order = ordersData.find(o => o.id === orderId);
-            if (!order) return;
-            currentOrderId = orderId;
-            let providerOptions = '<option value="">-- غير محدد --</option>';
-            providersData.forEach(p => {
-                const selected = order.provider_id === p.id ? 'selected' : '';
-                providerOptions += `<option value="${p.id}" ${selected}>${p.name} (${p.craft})</option>`;
-            });
-            document.getElementById('modal-title').innerText = `تفاصيل الطلب #${order.id.substring(0, 6)}`;
-            document.getElementById('modal-content').innerHTML = `
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg"><p class="text-xs text-slate-500 mb-1">العميل</p><p class="font-bold">${order.customer_name}</p></div>
-                    <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg"><p class="text-xs text-slate-500 mb-1">رقم الهاتف</p><p class="font-bold" dir="ltr">${order.customer_phone}</p></div>
-                    <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg"><p class="text-xs text-slate-500 mb-1">القطاع</p><p class="font-bold">${order.sector}</p></div>
-                    <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg"><p class="text-xs text-slate-500 mb-1">التاريخ</p><p class="font-bold">${new Date(order.created_at).toLocaleString('ar-EG')}</p></div>
-                </div>
-                <div class="mt-4"><p class="text-xs text-slate-500 mb-2">التفاصيل</p><p class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-sm border border-border dark:border-border-dark">${order.details || 'لا توجد تفاصيل'}</p></div>
-                <div class="grid grid-cols-2 gap-4 mt-4">
-                    <div>
-                        <label class="text-xs text-slate-500 mb-2 block">تعيين فني / مندوب</label>
-                        <select id="modal-provider-select" class="w-full bg-slate-50 dark:bg-slate-800 border border-border dark:border-border-dark rounded-lg px-4 py-2 font-bold">
-                            ${providerOptions}
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-500 mb-2 block">تغيير الحالة</label>
-                        <select id="modal-status-select" class="w-full bg-slate-50 dark:bg-slate-800 border border-border dark:border-border-dark rounded-lg px-4 py-2 font-bold">
-                            <option value="new" ${order.status === 'new' ? 'selected' : ''}>جديد</option>
-                            <option value="in_progress" ${order.status === 'in_progress' ? 'selected' : ''}>قيد التنفيذ</option>
-                            <option value="done" ${order.status === 'done' ? 'selected' : ''}>مكتمل</option>
-                        </select>
-                    </div>
-                </div>
-            `;
-            const saveBtn = document.getElementById('modal-save-btn');
-            saveBtn.classList.remove('hidden');
-            saveBtn.onclick = saveOrderChanges;
-            openModal('order-modal');
-        }
-
-        async function saveOrderChanges() {
-            if (!currentOrderId) return;
-            const newStatus = document.getElementById('modal-status-select').value;
-            const newProviderId = document.getElementById('modal-provider-select').value || null;
-            const orderIndex = ordersData.findIndex(o => o.id === currentOrderId);
-            if (orderIndex === -1) return;
-            const oldStatus = ordersData[orderIndex].status;
-            const oldProviderId = ordersData[orderIndex].provider_id;
-            ordersData[orderIndex].status = newStatus;
-            ordersData[orderIndex].provider_id = newProviderId;
-            
-            const { error } = await supabaseClient.from('orders').update({ status: newStatus, provider_id: newProviderId }).eq('id', currentOrderId);
-            
-            if (error) {
-                showToast("فشل تحديث الطلب", true);
-                ordersData[orderIndex].status = oldStatus;
-                ordersData[orderIndex].provider_id = oldProviderId;
-                return;
-            }
-            showToast("تم التحديث بنجاح");
-            closeModal('order-modal');
-            fetchAllData();
-        }
-
-        function openProviderModal() {
-            document.getElementById('p-name').value = '';
-            document.getElementById('p-phone').value = '';
-            openModal('provider-modal');
-        }
-
-        async function saveProvider() {
-            const name = document.getElementById('p-name').value.trim();
-            const phone = document.getElementById('p-phone').value.trim();
-            const craft = document.getElementById('p-craft').value;
-            if (!name || !phone) return showToast("يرجى ملء جميع الحقول", true);
-            
-            const { error } = await supabaseClient.from('providers').insert([{ name, phone, craft }]);
-            
-            if (error) return showToast("فشل إضافة الفني", true);
-            showToast("تم إضافة الفني بنجاح");
-            closeModal('provider-modal');
-            fetchAllData();
-        }
-
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('dark');
-            
-            fetchAllData();
-
-            supabaseClient.channel('custom-all-channel')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, payload => {
-                    const newOrder = payload.new;
-                    addNotification("طلب جديد!", `${newOrder.customer_name} - ${newOrder.sector}`);
-                    fetchAllData();
-                })
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'providers' }, payload => {
-                    const newProvider = payload.new;
-                    addNotification("فني جديد سجل!", `${newProvider.name} - ${newProvider.craft}`);
-                    fetchAllData();
-                })
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, () => {
-                    fetchAllData();
-                })
-                .subscribe();
-            
-            document.getElementById('order-modal').addEventListener('click', (e) => { if (e.target.id === 'order-modal') closeModal('order-modal'); });
-            document.getElementById('provider-modal').addEventListener('click', (e) => { if (e.target.id === 'provider-modal') closeModal('provider-modal'); });
-            
-            document.addEventListener('click', function(event) {
-                const dropdown = document.getElementById('notif-dropdown');
-                const btn = event.target.closest('button');
-                if (dropdown.classList.contains('open') && (!btn || !btn.querySelector('.fa-bell'))) {
-                    dropdown.classList.remove('open');
-                }
-            });
+// GPS
+function getLocation(type){
+    const btn = document.getElementById('btn-'+type);
+    const txt = document.getElementById('txt-'+type);
+    txt.innerText = "جاري التحديد...";
+    if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(p=>{
+            coords[type] = { lat: p.coords.latitude, lng: p.coords.longitude };
+            btn.classList.add('active');
+            txt.innerText = "تم تحديد الموقع ✅";
+        }, ()=>{
+            txt.innerText = "فشل التحديد - اكتب العنوان في الملاحظات";
+            coords[type] = "manual";
         });
-    </script>
+    } else {
+        txt.innerText = "المتصفح لا يدعم الموقع";
+    }
+}
+
+// Request Flow
+function requestService(type, name){
+    currentReq = { type, name, date: new Date().toISOString(), id: Date.now() };
+    document.getElementById('modal-title').innerText = `طلب: ${name}`;
+    document.getElementById('f-extra-group').style.display = 'block';
+    document.getElementById('modal').style.display = 'flex';
+}
+
+function submitForm(type){
+    if(type === 'delivery'){
+        const item = document.getElementById('del-item').value;
+        if(!item) return showToast('اكتب تفاصيل الشحنة');
+        if(!coords.pickup || !coords.dropoff) return showToast('حدد المواقع أولاً');
+        currentReq = { type, name: 'توصيل', item, coords, date: new Date().toISOString(), id: Date.now() };
+        document.getElementById('modal-title').innerText = 'تأكيد التوصيل';
+        document.getElementById('f-extra-group').style.display = 'none';
+    } else if(type === 'market'){
+        const list = document.getElementById('market-list').value;
+        if(!list) return showToast('اكتب طلباتك');
+        currentReq = { type, name: 'سوبر ماركت', list, date: new Date().toISOString(), id: Date.now() };
+        document.getElementById('modal-title').innerText = 'تأكيد الطلب';
+        document.getElementById('f-extra-group').style.display = 'none';
+    }
+    document.getElementById('modal').style.display = 'flex';
+}
+
+function closeModal(){ document.getElementById('modal').style.display = 'none'; }
+
+function finalizeOrder(){
+    const name = document.getElementById('f-name').value;
+    const phone = document.getElementById('f-phone').value;
+    const extra = document.getElementById('f-extra').value;
+    
+    if(!name || phone.length < 10) return showToast('أدخل بيانات صحيحة');
+    
+    currentReq.customer = { name, phone, extra };
+    currentReq.status = 'قيد الانتظار';
+    
+    // Save to LocalStorage
+    let orders = JSON.parse(localStorage.getItem('wasla_orders') || '[]');
+    orders.unshift(currentReq);
+    localStorage.setItem('wasla_orders', JSON.stringify(orders));
+    
+    // WhatsApp Message
+    let msg = `*طلب جديد من وصلة*\n\n👤 الاسم: ${name}\n📱 التليفون: ${phone}\n🛠️ الخدمة: ${currentReq.name}\n`;
+    if(currentReq.item) msg += `📦 الشحنة: ${currentReq.item}\n`;
+    if(currentReq.list) msg += `🛒 الطلبات: ${currentReq.list}\n`;
+    if(extra) msg += `📝 ملاحظات: ${extra}\n`;
+    
+    if(currentReq.coords){
+        if(currentReq.coords.pickup.lat) msg += `📍 من: https://maps.google.com/?q=${currentReq.coords.pickup.lat},${currentReq.coords.pickup.lng}\n`;
+        if(currentReq.coords.dropoff.lat) msg += `🎯 إلى: https://maps.google.com/?q=${currentReq.coords.dropoff.lat},${currentReq.coords.dropoff.lng}\n`;
+    }
+    
+    window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
+    closeModal();
+    showToast('تم الحفظ بنجاح');
+    nav('orders');
+}
+
+function renderOrders(){
+    const container = document.getElementById('orders-container');
+    const orders = JSON.parse(localStorage.getItem('wasla_orders') || '[]');
+    
+    if(orders.length === 0){
+        container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--m);"><i class="fa-solid fa-box-open" style="font-size:40px;margin-bottom:10px;"></i><p>لا توجد طلبات سابقة</p></div>';
+        return;
+    }
+    
+    container.innerHTML = orders.map(o => {
+        let mapBtn = '';
+        if(o.coords && o.coords.pickup && o.coords.pickup.lat){
+            mapBtn = `<a href="https://maps.google.com/?q=${o.coords.pickup.lat},${o.coords.pickup.lng}" target="_blank" style="color:var(--b);font-size:12px;display:block;margin-top:8px;"><i class="fa-solid fa-map-location-dot"></i> عرض الموقع على الخريطة</a>`;
+        }
+        
+        return `
+        <div class="order-card">
+            <div class="order-head">
+                <h4 style="font-size:14px;color:var(--b);">${o.name}</h4>
+                <span class="order-status">${o.status}</span>
+            </div>
+            <p style="font-size:12px;color:var(--m);">${new Date(o.date).toLocaleDateString('ar-EG')} - ${o.customer.name}</p>
+            ${o.item ? `<p style="font-size:13px;margin-top:8px;">الشحنة: ${o.item}</p>` : ''}
+            ${o.list ? `<p style="font-size:13px;margin-top:8px;">الطلبات: ${o.list}</p>` : ''}
+            ${mapBtn}
+        </div>
+        `;
+    }).join('');
+}
+</script>
 </body>
 </html>
