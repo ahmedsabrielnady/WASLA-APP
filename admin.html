@@ -1,538 +1,739 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" data-theme="light">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#10B981">
-<title>وصلة | WASLA - منصة شبين القناطر</title>
+<meta name="theme-color" content="#059669">
+<title>وصلة | WASLA - المنصة الشاملة</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- إضافة مكتبة Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-/* ==================== Design System & Variables ==================== */
 :root {
-  --b: #10B981; --bd: #059669; --bl: #D1FAE5;
-  --bg: #F8FAFC; --c: #FFFFFF; --t: #0F172A; --m: #64748B; --br: #E2E8F0;
-  --nav: rgba(255,255,255,0.95);
-  --sh: 0 4px 6px -1px rgba(0,0,0,0.05);
-  --shl: 0 10px 25px -3px rgba(0,0,0,0.08);
-  --rad: 12px; /* تم تعديل نصف القطر ليكون 12px بدلاً من 16px ليتناسب مع نمط Udemy */
-  /* Sector Specific Colors */
-  --edu: #84cc16; --edu-bg: #f7fee7; --edu-dark: #65a30d;
+  --brand: #059669; --brand-light: #D1FAE5; --brand-gradient: linear-gradient(135deg, #10B981, #0284C7);
+  --dark: #0F172A; --bg: #F4F7FB; --card: #FFFFFF; --text: #1E293B; --muted: #64748B; --border: #E2E8F0;
+  --nav-bg: rgba(255, 255, 255, 0.95);
+  --logo-gradient: linear-gradient(135deg, #FF6B4A, #FF3366); 
+  --delivery-gradient: linear-gradient(135deg, #F59E0B, #EA580C);
   --med: #0284c7; --med-bg: #f0f9ff; --med-dark: #0369a1;
-  --maint: #ea580c; --maint-bg: #fff7ed; --maint-dark: #c2410c;
-  --cars: #475569; --cars-bg: #f8fafc; --cars-dark: #334155;
-  --market: #db2777; --market-bg: #fdf2f8; --market-dark: #be185d;
-  --del: #8b5cf6; --del-bg: #f5f3ff; --del-dark: #6d28d9;
+  --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05); --shadow-md: 0 10px 25px -3px rgba(0,0,0,0.08);
+  --ticker-bg: #FFFBEB; --ticker-text: #B45309;
 }
 [data-theme="dark"] {
-  --bg: #0B1120; --c: #1E293B; --t: #F1F5F9; --m: #94A3B8; --br: #334155;
-  --bl: #064E3B; --nav: rgba(30,41,59,0.95);
-  --sh: 0 4px 6px rgba(0,0,0,0.3); --shl: 0 10px 25px rgba(0,0,0,0.4);
-  --edu-bg: #0f172a; --med-bg: #0f172a; --maint-bg: #0f172a; --cars-bg: #0f172a; --market-bg: #0f172a; --del-bg: #0f172a;
+  --brand: #10B981; --brand-light: #064E3B; --brand-gradient: linear-gradient(135deg, #059669, #0369A1);
+  --dark: #F8FAFC; --bg: #0B1120; --card: #1E293B; --text: #F1F5F9; --muted: #94A3B8; --border: #334155;
+  --nav-bg: rgba(30, 41, 59, 0.95); --shadow-sm: 0 4px 6px rgba(0,0,0,0.3); --shadow-md: 0 10px 25px rgba(0,0,0,0.4);
+  --ticker-bg: #451A03; --ticker-text: #FDE68A; --med-bg: #0f172a;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: 'Cairo', sans-serif; }
-body { background: var(--bg); color: var(--t); padding-bottom: 75px; overflow-x: hidden; transition: 0.3s; line-height: 1.5; }
-a { text-decoration: none; color: inherit; }
-button { font-family: inherit; cursor: pointer; border: none; background: none; outline: none; }
-h1, h2, h3, h4 { font-family: 'Tajawal', sans-serif; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background-color: var(--bg); color: var(--text); font-family: 'Cairo', sans-serif; padding-bottom: 80px; transition: 0.3s; overflow-x: hidden; }
+button { font-family: 'Cairo', sans-serif; cursor: pointer; border: none; outline: none; }
+a { text-decoration: none; }
 
-/* ==================== App Shell ==================== */
-header { background: var(--c); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--br); box-shadow: var(--sh); }
-.logo { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 22px; font-family: 'Tajawal'; }
-.logo i { background: linear-gradient(135deg,#FF6B4A,#FF3366); color:#fff; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:'Cairo'; font-size:20px; }
-.h-icons { display: flex; gap: 8px; }
-.h-btn { width:36px; height:36px; border-radius:50%; background:var(--bg); border:1px solid var(--br); color:var(--t); display:flex; align-items:center; justify-content:center; font-size:16px; transition:0.2s; }
-.h-btn:active { transform: scale(0.9); color: var(--b); border-color: var(--b); }
-.ticker { background: var(--bl); color: var(--bd); padding: 8px 0; overflow: hidden; display: flex; font-size: 12px; font-weight: 700; border-bottom: 1px solid var(--br); white-space: nowrap; }
-.ticker div { animation: ticker 20s linear infinite; display: inline-block; padding-left: 50px; }
-@keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }
+.app-view { display: none; animation: fadeIn 0.4s ease; }
+.app-view.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Sidebar */
-.sidebar { position: fixed; top: 0; right: -280px; width: 280px; height: 100vh; background: var(--c); z-index: 1000; transition: 0.3s; box-shadow: -5px 0 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
-.sidebar.open { right: 0; }
-.sidebar-head { padding: 20px; border-bottom: 1px solid var(--br); display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 20px; }
-.sidebar-nav { padding: 20px; flex: 1; overflow-y: auto; }
-.s-nav-item { display: flex; align-items: center; gap: 15px; padding: 12px 15px; border-radius: 10px; font-weight: 700; color: var(--m); margin-bottom: 8px; transition: 0.2s; }
-.s-nav-item:hover, .s-nav-item.active { background: var(--bl); color: var(--b); }
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; opacity: 0; visibility: hidden; transition: 0.3s; }
-.overlay.open { opacity: 1; visibility: visible; }
+.top-header { background: var(--card); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo-box { width: 48px; height: 48px; background: var(--logo-gradient); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 15px rgba(255,51,102,0.3); position: relative; overflow: hidden; }
+.logo-box::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); transform: skewX(-25deg); animation: shine 4s infinite; }
+@keyframes shine { 100% { left: 200%; } }
+.logo-w { font-family: 'Fredoka One', cursive; color: white; font-size: 32px; margin-top: -4px; z-index: 1; }
+.brand-text h1 { font-family: 'Tajawal', sans-serif; font-size: 26px; font-weight: 900; color: var(--dark); line-height: 1; margin-bottom: 4px; }
+.brand-text span { font-family: 'Tajawal', sans-serif; font-size: 11px; font-weight: 900; background: var(--logo-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 5px; display: inline-block; transform: scaleY(1.1); }
+.header-icons { display: flex; gap: 8px; }
+.icon-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; }
+.icon-btn.active { background: var(--brand-light); color: var(--brand); border-color: var(--brand); }
+.icon-btn:active { transform: scale(0.9); box-shadow: 0 0 15px var(--brand); color: var(--brand); }
 
-/* Layout & Animations */
-.view { display: none; padding: 16px; animation: fadeIn 0.3s ease; }
-.view.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.sec-title { font-size: 20px; font-weight: 900; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
-.sec-title i { color: var(--b); }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.card { background: var(--c); border: 1px solid var(--br); border-radius: var(--rad); padding: 16px; box-shadow: var(--sh); }
-.btn { width: 100%; padding: 12px; border-radius: 10px; background: var(--b); color: #fff; font-weight: 800; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
-.btn:active { transform: scale(0.97); }
-.input-group { margin-bottom: 12px; }
-.input-group label { display: block; font-size: 12px; font-weight: 700; color: var(--m); margin-bottom: 6px; }
-.input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px; border: 1px solid var(--br); border-radius: 10px; background: var(--bg); color: var(--t); font-family: inherit; font-size: 14px; outline: none; }
-.input-group input:focus, .input-group select:focus { border-color: var(--b); }
+.ticker-wrap { width: 100%; overflow: hidden; background: var(--ticker-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 8px 0; box-shadow: var(--shadow-sm); }
+.ticker-label { background: var(--ticker-text); color: white; padding: 2px 10px; font-size: 11px; font-weight: 800; border-radius: 0 10px 10px 0; margin-left: 10px; z-index: 2; flex-shrink: 0; }
+.ticker-content { display: flex; white-space: nowrap; animation: ticker 30s linear infinite; }
+.ticker-content span { color: var(--ticker-text); font-size: 13px; font-weight: 800; padding-left: 50px; }
+@keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-/* ==================== Home ==================== */
-.cat-card { display: flex; flex-direction: column; align-items: flex-start; padding: 16px; border-radius: var(--rad); background: var(--c); border: 1px solid var(--br); box-shadow: var(--sh); position: relative; overflow: hidden; }
-.cat-icon { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 12px; }
-.cat-card h3 { font-size: 15px; margin-bottom: 4px; }
-.cat-card p { font-size: 11px; color: var(--m); }
+.welcome-area { padding: 20px 20px 10px; }
+.welcome-area p { font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+.welcome-area h2 { font-size: 22px; font-weight: 900; color: var(--dark); }
 
-/* ==================== Education Theme (Inspired by Udemy & Skillshare) ==================== */
-.theme-edu { background: var(--edu-bg); }
-.edu-banner { background: var(--edu); color: #fff; padding: 24px; border-radius: 24px; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(132,204,22,0.2); }
-.edu-card { background: var(--c); border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shl); border: 1px solid var(--br); position: relative; }
-.edu-tag { background: var(--edu-bg); color: var(--edu-dark); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; display: inline-block; margin-bottom: 8px; }
-[data-theme="dark"] .edu-tag { background: #334155; color: #a3e635; }
-.edu-price { font-size: 18px; font-weight: 900; color: var(--edu); }
-.edu-price span { font-size: 12px; color: var(--m); text-decoration: line-through; margin-right: 6px; }
-.teacher-card { background: var(--c); border-radius: 16px; padding: 0; text-align: center; border: 1px solid var(--br); box-shadow: var(--sh); overflow: hidden; }
-.teacher-card img { width: 100%; height: 140px; object-fit: cover; margin: 0; border: none; } /* Edge-to-Edge image like Skillshare */
-.teacher-card .t-info { padding: 12px; }
-.teacher-card h4 { font-size: 14px; margin-bottom: 2px; }
-.teacher-card p { font-size: 11px; color: var(--edu-dark); }
-.social-links { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
-.social-links a { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--br); color: var(--m); display: flex; align-items: center; justify-content: center; font-size: 12px; }
-.social-links a:hover { border-color: var(--edu); color: var(--edu); }
+.phone-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--brand-light); color: var(--brand); padding: 8px 14px; border-radius: 20px; font-weight: 800; font-size: 13px; margin-top: 12px; border: 1px solid var(--brand); }
+.phone-chip i { font-size: 14px; }
 
-/* ==================== Medical Theme (Inspired by Chat for impact) ==================== */
-.theme-med { background: var(--med-bg); }
-.doc-card { background: var(--c); border-radius: 16px; padding: 16px; border: 1px solid var(--br); display: flex; gap: 12px; align-items: center; margin-bottom: 12px; box-shadow: var(--sh); }
-.doc-img { width: 64px; height: 64px; border-radius: 16px; background: var(--med-bg); color: var(--med); display: flex; align-items: center; justify-content: center; font-size: 28px; }
-.doc-info h4 { font-size: 16px; color: var(--med-dark); }
-[data-theme="dark"] .doc-info h4 { color: #38bdf8; }
-.doc-info p { font-size: 12px; color: var(--m); margin-top: 2px; }
-.stars { color: #f59e0b; font-size: 12px; margin-top: 4px; }
-.filter-pill { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; border: 1px solid var(--br); background: var(--c); color: var(--m); }
-.filter-pill.active { background: var(--med); color: #fff; border-color: var(--med); }
+.search-container { padding: 0 20px 15px; display: flex; gap: 10px; }
+.search-box { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 15px; display: flex; align-items: center; padding: 0 15px; box-shadow: var(--shadow-sm); }
+.search-box input { width: 100%; border: none; background: transparent; padding: 15px 0; font-family: 'Cairo'; font-size: 14px; color: var(--text); outline: none; }
+.search-box i { color: var(--muted); font-size: 18px; cursor: pointer; }
+.mic-btn { width: 50px; height: 50px; border-radius: 15px; background: var(--brand-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: var(--shadow-sm); }
+.mic-btn:active { transform: scale(0.9); box-shadow: 0 0 15px var(--brand); }
 
-/* ==================== Maintenance & Cars Theme (Inspired by Yellowbird) ==================== */
-.theme-maint { background: var(--maint-bg); }
-.theme-cars { background: var(--cars-bg); }
-.industrial-card { background: var(--c); border: 2px solid var(--br); border-radius: 8px; padding: 16px; margin-bottom: 12px; border-right: 6px solid var(--maint); box-shadow: var(--sh); }
-.theme-cars .industrial-card { border-right-color: var(--cars); }
-.ind-icon { color: var(--maint); font-size: 28px; margin-bottom: 12px; }
-.theme-cars .ind-icon { color: var(--cars); }
-.ind-btn { width: 100%; padding: 12px; border-radius: 8px; background: var(--maint); color: #fff; font-weight: 800; border: none; }
-.theme-cars .ind-btn { background: var(--cars); }
+.hero { background: linear-gradient(135deg, #0F172A, #1E293B); border-radius: 24px; margin: 0 20px 20px; padding: 30px 25px; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(16, 185, 129, 0.4); border-radius: 50%; filter: blur(50px); animation: pulseHalo 4s infinite alternate; }
+@keyframes pulseHalo { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0.2; } }
+.hero h1 { font-size: 24px; font-weight: 900; margin-bottom: 8px; line-height: 1.4; position: relative; z-index: 1; }
+.hero p { font-size: 13px; color: #94A3B8; position: relative; z-index: 1; }
 
-/* ==================== Market & Delivery Theme (Inspired by Magic Spoon) ==================== */
-.theme-market { background: var(--market-bg); }
-.theme-del { background: var(--del-bg); }
-.del-box { background: linear-gradient(135deg, var(--del), var(--del-dark)); color: #fff; border-radius: 24px; padding: 30px 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(139,92,246,0.2); }
-.loc-btn { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--br); background: var(--c); color: var(--t); font-weight: 800; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; transition: 0.2s; }
-.loc-btn.active { border-color: var(--del); background: var(--del-bg); color: var(--del-dark); }
-.market-card { background: var(--c); border-radius: 16px; padding: 20px; box-shadow: var(--sh); border: 1px solid var(--br); }
-.market-btn { width: 100%; padding: 14px; border-radius: 50px; background: var(--market); color: #fff; font-weight: 800; font-size: 16px; border: 2px solid var(--market-dark); }
+.section-title { padding: 0 20px; margin: 10px 0 15px; font-size: 18px; font-weight: 900; color: var(--dark); display: flex; justify-content: space-between; }
+.categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
+.cat-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; box-shadow: var(--shadow-sm); cursor: pointer; transition: 0.2s; }
+.cat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+.cat-card:active { transform: scale(0.95); box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); border-color: var(--brand); }
+.cat-icon { width: 55px; height: 55px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 15px; transition: 0.3s; }
+.cat-card:active .cat-icon { transform: scale(1.1); }
+.cat-card h3 { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
+.cat-card p { font-size: 12px; color: var(--muted); }
 
-/* ==================== My Orders ==================== */
-.order-card { background: var(--c); border: 1px solid var(--br); border-radius: 16px; padding: 16px; margin-bottom: 12px; border-right: 5px solid var(--b); box-shadow: var(--sh); }
-.order-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.order-status { font-size: 11px; padding: 4px 10px; border-radius: 10px; background: var(--bl); color: var(--bd); font-weight: 800; }
-.order-date { font-size: 12px; color: var(--m); }
+/* Medical View Styles */
+.delivery-header { display: flex; align-items: center; gap: 15px; padding: 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 70px; z-index: 90; }
+.back-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 18px; }
+.delivery-header h2 { font-size: 20px; font-weight: 900; color: var(--dark); }
 
-/* ==================== FAQ ==================== */
-details { background: var(--c); border: 1px solid var(--br); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
-summary { padding: 16px; font-weight: 700; font-size: 14px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-summary::-webkit-details-marker { display: none; }
-details[open] summary { border-bottom: 1px solid var(--br); color: var(--b); }
-.faq-content { padding: 16px; font-size: 13px; color: var(--m); background: var(--bg); }
+.medical-banner { background: var(--med); padding: 30px 20px; border-radius: 0 0 30px 30px; color: white; text-align: center; }
+.medical-banner h1 { font-size: 24px; font-weight: 900; margin-bottom: 15px; }
+.medical-search { background: white; border-radius: 12px; padding: 12px 15px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+.medical-search input { border: none; outline: none; width: 100%; font-family: 'Cairo'; font-size: 14px; color: #333; }
+.medical-search i { color: var(--med); }
 
-/* ==================== Bottom Nav ==================== */
-.b-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav); border-top: 1px solid var(--br); display: flex; justify-content: space-around; padding: 10px 0; backdrop-filter: blur(10px); z-index: 100; }
-.b-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--m); font-weight: 700; gap: 4px; transition: 0.2s; }
-.b-item.active, .b-item:active { color: var(--b); }
-.b-item i { font-size: 20px; }
+.specialty-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 20px; scrollbar-width: none; }
+.specialty-scroll::-webkit-scrollbar { display: none; }
+.specialty-pill { padding: 8px 20px; border-radius: 20px; background: var(--card); border: 1px solid var(--border); font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.specialty-pill.active { background: var(--med); color: white; border-color: var(--med); }
 
-.toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--t); color: var(--bg); padding: 12px 24px; border-radius: 30px; font-weight: 700; font-size: 14px; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 9999; }
+.doctors-list { padding: 0 20px; }
+.doctor-card { background: var(--card); border-radius: 16px; padding: 15px; border: 1px solid var(--border); display: flex; gap: 15px; align-items: center; margin-bottom: 15px; box-shadow: var(--shadow-sm); }
+.doc-avatar { width: 65px; height: 65px; border-radius: 16px; background: #e0f2fe; color: var(--med); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+.doc-info { flex: 1; }
+.doc-info h3 { font-size: 16px; color: var(--dark); margin-bottom: 3px; }
+.doc-info p { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.doc-meta { display: flex; gap: 10px; font-size: 12px; color: #f59e0b; font-weight: 700; }
+.doc-meta span { color: var(--muted); font-weight: normal; }
+.doc-price { text-align: center; }
+.doc-price span { display: block; font-size: 16px; font-weight: 900; color: var(--med); margin-bottom: 5px; }
+.btn-book-doctor { background: var(--med); color: white; padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: 800; }
+
+/* Skeleton Loading */
+.skeleton-card { background: linear-gradient(90deg, var(--border) 25%, var(--bg) 50%, var(--border) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 16px; height: 95px; margin-bottom: 15px; }
+@keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+
+/* Forms */
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+.input-field { width: 100%; padding: 12px 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; font-family: 'Cairo'; color: var(--text); font-size: 14px; outline: none; }
+.input-field:focus { border-color: var(--brand); }
+
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding: 12px 0; z-index: 100; backdrop-filter: blur(10px); }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: transparent; color: var(--muted); font-size: 10px; font-weight: 700; width: 20%; transition: 0.2s; }
+.nav-item.active { color: var(--brand); }
+.nav-item i { font-size: 20px; margin-bottom: 2px; transition: 0.3s; }
+.nav-item:active { transform: scale(0.85); }
+.nav-item:active i { color: var(--brand); filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6)); transform: translateY(-3px); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
+.modal-overlay.open { opacity: 1; visibility: visible; }
+.modal-content { background: var(--card); width: 92%; max-width: 450px; border-radius: 24px; padding: 25px; transform: translateY(20px); transition: 0.3s; max-height: 90vh; overflow-y: auto; }
+.modal-overlay.open .modal-content { transform: translateY(0); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h2 { font-size: 18px; color: var(--dark); }
+.close-btn { background: var(--bg); width: 35px; height: 35px; border-radius: 50%; color: var(--text); display: flex; align-items: center; justify-content: center; }
+.submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--med); color: white; font-weight: 800; font-size: 15px; transition: 0.3s; }
+.submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+.submit-btn:active:not(:disabled) { transform: scale(0.96); box-shadow: 0 0 15px var(--med); }
+
+.toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--dark); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 3000; text-align:center; width: 85%; max-width: 400px; }
 .toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+
+.whatsapp-float { position: fixed; bottom: 92px; left: 20px; width: 56px; height: 56px; border-radius: 50%; background: #25D366; color: white; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5); z-index: 99; cursor: pointer; transition: 0.2s; border: none; }
+.whatsapp-float:active { transform: scale(0.9); }
 </style>
 </head>
 <body>
 
-<!-- Sidebar & Overlay -->
-<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-head">
-        <span>القائمة</span>
-        <button onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
+<header class="top-header">
+    <div class="brand">
+        <div class="logo-box"><div class="logo-w">W</div></div>
+        <div class="brand-text"><h1>وصلة</h1><span>WASLA</span></div>
     </div>
-    <div class="sidebar-nav">
-        <a href="#" class="s-nav-item active" onclick="nav('home')"><i class="fa-solid fa-house"></i> الرئيسية</a>
-        <a href="#" class="s-nav-item" onclick="nav('med')"><i class="fa-solid fa-heart-pulse"></i> الصحة والطب</a>
-        <a href="#" class="s-nav-item" onclick="nav('edu')"><i class="fa-solid fa-graduation-cap"></i> التعليم</a>
-        <a href="#" class="s-nav-item" onclick="nav('maint')"><i class="fa-solid fa-screwdriver-wrench"></i> الصيانة</a>
-        <a href="#" class="s-nav-item" onclick="nav('cars')"><i class="fa-solid fa-car"></i> السيارات</a>
-        <a href="#" class="s-nav-item" onclick="nav('market')"><i class="fa-solid fa-cart-shopping"></i> السوبر ماركت</a>
-        <a href="#" class="s-nav-item" onclick="nav('delivery')"><i class="fa-solid fa-motorcycle"></i> التوصيل</a>
-        <a href="#" class="s-nav-item" onclick="nav('orders')"><i class="fa-solid fa-box"></i> طلباتي</a>
-    </div>
-</div>
-
-<!-- Header -->
-<header>
-    <div class="logo"><i class="fa-solid fa-w">W</i> وصلة</div>
-    <div class="h-icons">
-        <button class="h-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
-        <button class="h-btn" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
+    <div class="header-icons">
+        <button class="icon-btn" onclick="showToast('الإشعارات قريباً')"><i class="fa-regular fa-bell"></i></button>
+        <button class="icon-btn" id="gps-btn" onclick="toggleGPS()"><i class="fa-solid fa-location-dot"></i></button>
+        <button class="icon-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
     </div>
 </header>
 
-<!-- Ticker -->
-<div class="ticker">
-    <div>🔥 أهلاً بيك في منصة وصلة - شبين القناطر | جرب خدماتنا واستفيد بأفضل العروض | خدمة توصيل سريعة داخل المدينة 🚀</div>
-</div>
-
-<!-- ==================== HOME VIEW ==================== -->
-<main id="view-home" class="view active">
-    <div class="sec-title">اكتشف خدماتنا</div>
-    <div class="grid-2">
-        <div class="cat-card" onclick="nav('med')">
-            <div class="cat-icon" style="background:var(--med-bg);color:var(--med);"><i class="fa-solid fa-heart-pulse"></i></div>
-            <h3>الصحة والطب</h3><p>أطباء وتمريض</p>
-        </div>
-        <div class="cat-card" onclick="nav('edu')">
-            <div class="cat-icon" style="background:var(--edu-bg);color:var(--edu-dark);"><i class="fa-solid fa-graduation-cap"></i></div>
-            <h3>التعليم</h3><p>دورات ومدرسين</p>
-        </div>
-        <div class="cat-card" onclick="nav('maint')">
-            <div class="cat-icon" style="background:var(--maint-bg);color:var(--maint);"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-            <h3>الصيانة</h3><p>سباكة وكهرباء</p>
-        </div>
-        <div class="cat-card" onclick="nav('cars')">
-            <div class="cat-icon" style="background:var(--cars-bg);color:var(--cars-dark);"><i class="fa-solid fa-car"></i></div>
-            <h3>السيارات</h3><p>غسيل وصيانة</p>
-        </div>
-        <div class="cat-card" onclick="nav('market')">
-            <div class="cat-icon" style="background:var(--market-bg);color:var(--market);"><i class="fa-solid fa-cart-shopping"></i></div>
-            <h3>سوبر ماركت</h3><p>طلبات البيت</p>
-        </div>
-        <div class="cat-card" onclick="nav('delivery')">
-            <div class="cat-icon" style="background:var(--del-bg);color:var(--del);"><i class="fa-solid fa-motorcycle"></i></div>
-            <h3>توصيل</h3><p>أي حاجة لأي حد</p>
-        </div>
-    </div>
-    
-    <div class="sec-title" style="margin-top:24px;">الأسئلة الشائعة</div>
-    <details><summary>كيف أطلب خدمة؟ <i class="fa-solid fa-chevron-down"></i></summary><div class="faq-content">اختر القطاع، ادخل البيانات، واضغط إرسال. سيتم تحويلك للواتساب لتأكيد الطلب.</div></details>
-    <details><summary>هل التوصيل متاح لكل شبين؟ <i class="fa-solid fa-chevron-down"></i></summary><div class="faq-content">حالياً نغطي شبين القناطر بالكامل والمناطق المجاورة.</div></details>
-</main>
-
-<!-- ==================== EDUCATION VIEW ==================== -->
-<main id="view-edu" class="view theme-edu">
-    <div class="edu-banner">
-        <h2>منصة التعليم</h2>
-        <p style="font-size:12px;margin-top:5px;opacity:0.9;">أفضل المعلمين والدورات</p>
-    </div>
-    
-    <div class="sec-title">المعلمين المميزين</div>
-    <div class="grid-2" style="margin-bottom:20px;">
-        <div class="teacher-card">
-            <img src="https://ui-avatars.com/api/?name=أحمد+محمد&background=84cc16&color=fff&size=140" alt="Teacher">
-            <div class="t-info">
-                <h4>أ. أحمد محمد</h4>
-                <p>الفيزياء</p>
-                <div class="social-links"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
-            </div>
-        </div>
-        <div class="teacher-card">
-            <img src="https://ui-avatars.com/api/?name=سارة+علي&background=84cc16&color=fff&size=140" alt="Teacher">
-            <div class="t-info">
-                <h4>أ. سارة علي</h4>
-                <p>الكيمياء</p>
-                <div class="social-links"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="sec-title">أحدث الدورات</div>
-    <div class="edu-card">
-        <span class="edu-tag">الثانوية العامة</span>
-        <h3 style="font-size:16px;margin-bottom:8px;">مراجعة ليلة الامتحان - فيزياء</h3>
-        <p style="font-size:12px;color:var(--m);margin-bottom:12px;">مع أ. أحمد محمد - 3 محاضرات مكثفة</p>
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div class="edu-price"><span>400 ج</span> 350 ج</div>
-            <button class="btn" style="width:auto;padding:8px 16px;background:transparent;border:1.5px solid var(--edu);color:var(--edu);" onclick="requestService('edu', 'دورة فيزياء')">سجل الآن</button>
-        </div>
-    </div>
-</main>
-
-<!-- ==================== MEDICAL VIEW ==================== -->
-<main id="view-med" class="view theme-med">
-    <div class="sec-title" style="color:var(--med-dark);">احجز مع طبيبك</div>
-    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:10px;">
-        <button class="filter-pill active">الكل</button>
-        <button class="filter-pill">باطنة</button>
-        <button class="filter-pill">أسنان</button>
-        <button class="filter-pill">عظام</button>
-    </div>
-    
-    <div class="doc-card">
-        <div class="doc-img"><i class="fa-solid fa-user-doctor"></i></div>
-        <div class="doc-info" style="flex:1;">
-            <h4>د. محمد عبد الله</h4>
-            <p>استشاري باطنة - شبين القناطر</p>
-            <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i> (4.5)</div>
-        </div>
-        <button class="btn" style="width:auto;padding:8px 16px;background:var(--med);border-radius:50px;" onclick="requestService('med', 'د. محمد عبد الله')">حجز</button>
-    </div>
-    
-    <div class="doc-card">
-        <div class="doc-img"><i class="fa-solid fa-tooth"></i></div>
-        <div class="doc-info" style="flex:1;">
-            <h4>د. سارة خالد</h4>
-            <p>أخصائي أسنان وتجميل</p>
-            <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i> (5.0)</div>
-        </div>
-        <button class="btn" style="width:auto;padding:8px 16px;background:var(--med);border-radius:50px;" onclick="requestService('med', 'د. سارة خالد')">حجز</button>
-    </div>
-</main>
-
-<!-- ==================== MAINTENANCE VIEW ==================== -->
-<main id="view-maint" class="view theme-maint">
-    <div class="sec-title" style="color:var(--maint-dark);">خدمات الصيانة المنزلية</div>
-    <div class="industrial-card">
-        <div class="ind-icon"><i class="fa-solid fa-faucet-drip"></i></div>
-        <h3 style="font-size:16px;margin-bottom:4px;">سباكة</h3>
-        <p style="font-size:12px;color:var(--m);margin-bottom:12px;">تسريب مياه، تركيب أدوات صحية</p>
-        <button class="ind-btn" onclick="requestService('maint', 'سباكة')">اطلب فني</button>
-    </div>
-    <div class="industrial-card">
-        <div class="ind-icon"><i class="fa-solid fa-bolt"></i></div>
-        <h3 style="font-size:16px;margin-bottom:4px;">كهرباء</h3>
-        <p style="font-size:12px;color:var(--m);margin-bottom:12px;">أعطال، تركيب إضاءة، لوحات</p>
-        <button class="ind-btn" onclick="requestService('maint', 'كهرباء')">اطلب فني</button>
-    </div>
-</main>
-
-<!-- ==================== CARS VIEW ==================== -->
-<main id="view-cars" class="view theme-cars">
-    <div class="sec-title" style="color:var(--cars-dark);">خدمات السيارات</div>
-    <div class="industrial-card" style="border-right-color:var(--cars);">
-        <div class="ind-icon" style="color:var(--cars);"><i class="fa-solid fa-car-side"></i></div>
-        <h3 style="font-size:16px;margin-bottom:4px;">غسيل سيارات</h3>
-        <p style="font-size:12px;color:var(--m);margin-bottom:12px;">غسيل داخلي وخارجي</p>
-        <button class="ind-btn" onclick="requestService('cars', 'غسيل')">احجز</button>
-    </div>
-    <div class="industrial-card" style="border-right-color:var(--cars);">
-        <div class="ind-icon" style="color:var(--cars);"><i class="fa-solid fa-truck-pickup"></i></div>
-        <h3 style="font-size:16px;margin-bottom:4px;">ونش وسحب</h3>
-        <p style="font-size:12px;color:var(--m);margin-bottom:12px;">إنقاذ سيارات على الطريق</p>
-        <button class="ind-btn" onclick="requestService('cars', 'ونش')">اطلب ونش</button>
-    </div>
-</main>
-
-<!-- ==================== MARKET VIEW ==================== -->
-<main id="view-market" class="view theme-market">
-    <div class="sec-title" style="color:var(--market-dark);">سوبر ماركت</div>
-    <div class="market-card">
-        <h3 style="font-size:16px;">اكتب طلبك</h3>
-        <p style="font-size:12px;color:var(--m);margin-bottom:12px;">اكتب قائمة المشتريات وسنقوم بتوصيلها لك.</p>
-        <div class="input-group"><textarea id="market-list" rows="4" placeholder="مثال: 2 كيلو طماطم، عيش، جبنة..."></textarea></div>
-        <button class="market-btn" onclick="submitForm('market')">إرسال الطلب</button>
-    </div>
-</main>
-
-<!-- ==================== DELIVERY VIEW ==================== -->
-<main id="view-delivery" class="view theme-del">
-    <div class="del-box">
-        <h2>توصيل سريع</h2>
-        <p style="font-size:12px;opacity:0.9;margin-top:4px;">أي حاجة في أي مكان</p>
-    </div>
-    
-    <div class="market-card">
-        <div class="input-group">
-            <label>إيه اللي عايز توصله؟</label>
-            <input type="text" id="del-item" placeholder="شنطة، أوراق، طلب مطعم...">
-        </div>
-        <div class="input-group">
-            <label>موقع الاستلام (من فين؟)</label>
-            <button class="loc-btn" id="btn-pickup" onclick="getLocation('pickup')"><span id="txt-pickup">تحديد الموقع</span><i class="fa-solid fa-location-crosshairs"></i></button>
-        </div>
-        <div class="input-group">
-            <label>موقع التسليم (لحد فين؟)</label>
-            <button class="loc-btn" id="btn-dropoff" onclick="getLocation('dropoff')"><span id="txt-dropoff">تحديد الموقع</span><i class="fa-solid fa-location-crosshairs"></i></button>
-        </div>
-        <button class="market-btn" style="background:var(--del);border-color:var(--del-dark);" onclick="submitForm('delivery')">تأكيد التوصيل</button>
-    </div>
-</main>
-
-<!-- ==================== MY ORDERS VIEW ==================== -->
-<main id="view-orders" class="view">
-    <div class="sec-title">سجل طلباتي</div>
-    <div id="orders-container"></div>
-</main>
-
-<!-- ==================== MODAL ==================== -->
-<div id="modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;">
-    <div style="background:var(--c);width:100%;max-width:400px;border-radius:20px;padding:20px;position:relative;">
-        <button onclick="closeModal()" style="position:absolute;top:15px;left:15px;color:var(--m);"><i class="fa-solid fa-xmark"></i></button>
-        <h3 style="margin-bottom:15px;color:var(--t);" id="modal-title">تأكيد الطلب</h3>
-        <div class="input-group"><label>الاسم</label><input type="text" id="f-name" placeholder="اسمك"></div>
-        <div class="input-group"><label>رقم الهاتف</label><input type="tel" id="f-phone" placeholder="01xxxxxxxxx"></div>
-        <div class="input-group" id="f-extra-group" style="display:none;"><label>تفاصيل إضافية</label><textarea id="f-extra" rows="2"></textarea></div>
-        <button class="btn" id="modal-submit" onclick="finalizeOrder()">إرسال عبر واتساب</button>
+<div class="ticker-wrap">
+    <div class="ticker-label">وصلة 📢</div>
+    <div class="ticker-content">
+        <span>✅ وصلة شغالة في شبين القناطر — اطلب دلوقتي</span>
+        <span>⚡ توصيل سريع داخل المدينة</span>
+        <span>🔧 فنيين • أطباء • مدرسين • سوبر ماركت • سيارات</span>
     </div>
 </div>
 
-<div class="toast" id="toast">تم الحفظ بنجاح</div>
+<main id="view-home" class="app-view active">
+    <div class="welcome-area">
+        <p><i class="fa-solid fa-location-dot" style="color:var(--brand)"></i> شبين القناطر، القليوبية</p>
+        <h2>أهلاً بك في وصلة 👋</h2>
+        <a href="#" id="phone-link" class="phone-chip">
+            <i class="fa-solid fa-phone"></i> اتصل بينا: <span id="phone-display">0100 000 0000</span>
+        </a>
+    </div>
 
-<!-- ==================== BOTTOM NAV ==================== -->
-<nav class="b-nav">
-    <div class="b-item active" onclick="nav('home')"><i class="fa-solid fa-house"></i>الرئيسية</div>
-    <div class="b-item" onclick="nav('orders')"><i class="fa-solid fa-box"></i>طلباتي</div>
-    <div class="b-item" onclick="nav('market')"><i class="fa-solid fa-cart-shopping"></i>الماركت</div>
-    <div class="b-item" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i>المزيد</div>
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="ابحث عن خدمة..." onkeydown="if(event.key==='Enter')submitSearch()">
+            <i class="fa-solid fa-magnifying-glass" onclick="submitSearch()"></i>
+        </div>
+        <button class="mic-btn" onclick="startVoiceSearch()"><i class="fa-solid fa-microphone"></i></button>
+    </div>
+
+    <div class="hero">
+        <h1>كل احتياجاتك،<br>أقرب مع وصلة.</h1>
+        <p>الصحة، السيارات، التعليم، التسوق والصيانة في مكان واحد.</p>
+    </div>
+
+    <div class="section-title"><span>اكتشف الأقسام</span></div>
+    <div class="categories-grid">
+        <div class="cat-card" onclick="navigateTo('medical')">
+            <div class="cat-icon" style="background: #ECFDF5; color: #059669;"><i class="fa-solid fa-heart-pulse"></i></div>
+            <h3>الصحة والطب</h3><p>أطباء، صيدليات، وتمريض</p>
+        </div>
+        <div class="cat-card" onclick="orderSector('cars')">
+            <div class="cat-icon" style="background: #E0F2FE; color: #0284C7;"><i class="fa-solid fa-car"></i></div>
+            <h3>خدمات السيارات</h3><p>صيانة، غسيل، وسحب</p>
+        </div>
+        <div class="cat-card" onclick="orderSector('education')">
+            <div class="cat-icon" style="background: #F3E8FF; color: #7C3AED;"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h3>وصلة للتعليم</h3><p>مدرسون ومجموعات</p>
+        </div>
+        <div class="cat-card" onclick="orderSector('shopping')">
+            <div class="cat-icon" style="background: #FFF7ED; color: #EA580C;"><i class="fa-solid fa-cart-shopping"></i></div>
+            <h3>السوبر ماركت</h3><p>كل احتياجات البيت</p>
+        </div>
+        <div class="cat-card" onclick="orderSector('maintenance')">
+            <div class="cat-icon" style="background: #FEF2F2; color: #E11D48;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+            <h3>الصيانة المنزلية</h3><p>سباكة وكهرباء</p>
+        </div>
+        <div class="cat-card" onclick="navigateTo('delivery')">
+            <div class="cat-icon" style="background: #FFF7ED; color: #F59E0B;"><i class="fa-solid fa-motorcycle"></i></div>
+            <h3>توصيل</h3><p>أي حاجة توصلك في دقايق</p>
+        </div>
+    </div>
+</main>
+
+<!-- MEDICAL VIEW -->
+<div id="view-medical" class="app-view" style="background: var(--med-bg);">
+    <div class="delivery-header" style="background: var(--card);">
+        <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
+        <h2 style="color: var(--med-dark);">الصحة والطب</h2>
+    </div>
+    
+    <div class="medical-banner">
+        <h1>احجز مع طبيبك</h1>
+        <div class="medical-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="ابحث عن طبيب أو تخصص...">
+        </div>
+    </div>
+
+    <div class="specialty-scroll">
+        <button class="specialty-pill active">الكل</button>
+        <button class="specialty-pill">باطنة</button>
+        <button class="specialty-pill">أسنان</button>
+        <button class="specialty-pill">عظام</button>
+        <button class="specialty-pill">أطفال</button>
+        <button class="specialty-pill">عيون</button>
+    </div>
+
+    <div class="doctors-list" id="doctors-container">
+        <!-- سيتم تحميل البيانات هنا ديناميكياً -->
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+    </div>
+</div>
+
+<div id="view-delivery" class="app-view">
+    <div class="delivery-header">
+        <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
+        <h2>توصيل</h2>
+    </div>
+    <div class="delivery-form" style="padding: 20px;">
+        <div class="delivery-banner" style="background: var(--delivery-gradient); border-radius: 20px; padding: 25px; color: white; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-md);">
+            <h1>عايز توصل إيه؟ 🛵</h1>
+            <p>بنوصل أي حاجة لأي حد في شبين القناطر</p>
+        </div>
+        <div class="input-group">
+            <label>نوع الشحنة</label>
+            <input type="text" id="delivery-item" class="input-field" placeholder="مثال: شنطة، فلوس، أوراق...">
+        </div>
+        <div class="input-group">
+            <label>رقم تليفونك</label>
+            <input type="tel" id="delivery-phone" class="input-field" placeholder="01xxxxxxxxx">
+        </div>
+        <div class="input-group">
+            <label>موقع الاستلام</label>
+            <button class="location-btn" id="pickup-btn" onclick="getLocation('pickup')" style="width: 100%; padding: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--text); margin-bottom: 15px;">
+                <span>تحديد موقع الاستلام</span>
+                <i class="fa-solid fa-location-crosshairs"></i>
+            </button>
+            <span class="gps-text" id="pickup-status" style="font-size: 11px; color: var(--muted); text-align: center; margin-top: -10px; margin-bottom: 15px; display: block;">لم يتم تحديد الموقع بعد</span>
+        </div>
+        <div class="input-group">
+            <label>موقع التسليم</label>
+            <button class="location-btn" id="dropoff-btn" onclick="getLocation('dropoff')" style="width: 100%; padding: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--text); margin-bottom: 15px;">
+                <span>تحديد موقع التسليم</span>
+                <i class="fa-solid fa-location-crosshairs"></i>
+            </button>
+            <span class="gps-text" id="dropoff-status" style="font-size: 11px; color: var(--muted); text-align: center; margin-top: -10px; margin-bottom: 15px; display: block;">لم يتم تحديد الموقع بعد</span>
+        </div>
+        <button class="delivery-submit" id="delivery-btn" onclick="submitDelivery()" style="width: 100%; padding: 16px; border-radius: 14px; background: var(--delivery-gradient); color: white; font-weight: 900; font-size: 16px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3); margin-top: 10px;">اطلب التوصيل الآن</button>
+    </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="medical-booking-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>حجز موعد طبي</h2>
+            <button class="close-btn" onclick="closeModal('medical-booking-modal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <input type="hidden" id="booking-doc-id">
+        <input type="hidden" id="booking-doc-name">
+        <p style="margin-bottom: 15px; font-weight: bold; color: var(--med);">الطبيب: <span id="booking-doc-display"></span></p>
+        
+        <div class="input-group">
+            <label>اسم المريض</label>
+            <input type="text" id="booking-patient-name" class="input-field" placeholder="اسمك بالكامل">
+        </div>
+        <div class="input-group">
+            <label>رقم الهاتف</label>
+            <input type="tel" id="booking-phone" class="input-field" placeholder="01xxxxxxxxx">
+        </div>
+        <div class="input-group">
+            <label>التاريخ</label>
+            <input type="date" id="booking-date" class="input-field">
+        </div>
+        <div class="input-group">
+            <label>الوقت</label>
+            <select id="booking-time" class="input-field">
+                <option value="16:00">04:00 مساءً</option>
+                <option value="16:30">04:30 مساءً</option>
+                <option value="17:00">05:00 مساءً</option>
+                <option value="17:30">05:30 مساءً</option>
+                <option value="18:00">06:00 مساءً</option>
+            </select>
+        </div>
+        <button class="submit-btn" id="booking-submit-btn" onclick="submitMedicalBooking()">تأكيد الحجز</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="complaint-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>الشكاوى والاقتراحات</h2>
+            <button class="close-btn" onclick="closeModal('complaint-modal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="input-group">
+            <label>نوع الرسالة</label>
+            <select class="input-field" id="complaint-type">
+                <option>اقتراح لتطوير المنصة</option>
+                <option>شكوى بخصوص خدمة</option>
+                <option>مشكلة تقنية</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>تفاصيل الرسالة</label>
+            <textarea class="input-field" id="complaint-text" placeholder="اكتب تفاصيل..." rows="4"></textarea>
+        </div>
+        <button class="submit-btn" style="background: var(--brand);" onclick="submitComplaint()">إرسال</button>
+    </div>
+</div>
+
+<button class="whatsapp-float" onclick="openWhatsApp('السلام عليكم، عايز أطلب خدمة من وصلة')" aria-label="واتساب">
+    <i class="fa-brands fa-whatsapp"></i>
+</button>
+
+<nav class="bottom-nav">
+    <button class="nav-item active" onclick="navigateTo('home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
+    <button class="nav-item" onclick="showToast('طلباتي — قريباً')"><i class="fa-solid fa-box"></i><span>طلباتي</span></button>
+    <button class="nav-item" onclick="openModal('complaint-modal')"><i class="fa-solid fa-headset"></i><span>الدعم</span></button>
+    <button class="nav-item" onclick="showToast('المحفظة — قريباً')"><i class="fa-solid fa-wallet"></i><span>المحفظة</span></button>
+    <button class="nav-item" onclick="showToast('حسابي — قريباً')"><i class="fa-solid fa-user"></i><span>حسابي</span></button>
 </nav>
 
+<div id="toast" class="toast"></div>
+
 <script>
-const PHONE = "201000000000"; // Replace with actual phone
-let currentReq = null;
-let coords = { pickup: null, dropoff: null };
+// =========================================
+// 1. الإعدادات والتهيئة (Supabase)
+// =========================================
+const WASLA_PHONE = '201555196375';
+const WASLA_PHONE_DISPLAY = '01555196375';
 
-// Theme Management
-if(localStorage.getItem('theme')==='dark') { document.documentElement.setAttribute('data-theme','dark'); document.getElementById('themeIcon').className='fa-solid fa-sun'; }
-function toggleTheme(){
-    const isDark = document.documentElement.getAttribute('data-theme')==='dark';
-    const next = isDark ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('theme', next);
-    document.getElementById('themeIcon').className = next==='dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+// بيانات Supabase (التي أنشأناها في PART 01)
+const SUPABASE_URL = 'https://fdduzcytuhoelnnejgkl.supabase.co'; 
+const SUPABASE_ANON_KEY = 'sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529';
+
+let supabaseClient = null;
+try {
+    if (window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+} catch(e) { console.log("Supabase Init Error:", e); }
+
+document.getElementById('phone-link').href = 'tel:+' + WASLA_PHONE;
+document.getElementById('phone-display').innerText = WASLA_PHONE_DISPLAY;
+
+// =========================================
+// 2. الدوال المساعدة والتنقل
+// =========================================
+function openWhatsApp(message) {
+    const url = `https://wa.me/${WASLA_PHONE}?text=${encodeURIComponent(message)}`;
+    window.location.href = url;
 }
 
-// Navigation
-function toggleMenu(){
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('overlay').classList.toggle('open');
-}
-function nav(id){
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    document.getElementById('view-'+id).classList.add('active');
-    if(id==='orders') renderOrders();
-    // Update bottom nav active state
-    document.querySelectorAll('.b-item').forEach(b=>b.classList.remove('active'));
-    if(id==='home') document.querySelector('.b-item:nth-child(1)').classList.add('active');
-    if(id==='orders') document.querySelector('.b-item:nth-child(2)').classList.add('active');
-    if(id==='market') document.querySelector('.b-item:nth-child(3)').classList.add('active');
-    toggleMenu();
-    window.scrollTo(0,0);
+function showToast(msg) { 
+    const t = document.getElementById('toast'); 
+    t.textContent = msg; 
+    t.classList.add('show'); 
+    setTimeout(() => t.classList.remove('show'), 3000); 
 }
 
-// Toast
-function showToast(msg){
-    const t = document.getElementById('toast');
-    t.innerText = msg; t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'), 3000);
+const savedTheme = localStorage.getItem('wasla_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+if(savedTheme === 'dark') document.getElementById('theme-icon').className = 'fa-solid fa-sun';
+
+function toggleTheme() {
+    const html = document.documentElement;
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('wasla_theme', next);
+    document.getElementById('theme-icon').className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
 }
 
-// GPS
-function getLocation(type){
-    const btn = document.getElementById('btn-'+type);
-    const txt = document.getElementById('txt-'+type);
-    txt.innerText = "جاري التحديد...";
-    if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(p=>{
-            coords[type] = { lat: p.coords.latitude, lng: p.coords.longitude };
-            btn.classList.add('active');
-            txt.innerText = "تم تحديد الموقع ✅";
-        }, ()=>{
-            txt.innerText = "فشل التحديد - اكتب العنوان في الملاحظات";
-            coords[type] = "manual";
-        });
-    } else {
-        txt.innerText = "المتصفح لا يدعم الموقع";
+function navigateTo(viewId) {
+    document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+    const target = document.getElementById('view-' + viewId);
+    if(target) target.classList.add('active');
+    window.scrollTo(0, 0);
+    
+    // جلب الأطباء عند فتح قسم الصحة
+    if(viewId === 'medical') {
+        loadDoctors();
     }
 }
 
-// Request Flow
-function requestService(type, name){
-    currentReq = { type, name, date: new Date().toISOString(), id: Date.now() };
-    document.getElementById('modal-title').innerText = `طلب: ${name}`;
-    document.getElementById('f-extra-group').style.display = 'block';
-    document.getElementById('modal').style.display = 'flex';
-}
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-function submitForm(type){
-    if(type === 'delivery'){
-        const item = document.getElementById('del-item').value;
-        if(!item) return showToast('اكتب تفاصيل الشحنة');
-        if(!coords.pickup || !coords.dropoff) return showToast('حدد المواقع أولاً');
-        currentReq = { type, name: 'توصيل', item, coords, date: new Date().toISOString(), id: Date.now() };
-        document.getElementById('modal-title').innerText = 'تأكيد التوصيل';
-        document.getElementById('f-extra-group').style.display = 'none';
-    } else if(type === 'market'){
-        const list = document.getElementById('market-list').value;
-        if(!list) return showToast('اكتب طلباتك');
-        currentReq = { type, name: 'سوبر ماركت', list, date: new Date().toISOString(), id: Date.now() };
-        document.getElementById('modal-title').innerText = 'تأكيد الطلب';
-        document.getElementById('f-extra-group').style.display = 'none';
-    }
-    document.getElementById('modal').style.display = 'flex';
-}
+// =========================================
+// 3. قطاع الصحة (Medical Logic)
+// =========================================
 
-function closeModal(){ document.getElementById('modal').style.display = 'none'; }
+// دالة لجلب الأطباء من قاعدة البيانات
+async function loadDoctors() {
+    const container = document.getElementById('doctors-container');
+    container.innerHTML = '<div class="skeleton-card"></div><div class="skeleton-card"></div>';
 
-function finalizeOrder(){
-    const name = document.getElementById('f-name').value;
-    const phone = document.getElementById('f-phone').value;
-    const extra = document.getElementById('f-extra').value;
-    
-    if(!name || phone.length < 10) return showToast('أدخل بيانات صحيحة');
-    
-    currentReq.customer = { name, phone, extra };
-    currentReq.status = 'قيد الانتظار';
-    
-    // Save to LocalStorage
-    let orders = JSON.parse(localStorage.getItem('wasla_orders') || '[]');
-    orders.unshift(currentReq);
-    localStorage.setItem('wasla_orders', JSON.stringify(orders));
-    
-    // Build WhatsApp Message
-    let msg = `*طلب جديد من وصلة*\n\n👤 الاسم: ${name}\n📱 التليفون: ${phone}\n🛠️ الخدمة: ${currentReq.name}\n`;
-    if(currentReq.item) msg += `📦 الشحنة: ${currentReq.item}\n`;
-    if(currentReq.list) msg += `🛒 الطلبات: ${currentReq.list}\n`;
-    if(extra) msg += `📝 ملاحظات: ${extra}\n`;
-    
-    if(currentReq.coords){
-        if(currentReq.coords.pickup.lat) msg += `📍 من: https://maps.google.com/?q=${currentReq.coords.pickup.lat},${currentReq.coords.pickup.lng}\n`;
-        if(currentReq.coords.dropoff.lat) msg += `🎯 إلى: https://maps.google.com/?q=${currentReq.coords.dropoff.lat},${currentReq.coords.dropoff.lng}\n`;
-    }
-    
-    window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
-    closeModal();
-    showToast('تم الحفظ بنجاح');
-    nav('orders');
-}
-
-function renderOrders(){
-    const container = document.getElementById('orders-container');
-    const orders = JSON.parse(localStorage.getItem('wasla_orders') || '[]');
-    
-    if(orders.length === 0){
-        container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--m);"><i class="fa-solid fa-box-open" style="font-size:40px;margin-bottom:10px;"></i><p>لا توجد طلبات سابقة</p></div>';
+    if(!supabaseClient) {
+        // في حال عدم توفر الاتصال، نعرض بيانات تجريبية لضمان عدم توقف الواجهة
+        renderDoctorsFallback();
         return;
     }
-    
-    container.innerHTML = orders.map(o => {
-        let mapBtn = '';
-        if(o.coords && o.coords.pickup && o.coords.pickup.lat){
-            mapBtn = `<a href="https://maps.google.com/?q=${o.coords.pickup.lat},${o.coords.pickup.lng}" target="_blank" style="color:var(--b);font-size:12px;display:block;margin-top:8px;"><i class="fa-solid fa-map-location-dot"></i> عرض الموقع على الخريطة</a>`;
+
+    try {
+        // جلب الأطباء مع ربط اسم الملف الشخصي (إن وجد)
+        const { data, error } = await supabaseClient
+            .from('health_doctors')
+            .select(`
+                id,
+                clinic_name,
+                consultation_fee,
+                rating,
+                experience_years
+            `);
+
+        if (error) throw error;
+
+        if (data.length === 0) {
+            // إذا كان الجدول فارغاً، نعرض بيانات تجريبية
+            renderDoctorsFallback();
+        } else {
+            renderDoctors(data);
         }
+
+    } catch(e) {
+        console.error("Error fetching doctors:", e);
+        renderDoctorsFallback();
+    }
+}
+
+// دالة لعرض الأطباء (من قاعدة البيانات)
+function renderDoctors(doctors) {
+    const container = document.getElementById('doctors-container');
+    container.innerHTML = '';
+    
+    doctors.forEach(doc => {
+        // نستخدم clinic_name كاسم للطبيب مؤقتاً (أو يمكن جلبه من profiles)
+        const docName = doc.clinic_name || 'طبيب غير محدد';
         
-        return `
-        <div class="order-card">
-            <div class="order-head">
-                <h4 style="font-size:15px;color:var(--b);">${o.name}</h4>
-                <span class="order-status">${o.status}</span>
+        container.innerHTML += `
+            <div class="doctor-card">
+                <div class="doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+                <div class="doc-info">
+                    <h3>${docName}</h3>
+                    <p>استشاري</p>
+                    <div class="doc-meta">
+                        <span style="color: #f59e0b;"><i class="fa-solid fa-star"></i> ${doc.rating || '5.0'}</span>
+                        <span><i class="fa-solid fa-clock"></i> ${doc.experience_years || '1'} سنة خبرة</span>
+                    </div>
+                </div>
+                <div class="doc-price">
+                    <span>${doc.consultation_fee || '200'} ج</span>
+                    <button class="btn-book-doctor" onclick="openBookingModal('${doc.id}', '${docName}')">حجز</button>
+                </div>
             </div>
-            <p class="order-date">${new Date(o.date).toLocaleDateString('ar-EG')} - ${o.customer.name}</p>
-            ${o.item ? `<p style="font-size:13px;margin-top:8px;">الشحنة: ${o.item}</p>` : ''}
-            ${o.list ? `<p style="font-size:13px;margin-top:8px;">الطلبات: ${o.list}</p>` : ''}
-            ${mapBtn}
-        </div>
         `;
-    }).join('');
+    });
+}
+
+// دالة عرض بيانات تجريبية (Fallback)
+function renderDoctorsFallback() {
+    const dummyDoctors = [
+        { id: '1', name: 'د. محمد عبد الله', fee: 200, rating: '4.8', exp: 15 },
+        { id: '2', name: 'د. سارة خالد', fee: 150, rating: '5.0', exp: 8 },
+        { id: '3', name: 'د. أحمد حسن', fee: 250, rating: '4.6', exp: 12 }
+    ];
+    
+    const container = document.getElementById('doctors-container');
+    container.innerHTML = '';
+    
+    dummyDoctors.forEach(doc => {
+        container.innerHTML += `
+            <div class="doctor-card">
+                <div class="doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+                <div class="doc-info">
+                    <h3>${doc.name}</h3>
+                    <p>استشاري</p>
+                    <div class="doc-meta">
+                        <span style="color: #f59e0b;"><i class="fa-solid fa-star"></i> ${doc.rating}</span>
+                        <span><i class="fa-solid fa-clock"></i> ${doc.exp} سنة خبرة</span>
+                    </div>
+                </div>
+                <div class="doc-price">
+                    <span>${doc.fee} ج</span>
+                    <button class="btn-book-doctor" onclick="openBookingModal('${doc.id}', '${doc.name}')">حجز</button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// فتح نافذة الحجز
+function openBookingModal(docId, docName) {
+    document.getElementById('booking-doc-id').value = docId;
+    document.getElementById('booking-doc-name').value = docName;
+    document.getElementById('booking-doc-display').innerText = docName;
+    openModal('medical-booking-modal');
+}
+
+// حفظ الحجز في قاعدة البيانات ثم إرسال واتساب
+async function submitMedicalBooking() {
+    const docId = document.getElementById('booking-doc-id').value;
+    const docName = document.getElementById('booking-doc-name').value;
+    const patientName = document.getElementById('booking-patient-name').value.trim();
+    const phone = document.getElementById('booking-phone').value.trim();
+    const date = document.getElementById('booking-date').value;
+    const time = document.getElementById('booking-time').value;
+    
+    if(!patientName || !phone || !date) {
+        showToast('يرجى ملء جميع البيانات المطلوبة');
+        return;
+    }
+
+    const btn = document.getElementById('booking-submit-btn');
+    btn.disabled = true;
+    btn.innerText = 'جاري الحفظ...';
+
+    // 1. محاولة الحفظ في قاعدة البيانات (جدول orders)
+    if (supabaseClient) {
+        try {
+            // ملاحظة: نظراً لأن المستخدم لم يقم بتسجيل الدخول بعد، سنحفظ الطلب في جدول orders 
+            // وسنستخدم رقم الهاتف للتواصل.
+            const { error } = await supabaseClient.from('orders').insert([{
+                sector: 'medical',
+                details: `حجز طبي مع ${docName}\nالمريض: ${patientName}\nالتاريخ: ${date}\nالوقت: ${time}\nالهاتف: ${phone}`,
+                status: 'pending'
+            }]);
+
+            if (error) throw error;
+            
+            showToast('تم حفظ الحجز بنجاح في النظام!');
+            
+        } catch(e) {
+            console.error("DB Error:", e);
+            showToast('حدث خطأ في حفظ الطلب في النظام، سنحولك للواتساب مباشرة.');
+        }
+    } else {
+        showToast('وضع عدم الاتصال: سنحولك للواتساب مباشرة.');
+    }
+
+    // 2. إرسال واتساب (في كل الأحوال)
+    const msg = `*🏥 حجز طبي جديد - وصلة*\n\n👨‍⚕️ الطبيب: ${docName}\n👤 المريض: ${patientName}\n📱 الهاتف: ${phone}\n📅 التاريخ: ${date}\n⏰ الوقت: ${time}`;
+    
+    btn.disabled = false;
+    btn.innerText = 'تأكيد الحجز';
+    closeModal('medical-booking-modal');
+    
+    // تصفير الحقول
+    document.getElementById('booking-patient-name').value = '';
+    document.getElementById('booking-phone').value = '';
+    document.getElementById('booking-date').value = '';
+    
+    // فتح الواتساب
+    setTimeout(() => openWhatsApp(msg), 500);
+}
+
+// =========================================
+// 4. قطاع التوصيل (Delivery Logic)
+// =========================================
+let pickupCoords = null;
+let dropoffCoords = null;
+
+function getLocation(type) {
+    if(!navigator.geolocation) { showManualAddress(type); return; }
+    const btn = document.getElementById(type + '-btn');
+    const status = document.getElementById(type + '-status');
+    status.innerText = 'جاري تحديد الموقع...';
+    btn.disabled = true;
+    
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            if(type === 'pickup') pickupCoords = coords;
+            else dropoffCoords = coords;
+            btn.classList.add('active');
+            btn.disabled = false;
+            btn.innerHTML = '<span>تم تحديد الموقع ✅</span><i class="fa-solid fa-check"></i>';
+            status.innerHTML = '<span style="color:#059669">تم تحديد الموقع بنجاح</span>';
+        },
+        () => { btn.disabled = false; showManualAddress(type); },
+        { timeout: 10000, enableHighAccuracy: true }
+    );
+}
+
+function showManualAddress(type) {
+    const btn = document.getElementById(type + '-btn');
+    const status = document.getElementById(type + '-status');
+    btn.innerHTML = '<span>اكتب العنوان تحت</span><i class="fa-solid fa-pen"></i>';
+    status.innerHTML = `<input type="text" id="${type}-manual-input" class="input-field" style="margin-top:8px" placeholder="اسم الشارع + علامة مميزة">`;
+}
+
+async function submitDelivery() {
+    const item = document.getElementById('delivery-item').value.trim();
+    const phone = document.getElementById('delivery-phone').value.trim();
+    const pickupManualVal = document.getElementById('pickup-manual-input')?.value.trim() || '';
+    const dropoffManualVal = document.getElementById('dropoff-manual-input')?.value.trim() || '';
+    
+    if(!item) return showToast('اكتب نوع الشحنة');
+    if(!phone || phone.length < 10) return showToast('رقم التليفون غلط');
+    if(!pickupCoords && !pickupManualVal) return showToast('حدد موقع الاستلام');
+    if(!dropoffCoords && !dropoffManualVal) return showToast('حدد موقع التسليم');
+    
+    const btn = document.getElementById('delivery-btn');
+    btn.innerText = 'جاري الإرسال...';
+    btn.disabled = true;
+    
+    // محاولة الحفظ في الداتا بيز
+    if(supabaseClient) {
+        try {
+            await supabaseClient.from('orders').insert([{
+                sector: 'delivery',
+                details: `الشحنة: ${item}\nمن: ${pickupManualVal || 'GPS'}\nإلى: ${dropoffManualVal || 'GPS'}\nالهاتف: ${phone}`,
+                status: 'pending'
+            }]);
+        } catch(e) { console.log("DB Error:", e); }
+    }
+
+    const waMsg = 
+        `*🛵 طلب توصيل جديد - وصلة*\n\n` +
+        `📦 الشحنة: ${item}\n` +
+        `📱 التليفون: ${phone}\n\n` +
+        `📍 من: ${pickupManualVal || 'موقع GPS'}\n` +
+        `🎯 إلى: ${dropoffManualVal || 'موقع GPS'}\n` +
+        `\n⏰ ${new Date().toLocaleString('ar-EG')}`;
+    
+    document.getElementById('delivery-item').value = '';
+    document.getElementById('delivery-phone').value = '';
+    pickupCoords = null; dropoffCoords = null;
+    resetLocationBtn('pickup'); resetLocationBtn('dropoff');
+    btn.innerText = 'اطلب التوصيل الآن'; btn.disabled = false;
+    
+    showToast('جاري فتح واتساب...');
+    setTimeout(() => openWhatsApp(waMsg), 500);
+}
+
+function resetLocationBtn(type) {
+    const btn = document.getElementById(type + '-btn');
+    const status = document.getElementById(type + '-status');
+    btn.classList.remove('active'); btn.disabled = false;
+    btn.innerHTML = type === 'pickup' ? '<span>تحديد موقع الاستلام</span><i class="fa-solid fa-location-crosshairs"></i>' : '<span>تحديد موقع التسليم</span><i class="fa-solid fa-location-crosshairs"></i>';
+    status.innerText = 'لم يتم تحديد الموقع بعد';
+}
+
+// =========================================
+// 5. دوال عامة (أقسام أخرى، بحث، إلخ)
+// =========================================
+function orderSector(sector) {
+    const messages = {
+        cars:        'السلام عليكم 👋\nعايز خدمة سيارة من وصلة.\n\nنوع الخدمة: ',
+        education:   'السلام عليكم 👋\nعايز مدرس من وصلة.\n\nالمادة: \nالصف: ',
+        shopping:    'السلام عليكم 👋\nعايز أطلب من سوبر ماركت وصلة.\n\nالأصناف: ',
+        maintenance: 'السلام عليكم 👋\nعايز فني من وصلة.\n\nنوع المشكلة: '
+    };
+    openWhatsApp(messages[sector] || 'السلام عليكم، عايز أستخدم وصلة');
+}
+
+function submitSearch() {
+    const q = document.getElementById('search-input').value.trim();
+    if(!q) return showToast('اكتب اللي بتدور عليه الأول');
+    openWhatsApp(`السلام عليكم 👋\nبدور على: ${q}`);
+}
+
+function startVoiceSearch() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR) return showToast('البحث الصوتي مش متاح');
+    const rec = new SR();
+    rec.lang = 'ar-EG';
+    showToast('بتكلم... 🎤');
+    rec.onresult = (e) => {
+        const text = e.results[0][0].transcript;
+        document.getElementById('search-input').value = text;
+        openWhatsApp(`السلام عليكم 👋\nعايز: ${text}`);
+    };
+    try { rec.start(); } catch(e) {}
+}
+
+function toggleGPS() {
+    const btn = document.getElementById('gps-btn');
+    if(!navigator.geolocation) return showToast('المتصفح مش بيدعم الموقع');
+    btn.classList.add('active');
+    navigator.geolocation.getCurrentPosition(
+        pos => showToast(`موقعك: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`),
+        () => { btn.classList.remove('active'); showToast('محتاج إذن الموقع'); }
+    );
+}
+
+function submitComplaint() {
+    const type = document.getElementById('complaint-type').value;
+    const text = document.getElementById('complaint-text').value.trim();
+    if(!text) return showToast('اكتب تفاصيل الرسالة');
+    openWhatsApp(`*📩 رسالة من وصلة*\n\nالنوع: ${type}\n\nالتفاصيل:\n${text}`);
+    document.getElementById('complaint-text').value = '';
+    closeModal('complaint-modal');
 }
 </script>
 </body>
