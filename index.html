@@ -710,7 +710,7 @@ const DB = {
             await this.loadNotifications();
             Router.navigate('profile');
 
-            const msg = `*طلب جديد - وصلة*\\n\\n👤 العميل: ${Auth.user.email}\\n📞 التليفون: ${payload.phone}\\n🛠️ الخدمة: ${payload.sectorName}\\n📝 التفاصيل: ${payload.details}`;
+            const msg = `*طلب جديد - وصلة*\n\n👤 العميل: ${Auth.user.email}\n📞 التليفون: ${payload.phone}\n🛠️ الخدمة: ${payload.sectorName}\n📝 التفاصيل: ${payload.details}`;
             const whatsappUrl = `https://wa.me/${WASLA_PHONE}?text=${encodeURIComponent(msg)}`;
             if (whatsappWindow && !whatsappWindow.closed) {
                 whatsappWindow.location.href = whatsappUrl;
@@ -922,7 +922,7 @@ const Actions = {
     openCart: function() {
         if(this.cart.length === 0) return UI.toast('السلة فارغة');
         const details = this.cart.map(i => `${i.name} (الكمية: ${i.qty})`).join('، ');
-        this.request('سوبر ماركت', `الأصناف المطلوبة: ${details}\\nالسعر والتوفر والتوصيل يؤكدها المتجر قبل اعتماد الطلب.`);
+        this.request('سوبر ماركت', `الأصناف المطلوبة: ${details}\nالسعر والتوفر والتوصيل يؤكدها المتجر قبل اعتماد الطلب.`);
     }
 };
 
