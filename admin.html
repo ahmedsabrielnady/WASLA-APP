@@ -402,7 +402,17 @@ async function loadWaslaAnnouncements() {
         ticker.replaceChildren();
         data.forEach(item => {
             const span = document.createElement('span');
-            span.textContent = item.message;
+            if (item.target_url && /^https?:\\/\\//i.test(item.target_url)) {
+                const link = document.createElement('a');
+                link.href = item.target_url;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.style.color = 'inherit';
+                link.textContent = item.message;
+                span.appendChild(link);
+            } else {
+                span.textContent = item.message;
+            }
             ticker.appendChild(span);
         });
     } catch (error) {
