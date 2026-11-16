@@ -252,6 +252,7 @@ a { text-decoration: none; color: inherit; }
         <div class="brand-text"><h1>وصلة</h1><span>WASLA</span></div>
     </div>
     <div style="display:flex; gap:10px;">
+        <button class="icon-btn" onclick="Router.navigate('profile'); DB.loadNotifications()" aria-label="الإشعارات"><i class="fa-regular fa-bell"></i></button>
         <button class="icon-btn" onclick="UI.toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
         <button class="icon-btn" onclick="Router.navigate('profile')"><i class="fa-solid fa-user"></i></button>
     </div>
@@ -450,6 +451,8 @@ a { text-decoration: none; color: inherit; }
             <h3 id="profile-email">user@wasla.com</h3>
             <button class="btn-auth ripple-btn" style="background:#ef4444; margin-top:20px;" onclick="Auth.logout(this)">تسجيل الخروج</button>
         </div>
+        <div class="section-title">إشعاراتي</div>
+        <div id="notifications-list" style="padding:0 20px 12px;"></div>
         <div class="section-title">طلباتي السابقة</div>
         <div id="orders-list" style="padding:0 20px; padding-bottom: 20px;"></div>
     </div>
@@ -566,6 +569,7 @@ const Auth = {
             document.getElementById('profile-email').innerText = this.user.email;
             document.getElementById('home-username').innerText = `أهلاً بك، ${this.user.email.split('@')[0]} 👋`;
             DB.loadOrders();
+            DB.loadNotifications();
         } else {
             this.user = null;
             document.getElementById('auth-section').style.display = 'block';
@@ -643,10 +647,65 @@ const DB = {
                     <strong>${o.sector}</strong>
                     <span style="font-size:11px; background:var(--brand-light); color:var(--brand); padding:2px 8px; border-radius:10px;">${o.status}</span>
                 </div>
+                ${o.tracking_code ? `<p style="font-size:12px; font-weight:800; color:var(--brand); margin:5px 0;">رقم التتبع: ${o.tracking_code}</p>` : ''}
                 <p style="font-size:13px; color:var(--muted);">${o.details}</p>
                 <p style="font-size:11px; color:var(--muted); margin-top:8px;">${new Date(o.created_at).toLocaleString('ar-EG')}</p>
             </div>
         `).join('');
+    },
+    loadNotifications: async function() {
+        const list = document.getElementById('notifications-list');
+        if (!list) return;
+        if (!supabaseClient || !Auth.user) {
+            list.textContent = 'سجّل الدخول لعرض إشعاراتك المرتبطة بحسابك.';
+            return;
+        }
+        list.textContent = 'جاري تحميل الإشعارات...';
+        const { data, error } = await supabaseClient
+            .from('wasla_notifications')
+            .select('id, title, body, type, created_at, read_at')
+            .eq('user_id', Auth.user.id)
+            .order('created_at', { ascending: false })
+            .limit(20);
+        if (error) {
+            list.textContent = 'الإشعارات ستظهر بعد تفعيل نظام الإشعارات في قاعدة البيانات.';
+            console.info('WASLA notifications unavailable:', error.message);
+            return;
+        }
+        list.replaceChildren();
+        if (!data || data.length === 0) {
+            list.textContent = 'لا توجد إشعارات جديدة.';
+            return;
+        }
+        data.forEach(item => {
+            const card = document.createElement('div');
+            card.style.cssText = 'background:var(--card); padding:12px; border-radius:12px; margin-bottom:8px; border-right:4px solid ' + (item.read_at ? 'var(--border)' : 'var(--brand)') + ';';
+            const title = document.createElement('strong');
+            title.textContent = item.title;
+            const body = document.createElement('p');
+            body.style.cssText = 'font-size:13px; color:var(--muted); margin-top:4px;';
+            body.textContent = item.body;
+            const date = document.createElement('small');
+            date.style.color = 'var(--muted)';
+            date.textContent = new Date(item.created_at).toLocaleString('ar-EG');
+            card.append(title, body, date);
+            if (!item.read_at) {
+                card.style.cursor = 'pointer';
+                card.title = 'اضغط لتحديد الإشعار كمقروء';
+                card.addEventListener('click', async () => {
+                    const { error: updateError } = await supabaseClient
+                        .from('wasla_notifications')
+                        .update({ read_at: new Date().toISOString() })
+                        .eq('id', item.id)
+                        .eq('user_id', Auth.user.id);
+                    if (!updateError) {
+                        card.style.borderRightColor = 'var(--border)';
+                        card.style.cursor = 'default';
+                    }
+                });
+            }
+            list.appendChild(card);
+        });
     }
 };
 
