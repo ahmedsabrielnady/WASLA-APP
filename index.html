@@ -961,9 +961,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if(savedTheme === 'dark') document.getElementById('theme-icon').className = 'fa-solid fa-sun';
 
     // Auth & Router
-    Auth.checkSession();
+    Auth.checkSession().catch(error => console.error('WASLA session check failed:', error));
     Router.init();
-    if(supabaseClient) supabaseClient.auth.onAuthStateChange(() => Auth.checkSession());
+    if (supabaseClient) {
+        // Defer auth state work until after Supabase finishes its callback/lock cycle.
+        supabaseClient.auth.onAuthStateChange(() => {
+            window.setTimeout(() => {
+                Auth.checkSession().catch(error => console.error('WASLA auth state refresh failed:', error));
+            }, 0);
+        });
+    }
 });
 </script>
 </body>
