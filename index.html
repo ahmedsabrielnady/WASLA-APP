@@ -296,7 +296,7 @@ a { text-decoration: none; color: inherit; }
     </div>
     <div class="hero">
         <h1>كل احتياجاتك،<br>أقرب مع وصلة.</h1>
-        <p>منصة متكاملة.. مدعومة بالذكاء الاصطناعي.</p>
+        <p>خدمات متعددة في مكان واحد، مع متابعة الطلبات من حسابك.</p>
     </div>
     <div class="section-title">اكتشف الأقسام</div>
     <div class="categories-grid">
@@ -313,42 +313,17 @@ a { text-decoration: none; color: inherit; }
 <div id="view-education" class="app-view">
     <div class="inner-header"><div class="back-btn" onclick="Router.navigate('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>التعليم</h2></div>
     <div class="edu-header">
-        <h1>منصة التعليم</h1>
-        <p>أفضل المعلمين والدورات</p>
+        <h1>التعليم والتدريب</h1>
+        <p>طلبات مدرسين ودورات تعليمية بعد مراجعة مقدمي الخدمة واعتمادهم</p>
     </div>
-    <div class="edu-filter">
-        <div class="edu-pill active">الكل</div>
-        <div class="edu-pill">الثانوية العامة</div>
-        <div class="edu-pill">الإعدادية</div>
-    </div>
-    <div style="padding: 0 20px; margin-bottom: 16px; font-size: 18px; font-weight: bold; color: #0f172a;">المعلمين المميزين</div>
-    <div class="teacher-grid">
-        <div class="teacher-card">
-            <div class="teacher-img-wrapper"><img src="https://ui-avatars.com/api/?name=أحمد+محمد&background=84cc16&color=fff&size=100" alt="T"></div>
-            <div class="teacher-info">
-                <h4>أ. أحمد محمد</h4>
-                <p>الفيزياء</p>
-                <div class="teacher-socials"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
-            </div>
-        </div>
-        <div class="teacher-card">
-            <div class="teacher-img-wrapper"><img src="https://ui-avatars.com/api/?name=سارة+علي&background=84cc16&color=fff&size=100" alt="T"></div>
-            <div class="teacher-info">
-                <h4>أ. سارة علي</h4>
-                <p>الكيمياء</p>
-                <div class="teacher-socials"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
-            </div>
+    <div class="teacher-card" role="status" aria-live="polite" style="margin:20px;">
+        <div class="teacher-info">
+            <h4>نعمل على إضافة المعلمين والدورات المعتمدة</h4>
+            <p>ستظهر بيانات المعلم والتخصص والمواعيد والتكلفة بعد التحقق من مقدم الخدمة.</p>
         </div>
     </div>
-    <div style="padding: 0 20px; margin-bottom: 16px; font-size: 18px; font-weight: bold; color: #0f172a;">أحدث الدورات</div>
-    <div class="course-card">
-        <div class="course-tag">الثانوية العامة</div>
-        <div class="course-title">مراجعة ليلة الامتحان - فيزياء</div>
-        <div class="course-teacher"><i class="fa-solid fa-user-tie"></i> مع أ. أحمد محمد - 3 محاضرات مكثفة</div>
-        <div class="course-footer">
-            <div class="course-price"><span>400 ج</span> 350 ج</div>
-            <button class="btn-enroll ripple-btn" onclick="Actions.request('تعليمي', 'حجز دورة فيزياء', this)">سجل الآن</button>
-        </div>
+    <div style="padding:0 20px 24px;">
+        <button class="btn-enroll ripple-btn" style="width:100%;" onclick="Actions.request('تعليمي', 'طلب مدرس أو دورة تعليمية')">أرسل طلب مدرس أو دورة</button>
     </div>
 </div>
 
@@ -406,28 +381,31 @@ a { text-decoration: none; color: inherit; }
 <!-- ==================== VIEW: DELIVERY ==================== -->
 <div id="view-delivery" class="app-view">
     <div class="inner-header"><div class="back-btn" onclick="Router.navigate('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>توصيل</h2></div>
-    <div class="del-map">
-        <div class="map-pattern"></div>
-        <div class="map-pin pin-pickup"><i class="fa-solid fa-location-dot"></i></div>
-        <div class="map-pin pin-dropoff"><i class="fa-solid fa-flag-checkered"></i></div>
+    <div class="del-map" role="note" style="height:auto;min-height:120px;padding:24px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--card);color:var(--text);border-bottom:1px solid var(--border);">
+        <i class="fa-solid fa-map-location-dot" style="font-size:32px;color:var(--del);margin-bottom:10px;"></i>
+        <strong>ربط الخريطة وتحديد الموقع المباشر قيد التجهيز</strong>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">أدخل موقعي الاستلام والتسليم، وسيتم تأكيدهما معك قبل تنفيذ الطلب.</p>
     </div>
     <div class="del-form">
         <div class="del-input-group">
             <div class="del-icon icon-pickup"><i class="fa-solid fa-store"></i></div>
-            <input type="text" placeholder="موقع الاستلام (من فين؟)">
+            <input type="text" id="delivery-pickup" placeholder="موقع الاستلام (من فين؟)">
         </div>
         <div class="del-input-group">
             <div class="del-icon icon-dropoff"><i class="fa-solid fa-house"></i></div>
-            <input type="text" placeholder="موقع التسليم (لحد فين؟)">
+            <input type="text" id="delivery-dropoff" placeholder="موقع التسليم (لحد فين؟)">
         </div>
-        <button class="btn-del-submit ripple-btn" onclick="Actions.request('توصيل', 'طلب توصيل جديد', this)">تأكيد الطلب</button>
+        <button class="btn-del-submit ripple-btn" type="button" onclick="Actions.submitDelivery()">تسجيل طلب التوصيل</button>
     </div>
 </div>
 
 <!-- ==================== VIEW: MAINTENANCE & CARS ==================== -->
 <div id="view-maintenance" class="app-view">
     <div class="inner-header"><div class="back-btn" onclick="Router.navigate('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>الصيانة</h2></div>
-    <div class="ind-header"><h2 style="color: var(--maint); font-size: 20px;">فنيين موثوقين</h2></div>
+    <div class="ind-header">
+        <h2 style="color: var(--maint); font-size: 20px;">اطلب فني صيانة</h2>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">الطلب مبدئي، وسيتم تأكيد توفر الفني والتكلفة قبل التنفيذ.</p>
+    </div>
     <div class="ind-grid">
         <div class="ind-card">
             <div class="ind-icon-box"><i class="fa-solid fa-faucet-drip"></i></div>
@@ -450,7 +428,10 @@ a { text-decoration: none; color: inherit; }
 
 <div id="view-cars" class="app-view">
     <div class="inner-header"><div class="back-btn" onclick="Router.navigate('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>السيارات</h2></div>
-    <div class="ind-header"><h2 style="color: var(--cars); font-size: 20px;">خدمات السيارات</h2></div>
+    <div class="ind-header">
+        <h2 style="color: var(--cars); font-size: 20px;">خدمات السيارات</h2>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">يتم تأكيد مقدم الخدمة والسعر والموعد بعد مراجعة الطلب.</p>
+    </div>
     <div class="ind-grid">
         <div class="ind-card cars">
             <div class="ind-icon-box"><i class="fa-solid fa-car-side"></i></div>
@@ -487,10 +468,10 @@ a { text-decoration: none; color: inherit; }
 </div>
 
 <!-- ==================== OVERLAYS ==================== -->
-<div class="ai-float" onclick="UI.toggleAI()"><i class="fa-solid fa-robot"></i></div>
+<div class="ai-float" role="button" aria-label="فتح مساعد وصلة التجريبي" tabindex="0" onclick="UI.toggleAI()"><i class="fa-solid fa-robot"></i></div>
 <div class="ai-chat" id="ai-chat">
-    <div class="ai-header"><div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-robot"></i><div><h4 style="font-size:14px; margin:0;">Wasla AI</h4><span style="font-size:10px; opacity:0.8;">مساعدك الذكي</span></div></div><button onclick="UI.toggleAI()" style="color:white;"><i class="fa-solid fa-xmark"></i></button></div>
-    <div class="ai-messages" id="ai-messages"><div class="msg bot">أهلاً بك! أنا Wasla AI. كيف أقدر أساعدك اليوم؟</div></div>
+    <div class="ai-header"><div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-robot"></i><div><h4 style="font-size:14px; margin:0;">مساعد وصلة</h4><span style="font-size:10px; opacity:0.8;">مساعد تجريبي لتوجيهك بين الأقسام</span></div></div><button onclick="UI.toggleAI()" style="color:white;"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="ai-messages" id="ai-messages"><div class="msg bot">أهلاً بك في مساعد وصلة التجريبي. أقدر أوجّهك إلى أقسام المنصة وطرق إرسال الطلبات.</div></div>
     <div class="ai-input-area"><input type="text" id="ai-input" class="ai-input" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter') AI.send()"><button class="ai-send" onclick="AI.send()"><i class="fa-solid fa-paper-plane"></i></button></div>
 </div>
 
@@ -856,6 +837,16 @@ const Actions = {
         { id: 6, name: 'جبنة بيضاء', icon: 'fa-cheese', color: '#fef08a' }
     ],
 
+    submitDelivery: function() {
+        const pickup = document.getElementById('delivery-pickup')?.value.trim() || '';
+        const dropoff = document.getElementById('delivery-dropoff')?.value.trim() || '';
+        if (!pickup || !dropoff) {
+            UI.toast('أدخل موقعي الاستلام والتسليم أولاً');
+            return;
+        }
+        this.request('توصيل', 'موقع الاستلام: ' + pickup + '\nموقع التسليم: ' + dropoff);
+    },
+
     request: function(sector, details) {
         if(!Auth.user) { UI.toast('يرجى تسجيل الدخول أولاً'); return Router.navigate('profile'); }
         this.currentReq = { sectorName: sector, details };
@@ -939,11 +930,11 @@ const AI = {
             let reply = "عذراً، لم أفهم قصدك. جرب: 'دكتور'، 'توصيل'، 'صيانة'، أو 'سوبر ماركت'.";
             let nav = null;
 
-            if(msg.match(/(دكتور|طبيب|ضرس|أسنان|صحة|مريض)/)) { reply = "تحتاج إلى طبيب. سأفتح لك قسم الصحة الآن."; nav = 'medical'; }
-            else if(msg.match(/(توصيل|مندوب|شحن|طلب)/)) { reply = "خدمة التوصيل جاهزة. سأفتح لك صفحة التوصيل."; nav = 'delivery'; }
-            else if(msg.match(/(صيانة|سباك|كهرب|تكييف|عطل)/)) { reply = "فنيينا جاهزون. سأفتح لك قسم الصيانة."; nav = 'maintenance'; }
-            else if(msg.match(/(ماركت|أكل|بقالة|سوبر|خضار)/)) { reply = "إليك السوبر ماركت. اطلب ما تشاء."; nav = 'market'; }
-            else if(msg.match(/(تعليم|مدرس|دورة|امتحان)/)) { reply = "إليك قسم الدورات التعليمية."; nav = 'education'; }
+            if(msg.match(/(دكتور|طبيب|ضرس|أسنان|صحة|مريض)/)) { reply = "يمكنك فتح قسم الصحة للاطلاع على التخصصات. ستظهر بيانات الأطباء بعد اعتمادها."; nav = 'medical'; }
+            else if(msg.match(/(توصيل|مندوب|شحن|طلب)/)) { reply = "يمكنك إرسال طلب توصيل مبدئي. تأكيد المندوب والتكلفة يتم بعد مراجعة الطلب."; nav = 'delivery'; }
+            else if(msg.match(/(صيانة|سباك|كهرب|تكييف|عطل)/)) { reply = "يمكنك إرسال طلب صيانة مبدئي، وسنراجع توفر الفني والتكلفة قبل التأكيد."; nav = 'maintenance'; }
+            else if(msg.match(/(ماركت|أكل|بقالة|سوبر|خضار)/)) { reply = "الأصناف المعروضة توضيحية؛ المتجر الشريك يؤكد التوفر والسعر قبل اعتماد الطلب."; nav = 'market'; }
+            else if(msg.match(/(تعليم|مدرس|دورة|امتحان)/)) { reply = "قسم التعليم قيد تجهيز ملفات المعلمين والدورات المعتمدة."; nav = 'education'; }
 
             this.addMsg(reply, 'bot');
             if(nav) setTimeout(() => { Router.navigate(nav); UI.toggleAI(); }, 1200);
