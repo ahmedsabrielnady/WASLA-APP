@@ -470,100 +470,100 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 // دالة لجلب الأطباء من قاعدة البيانات
 async function loadDoctors() {
     const container = document.getElementById('doctors-container');
+    if (!container) return;
     container.innerHTML = '<div class="skeleton-card"></div><div class="skeleton-card"></div>';
 
-    if(!supabaseClient) {
-        // في حال عدم توفر الاتصال، نعرض بيانات تجريبية لضمان عدم توقف الواجهة
-        renderDoctorsFallback();
+    if (!supabaseClient) {
+        renderDoctorsFallback('تعذر الاتصال بقاعدة البيانات. لا يمكن عرض بيانات الأطباء حالياً.');
         return;
     }
 
     try {
-        // جلب الأطباء مع ربط اسم الملف الشخصي (إن وجد)
         const { data, error } = await supabaseClient
             .from('health_doctors')
-            .select(`
-                id,
-                clinic_name,
-                consultation_fee,
-                rating,
-                experience_years
-            `);
+            .select('id, clinic_name, consultation_fee, rating, experience_years');
 
         if (error) throw error;
-
-        if (data.length === 0) {
-            // إذا كان الجدول فارغاً، نعرض بيانات تجريبية
-            renderDoctorsFallback();
-        } else {
-            renderDoctors(data);
+        if (!Array.isArray(data) || data.length === 0) {
+            renderDoctorsFallback('لم تتم إضافة أطباء أو عيادات معتمدة بعد.');
+            return;
         }
-
-    } catch(e) {
-        console.error("Error fetching doctors:", e);
-        renderDoctorsFallback();
+        renderDoctors(data);
+    } catch (e) {
+        console.error('Error fetching verified doctors:', e);
+        renderDoctorsFallback('تعذر تحميل بيانات الأطباء. حاول مرة أخرى لاحقاً.');
     }
 }
 
-// دالة لعرض الأطباء (من قاعدة البيانات)
+// عرض بيانات العيادات القادمة من قاعدة البيانات فقط، دون إنشاء بطاقات تجريبية.
 function renderDoctors(doctors) {
     const container = document.getElementById('doctors-container');
-    container.innerHTML = '';
-    
+    container.replaceChildren();
+    let rendered = 0;
+
     doctors.forEach(doc => {
-        // نستخدم clinic_name كاسم للطبيب مؤقتاً (أو يمكن جلبه من profiles)
-        const docName = doc.clinic_name || 'طبيب غير محدد';
-        
-        container.innerHTML += `
-            <div class="doctor-card">
-                <div class="doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
-                <div class="doc-info">
-                    <h3>${docName}</h3>
-                    <p>استشاري</p>
-                    <div class="doc-meta">
-                        <span style="color: #f59e0b;"><i class="fa-solid fa-star"></i> ${doc.rating || '5.0'}</span>
-                        <span><i class="fa-solid fa-clock"></i> ${doc.experience_years || '1'} سنة خبرة</span>
-                    </div>
-                </div>
-                <div class="doc-price">
-                    <span>${doc.consultation_fee || '200'} ج</span>
-                    <button class="btn-book-doctor" onclick="openBookingModal('${doc.id}', '${docName}')">حجز</button>
-                </div>
-            </div>
-        `;
+        if (!doc || !doc.id) return;
+
+        const card = document.createElement('div');
+        card.className = 'doctor-card';
+
+        const avatar = document.createElement('div');
+        avatar.className = 'doc-avatar';
+        avatar.innerHTML = '<i class="fa-solid fa-user-doctor" aria-hidden="true"></i>';
+
+        const info = document.createElement('div');
+        info.className = 'doc-info';
+
+        const name = document.createElement('h3');
+        name.textContent = doc.clinic_name || 'عيادة بدون اسم';
+
+        const specialty = document.createElement('p');
+        specialty.textContent = 'بيانات العيادة المعتمدة';
+
+        const meta = document.createElement('div');
+        meta.className = 'doc-meta';
+        if (doc.rating !== null && doc.rating !== undefined && doc.rating !== '') {
+            const rating = document.createElement('span');
+            rating.textContent = 'التقييم: ' + String(doc.rating);
+            meta.appendChild(rating);
+        }
+        if (doc.experience_years !== null && doc.experience_years !== undefined && doc.experience_years !== '') {
+            const experience = document.createElement('span');
+            experience.textContent = 'الخبرة: ' + String(doc.experience_years) + ' سنة';
+            meta.appendChild(experience);
+        }
+        info.append(name, specialty);
+        if (meta.childNodes.length) info.appendChild(meta);
+
+        const price = document.createElement('div');
+        price.className = 'doc-price';
+        const fee = document.createElement('span');
+        const hasFee = doc.consultation_fee !== null && doc.consultation_fee !== undefined && doc.consultation_fee !== '';
+        fee.textContent = hasFee ? String(doc.consultation_fee) + ' ج' : 'السعر عند التأكيد';
+        const book = document.createElement('button');
+        book.className = 'btn-book-doctor';
+        book.type = 'button';
+        book.textContent = 'طلب حجز';
+        book.addEventListener('click', () => openBookingModal(String(doc.id), String(doc.clinic_name || 'العيادة')));
+        price.append(fee, book);
+
+        card.append(avatar, info, price);
+        container.appendChild(card);
+        rendered++;
     });
+
+    if (!rendered) renderDoctorsFallback('لا توجد بيانات عيادات صالحة للعرض حالياً.');
 }
 
-// دالة عرض بيانات تجريبية (Fallback)
-function renderDoctorsFallback() {
-    const dummyDoctors = [
-        { id: '1', name: 'د. محمد عبد الله', fee: 200, rating: '4.8', exp: 15 },
-        { id: '2', name: 'د. سارة خالد', fee: 150, rating: '5.0', exp: 8 },
-        { id: '3', name: 'د. أحمد حسن', fee: 250, rating: '4.6', exp: 12 }
-    ];
-    
+// لا تعرض أسماء أو أسعار أو معرّفات وهمية عند انقطاع الاتصال أو فراغ الجدول.
+function renderDoctorsFallback(message = 'لا توجد عيادات معتمدة متاحة حالياً.') {
     const container = document.getElementById('doctors-container');
-    container.innerHTML = '';
-    
-    dummyDoctors.forEach(doc => {
-        container.innerHTML += `
-            <div class="doctor-card">
-                <div class="doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
-                <div class="doc-info">
-                    <h3>${doc.name}</h3>
-                    <p>استشاري</p>
-                    <div class="doc-meta">
-                        <span style="color: #f59e0b;"><i class="fa-solid fa-star"></i> ${doc.rating}</span>
-                        <span><i class="fa-solid fa-clock"></i> ${doc.exp} سنة خبرة</span>
-                    </div>
-                </div>
-                <div class="doc-price">
-                    <span>${doc.fee} ج</span>
-                    <button class="btn-book-doctor" onclick="openBookingModal('${doc.id}', '${doc.name}')">حجز</button>
-                </div>
-            </div>
-        `;
-    });
+    if (!container) return;
+    const notice = document.createElement('div');
+    notice.className = 'doctor-card';
+    notice.setAttribute('role', 'status');
+    notice.textContent = message;
+    container.replaceChildren(notice);
 }
 
 // فتح نافذة الحجز
