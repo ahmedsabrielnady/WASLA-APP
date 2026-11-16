@@ -211,7 +211,7 @@ a { text-decoration: none; color: inherit; }
 .ind-card.cars .btn-ind-action { background: var(--cars); }
 
 /* ==========================================================================
-   10. PROFILE, AI, MODALS & OVERLAYS
+   10. PROFILE, GUIDE, MODALS & OVERLAYS
    ========================================================================== */
 .auth-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); outline: none; }
 .btn-auth { width: 100%; padding: 15px; border-radius: 12px; background: var(--brand); color: white; font-weight: 800; font-size: 16px; margin-bottom: 10px; cursor: pointer; }
@@ -468,11 +468,11 @@ a { text-decoration: none; color: inherit; }
 </div>
 
 <!-- ==================== OVERLAYS ==================== -->
-<div class="ai-float" role="button" aria-label="فتح مساعد وصلة التجريبي" tabindex="0" onclick="UI.toggleAI()"><i class="fa-solid fa-robot"></i></div>
+<div class="ai-float" role="button" aria-label="فتح مساعد وصلة التجريبي" tabindex="0" onclick="UI.toggleAssistant()"><i class="fa-solid fa-comments"></i></div>
 <div class="ai-chat" id="ai-chat">
-    <div class="ai-header"><div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-robot"></i><div><h4 style="font-size:14px; margin:0;">مساعد وصلة</h4><span style="font-size:10px; opacity:0.8;">مساعد تجريبي لتوجيهك بين الأقسام</span></div></div><button onclick="UI.toggleAI()" style="color:white;"><i class="fa-solid fa-xmark"></i></button></div>
-    <div class="ai-messages" id="ai-messages"><div class="msg bot">أهلاً بك في مساعد وصلة التجريبي. أقدر أوجّهك إلى أقسام المنصة وطرق إرسال الطلبات.</div></div>
-    <div class="ai-input-area"><input type="text" id="ai-input" class="ai-input" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter') AI.send()"><button class="ai-send" onclick="AI.send()"><i class="fa-solid fa-paper-plane"></i></button></div>
+    <div class="ai-header"><div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-robot"></i><div><h4 style="font-size:14px; margin:0;">مساعد وصلة</h4><span style="font-size:10px; opacity:0.8;">نسخة تجريبية تعتمد على كلمات مفتاحية محددة، وليست ذكاءً اصطناعياً أو استشارة طبية</span></div></div><button onclick="UI.toggleAssistant()" style="color:white;"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="ai-messages" id="ai-messages"><div class="msg bot">هذا مساعد إرشادي تجريبي يعتمد على كلمات مفتاحية محددة لتوجيهك إلى أقسام المنصة. لا يقدم تشخيصاً أو استشارة طبية.</div></div>
+    <div class="ai-input-area"><input type="text" id="ai-input" class="ai-input" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter') HelpAssistant.send()"><button class="ai-send" onclick="HelpAssistant.send()"><i class="fa-solid fa-paper-plane"></i></button></div>
 </div>
 
 <div class="sheet-overlay" id="sheet-overlay" onclick="UI.closeSheet()"></div>
@@ -486,7 +486,7 @@ a { text-decoration: none; color: inherit; }
 <nav class="bottom-nav">
     <div class="nav-item active" onclick="Router.navigate('home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></div>
     <div class="nav-item" onclick="Router.navigate('profile')"><i class="fa-solid fa-box"></i><span>طلباتي</span></div>
-    <div class="nav-item" onclick="UI.toggleAI()"><i class="fa-solid fa-robot"></i><span>المساعد</span></div>
+    <div class="nav-item" onclick="UI.toggleAssistant()"><i class="fa-solid fa-robot"></i><span>مساعد تجريبي</span></div>
     <div class="nav-item" onclick="Router.navigate('profile')"><i class="fa-solid fa-user"></i><span>حسابي</span></div>
 </nav>
 <div id="toast" class="toast"></div>
@@ -559,7 +559,7 @@ const UI = {
         localStorage.setItem('wasla_theme', next);
         document.getElementById('theme-icon').className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
     },
-    toggleAI: function() {
+    toggleAssistant: function() {
         document.getElementById('ai-chat').classList.toggle('open');
     },
     closeSheet: function() {
@@ -917,8 +917,8 @@ const Actions = {
     }
 };
 
-// ==================== 7. AI MODULE ====================
-const AI = {
+// ==================== 7. LOCAL KEYWORD GUIDE ====================
+const HelpAssistant = {
     send: function() {
         const input = document.getElementById('ai-input');
         const msg = input.value.trim();
@@ -937,7 +937,7 @@ const AI = {
             else if(msg.match(/(تعليم|مدرس|دورة|امتحان)/)) { reply = "قسم التعليم قيد تجهيز ملفات المعلمين والدورات المعتمدة."; nav = 'education'; }
 
             this.addMsg(reply, 'bot');
-            if(nav) setTimeout(() => { Router.navigate(nav); UI.toggleAI(); }, 1200);
+            if(nav) setTimeout(() => { Router.navigate(nav); UI.toggleAssistant(); }, 1200);
         }, 800);
     },
     addMsg: function(text, sender) {
