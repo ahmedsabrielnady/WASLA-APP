@@ -55,10 +55,12 @@ CREATE TABLE IF NOT EXISTS public.wasla_announcements (
 CREATE INDEX IF NOT EXISTS wasla_announcements_active_window_idx ON public.wasla_announcements(is_active, starts_at, ends_at);
 ALTER TABLE public.wasla_announcements ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS wasla_announcements_public_read ON public.wasla_announcements;
+DROP POLICY IF EXISTS wasla_announcements_founder_select ON public.wasla_announcements;
 DROP POLICY IF EXISTS wasla_announcements_founder_insert ON public.wasla_announcements;
 DROP POLICY IF EXISTS wasla_announcements_founder_update ON public.wasla_announcements;
 DROP POLICY IF EXISTS wasla_announcements_founder_delete ON public.wasla_announcements;
 CREATE POLICY wasla_announcements_public_read ON public.wasla_announcements FOR SELECT TO anon, authenticated USING (is_active = true AND starts_at <= now() AND (ends_at IS NULL OR ends_at > now()));
+CREATE POLICY wasla_announcements_founder_select ON public.wasla_announcements FOR SELECT TO authenticated USING ((auth.jwt() -> 'app_metadata' ->> 'role') IN ('founder', 'admin'));
 CREATE POLICY wasla_announcements_founder_insert ON public.wasla_announcements FOR INSERT TO authenticated WITH CHECK ((auth.jwt() -> 'app_metadata' ->> 'role') IN ('founder', 'admin'));
 CREATE POLICY wasla_announcements_founder_update ON public.wasla_announcements FOR UPDATE TO authenticated USING ((auth.jwt() -> 'app_metadata' ->> 'role') IN ('founder', 'admin')) WITH CHECK ((auth.jwt() -> 'app_metadata' ->> 'role') IN ('founder', 'admin'));
 CREATE POLICY wasla_announcements_founder_delete ON public.wasla_announcements FOR DELETE TO authenticated USING ((auth.jwt() -> 'app_metadata' ->> 'role') IN ('founder', 'admin'));
