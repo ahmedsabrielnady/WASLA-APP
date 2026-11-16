@@ -48,29 +48,36 @@ const $=id=>document.getElementById(id);
 function status(id,msg,isError=false){const el=$(id);el.textContent=msg;el.className=isError?'status error':'status';}
 function toLocal(v){if(!v)return '';const d=new Date(v);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
 function toIso(v){return v?new Date(v).toISOString():null;}
-function resetForm(){$('announcement-form').reset();$('edit-id').value='';$('is-active').checked=true;$('save').textContent='حفظ الإعلان';$('form-status').textContent='';}
+function resetForm(){$('announcement-form').reset();$('edit-id').value='';$('badge-text').value='عرض خاص';$('is-active').checked=true;$('save').textContent='حفظ الإعلان';$('form-status').textContent='';}
 async function ensureFounder(){
  const {data:{session}}=await sb.auth.getSession();
  if(!session){$('login-card').classList.remove('hidden');$('app').classList.add('hidden');$('logout').classList.add('hidden');return false;}
- const role=session.user.app_metadata?.role;
- if(!['founder','admin'].includes(role)){status('login-status','الحساب مسجل لكنه لا يحمل دور founder أو admin في app_metadata.',true);await sb.auth.signOut();return false;}
+ const [userRole, profileRole] = await Promise.all([
+  sb.from('users').select('role').eq('id',session.user.id).maybeSingle(),
+  sb.from('profiles').select('role').eq('id',session.user.id).maybeSingle()
+ ]);
+ const roles=[session.user.app_metadata?.role,userRole.data?.role,profileRole.data?.role];
+ if(!roles.some(role=>['founder','admin'].includes(role))){
+  status('login-status','الحساب لا يحمل صلاحية مؤسس أو مدير في قاعدة البيانات.',true);
+  await sb.auth.signOut();return false;
+ }
  $('login-card').classList.add('hidden');$('app').classList.remove('hidden');$('logout').classList.remove('hidden');await loadItems();return true;
 }
 async function loadItems(){
  const host=$('items');host.textContent='جاري التحميل...';
- const {data,error}=await sb.from('wasla_announcements').select('id,message,target_url,is_active,starts_at,ends_at,created_at').order('created_at',{ascending:false});
+ const {data,error}=await sb.from('offers_ticker').select('id,text_ar,badge_text,target_url,is_active,starts_at,ends_at,created_at,sort_order').order('created_at',{ascending:false});
  if(error){host.textContent='تعذر تحميل الإعلانات: '+error.message;return;}
  host.replaceChildren();
  if(!data?.length){host.textContent='لا توجد إعلانات بعد.';return;}
  data.forEach(item=>{
   const row=document.createElement('div');row.className='item';
-  const info=document.createElement('div');const title=document.createElement('strong');title.textContent=item.message;
+  const info=document.createElement('div');const title=document.createElement('strong');title.textContent=item.text_ar;
   const meta=document.createElement('p');meta.className='muted';meta.textContent=(item.is_active?'مفعّل':'متوقف')+' • يبدأ: '+new Date(item.starts_at).toLocaleString('ar-EG')+' • ينتهي: '+(item.ends_at?new Date(item.ends_at).toLocaleString('ar-EG'):'بدون موعد انتهاء');
   info.append(title,meta);
   const actions=document.createElement('div');actions.className='actions';
-  const edit=document.createElement('button');edit.className='btn secondary';edit.textContent='تعديل';edit.onclick=()=>{ $('edit-id').value=item.id;$('message').value=item.message;$('target-url').value=item.target_url||'';$('starts-at').value=toLocal(item.starts_at);$('ends-at').value=toLocal(item.ends_at);$('is-active').checked=item.is_active;$('save').textContent='حفظ التعديلات';window.scrollTo({top:0,behavior:'smooth'});};
-  const toggle=document.createElement('button');toggle.className='btn secondary';toggle.textContent=item.is_active?'إيقاف':'تفعيل';toggle.onclick=async()=>{const {error}=await sb.from('wasla_announcements').update({is_active:!item.is_active,updated_at:new Date().toISOString()}).eq('id',item.id);if(error)alert('تعذر التحديث: '+error.message);else loadItems();};
-  const del=document.createElement('button');del.className='btn danger';del.textContent='حذف';del.onclick=async()=>{if(!confirm('تأكيد حذف الإعلان؟'))return;const {error}=await sb.from('wasla_announcements').delete().eq('id',item.id);if(error)alert('تعذر الحذف: '+error.message);else loadItems();};
+  const edit=document.createElement('button');edit.className='btn secondary';edit.textContent='تعديل';edit.onclick=()=>{ $('edit-id').value=item.id;$('message').value=item.text_ar;$('badge-text').value=item.badge_text||'عرض خاص';$('target-url').value=item.target_url||'';$('starts-at').value=toLocal(item.starts_at);$('ends-at').value=toLocal(item.ends_at);$('is-active').checked=item.is_active;$('save').textContent='حفظ التعديلات';window.scrollTo({top:0,behavior:'smooth'});};
+  const toggle=document.createElement('button');toggle.className='btn secondary';toggle.textContent=item.is_active?'إيقاف':'تفعيل';toggle.onclick=async()=>{const {error}=await sb.from('offers_ticker').update({is_active:!item.is_active,updated_at:new Date().toISOString()}).eq('id',item.id);if(error)alert('تعذر التحديث: '+error.message);else loadItems();};
+  const del=document.createElement('button');del.className='btn danger';del.textContent='حذف';del.onclick=async()=>{if(!confirm('تأكيد حذف الإعلان؟'))return;const {error}=await sb.from('offers_ticker').delete().eq('id',item.id);if(error)alert('تعذر الحذف: '+error.message);else loadItems();};
   actions.append(edit,toggle,del);row.append(info,actions);host.append(row);
  });
 }
@@ -82,8 +89,8 @@ $('announcement-form').onsubmit=async e=>{
  const target=$('target-url').value.trim();if(target&&!/^https?:\/\//i.test(target))return status('form-status','الرابط يجب أن يبدأ بـ https:// أو http://',true);
  const start=$('starts-at').value?toIso($('starts-at').value):new Date().toISOString();const end=$('ends-at').value?toIso($('ends-at').value):null;
  if(end&&new Date(end)<=new Date(start))return status('form-status','موعد النهاية يجب أن يكون بعد البداية.',true);
- const payload={message,target_url:target||null,is_active:$('is-active').checked,starts_at:start,ends_at:end,updated_at:new Date().toISOString()};
- const id=$('edit-id').value;const result=id?await sb.from('wasla_announcements').update(payload).eq('id',id):await sb.from('wasla_announcements').insert({...payload,created_by:(await sb.auth.getUser()).data.user.id});
+ const payload={text_ar:message,badge_text:$('badge-text').value.trim()||'عرض خاص',target_url:target||null,is_active:$('is-active').checked,starts_at:start,ends_at:end,updated_at:new Date().toISOString()};
+ const id=$('edit-id').value;const result=id?await sb.from('offers_ticker').update(payload).eq('id',id):await sb.from('offers_ticker').insert({...payload,created_by:(await sb.auth.getUser()).data.user.id});
  if(result.error){status('form-status','تعذر الحفظ: '+result.error.message,true);return;}
  status('form-status','تم حفظ الإعلان.');resetForm();await loadItems();
 };
