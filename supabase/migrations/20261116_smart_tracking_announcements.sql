@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.wasla_notifications (
  type text NOT NULL DEFAULT 'info',
   order_id text,
   read_at timestamptz,
- created_at timestamptz NOT NULL DEFAULT ow()
+ created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS wasla_notifications_user_created_idx ON public.wasla_notifications(user_id, created_at DESC);
 ALTER TABLE public.wasla_notifications ENABLE ROW LEVEL SECURITY;
@@ -46,10 +46,10 @@ CREATE TABLE IF NOT EXISTS public.wasla_announcements (
  message text NOT NULL,
   target_url text,
  is_active boolean NOT NULL DEFAULT true,
- starts_at timestamptz NOT NULL DEFAULT ow(),
+ starts_at timestamptz NOT NULL DEFAULT now(),
   ends_at timestamptz,
- created_at timestamptz NOT NULL DEFAULT ow(),
- updated_at timestamptz NOT NULL DEFAULT ow(),
+ created_at timestamptz NOT NULL DEFAULT now(),
+ updated_at timestamptz NOT NULL DEFAULT now(),
  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS wasla_announcements_active_window_idx ON public.wasla_announcements(is_active, starts_at, ends_at);
@@ -58,7 +58,7 @@ DROP POLICY IF EXISTS wasla_announcements_public_read ON public.wasla_announceme
 DROP POLICY IF EXISTS wasla_announcements_founder_insert ON public.wasla_announcements;
 DROP POLICY IF EXISTS wasla_announcements_founder_update ON public.wasla_announcements;
 DROP POLICY IF EXISTS wasla_announcements_founder_delete ON public.wasla_announcements;
-CREATE POLICY wasla_announcements_public_read ON public.wasla_announcements FOR SELECT TO anon, authenticated USING (is_active = true AND starts_at &lt;= now() AND (ends_at IS NULL OR ends_at > now()));
+CREATE POLICY wasla_announcements_public_read ON public.wasla_announcements FOR SELECT TO anon, authenticated USING (is_active = true AND starts_at <= now() AND (ends_at IS NULL OR ends_at > now()));
 CREATE POLICY wasla_announcements_founder_insert ON public.wasla_announcements FOR INSERT TO authenticated WITH CHECK ((auth.jwt() -> 'app_metadata' ->> 'role') IN ('founder', 'admin'));
 CREATE POLICY wasla_announcements_founder_update ON public.wasla_announcements FOR UPDATE TO authenticated USING ((auth.jwt() -> 'app_metadata' ->> 'role') IN ('founder', 'admin')) WITH CHECK ((auth.jwt() -> 'app_metadata' ->> 'role') IN ('founder', 'admin'));
 CREATE POLICY wasla_announcements_founder_delete ON public.wasla_announcements FOR DELETE TO authenticated USING ((auth.jwt() -> 'app_metadata' ->> 'role') IN ('founder', 'admin'));
