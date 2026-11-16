@@ -384,19 +384,16 @@ try {
     }
 } catch(e) { console.log("Supabase Init Error:", e); }
 
-// Load active founder announcements. Static messages remain as a safe fallback
-// until the announcements migration has been applied to Supabase.
+// Load active offers from the shared offers_ticker table. Static messages remain as fallback.
 async function loadWaslaAnnouncements() {
     const ticker = document.getElementById('wasla-announcement-ticker');
     if (!ticker || !supabaseClient) return;
     try {
         const { data, error } = await supabaseClient
-            .from('wasla_announcements')
-            .select('message, target_url')
+            .from('offers_ticker')
+            .select('text_ar, badge_text, target_url')
             .eq('is_active', true)
-            .lte('starts_at', new Date().toISOString())
-            .or('ends_at.is.null,ends_at.gt.' + new Date().toISOString())
-            .order('created_at', { ascending: false });
+            .order('sort_order', { ascending: true });
         if (error) throw error;
         if (!data || data.length === 0) return;
         ticker.replaceChildren();
@@ -408,16 +405,16 @@ async function loadWaslaAnnouncements() {
                 link.target = '_blank';
                 link.rel = 'noopener noreferrer';
                 link.style.color = 'inherit';
-                link.textContent = item.message;
+                link.textContent = (item.badge_text ? item.badge_text + ' · ' : '') + item.text_ar;
                 span.appendChild(link);
             } else {
-                span.textContent = item.message;
+                span.textContent = (item.badge_text ? item.badge_text + ' · ' : '') + item.text_ar;
             }
             ticker.appendChild(span);
         });
     } catch (error) {
-        // Keep the built-in ticker content if the migration is not installed yet.
-        console.info('WASLA announcements are not available yet:', error.message);
+        // Keep the built-in ticker content if the ticker table is unavailable.
+        console.info('WASLA ticker is not available yet:', error.message);
     }
 }
 
