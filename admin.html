@@ -165,7 +165,7 @@ a { text-decoration: none; }
 
 <div class="ticker-wrap">
     <div class="ticker-label">وصلة 📢</div>
-    <div class="ticker-content">
+    <div class="ticker-content" id="wasla-announcement-ticker" aria-live="polite">
         <span>✅ وصلة شغالة في شبين القناطر — اطلب دلوقتي</span>
         <span>⚡ توصيل سريع داخل المدينة</span>
         <span>🔧 فنيين • أطباء • مدرسين • سوبر ماركت • سيارات</span>
@@ -384,7 +384,33 @@ try {
     }
 } catch(e) { console.log("Supabase Init Error:", e); }
 
-document.getElementById('phone-link').href = 'tel:+' + WASLA_PHONE;
+// Load active founder announcements. Static messages remain as a safe fallback
+// until the announcements migration has been applied to Supabase.
+async function loadWaslaAnnouncements() {
+    const ticker = document.getElementById('wasla-announcement-ticker');
+    if (!ticker || !supabaseClient) return;
+    try {
+        const { data, error } = await supabaseClient
+            .from('wasla_announcements')
+            .select('message, target_url')
+            .eq('is_active', true)
+            .lte('starts_at', new Date().toISOString())
+            .or('ends_at.is.null,ends_at.gt.' + new Date().toISOString())
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        if (!data || data.length === 0) return;
+        ticker.replaceChildren();
+        data.forEach(item => {
+            const span = document.createElement('span');
+            span.textContent = item.message;
+            ticker.appendChild(span);
+        });
+    } catch (error) {
+        // Keep the built-in ticker content if the migration is not installed yet.
+        console.info('WASLA announcements are not available yet:', error.message);
+    }
+}
+\ndocument.getElementById('phone-link').href = 'tel:+' + WASLA_PHONE;
 document.getElementById('phone-display').innerText = WASLA_PHONE_DISPLAY;
 
 // =========================================
