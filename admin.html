@@ -574,7 +574,8 @@ function openBookingModal(docId, docName) {
     openModal('medical-booking-modal');
 }
 
-// حفظ الحجز في قاعدة البيانات ثم إرسال واتساب
+// تسجيل طلب حجز مبدئي في orders ثم إرساله عبر واتساب.
+// هذا المسار لا ينشئ موعداً مؤكداً في جدول appointments.
 async function submitMedicalBooking() {
     const docId = document.getElementById('booking-doc-id').value;
     const docName = document.getElementById('booking-doc-name').value;
@@ -608,14 +609,14 @@ async function submitMedicalBooking() {
 
             if (error) throw error;
             
-            showToast('تم حفظ الحجز بنجاح في النظام!');
+            showToast('تم استلام طلب الحجز المبدئي. تأكيد الموعد يتم بعد مراجعة العيادة.');
             
         } catch(e) {
             console.error("DB Error:", e);
-            showToast('حدث خطأ في حفظ الطلب في النظام، سنحولك للواتساب مباشرة.');
+            showToast('لم يُحفظ الطلب داخل النظام؛ أرسله عبر واتساب لمتابعته مع العيادة.');
         }
     } else {
-        showToast('وضع عدم الاتصال: سنحولك للواتساب مباشرة.');
+        showToast('لا يوجد اتصال بقاعدة البيانات؛ أرسل طلبك عبر واتساب.');
     }
 
     // 2. إرسال واتساب (في كل الأحوال)
