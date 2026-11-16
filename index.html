@@ -611,51 +611,84 @@ const Router = {
 const Auth = {
     user: null,
     checkSession: async function() {
-        if(!supabaseClient) return;
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if(session) {
+        if (!supabaseClient) {
+            this.user = null;
+            return;
+        }
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) throw error;
+        const session = data?.session || null;
+
+        if (session) {
             this.user = session.user;
+            const displayName = this.user.email || this.user.phone || 'حسابك';
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('profile-section').style.display = 'block';
-            document.getElementById('profile-email').innerText = this.user.email;
-            document.getElementById('home-username').innerText = `أهلاً بك، ${this.user.email.split('@')[0]} 👋`;
-            DB.loadOrders();
-            DB.loadNotifications();
+            document.getElementById('profile-email').textContent = displayName;
+            document.getElementById('home-username').textContent = `أهلاً بك، ${displayName.split('@')[0]} 👋`;
+            await Promise.all([DB.loadOrders(), DB.loadNotifications()]);
         } else {
             this.user = null;
             document.getElementById('auth-section').style.display = 'block';
             document.getElementById('profile-section').style.display = 'none';
-            document.getElementById('home-username').innerText = `أهلاً بك في وصلة 👋`;
+            document.getElementById('home-username').textContent = 'أهلاً بك في وصلة 👋';
         }
     },
     register: async function(btn) {
-        const email = document.getElementById('auth-email').value;
+        if (!supabaseClient) return UI.toast('خدمة تسجيل الدخول غير متاحة حالياً.');
+        const email = document.getElementById('auth-email').value.trim();
         const password = document.getElementById('auth-pass').value;
-        if(!email || !password) return UI.toast('أدخل البريد وكلمة المرور');
-        btn.innerText = 'جاري الإنشاء...';
-        const { error } = await supabaseClient.auth.signUp({ email, password });
-        btn.innerText = 'إنشاء حساب جديد';
-        if(error) return UI.toast(error.message);
-        UI.toast('تم إنشاء الحساب! يرجى تسجيل الدخول.');
+        if (!email || !password) return UI.toast('أدخل البريد الإلكتروني وكلمة المرور.');
+        btn.disabled = true;
+        btn.textContent = 'جاري إنشاء الحساب...';
+        try {
+            const { error } = await supabaseClient.auth.signUp({ email, password });
+            if (error) throw error;
+            UI.toast('تم إنشاء الحساب. تحقق من بريدك إن طُلب ذلك، ثم سجّل الدخول.');
+        } catch (error) {
+            console.error('WASLA registration failed:', error);
+            UI.toast('تعذر إنشاء الحساب: ' + (error.message || 'خطأ غير معروف'));
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'إنشاء حساب جديد';
+        }
     },
     login: async function(btn) {
-        const email = document.getElementById('auth-email').value;
+        if (!supabaseClient) return UI.toast('خدمة تسجيل الدخول غير متاحة حالياً.');
+        const email = document.getElementById('auth-email').value.trim();
         const password = document.getElementById('auth-pass').value;
-        if(!email || !password) return UI.toast('أدخل البريد وكلمة المرور');
-        btn.innerText = 'جاري الدخول...';
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        btn.innerText = 'دخول';
-        if(error) return UI.toast(error.message);
-        UI.toast('تم تسجيل الدخول بنجاح');
-        this.checkSession();
+        if (!email || !password) return UI.toast('أدخل البريد الإلكتروني وكلمة المرور.');
+        btn.disabled = true;
+        btn.textContent = 'جاري تسجيل الدخول...';
+        try {
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+            UI.toast('تم تسجيل الدخول بنجاح.');
+            await this.checkSession();
+        } catch (error) {
+            console.error('WASLA login failed:', error);
+            UI.toast('تعذر تسجيل الدخول: ' + (error.message || 'خطأ غير معروف'));
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'دخول';
+        }
     },
     logout: async function(btn) {
-        if(!supabaseClient) return;
-        btn.innerText = 'جاري الخروج...';
-        await supabaseClient.auth.signOut();
-        btn.innerText = 'تسجيل الخروج';
-        this.checkSession();
-        Router.navigate('home');
+        if (!supabaseClient) return UI.toast('خدمة تسجيل الدخول غير متاحة حالياً.');
+        btn.disabled = true;
+        btn.textContent = 'جاري تسجيل الخروج...';
+        try {
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) throw error;
+            await this.checkSession();
+            Router.navigate('home');
+        } catch (error) {
+            console.error('WASLA logout failed:', error);
+            UI.toast('تعذر تسجيل الخروج: ' + (error.message || 'خطأ غير معروف'));
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'تسجيل الخروج';
+        }
     }
 };
 
