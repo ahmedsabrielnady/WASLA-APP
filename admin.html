@@ -583,55 +583,72 @@ async function submitMedicalBooking() {
     const phone = document.getElementById('booking-phone').value.trim();
     const date = document.getElementById('booking-date').value;
     const time = document.getElementById('booking-time').value;
-    
-    if(!patientName || !phone || !date) {
-        showToast('يرجى ملء جميع البيانات المطلوبة');
+    const digits = phone.replace(/\D/g, '');
+
+    if (!docId || !patientName || digits.length < 10 || digits.length > 15 || !date || !time) {
+        showToast('راجع اسم المريض ورقم الهاتف والتاريخ والوقت.');
+        return;
+    }
+    const selectedDate = new Date(date + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (Number.isNaN(selectedDate.getTime()) || selectedDate < today) {
+        showToast('اختر تاريخاً صحيحاً اليوم أو بعده.');
         return;
     }
 
     const btn = document.getElementById('booking-submit-btn');
     btn.disabled = true;
-    btn.innerText = 'جاري الحفظ...';
+    btn.innerText = 'جاري تسجيل الطلب...';
 
-    // 1. محاولة الحفظ في قاعدة البيانات (جدول orders)
-    if (supabaseClient) {
-        try {
-            // ملاحظة: نظراً لأن المستخدم لم يقم بتسجيل الدخول بعد، سنحفظ الطلب في جدول orders 
-            // وسنستخدم رقم الهاتف للتواصل.
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            const bookingOrder = {
-                sector: 'medical',
-                details: `حجز طبي مع ${docName}\nالمريض: ${patientName}\nالتاريخ: ${date}\nالوقت: ${time}\nالهاتف: ${phone}`,
-                status: 'pending'
-            };
-            if (user?.id) bookingOrder.user_id = user.id;
-            const { error } = await supabaseClient.from('orders').insert([bookingOrder]);
+    const bookingDetails = [
+        'طلب حجز طبي مبدئي',
+        'معرّف العيادة: ' + docId,
+        'اسم العيادة: ' + docName,
+        'المريض: ' + patientName,
+        'التاريخ: ' + date,
+        'الوقت: ' + time,
+        'الهاتف: ' + phone
+    ].join('\n');
 
-            if (error) throw error;
-            
-            showToast('تم استلام طلب الحجز المبدئي. تأكيد الموعد يتم بعد مراجعة العيادة.');
-            
-        } catch(e) {
-            console.error("DB Error:", e);
-            showToast('لم يُحفظ الطلب داخل النظام؛ أرسله عبر واتساب لمتابعته مع العيادة.');
-        }
-    } else {
-        showToast('لا يوجد اتصال بقاعدة البيانات؛ أرسل طلبك عبر واتساب.');
+    let savedInWasla = false;
+    try {
+        if (!supabaseClient) throw new Error('لا يوجد اتصال بقاعدة البيانات.');
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+        if (userError) throw userError;
+        const bookingOrder = {
+            sector: 'medical',
+            details: bookingDetails,
+            status: 'pending'
+        };
+        if (user?.id) bookingOrder.user_id = user.id;
+
+        const { error } = await supabaseClient.from('orders').insert([bookingOrder]);
+        if (error) throw error;
+        savedInWasla = true;
+        showToast('تم تسجيل طلب الحجز المبدئي. الموعد غير مؤكد حتى تراجعه العيادة.');
+    } catch (error) {
+        console.error('Medical booking request was not saved:', error);
+        showToast('لم يُسجّل الطلب داخل وصلة؛ سيتم فتح واتساب لإرساله للعيادة.');
     }
 
-    // 2. إرسال واتساب (في كل الأحوال)
-    const msg = `*🏥 حجز طبي جديد - وصلة*\n\n👨‍⚕️ الطبيب: ${docName}\n👤 المريض: ${patientName}\n📱 الهاتف: ${phone}\n📅 التاريخ: ${date}\n⏰ الوقت: ${time}`;
-    
+    const msg = [
+        '*🏥 طلب حجز طبي مبدئي - وصلة*',
+        'حالة التسجيل داخل وصلة: ' + (savedInWasla ? 'تم التسجيل كطلب مبدئي، ولم يتأكد الموعد.' : 'لم يتم التسجيل داخل المنصة.'),
+        'العيادة: ' + docName,
+        'معرّف العيادة: ' + docId,
+        'المريض: ' + patientName,
+        'الهاتف: ' + phone,
+        'التاريخ المطلوب: ' + date,
+        'الوقت المطلوب: ' + time
+    ].join('\n');
+
     btn.disabled = false;
     btn.innerText = 'تأكيد الحجز';
     closeModal('medical-booking-modal');
-    
-    // تصفير الحقول
     document.getElementById('booking-patient-name').value = '';
     document.getElementById('booking-phone').value = '';
     document.getElementById('booking-date').value = '';
-    
-    // فتح الواتساب
     setTimeout(() => openWhatsApp(msg), 500);
 }
 
@@ -675,47 +692,71 @@ async function submitDelivery() {
     const phone = document.getElementById('delivery-phone').value.trim();
     const pickupManualVal = document.getElementById('pickup-manual-input')?.value.trim() || '';
     const dropoffManualVal = document.getElementById('dropoff-manual-input')?.value.trim() || '';
-    
-    if(!item) return showToast('اكتب نوع الشحنة');
-    if(!phone || phone.length < 10) return showToast('رقم التليفون غلط');
-    if(!pickupCoords && !pickupManualVal) return showToast('حدد موقع الاستلام');
-    if(!dropoffCoords && !dropoffManualVal) return showToast('حدد موقع التسليم');
-    
+    const digits = phone.replace(/\D/g, '');
+
+    if (!item) return showToast('اكتب نوع الشحنة');
+    if (digits.length < 10 || digits.length > 15) return showToast('راجع رقم التليفون');
+    if (!pickupCoords && !pickupManualVal) return showToast('حدد موقع الاستلام');
+    if (!dropoffCoords && !dropoffManualVal) return showToast('حدد موقع التسليم');
+
     const btn = document.getElementById('delivery-btn');
-    btn.innerText = 'جاري الإرسال...';
     btn.disabled = true;
-    
-    // محاولة الحفظ في الداتا بيز
-    if(supabaseClient) {
-        try {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            const deliveryOrder = {
-                sector: 'delivery',
-                details: `الشحنة: ${item}\nمن: ${pickupManualVal || 'GPS'}\nإلى: ${dropoffManualVal || 'GPS'}\nالهاتف: ${phone}`,
-                status: 'pending'
-            };
-            if (user?.id) deliveryOrder.user_id = user.id;
-            const { error } = await supabaseClient.from('orders').insert([deliveryOrder]);
-            if (error) throw error;
-        } catch(e) { console.log("DB Error:", e); }
+    btn.innerText = 'جاري تسجيل الطلب...';
+
+    const pickupText = pickupCoords
+        ? 'GPS: ' + pickupCoords.lat + ', ' + pickupCoords.lng
+        : pickupManualVal;
+    const dropoffText = dropoffCoords
+        ? 'GPS: ' + dropoffCoords.lat + ', ' + dropoffCoords.lng
+        : dropoffManualVal;
+
+    let savedInWasla = false;
+    try {
+        if (!supabaseClient) throw new Error('لا يوجد اتصال بقاعدة البيانات.');
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+        if (userError) throw userError;
+
+        const deliveryOrder = {
+            sector: 'delivery',
+            details: [
+                'طلب توصيل مبدئي',
+                'الشحنة: ' + item,
+                'من: ' + pickupText,
+                'إلى: ' + dropoffText,
+                'الهاتف: ' + phone
+            ].join('\n'),
+            status: 'pending'
+        };
+        if (user?.id) deliveryOrder.user_id = user.id;
+
+        const { error } = await supabaseClient.from('orders').insert([deliveryOrder]);
+        if (error) throw error;
+        savedInWasla = true;
+        showToast('تم تسجيل طلب التوصيل المبدئي. لم يتم تعيين مندوب بعد.');
+    } catch (error) {
+        console.error('Delivery request was not saved:', error);
+        showToast('لم يُسجّل الطلب داخل وصلة؛ سيتم فتح واتساب لإرساله يدوياً.');
     }
 
-    const waMsg = 
-        `*🛵 طلب توصيل جديد - وصلة*\n\n` +
-        `📦 الشحنة: ${item}\n` +
-        `📱 التليفون: ${phone}\n\n` +
-        `📍 من: ${pickupManualVal || 'موقع GPS'}\n` +
-        `🎯 إلى: ${dropoffManualVal || 'موقع GPS'}\n` +
-        `\n⏰ ${new Date().toLocaleString('ar-EG')}`;
-    
+    const waMsg = [
+        '*🛵 طلب توصيل مبدئي - وصلة*',
+        'حالة التسجيل داخل وصلة: ' + (savedInWasla ? 'تم التسجيل كطلب مبدئي، ولم يتم تعيين مندوب.' : 'لم يتم التسجيل داخل المنصة.'),
+        'الشحنة: ' + item,
+        'الهاتف: ' + phone,
+        'موقع الاستلام: ' + pickupText,
+        'موقع التسليم: ' + dropoffText
+    ].join('\n');
+
     document.getElementById('delivery-item').value = '';
     document.getElementById('delivery-phone').value = '';
-    pickupCoords = null; dropoffCoords = null;
-    resetLocationBtn('pickup'); resetLocationBtn('dropoff');
-    btn.innerText = 'اطلب التوصيل الآن'; btn.disabled = false;
-    
-    showToast('جاري فتح واتساب...');
-    setTimeout(() => openWhatsApp(waMsg), 500);
+    pickupCoords = null;
+    dropoffCoords = null;
+    resetLocationBtn('pickup');
+    resetLocationBtn('dropoff');
+    btn.disabled = false;
+    btn.innerText = 'اطلب التوصيل الآن';
+
+    setTimeout(() => openWhatsApp(waMsg), 400);
 }
 
 function resetLocationBtn(type) {
