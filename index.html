@@ -388,6 +388,9 @@ a { text-decoration: none; color: inherit; }
             <div class="cart-badge-header" id="header-cart-count">0</div>
         </div>
     </div>
+    <div style="margin:12px 20px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--muted);font-size:12px;line-height:1.8;">
+        قائمة الأصناف هنا توضيحية في مرحلة التجهيز. التوفر والسعر ورسوم التوصيل يؤكدها المتجر الشريك قبل اعتماد الطلب.
+    </div>
     <div class="market-categories">
         <div class="market-cat active">الكل</div>
         <div class="market-cat">خضروات</div>
@@ -496,7 +499,7 @@ a { text-decoration: none; color: inherit; }
     <div class="sheet-handle"></div>
     <h3 style="text-align:center; margin-bottom:20px;" id="sheet-title">تأكيد الطلب</h3>
     <input type="tel" id="sheet-phone" class="auth-input" placeholder="رقم تليفونك للتأكيد">
-    <button class="btn-auth" onclick="Actions.confirmSheet()">إرسال عبر الواتساب</button>
+    <button class="btn-auth" id="sheet-submit-btn" onclick="Actions.confirmSheet()">تسجيل الطلب والمتابعة</button>
 </div>
 
 <nav class="bottom-nav">
@@ -678,47 +681,109 @@ const Auth = {
 // ==================== 5. DATABASE MODULE ====================
 const DB = {
     saveOrder: async function(payload) {
-        if(!supabaseClient) return UI.toast('السيرفر غير متاح');
-        const { error } = await supabaseClient.from('orders').insert([{
-            user_id: Auth.user.id,
-            sector: payload.sectorName,
-            details: payload.details,
-            status: 'قيد المراجعة'
-        }]);
-        
-        if(error) { UI.toast('حدث خطأ في حفظ الطلب'); console.log(error); }
-        else { UI.toast('تم تسجيل طلبك بنجاح!'); }
-
-        const msg = `*طلب جديد - وصلة*\n\n👤 العميل: ${Auth.user.email}\n📞 التليفون: ${payload.phone}\n🛠️ الخدمة: ${payload.sectorName}\n📝 التفاصيل: ${payload.details}`;
-        window.open(`https://wa.me/${WASLA_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
-        
-        UI.closeSheet();
-        this.loadOrders();
-        Router.navigate('profile');
-    },
-    loadOrders: async function() {
-        if(!supabaseClient || !Auth.user) return;
-        const list = document.getElementById('orders-list');
-        list.innerHTML = '<div style="text-align:center; padding:20px;">جاري التحميل...</div>';
-        
-        const { data, error } = await supabaseClient.from('orders').select('*').eq('user_id', Auth.user.id).order('created_at', { ascending: false });
-        
-        if(error || data.length === 0) {
-            list.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">لا توجد طلبات سابقة</div>';
+        if (!supabaseClient || !Auth.user?.id) {
+            UI.toast('تعذر الاتصال الآمن. سجّل الدخول وحاول مرة أخرى.');
             return;
         }
-        
-        list.innerHTML = data.map(o => `
-            <div style="background:var(--card); padding:15px; border-radius:12px; margin-bottom:10px; border-right:4px solid var(--brand); animation: slideUpFade 0.3s ease;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <strong>${o.sector}</strong>
-                    <span style="font-size:11px; background:var(--brand-light); color:var(--brand); padding:2px 8px; border-radius:10px;">${o.status}</span>
-                </div>
-                ${o.tracking_code ? `<p style="font-size:12px; font-weight:800; color:var(--brand); margin:5px 0;">رقم التتبع: ${o.tracking_code}</p>` : ''}
-                <p style="font-size:13px; color:var(--muted);">${o.details}</p>
-                <p style="font-size:11px; color:var(--muted); margin-top:8px;">${new Date(o.created_at).toLocaleString('ar-EG')}</p>
-            </div>
-        `).join('');
+
+        const submitBtn = document.getElementById('sheet-submit-btn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'جاري تسجيل الطلب...';
+        }
+
+        // Open from the user's click before awaiting the database to avoid popup blockers.
+        let whatsappWindow = null;
+        try {
+            whatsappWindow = window.open('about:blank', '_blank');
+            const { error } = await supabaseClient.from('orders').insert([{
+                user_id: Auth.user.id,
+                sector: payload.sectorName,
+                details: payload.details,
+                status: 'قيد المراجعة'
+            }]);
+            if (error) throw error;
+
+            UI.toast('تم تسجيل الطلب داخل وصلة.');
+            UI.closeSheet();
+            await this.loadOrders();
+            await this.loadNotifications();
+            Router.navigate('profile');
+
+            const msg = `*طلب جديد - وصلة*\\n\\n👤 العميل: ${Auth.user.email}\\n📞 التليفون: ${payload.phone}\\n🛠️ الخدمة: ${payload.sectorName}\\n📝 التفاصيل: ${payload.details}`;
+            const whatsappUrl = `https://wa.me/${WASLA_PHONE}?text=${encodeURIComponent(msg)}`;
+            if (whatsappWindow && !whatsappWindow.closed) {
+                whatsappWindow.location.href = whatsappUrl;
+            } else {
+                window.location.href = whatsappUrl;
+            }
+        } catch (error) {
+            if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.close();
+            console.error('WASLA order save failed:', error);
+            UI.toast('لم يُسجّل الطلب. لم نرسله كطلب مؤكد؛ تحقق من الاتصال وحاول مرة أخرى.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'تسجيل الطلب والمتابعة';
+            }
+        }
+    },
+    loadOrders: async function() {
+        if (!supabaseClient || !Auth.user) return;
+        const list = document.getElementById('orders-list');
+        if (!list) return;
+        list.textContent = 'جاري تحميل الطلبات...';
+
+        const { data, error } = await supabaseClient
+            .from('orders')
+            .select('id, sector, status, tracking_code, details, created_at')
+            .eq('user_id', Auth.user.id)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('WASLA orders load failed:', error);
+            list.textContent = 'تعذر تحميل طلباتك حالياً.';
+            return;
+        }
+        list.replaceChildren();
+        if (!Array.isArray(data) || data.length === 0) {
+            list.textContent = 'لا توجد طلبات سابقة.';
+            return;
+        }
+
+        data.forEach(order => {
+            const card = document.createElement('div');
+            card.style.cssText = 'background:var(--card); padding:15px; border-radius:12px; margin-bottom:10px; border-right:4px solid var(--brand); animation: slideUpFade 0.3s ease;';
+
+            const header = document.createElement('div');
+            header.style.cssText = 'display:flex; justify-content:space-between; gap:8px; margin-bottom:5px;';
+            const sector = document.createElement('strong');
+            sector.textContent = order.sector || 'طلب خدمة';
+            const status = document.createElement('span');
+            status.style.cssText = 'font-size:11px; background:var(--brand-light); color:var(--brand); padding:2px 8px; border-radius:10px;';
+            status.textContent = order.status || 'قيد المراجعة';
+            header.append(sector, status);
+            card.appendChild(header);
+
+            if (order.tracking_code) {
+                const tracking = document.createElement('p');
+                tracking.style.cssText = 'font-size:12px; font-weight:800; color:var(--brand); margin:5px 0;';
+                tracking.textContent = 'رقم التتبع: ' + order.tracking_code;
+                card.appendChild(tracking);
+            }
+
+            const details = document.createElement('p');
+            details.style.cssText = 'font-size:13px; color:var(--muted); white-space:pre-wrap;';
+            details.textContent = order.details || 'لا توجد تفاصيل.';
+            const date = document.createElement('p');
+            date.style.cssText = 'font-size:11px; color:var(--muted); margin-top:8px;';
+            const createdAt = order.created_at ? new Date(order.created_at) : null;
+            date.textContent = createdAt && !Number.isNaN(createdAt.getTime())
+                ? createdAt.toLocaleString('ar-EG')
+                : '';
+            card.append(details, date);
+            list.appendChild(card);
+        });
     },
     loadNotifications: async function() {
         const list = document.getElementById('notifications-list');
@@ -781,14 +846,14 @@ const Actions = {
     currentReq: null,
     cart: [],
     
-    // Market Data
+    // Illustrative product requests only; live inventory and prices must come from partner stores.
     products: [
-        { id: 1, name: 'طماطم (كيلو)', price: 15, icon: 'fa-apple-whole', color: '#ef4444' },
-        { id: 2, name: 'موز (كيلو)', price: 25, icon: 'fa-lemon', color: '#facc15' },
-        { id: 3, name: 'لبن (لتر)', price: 35, icon: 'fa-bottle-water', color: '#3b82f6' },
-        { id: 4, name: 'خبز فينو', price: 10, icon: 'fa-bread-slice', color: '#d97706' },
-        { id: 5, name: 'بيض (طبق)', price: 60, icon: 'fa-egg', color: '#fde047' },
-        { id: 6, name: 'جبنة بيضاء', price: 45, icon: 'fa-cheese', color: '#fef08a' }
+        { id: 1, name: 'طماطم (كيلو)', icon: 'fa-apple-whole', color: '#ef4444' },
+        { id: 2, name: 'موز (كيلو)', icon: 'fa-lemon', color: '#facc15' },
+        { id: 3, name: 'لبن (لتر)', icon: 'fa-bottle-water', color: '#3b82f6' },
+        { id: 4, name: 'خبز فينو', icon: 'fa-bread-slice', color: '#d97706' },
+        { id: 5, name: 'بيض (طبق)', icon: 'fa-egg', color: '#fde047' },
+        { id: 6, name: 'جبنة بيضاء', icon: 'fa-cheese', color: '#fef08a' }
     ],
 
     request: function(sector, details) {
@@ -816,7 +881,7 @@ const Actions = {
             <div class="product-card">
                 <div class="product-img"><i class="fa-solid ${p.icon}" style="color:${p.color};"></i></div>
                 <div class="product-title">${p.name}</div>
-                <div class="product-price">${p.price} ج</div>
+                <div class="product-price">السعر يؤكده المتجر</div>
                 ${qty === 0 ? 
                     `<button class="btn-add ripple-btn" onclick="Actions.addToCart(${p.id})"><i class="fa-solid fa-plus"></i> إضافة</button>` :
                     `<div class="qty-controls">
@@ -856,9 +921,8 @@ const Actions = {
 
     openCart: function() {
         if(this.cart.length === 0) return UI.toast('السلة فارغة');
-        let total = 0;
-        let details = this.cart.map(i => { total += (i.price * i.qty); return `${i.name} (x${i.qty})`; }).join(' + ');
-        this.request('سوبر ماركت', `الطلب: ${details}\nالإجمالي: ${total} ج.م`);
+        const details = this.cart.map(i => `${i.name} (الكمية: ${i.qty})`).join('، ');
+        this.request('سوبر ماركت', `الأصناف المطلوبة: ${details}\\nالسعر والتوفر والتوصيل يؤكدها المتجر قبل اعتماد الطلب.`);
     }
 };
 
