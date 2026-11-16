@@ -410,7 +410,8 @@ async function loadWaslaAnnouncements() {
         console.info('WASLA announcements are not available yet:', error.message);
     }
 }
-\ndocument.getElementById('phone-link').href = 'tel:+' + WASLA_PHONE;
+
+document.getElementById('phone-link').href = 'tel:+' + WASLA_PHONE;
 document.getElementById('phone-display').innerText = WASLA_PHONE_DISPLAY;
 
 // =========================================
@@ -761,6 +762,10 @@ function submitComplaint() {
     document.getElementById('complaint-text').value = '';
     closeModal('complaint-modal');
 }
+
+// Populate the ticker from active founder announcements when available.
+loadWaslaAnnouncements();
+
 </script>
 </body>
 </html>
