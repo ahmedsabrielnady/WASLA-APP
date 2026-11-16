@@ -402,7 +402,7 @@ async function loadWaslaAnnouncements() {
         ticker.replaceChildren();
         data.forEach(item => {
             const span = document.createElement('span');
-            if (item.target_url && /^https?:\\/\\//i.test(item.target_url)) {
+            if (item.target_url && (item.target_url.startsWith('https://') || item.target_url.startsWith('http://'))) {
                 const link = document.createElement('a');
                 link.href = item.target_url;
                 link.target = '_blank';
