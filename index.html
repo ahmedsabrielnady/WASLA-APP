@@ -241,6 +241,20 @@ a { text-decoration: none; color: inherit; }
 
 .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--dark); color: white; padding: 14px 28px; border-radius: 30px; font-weight: 700; opacity: 0; visibility: hidden; transition: 0.4s; z-index: 3000; text-align: center; width: 85%; max-width: 400px;}
 .toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+
+/* Dynamic WASLA announcement ticker */
+.wasla-ticker{display:flex;align-items:center;gap:10px;overflow:hidden;padding:10px 14px;background:var(--brand-light);border-bottom:1px solid var(--border);min-height:46px}
+.wasla-ticker-label{flex:0 0 auto;background:var(--brand);color:#fff;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:900}
+.wasla-ticker-window{min-width:0;overflow:hidden;flex:1}
+.wasla-ticker-track{display:flex;width:max-content;align-items:center;gap:44px;animation:waslaTickerMove 32s linear infinite}
+.wasla-ticker-group{display:flex;align-items:center;gap:44px;white-space:nowrap}
+.wasla-ticker-item{display:inline-flex;align-items:center;gap:8px;color:var(--text);font-size:13px;font-weight:800}
+.wasla-ticker-badge{background:var(--card);color:var(--brand);border:1px solid var(--brand);border-radius:20px;padding:2px 8px;font-size:10px}
+.wasla-ticker-item a{color:inherit;text-decoration:none}
+.wasla-ticker:hover .wasla-ticker-track{animation-play-state:paused}
+@keyframes waslaTickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.wasla-ticker-track{animation:none}.wasla-ticker-window{overflow-x:auto}}
+
 </style>
 </head>
 <body>
@@ -257,6 +271,18 @@ a { text-decoration: none; color: inherit; }
         <button class="icon-btn" onclick="Router.navigate('profile')"><i class="fa-solid fa-user"></i></button>
     </div>
 </header>
+
+<div class="wasla-ticker" role="region" aria-label="إعلانات وعروض وصلة">
+  <span class="wasla-ticker-label">وصلة | عروض</span>
+  <div class="wasla-ticker-window">
+    <div class="wasla-ticker-track" id="wasla-ticker-track">
+      <div class="wasla-ticker-group">
+        <span class="wasla-ticker-item">وصلة شغالة في شبين القناطر — خدماتك أقرب</span>
+        <span class="wasla-ticker-item">تابع طلباتك وحجوزاتك من حسابك</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ==================== VIEW: HOME ==================== -->
 <main id="view-home" class="app-view active">
@@ -494,6 +520,48 @@ try {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 } catch (e) { console.warn("Supabase Init Error:", e); }
+
+async function loadWaslaTicker() {
+    const track = document.getElementById('wasla-ticker-track');
+    if (!track || !supabaseClient) return;
+    const { data, error } = await supabaseClient
+        .from('offers_ticker')
+        .select('id,text_ar,badge_text,target_url,sort_order')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+        .limit(12);
+    if (error || !Array.isArray(data) || data.length === 0) return;
+
+    const makeGroup = () => {
+        const group = document.createElement('div');
+        group.className = 'wasla-ticker-group';
+        data.forEach(item => {
+            const entry = document.createElement('span');
+            entry.className = 'wasla-ticker-item';
+            const badge = document.createElement('span');
+            badge.className = 'wasla-ticker-badge';
+            badge.textContent = item.badge_text || 'وصلة';
+            const message = document.createElement(item.target_url ? 'a' : 'span');
+            message.textContent = item.text_ar || '';
+            if (item.target_url) {
+                try {
+                    const url = new URL(item.target_url, window.location.origin);
+                    if (url.protocol === 'https:' || url.protocol === 'http:') {
+                        message.href = url.href;
+                        message.target = '_blank';
+                        message.rel = 'noopener noreferrer';
+                    }
+                } catch (_) {}
+            }
+            entry.append(badge, message);
+            group.appendChild(entry);
+        });
+        return group;
+    };
+
+    track.replaceChildren();
+    track.append(makeGroup(), makeGroup());
+}
 
 // ==================== 2. UI MODULE ====================
 const UI = {
@@ -831,6 +899,7 @@ const AI = {
 // ==================== 8. INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
     UI.initRipples();
+    loadWaslaTicker();
     
     // Theme
     const savedTheme = localStorage.getItem('wasla_theme') || 'light';
