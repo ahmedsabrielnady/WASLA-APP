@@ -95,7 +95,7 @@ $('announcement-form').onsubmit=async e=>{
  if(result.error){status('form-status','تعذر الحفظ: '+result.error.message,true);return;}
  status('form-status','تم حفظ الإعلان.');resetForm();await loadItems();
 };
-sb.auth.onAuthStateChange(()=>{ensureFounder();});
+// Login and logout handlers refresh the page state explicitly; avoid async work inside auth callbacks.
 ensureFounder();
 </script>
 </body>
