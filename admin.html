@@ -590,11 +590,14 @@ async function submitMedicalBooking() {
         try {
             // ملاحظة: نظراً لأن المستخدم لم يقم بتسجيل الدخول بعد، سنحفظ الطلب في جدول orders 
             // وسنستخدم رقم الهاتف للتواصل.
-            const { error } = await supabaseClient.from('orders').insert([{
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            const bookingOrder = {
                 sector: 'medical',
-                details: `حجز طبي مع ${docName}\nالمريض: ${patientName}\nالتاريخ: ${date}\nالوقت: ${time}\nالهاتف: ${phone}`,
+                details: `حجز طبي مع ${docName}\\nالمريض: ${patientName}\\nالتاريخ: ${date}\\nالوقت: ${time}\\nالهاتف: ${phone}`,
                 status: 'pending'
-            }]);
+            };
+            if (user?.id) bookingOrder.user_id = user.id;
+            const { error } = await supabaseClient.from('orders').insert([bookingOrder]);
 
             if (error) throw error;
             
@@ -677,11 +680,15 @@ async function submitDelivery() {
     // محاولة الحفظ في الداتا بيز
     if(supabaseClient) {
         try {
-            await supabaseClient.from('orders').insert([{
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            const deliveryOrder = {
                 sector: 'delivery',
-                details: `الشحنة: ${item}\nمن: ${pickupManualVal || 'GPS'}\nإلى: ${dropoffManualVal || 'GPS'}\nالهاتف: ${phone}`,
+                details: `الشحنة: ${item}\\nمن: ${pickupManualVal || 'GPS'}\\nإلى: ${dropoffManualVal || 'GPS'}\\nالهاتف: ${phone}`,
                 status: 'pending'
-            }]);
+            };
+            if (user?.id) deliveryOrder.user_id = user.id;
+            const { error } = await supabaseClient.from('orders').insert([deliveryOrder]);
+            if (error) throw error;
         } catch(e) { console.log("DB Error:", e); }
     }
 
