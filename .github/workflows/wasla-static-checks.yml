@@ -1,0 +1,37 @@
+name: WASLA Static Checks
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'admin.html'
+      - 'founder-announcements.html'
+      - 'scripts/**'
+      - '.github/workflows/**'
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'index.html'
+      - 'admin.html'
+      - 'founder-announcements.html'
+      - 'scripts/**'
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+
+jobs:
+  inline-javascript:
+    name: Validate inline JavaScript syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compile inline JavaScript blocks
+        run: node scripts/check-inline-js.mjs
