@@ -14,18 +14,18 @@ for (const page of pages) {
   try {
     html = readFileSync(page, 'utf8');
   } catch (error) {
-    console.error(`FAIL ${page}: could not read file (${error.message})`);
+    console.error('FAIL ' + page + ': could not read file (' + error.message + ')');
     failed++;
     continue;
   }
 
-  const scripts = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)]
-    .filter((match) => !/\\bsrc\\s*=/i.test(match[1]))
+  const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .filter((match) => !/\bsrc\s*=/i.test(match[1]))
     .map((match) => match[2])
     .filter((content) => content.trim().length > 0);
 
   if (scripts.length === 0) {
-    console.error(`FAIL ${page}: no inline JavaScript blocks found`);
+    console.error('FAIL ' + page + ': no inline JavaScript blocks found');
     failed++;
     continue;
   }
@@ -35,13 +35,13 @@ for (const page of pages) {
     try {
       // Syntax compilation only. No browser globals or application code are executed.
       new Function(source);
-      console.log(`PASS ${page} inline script #${index + 1}`);
+      console.log('PASS ' + page + ' inline script #' + (index + 1));
     } catch (error) {
       failed++;
-      console.error(`FAIL ${page} inline script #${index + 1}: ${error.message}`);
+      console.error('FAIL ' + page + ' inline script #' + (index + 1) + ': ' + error.message);
     }
   });
 }
 
-console.log(`\\nChecked ${checked} inline JavaScript block(s); ${failed} failure(s).`);
+console.log('\nChecked ' + checked + ' inline JavaScript block(s); ' + failed + ' failure(s).');
 if (failed > 0) process.exitCode = 1;
