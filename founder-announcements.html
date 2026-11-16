@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>وصلة | إدارة الإعلانات</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;color:#10243a;background:#f3f7fb;--green:#059669;--navy:#10243a;--line:#dbe5ee}
+*{box-sizing:border-box}body{margin:0;padding:24px}.wrap{max-width:900px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}.brand{font-size:24px;font-weight:900;color:var(--navy)}.brand b{color:var(--green)}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px;box-shadow:0 8px 25px #10243a0b}h1,h2{margin:0 0 14px}p{color:#64748b;line-height:1.7}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:block;font-weight:700;font-size:13px;margin:12px 0 6px}input,textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit}textarea{min-height:90px;resize:vertical}.check{display:flex;align-items:center;gap:8px}.check input{width:auto}.btn{border:0;border-radius:10px;padding:11px 16px;font:inherit;font-weight:800;cursor:pointer;background:var(--green);color:#fff}.btn.secondary{background:#e8eef4;color:var(--navy)}.btn.danger{background:#b91c1c}.btn:disabled{opacity:.5;cursor:not-allowed}.muted{color:#64748b;font-size:13px}.item{border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px;display:flex;justify-content:space-between;gap:14px;align-items:center}.item p{margin:5px 0}.actions{display:flex;gap:7px;flex-wrap:wrap}.hidden{display:none!important}.status{margin-top:12px;padding:10px;border-radius:10px;background:#eef6f2;color:#166534}.error{background:#fff1f2;color:#9f1239}@media(max-width:650px){body{padding:12px}.grid{grid-template-columns:1fr}.item{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div class="brand">W<span>ASLA</span> <b>وصلة</b></div><button id="logout" class="btn secondary hidden">تسجيل الخروج</button></div>
+  <section id="login-card" class="card">
+    <h1>دخول المؤسس</h1><p>هذه الصفحة لإدارة شريط الإعلانات. الوصول محمي بتسجيل الدخول وصلاحيات المؤسس في قاعدة البيانات.</p>
+    <label for="email">البريد الإلكتروني</label><input id="email" type="email" autocomplete="username">
+    <label for="password">كلمة المرور</label><input id="password" type="password" autocomplete="current-password">
+    <button id="login" class="btn" style="margin-top:14px">دخول</button>
+    <div id="login-status" class="muted" role="status"></div>
+  </section>
+  <section id="app" class="hidden">
+    <div class="card">
+      <h1>إدارة شريط الإعلانات</h1>
+      <p>الإعلانات النشطة وضمن فترة العرض تظهر في شريط وصلة. لا تمنح هذه الصفحة صلاحيات؛ قاعدة البيانات تتحقق من دور founder أو admin.</p>
+      <form id="announcement-form">
+        <input id="edit-id" type="hidden">
+        <label for="message">نص الإعلان</label><textarea id="message" maxlength="240" required placeholder="مثال: خصم 15% على خدمات الصيانة هذا الأسبوع"></textarea>
+        <div class="grid">
+          <div><label for="target-url">رابط اختياري</label><input id="target-url" type="url" placeholder="https://..."></div>
+          <div><label for="starts-at">بداية العرض</label><input id="starts-at" type="datetime-local"></div>
+          <div><label for="ends-at">نهاية العرض</label><input id="ends-at" type="datetime-local"></div>
+          <div class="check"><input id="is-active" type="checkbox" checked><label for="is-active">الإعلان مفعّل</label></div>
+        </div>
+        <div class="actions" style="margin-top:16px"><button class="btn" id="save" type="submit">حفظ الإعلان</button><button class="btn secondary" id="reset" type="button">إعلان جديد</button></div>
+        <div id="form-status" class="muted" role="status"></div>
+      </form>
+    </div>
+    <div class="card"><h2>الإعلانات الحالية</h2><div id="items" class="muted">جاري التحميل...</div></div>
+  </section>
+</div>
+<script>
+const SUPABASE_URL='https://fdduzcytuhoelnnejgkl.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $=id=>document.getElementById(id);
+function status(id,msg,isError=false){const el=$(id);el.textContent=msg;el.className=isError?'status error':'status';}
+function toLocal(v){if(!v)return '';const d=new Date(v);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
+function toIso(v){return v?new Date(v).toISOString():null;}
+function resetForm(){$('announcement-form').reset();$('edit-id').value='';$('is-active').checked=true;$('save').textContent='حفظ الإعلان';$('form-status').textContent='';}
+async function ensureFounder(){
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session){$('login-card').classList.remove('hidden');$('app').classList.add('hidden');$('logout').classList.add('hidden');return false;}
+ const role=session.user.app_metadata?.role;
+ if(!['founder','admin'].includes(role)){status('login-status','الحساب مسجل لكنه لا يحمل دور founder أو admin في app_metadata.',true);await sb.auth.signOut();return false;}
+ $('login-card').classList.add('hidden');$('app').classList.remove('hidden');$('logout').classList.remove('hidden');await loadItems();return true;
+}
+async function loadItems(){
+ const host=$('items');host.textContent='جاري التحميل...';
+ const {data,error}=await sb.from('wasla_announcements').select('id,message,target_url,is_active,starts_at,ends_at,created_at').order('created_at',{ascending:false});
+ if(error){host.textContent='تعذر تحميل الإعلانات: '+error.message;return;}
+ host.replaceChildren();
+ if(!data?.length){host.textContent='لا توجد إعلانات بعد.';return;}
+ data.forEach(item=>{
+  const row=document.createElement('div');row.className='item';
+  const info=document.createElement('div');const title=document.createElement('strong');title.textContent=item.message;
+  const meta=document.createElement('p');meta.className='muted';meta.textContent=(item.is_active?'مفعّل':'متوقف')+' • يبدأ: '+new Date(item.starts_at).toLocaleString('ar-EG')+' • ينتهي: '+(item.ends_at?new Date(item.ends_at).toLocaleString('ar-EG'):'بدون موعد انتهاء');
+  info.append(title,meta);
+  const actions=document.createElement('div');actions.className='actions';
+  const edit=document.createElement('button');edit.className='btn secondary';edit.textContent='تعديل';edit.onclick=()=>{ $('edit-id').value=item.id;$('message').value=item.message;$('target-url').value=item.target_url||'';$('starts-at').value=toLocal(item.starts_at);$('ends-at').value=toLocal(item.ends_at);$('is-active').checked=item.is_active;$('save').textContent='حفظ التعديلات';window.scrollTo({top:0,behavior:'smooth'});};
+  const toggle=document.createElement('button');toggle.className='btn secondary';toggle.textContent=item.is_active?'إيقاف':'تفعيل';toggle.onclick=async()=>{const {error}=await sb.from('wasla_announcements').update({is_active:!item.is_active,updated_at:new Date().toISOString()}).eq('id',item.id);if(error)alert('تعذر التحديث: '+error.message);else loadItems();};
+  const del=document.createElement('button');del.className='btn danger';del.textContent='حذف';del.onclick=async()=>{if(!confirm('تأكيد حذف الإعلان؟'))return;const {error}=await sb.from('wasla_announcements').delete().eq('id',item.id);if(error)alert('تعذر الحذف: '+error.message);else loadItems();};
+  actions.append(edit,toggle,del);row.append(info,actions);host.append(row);
+ });
+}
+$('login').onclick=async()=>{status('login-status','جاري تسجيل الدخول...');const {error}=await sb.auth.signInWithPassword({email:$('email').value,password:$('password').value});if(error){status('login-status',error.message,true);return;}await ensureFounder();};
+$('logout').onclick=async()=>{await sb.auth.signOut();await ensureFounder();};
+$('reset').onclick=resetForm;
+$('announcement-form').onsubmit=async e=>{
+ e.preventDefault();const message=$('message').value.trim();if(!message)return status('form-status','اكتب نص الإعلان.',true);
+ const target=$('target-url').value.trim();if(target&&!/^https?:\/\//i.test(target))return status('form-status','الرابط يجب أن يبدأ بـ https:// أو http://',true);
+ const start=$('starts-at').value?toIso($('starts-at').value):new Date().toISOString();const end=$('ends-at').value?toIso($('ends-at').value):null;
+ if(end&&new Date(end)<=new Date(start))return status('form-status','موعد النهاية يجب أن يكون بعد البداية.',true);
+ const payload={message,target_url:target||null,is_active:$('is-active').checked,starts_at:start,ends_at:end,updated_at:new Date().toISOString()};
+ const id=$('edit-id').value;const result=id?await sb.from('wasla_announcements').update(payload).eq('id',id):await sb.from('wasla_announcements').insert({...payload,created_by:(await sb.auth.getUser()).data.user.id});
+ if(result.error){status('form-status','تعذر الحفظ: '+result.error.message,true);return;}
+ status('form-status','تم حفظ الإعلان.');resetForm();await loadItems();
+};
+sb.auth.onAuthStateChange(()=>{ensureFounder();});
+ensureFounder();
+</script>
+</body>
+</html>
