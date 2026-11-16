@@ -600,7 +600,7 @@ async function submitMedicalBooking() {
             const { data: { user } } = await supabaseClient.auth.getUser();
             const bookingOrder = {
                 sector: 'medical',
-                details: `حجز طبي مع ${docName}\\nالمريض: ${patientName}\\nالتاريخ: ${date}\\nالوقت: ${time}\\nالهاتف: ${phone}`,
+                details: `حجز طبي مع ${docName}\nالمريض: ${patientName}\nالتاريخ: ${date}\nالوقت: ${time}\nالهاتف: ${phone}`,
                 status: 'pending'
             };
             if (user?.id) bookingOrder.user_id = user.id;
@@ -690,7 +690,7 @@ async function submitDelivery() {
             const { data: { user } } = await supabaseClient.auth.getUser();
             const deliveryOrder = {
                 sector: 'delivery',
-                details: `الشحنة: ${item}\\nمن: ${pickupManualVal || 'GPS'}\\nإلى: ${dropoffManualVal || 'GPS'}\\nالهاتف: ${phone}`,
+                details: `الشحنة: ${item}\nمن: ${pickupManualVal || 'GPS'}\nإلى: ${dropoffManualVal || 'GPS'}\nالهاتف: ${phone}`,
                 status: 'pending'
             };
             if (user?.id) deliveryOrder.user_id = user.id;
