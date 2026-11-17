@@ -57,6 +57,21 @@ CREATE INDEX IF NOT EXISTS wasla_provider_products_public_idx
 ALTER TABLE public.wasla_provider_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.wasla_provider_products ENABLE ROW LEVEL SECURITY;
 
+CREATE OR REPLACE FUNCTION public.wasla_owns_provider_profile(p_provider_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog,public,auth
+AS $function$
+  SELECT EXISTS (
+    SELECT 1 FROM public.wasla_provider_profiles
+    WHERE id = p_provider_id AND owner_user_id = auth.uid()
+  );
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_owns_provider_profile(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.wasla_owns_provider_profile(uuid) TO authenticated;
+
 DROP POLICY IF EXISTS wasla_provider_profiles_public_read ON public.wasla_provider_profiles;
 DROP POLICY IF EXISTS wasla_provider_profiles_owner_read ON public.wasla_provider_profiles;
 DROP POLICY IF EXISTS wasla_provider_profiles_owner_update ON public.wasla_provider_profiles;
@@ -69,8 +84,8 @@ CREATE POLICY wasla_provider_profiles_owner_read
   USING (owner_user_id = auth.uid());
 CREATE POLICY wasla_provider_profiles_owner_update
   ON public.wasla_provider_profiles FOR UPDATE TO authenticated
-  USING (owner_user_id = auth.uid())
-  WITH CHECK (owner_user_id = auth.uid());
+  USING (public.wasla_owns_provider_profile(id))
+  WITH CHECK (public.wasla_owns_provider_profile(id));
 CREATE POLICY wasla_provider_profiles_founder_all
   ON public.wasla_provider_profiles FOR ALL TO authenticated
   USING (public.wasla_can_manage_operations())
@@ -90,14 +105,8 @@ CREATE POLICY wasla_provider_products_public_read
   );
 CREATE POLICY wasla_provider_products_owner_all
   ON public.wasla_provider_products FOR ALL TO authenticated
-  USING (EXISTS (
-    SELECT 1 FROM public.wasla_provider_profiles p
-    WHERE p.id = provider_id AND p.owner_user_id = auth.uid()
-  ))
-  WITH CHECK (EXISTS (
-    SELECT 1 FROM public.wasla_provider_profiles p
-    WHERE p.id = provider_id AND p.owner_user_id = auth.uid()
-  ));
+  USING (public.wasla_owns_provider_profile(provider_id))
+  WITH CHECK (public.wasla_owns_provider_profile(provider_id));
 CREATE POLICY wasla_provider_products_founder_all
   ON public.wasla_provider_products FOR ALL TO authenticated
   USING (public.wasla_can_manage_operations())
