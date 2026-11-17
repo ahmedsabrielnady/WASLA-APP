@@ -79,7 +79,10 @@ Do not use real customer personal data or live payment details.
 - [ ] Request a booking as Customer A inside a valid window; confirm the booking is pending and the provider receives a private notification.
 - [ ] Confirm Customer A can read the booking and Customer B cannot.
 - [ ] Confirm the provider can read only bookings for its own profile and can confirm or cancel using the status RPC.
-- [ ] Confirm the customer receives a private notification after provider confirmation/cancellation.
+- [ ] Confirm the customer receives a private notification when the request is submitted and after provider confirmation/cancellation.
+- [ ] Verify the `pg_cron` extension is enabled and the `wasla-service-booking-reminders` job is scheduled every five minutes.
+- [ ] Test a confirmed appointment in the 1–24-hour window and verify one 24-hour reminder is generated; test an appointment within one hour and verify one 1-hour reminder is generated.
+- [ ] Re-run the reminder function and confirm the same reminder is not duplicated.
 - [ ] Attempt two overlapping bookings for the same provider at the same time; confirm only one succeeds, including concurrent requests.
 - [ ] Attempt a booking outside weekly availability, before now, beyond 90 days, or overlapping an existing pending/confirmed booking; confirm the database rejects it.
 - [ ] Cancel a pending booking as the customer; confirm it becomes cancelled.
