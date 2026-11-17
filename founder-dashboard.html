@@ -221,7 +221,7 @@ async function refreshDashboard() {
       countOrders(q => q.in('sector',['delivery','توصيل'])),
       countOrders(q => q.gte('created_at',todayIso)),
       sb.from('orders')
-        .select('id,order_number,tracking_code,sector,status,details,created_at,updated_at,courier_id,courier_assigned_at', { count: 'exact' })
+        .select('id,order_number,tracking_code,sector,status,details,delivery_lat,delivery_lng,created_at,updated_at,courier_id,courier_assigned_at', { count: 'exact' })
         .order('created_at',{ascending:false})
         .range(0, ordersPageSize - 1),
       sb.from('wasla_courier_profiles')
@@ -311,6 +311,18 @@ function renderOrders() {
     const details = document.createElement('p');
     details.className = 'order-details';
     details.textContent = order.details || 'لا توجد تفاصيل مرفقة.';
+    let deliveryMap = null;
+    if (order.delivery_lat !== null && order.delivery_lng !== null) {
+      const lat = Number(order.delivery_lat), lng = Number(order.delivery_lng);
+      if (Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        deliveryMap = document.createElement('a');
+        deliveryMap.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+        deliveryMap.target = '_blank';
+        deliveryMap.rel = 'noopener noreferrer';
+        deliveryMap.textContent = 'فتح موقع التسليم على الخريطة';
+        deliveryMap.className = 'order-meta';
+      }
+    }
     if (order.courier_id) {
       const courier = couriers.find(item => item.user_id === order.courier_id);
       const assigned = document.createElement('div');
@@ -344,7 +356,9 @@ function renderOrders() {
     save.onclick = () => updateOrderStatus(order,select,save,pill);
 
     controls.append(label,select,save);
-    card.append(top,details,controls);
+    card.append(top,details);
+    if (deliveryMap) card.append(deliveryMap);
+    card.append(controls);
 
     if (order.status === 'ready_for_pickup' || order.status === 'assigned') {
       const dispatch = document.createElement('div');
@@ -404,7 +418,7 @@ async function loadMoreOrders() {
   renderOrders();
   try {
     const { data, error, count } = await sb.from('orders')
-      .select('id,order_number,tracking_code,sector,status,details,created_at,updated_at,courier_id,courier_assigned_at', { count: 'exact' })
+      .select('id,order_number,tracking_code,sector,status,details,delivery_lat,delivery_lng,created_at,updated_at,courier_id,courier_assigned_at', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(ordersOffset, ordersOffset + ordersPageSize - 1);
     if (error) throw error;
