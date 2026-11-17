@@ -67,6 +67,14 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PostgreSQL SQL parser
+        run: python -m pip install pglast
+      - name: Parse all Supabase migration SQL
+        run: python scripts/check-sql-syntax.py
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
