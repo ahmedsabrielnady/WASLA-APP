@@ -5,6 +5,8 @@ const required = [
   ['admin.html', 'admin'],
   ['founder-announcements.html', 'founder'],
   ['supabase/migrations/20261116_smart_tracking_announcements.sql', 'migration'],
+  ['supabase/migrations/20261117_operations_dashboard.sql', 'operationsMigration'],
+  ['founder-dashboard.html', 'dashboard'],
 ];
 
 const files = new Map();
@@ -44,6 +46,11 @@ const checks = [
   ['founder announcement writes require an authenticated user ID', () => /auth\.getUser\(\)[\s\S]{0,300}if\s*\(!user\?\.id\)/.test(files.get('founder'))],
   ['founder form prevents duplicate submissions', () => /button\.disabled = true;[\s\S]{0,3000}finally\s*\{[\s\S]{0,200}button\.disabled = false/.test(files.get('founder'))],
   ['founder announcement links are URL-validated', () => /new URL\(target\)[\s\S]{0,300}https:/.test(files.get('founder'))],
+  ['operations dashboard requires an authenticated staff RPC gate', () => /rpc\('wasla_can_manage_operations'\)/.test(files.get('dashboard')) && /SECURITY DEFINER[\s\S]*?CREATE POLICY wasla_orders_staff_read/.test(files.get('operationsMigration'))],
+  ['orders staff read is scoped to the staff role function', () => /CREATE POLICY wasla_orders_staff_read[\s\S]*?USING \(public\.wasla_can_manage_operations\(\)\)/.test(files.get('operationsMigration'))],
+  ['orders staff update policy is role-scoped', () => /CREATE POLICY wasla_orders_staff_status_update[\s\S]*?WITH CHECK \(public\.wasla_can_manage_operations\(\)\)/.test(files.get('operationsMigration'))],
+  ['dashboard changes only order status', () => /\.update\(\{ status: nextStatus \}\)/.test(files.get('dashboard'))],
+  ['operations migration refuses to run if orders RLS is disabled', () => /IF coalesce\(v_rls_enabled, false\) IS NOT TRUE THEN/.test(files.get('operationsMigration'))],
   ['appointment notifications are emitted by a database trigger', () => /CREATE TRIGGER wasla_appointments_notify_patient[\s\S]*?AFTER INSERT OR UPDATE OF status ON public\.appointments/.test(files.get('migration'))],
   ['order notifications are emitted by a database trigger', () => /CREATE TRIGGER wasla_orders_notify_owner[\s\S]*?AFTER INSERT OR UPDATE OF status ON public\.orders/.test(files.get('migration'))],
 ];
