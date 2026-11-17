@@ -12,6 +12,9 @@ const required = [
   ['sw.js', 'serviceWorker'],
   ['offline.html', 'offline'],
   ['assets/wasla-icon.svg', 'appIcon'],
+  ['provider-apply.html', 'providerApply'],
+  ['founder-providers.html', 'founderProviders'],
+  ['supabase/migrations/20261119_provider_applications.sql', 'providerApplicationsMigration'],
 ];
 
 const files = new Map();
@@ -65,6 +68,16 @@ const checks = [
   ['service worker does not intercept cross-origin API requests', () => /url\.origin !== self\.location\.origin/.test(files.get('serviceWorker'))],
   ['offline navigation shows an explicit disconnected state', () => /caches\.match\("\/offline\.html"\)/.test(files.get('serviceWorker')) && /الاتصال بالإنترنت غير متاح/.test(files.get('offline'))],
   ['PWA icon is present and scalable', () => /<svg[^>]+viewBox="0 0 512 512"/.test(files.get('appIcon'))],
+  ['customer profile links to provider application', () => /provider-apply\.html/.test(files.get('homepage'))],
+  ['provider application requires an authenticated user before insert', () => /auth\.getUser\(\)[\s\S]{0,180}!data\.user/.test(files.get('providerApply')) && /applicant_id:data\.user\.id/.test(files.get('providerApply'))],
+  ['provider application does not accept client-side approval fields', () => !/payload\.(status|admin_note|reviewed_by|reviewed_at)/.test(files.get('providerApply'))],
+  ['provider application schema enables RLS and owner scoping', () => /ENABLE ROW LEVEL SECURITY/.test(files.get('providerApplicationsMigration')) && /applicant_id = auth\.uid\(\)/.test(files.get('providerApplicationsMigration'))],
+  ['provider applicant cannot write founder review metadata', () => /WITH CHECK \(applicant_id = auth\.uid\(\) AND status = 'pending' AND admin_note IS NULL AND reviewed_by IS NULL AND reviewed_at IS NULL\)/.test(files.get('providerApplicationsMigration'))],
+  ['provider review metadata is protected by founder-only RLS', () => /wasla_provider_applications_founder_update[\s\S]*?public\.is_founder\(\)/.test(files.get('providerApplicationsMigration'))],
+  ['provider review columns are not part of applicant insert grant', () => /GRANT INSERT \(applicant_id, sector, business_name, contact_name, contact_phone, city, address, description\)/.test(files.get('providerApplicationsMigration'))],
+  ['founder provider review page checks founder authorization', () => /rpc\('is_founder'\)/.test(files.get('founderProviders'))],
+  ['founder provider review only transitions pending applications', () => /status,admin_note:note\.value\.trim\(\)\|\|null,reviewed_by:[\s\S]{0,220}eq\('status','pending'\)/.test(files.get('founderProviders'))],
+  ['founder dashboard links to provider review', () => /founder-providers\.html/.test(files.get('dashboard'))],
   ['appointment notifications are emitted by a database trigger', () => /CREATE TRIGGER wasla_appointments_notify_patient[\s\S]*?AFTER INSERT OR UPDATE OF status ON public\.appointments/.test(files.get('migration'))],
   ['order notifications are emitted by a database trigger', () => /CREATE TRIGGER wasla_orders_notify_owner[\s\S]*?AFTER INSERT OR UPDATE OF status ON public\.orders/.test(files.get('migration'))],
 ];
