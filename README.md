@@ -58,6 +58,11 @@ Apply migrations in order:
 
 Apply migrations in order after reviewing the current production schema. Migration #2 intentionally refuses to proceed if orders RLS is disabled; do not bypass that guard without auditing all existing customer policies. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
 
+## Release verification
+
+- Before any production release, complete `docs/RELEASE_TEST_CHECKLIST.md` using dedicated customer, merchant, courier, and founder accounts.
+- Static CI checks do not replace authenticated end-to-end testing against Supabase and the deployed Vercel build.
+
 ## Current working behavior
 
 - Customer order creation writes to `public.orders` for authenticated customers.
