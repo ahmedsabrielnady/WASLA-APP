@@ -8,7 +8,7 @@
 <div class="stats"><div class="stat"><span>إجمالي المنتجات</span><strong id="total">0</strong></div><div class="stat"><span>منتجات متاحة</span><strong id="available">0</strong></div><div class="stat"><span>نفد المخزون</span><strong id="out">0</strong></div></div>
 <form id="productForm" class="card"><h2 id="formTitle">إضافة منتج</h2><div class="field"><label for="name">اسم المنتج</label><input id="name" maxlength="140" required></div><div class="field"><label for="category">التصنيف</label><input id="category" maxlength="80" value="عام" required></div><div class="field"><label for="description">الوصف</label><textarea id="description" maxlength="1000"></textarea></div><div class="row"><div class="field" style="flex:1"><label for="price">السعر بالجنيه</label><input id="price" type="number" min="0" step="0.01" required></div><div class="field" style="flex:1"><label for="stock">الكمية المتاحة</label><input id="stock" type="number" min="0" step="1" value="1" required></div></div><label><input id="isAvailable" type="checkbox" checked style="width:auto"> المنتج متاح للبيع</label><div class="row"><button id="save" type="submit">حفظ المنتج</button><button id="cancelEdit" type="button" class="secondary hidden">إلغاء التعديل</button></div></form><div id="products"></div><h2>طلبات العملاء</h2><div id="marketOrders"></div></section></section></main>
 <script>
-const URL='https://fdduzcytuhoelnnejgkl.supabase.co',KEY='sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529',db=window.supabase?.createClient(URL,KEY),$=id=>document.getElementById(id);let providers=[],editing=null,currentUserId=null;
+const URL='https://fdduzcytuhoelnnejgkl.supabase.co',KEY='sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529',db=window.supabase?.createClient(URL,KEY),$=id=>document.getElementById(id);let providers=[],editing=null,currentUserId=null,marketOrderOffset=0,marketOrderPageSize=50,marketOrderCount=0,marketOrderProviderId=null;
 function say(t,err=false){const e=$('message');e.textContent=t;e.classList.remove('hidden');e.style.background=err?'#fef2f2':'#ecfdf5';e.style.color=err?'#991b1b':'#065f46';}
 function show(ok){$('login').classList.toggle('hidden',ok);$('dashboard').classList.toggle('hidden',!ok);}
 function selected(){return providers.find(p=>p.id===$('provider').value)||null;}
@@ -22,11 +22,17 @@ async function loadMerchantNotifications(){
  if(!data?.length){root.textContent='لا توجد إشعارات جديدة.';return;}
  data.forEach(item=>{const card=document.createElement('article');card.className='product';const title=document.createElement('strong');title.textContent=item.title;const body=document.createElement('p');body.textContent=item.body;card.append(title,body);if(!item.read_at){const read=document.createElement('button');read.className='secondary';read.textContent='تحديد كمقروء';read.onclick=async()=>{read.disabled=true;try{const {error}=await db.from('wasla_notifications').update({read_at:new Date().toISOString()}).eq('id',item.id).eq('user_id',currentUserId);if(error)throw error;await loadMerchantNotifications();}catch(e){say('تعذر تحديث الإشعار: '+e.message,true);read.disabled=false;}};card.append(read);}root.append(card);});
 }
-async function loadMarketOrders(provider){
+async function loadMarketOrders(provider,reset=true){
  await loadMerchantNotifications();
- const root=$('marketOrders');root.textContent='جاري تحميل الطلبات...';
- const {data:orders,error}=await db.from('orders').select('id,tracking_code,status,details,created_at').eq('provider_id',provider.id).order('created_at',{ascending:false}).limit(100);
- if(error)throw error;root.replaceChildren();if(!orders?.length){root.textContent='لا توجد طلبات حتى الآن.';return;}
+ const root=$('marketOrders');
+ if(reset){marketOrderOffset=0;marketOrderCount=0;marketOrderProviderId=provider.id;root.textContent='جاري تحميل الطلبات...';}
+ if(marketOrderProviderId!==provider.id)return;
+ const {data:orders,error,count}=await db.from('orders').select('id,tracking_code,status,details,created_at',{count:'exact'}).eq('provider_id',provider.id).order('created_at',{ascending:false}).range(marketOrderOffset,marketOrderOffset+marketOrderPageSize-1);
+ if(error)throw error;
+ const oldMore=$('loadMoreMarketOrders');if(oldMore)oldMore.remove();
+ if(reset)root.replaceChildren();
+ if(!orders?.length&&reset){root.textContent='لا توجد طلبات حتى الآن.';return;}
+ marketOrderCount=count??marketOrderCount;
  const ids=orders.map(o=>String(o.id));
  const {data:items,error:itemError}=await db.from('wasla_market_order_items').select('order_id,item_name,unit_price,quantity').eq('provider_id',provider.id).in('order_id',ids);
  if(itemError)throw itemError;
@@ -46,6 +52,10 @@ async function loadMarketOrders(provider){
   if(order.status==='ready_for_pickup'){const note=document.createElement('p');note.className='muted';note.textContent='الطلب جاهز. تنتظر هذه المرحلة إسناد مندوب من لوحة التشغيل.';card.append(note);}
   card.append(actions);root.append(card);
  });
+ marketOrderOffset+=orders.length;
+ if(marketOrderOffset<marketOrderCount){
+  const more=document.createElement('button');more.id='loadMoreMarketOrders';more.textContent='تحميل 50 طلبًا إضافيًا';more.onclick=async()=>{more.disabled=true;more.textContent='جاري التحميل...';try{await loadMarketOrders(provider,false);}catch(e){say('تعذر تحميل المزيد من الطلبات: '+e.message,true);more.disabled=false;more.textContent='إعادة المحاولة';}};root.append(more);
+ }
 }
 $('loginButton').onclick=async()=>{try{const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;await authorize();}catch(e){say('تعذر تسجيل الدخول أو تحميل ملف النشاط: '+e.message,true);}};
 $('provider').onchange=()=>loadProducts().catch(e=>say('تعذر تحميل المنتجات: '+e.message,true));
