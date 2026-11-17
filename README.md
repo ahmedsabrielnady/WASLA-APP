@@ -110,6 +110,16 @@ These checks do **not** replace a signed-in browser test or a real database tran
 - An approved application is not automatically a live provider listing. Provider verification, profile creation, service catalog, and customer booking integration remain separate release gates.
 
 
+## Courier onboarding and dispatch (new foundation)
+- `courier-apply.html` lets an authenticated user apply to work as a courier.
+- `founder-couriers.html` lets authorized operations staff review applications and activate/deactivate courier profiles.
+- Approval creates a courier profile through a database trigger; applicants cannot directly activate themselves.
+- `courier-dashboard.html` shows only orders assigned to the active signed-in courier and allows the limited status path: assigned → out for delivery → delivered.
+- The founder dashboard assigns only active couriers to orders in `ready_for_pickup` through the protected `wasla_assign_courier` RPC.
+- `supabase/migrations/20261117_courier_dispatch.sql` adds courier applications/profiles, assigned-order RLS, dispatch RPC, and notifications.
+- This migration depends on the operations, notifications, and order-lifecycle migrations. It is **not yet confirmed as applied**.
+- Courier location/GPS streaming, route optimization, proof-of-delivery photos, cash collection reconciliation, and driver earnings are not implemented yet.
+
 ## Operations dashboard pagination
 - The founder operations dashboard now loads orders in pages of 50 using Supabase range queries and exact row counts.
 - The user can load additional pages without an unbounded query. Search and filters apply to the records currently loaded in the browser; the interface states this explicitly.
