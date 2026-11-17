@@ -32,14 +32,19 @@ Apply migrations in order:
    - **Not yet confirmed as applied.**
    - Adds `public.wasla_can_manage_operations()` and staff order read/status-update policies.
    - Stops if row-level security is not enabled on `public.orders`.
-3. `supabase/migrations/20261118_ticker_role_rpc_permissions.sql`
+3. `supabase/migrations/20261117_order_lifecycle.sql`
+   - **Not yet confirmed as applied.**
+   - Enforces permitted order status transitions in PostgreSQL, not just in the founder dashboard.
+   - Prevents skipping from pending directly to delivered, reopening completed/cancelled orders, and moving delivered orders backwards.
+   - Includes database assertions for valid and invalid transitions.
+4. `supabase/migrations/20261118_ticker_role_rpc_permissions.sql`
    - **Not yet confirmed as applied.**
    - Restricts execution of `public.wasla_can_manage_ticker()` to authenticated users.
 4. `supabase/migrations/20261119_provider_applications.sql`
    - **Not yet confirmed as applied.**
    - Creates the private provider application workflow, owner-scoped RLS, founder review policies, column-level grants, and applicant notifications.
    - Depends on the notifications table from migration #1 and the existing `public.is_founder()` helper.
-5. `supabase/migrations/20261120_order_lifecycle.sql`
+5. `supabase/migrations/20261117_order_lifecycle.sql`
    - **Not yet confirmed as applied.**
    - Enforces permitted order status transitions in PostgreSQL, not just in the founder dashboard.
    - Prevents skipping from pending directly to delivered, reopening completed/cancelled orders, and moving delivered orders backwards.
@@ -109,4 +114,4 @@ These checks do **not** replace a signed-in browser test or a real database tran
 - The founder operations dashboard now loads orders in pages of 50 using Supabase range queries and exact row counts.
 - The user can load additional pages without an unbounded query. Search and filters apply to the records currently loaded in the browser; the interface states this explicitly.
 - This is a read-performance improvement, not a change to order access policies.
-- The founder dashboard now offers only the next allowed status choices. The database migration `20261120_order_lifecycle.sql` independently enforces the same transition graph for every client.
+- The founder dashboard now offers only the next allowed status choices. The database migration `20261117_order_lifecycle.sql` independently enforces the same transition graph for every client.
