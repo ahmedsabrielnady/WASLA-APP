@@ -201,6 +201,10 @@ GRANT DELETE ON TABLE public.wasla_provider_availability TO authenticated;
 REVOKE ALL ON TABLE public.wasla_service_bookings FROM anon,authenticated;
 GRANT SELECT ON TABLE public.wasla_service_bookings TO authenticated;
 
+ALTER TABLE public.wasla_service_bookings
+  ADD COLUMN IF NOT EXISTS reminder_24h_sent_at timestamptz,
+  ADD COLUMN IF NOT EXISTS reminder_1h_sent_at timestamptz;
+
 CREATE OR REPLACE FUNCTION public.wasla_touch_service_records()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -437,6 +441,91 @@ END;
 $function$;
 REVOKE ALL ON FUNCTION public.wasla_cancel_service_booking(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.wasla_cancel_service_booking(uuid) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.wasla_send_service_booking_reminders()
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog,public
+AS $function$
+DECLARE
+  v_sent integer := 0;
+  v_rows integer := 0;
+BEGIN
+  WITH due AS (
+    SELECT id,customer_id,service_name,scheduled_at
+    FROM public.wasla_service_bookings
+    WHERE status = 'confirmed'
+      AND reminder_24h_sent_at IS NULL
+      AND scheduled_at > now() + interval '1 hour'
+      AND scheduled_at <= now() + interval '24 hours'
+    FOR UPDATE SKIP LOCKED
+  ), marked AS (
+    UPDATE public.wasla_service_bookings booking
+    SET reminder_24h_sent_at = now()
+    FROM due
+    WHERE booking.id = due.id
+    RETURNING due.customer_id,due.service_name,due.scheduled_at
+  )
+  INSERT INTO public.wasla_notifications(user_id,title,body,type,order_id)
+  SELECT customer_id,'تذكير بموعدك غدًا',
+    'تذكير: لديك موعد لخدمة ' || service_name || ' غدًا تقريبًا. الموعد ' ||
+    to_char(scheduled_at AT TIME ZONE 'Africa/Cairo','YYYY-MM-DD HH24:MI') || '.',
+    'service_booking_reminder_24h',NULL
+  FROM marked;
+  GET DIAGNOSTICS v_rows = ROW_COUNT;
+  v_sent := v_sent + v_rows;
+
+  WITH due AS (
+    SELECT id,customer_id,service_name,scheduled_at
+    FROM public.wasla_service_bookings
+    WHERE status = 'confirmed'
+      AND reminder_1h_sent_at IS NULL
+      AND scheduled_at > now()
+      AND scheduled_at <= now() + interval '1 hour'
+    FOR UPDATE SKIP LOCKED
+  ), marked AS (
+    UPDATE public.wasla_service_bookings booking
+    SET reminder_1h_sent_at = now()
+    FROM due
+    WHERE booking.id = due.id
+    RETURNING due.customer_id,due.service_name,due.scheduled_at
+  )
+  INSERT INTO public.wasla_notifications(user_id,title,body,type,order_id)
+  SELECT customer_id,'تذكير: موعدك خلال ساعة',
+    'موعدك لخدمة ' || service_name || ' خلال ساعة. الموعد ' ||
+    to_char(scheduled_at AT TIME ZONE 'Africa/Cairo','YYYY-MM-DD HH24:MI') || '.',
+    'service_booking_reminder_1h',NULL
+  FROM marked;
+  GET DIAGNOSTICS v_rows = ROW_COUNT;
+  v_sent := v_sent + v_rows;
+  RETURN v_sent;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_send_service_booking_reminders() FROM PUBLIC;
+
+DO $schedule$
+DECLARE
+  v_job_id bigint;
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+    SELECT jobid INTO v_job_id
+    FROM cron.job
+    WHERE jobname = 'wasla-service-booking-reminders'
+    LIMIT 1;
+    IF v_job_id IS NOT NULL THEN
+      PERFORM cron.unschedule(v_job_id);
+    END IF;
+    PERFORM cron.schedule(
+      'wasla-service-booking-reminders',
+      '*/5 * * * *',
+      'SELECT public.wasla_send_service_booking_reminders();'
+    );
+  ELSE
+    RAISE NOTICE 'pg_cron is not enabled; service appointment reminders require pg_cron activation and scheduling.';
+  END IF;
+END;
+$schedule$;
 
 CREATE OR REPLACE FUNCTION public.wasla_get_available_service_slots(
   p_service_id uuid,
