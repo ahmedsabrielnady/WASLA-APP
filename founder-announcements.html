@@ -330,8 +330,8 @@ $('announcement-form').onsubmit = async event => {
       : await sb.from('offers_ticker').insert({ ...payload, created_by: user.id });
 
     if (result.error) throw result.error;
-    status('form-status', 'تم حفظ الإعلان بنجاح.');
     resetForm();
+    status('form-status', 'تم حفظ الإعلان بنجاح.');
     await loadItems();
   } catch (error) {
     console.error('WASLA ticker save failed:', error);
