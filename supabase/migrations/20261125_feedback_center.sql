@@ -83,6 +83,7 @@ BEGIN
   IF auth.uid() IS NULL THEN
     RAISE EXCEPTION 'Sign in before sending feedback' USING ERRCODE = '42501';
   END IF;
+  PERFORM pg_advisory_xact_lock(hashtextextended(auth.uid()::text,25));
   IF p_category NOT IN ('complaint','suggestion') THEN
     RAISE EXCEPTION 'Choose a complaint or suggestion' USING ERRCODE = '22023';
   END IF;
