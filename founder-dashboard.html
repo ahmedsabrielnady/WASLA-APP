@@ -119,6 +119,18 @@ const STATUS_OPTIONS = [
   ['out_for_delivery','خرج للتوصيل'],['delivered','تم التسليم'],
   ['completed','مكتمل'],['cancelled','ملغي']
 ];
+const STATUS_TRANSITIONS = {
+  pending: ['accepted','cancelled'],
+  'قيد المراجعة': ['accepted','cancelled'],
+  accepted: ['preparing','ready_for_pickup','assigned','out_for_delivery','delivered','completed','cancelled'],
+  preparing: ['ready_for_pickup','assigned','out_for_delivery','delivered','completed','cancelled'],
+  ready_for_pickup: ['assigned','out_for_delivery','delivered','completed','cancelled'],
+  assigned: ['out_for_delivery','delivered','completed','cancelled'],
+  out_for_delivery: ['delivered'],
+  delivered: ['completed'],
+  completed: [],
+  cancelled: []
+};
 let orders = [];
 let busyIds = new Set();
 let ordersOffset = 0;
@@ -299,17 +311,18 @@ function renderOrders() {
     const select = document.createElement('select');
     select.setAttribute('aria-label','تحديث حالة الطلب');
     const current = order.status || 'pending';
-    if (!STATUS_OPTIONS.some(option => option[0] === current)) {
-      makeOption(select,current,displayStatus(current));
-    }
-    STATUS_OPTIONS.forEach(([value,text]) => makeOption(select,value,text));
+    const allowedNext = STATUS_TRANSITIONS[current] || [];
+    makeOption(select,current,displayStatus(current));
+    STATUS_OPTIONS.filter(([value]) => allowedNext.includes(value))
+      .forEach(([value,text]) => makeOption(select,value,text));
     select.value = current;
+    select.disabled = allowedNext.length === 0;
 
     const save = document.createElement('button');
     save.className = 'btn primary';
     save.type = 'button';
-    save.textContent = 'حفظ الحالة';
-    save.disabled = busyIds.has(String(order.id));
+    save.textContent = allowedNext.length ? 'حفظ الحالة' : 'حالة نهائية';
+    save.disabled = busyIds.has(String(order.id)) || allowedNext.length === 0;
     save.onclick = () => updateOrderStatus(order,select,save,pill);
 
     controls.append(label,select,save);
