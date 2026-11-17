@@ -44,8 +44,13 @@ Apply migrations in order:
    - Enforces permitted order status transitions in PostgreSQL, blocks customer status tampering, and aborts if unknown legacy statuses exist.
 6. `supabase/migrations/20261121_courier_dispatch.sql`
    - **Not yet confirmed as applied.**
-   - Adds courier applications/profiles, assigned-order RLS, protected dispatch/reassignment RPCs, courier notifications, and least-privilege order update grants.
+   - Adds courier applications/profiles, assigned-order RLS, protected dispatch/reassignment RPCs, courier notifications, private location sharing, and least-privilege order update grants.
    - Depends on migrations #1, #2, and #5. It stops safely if existing dispatched orders have no courier assigned.
+7. `supabase/migrations/20261122_provider_catalog.sql`
+   - **Not yet confirmed as applied.**
+   - Creates a provider profile only after founder approval, but leaves it inactive and unpublished until a separate founder action.
+   - Adds provider-owned product CRUD, stock/price/availability controls, and public read policies for published products.
+   - Depends on migration #4 and the operations authorization helper from migration #2.
 
 Apply migrations in order after reviewing the current production schema. Migration #2 intentionally refuses to proceed if orders RLS is disabled; do not bypass that guard without auditing all existing customer policies. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
 
@@ -106,6 +111,14 @@ These checks do **not** replace a signed-in browser test or a real database tran
 - The migration is **not yet confirmed as applied**. Apply it only after `20261116_smart_tracking_announcements.sql` (notifications table) and `20261117_operations_dashboard.sql` have been applied, and after confirming `public.is_founder()` is available in this Supabase project.
 - An approved application is not automatically a live provider listing. Provider verification, profile creation, service catalog, and customer booking integration remain separate release gates.
 
+
+## Provider activation and merchant catalog (new foundation)
+- Approved provider applications create a private provider profile, initially inactive and unpublished.
+- The founder review page separately controls activity and public publication.
+- `merchant-dashboard.html` lets the provider manage product name, category, description, price, stock quantity, and availability.
+- `marketplace.html` shows only active/published businesses and available products.
+- This is a catalog and inventory foundation only; customer checkout, order routing to merchants, payment collection, and sales reporting are not implemented yet.
+- `supabase/migrations/20261122_provider_catalog.sql` contains the profile/product schema, RLS policies, approval sync trigger, and least-privilege grants.
 
 ## Courier onboarding and dispatch (new foundation)
 - `courier-apply.html` lets an authenticated user apply to work as a courier.
