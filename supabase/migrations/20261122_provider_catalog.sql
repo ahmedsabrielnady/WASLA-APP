@@ -101,13 +101,13 @@ CREATE POLICY wasla_provider_products_public_read
     is_available = true
     AND EXISTS (
       SELECT 1 FROM public.wasla_provider_profiles p
-      WHERE p.id = provider_id AND p.is_active = true AND p.is_published = true
+      WHERE p.id = provider_id AND p.sector IN ('restaurants','market') AND p.is_active = true AND p.is_published = true
     )
   );
 CREATE POLICY wasla_provider_products_owner_all
   ON public.wasla_provider_products FOR ALL TO authenticated
-  USING (public.wasla_owns_provider_profile(provider_id))
-  WITH CHECK (public.wasla_owns_provider_profile(provider_id));
+  USING (public.wasla_can_manage_provider_catalog(provider_id))
+  WITH CHECK (public.wasla_can_manage_provider_catalog(provider_id));
 CREATE POLICY wasla_provider_products_founder_all
   ON public.wasla_provider_products FOR ALL TO authenticated
   USING (public.wasla_can_manage_operations())
@@ -227,6 +227,23 @@ END;
 $function$;
 REVOKE ALL ON FUNCTION public.wasla_set_provider_state(uuid,boolean,boolean) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.wasla_set_provider_state(uuid,boolean,boolean) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.wasla_can_manage_provider_catalog(p_provider_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog,public,auth
+AS $function$
+  SELECT EXISTS (
+    SELECT 1 FROM public.wasla_provider_profiles
+    WHERE id = p_provider_id
+      AND owner_user_id = auth.uid()
+      AND sector IN ('restaurants','market')
+  );
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_can_manage_provider_catalog(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.wasla_can_manage_provider_catalog(uuid) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.wasla_is_active_provider()
 RETURNS boolean
