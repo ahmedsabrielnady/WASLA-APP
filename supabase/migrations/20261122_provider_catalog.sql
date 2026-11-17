@@ -185,6 +185,17 @@ CREATE TRIGGER wasla_provider_application_create_profile
 AFTER INSERT OR UPDATE OF status ON public.wasla_provider_applications
 FOR EACH ROW EXECUTE FUNCTION public.wasla_sync_provider_approval();
 
+INSERT INTO public.wasla_provider_profiles(
+  application_id,owner_user_id,sector,business_name,contact_name,
+  contact_phone,city,address,description,is_active,is_published
+)
+SELECT
+  id,applicant_id,sector,business_name,contact_name,
+  contact_phone,city,address,description,false,false
+FROM public.wasla_provider_applications
+WHERE status = 'approved'
+ON CONFLICT (application_id) DO NOTHING;
+
 CREATE OR REPLACE FUNCTION public.wasla_is_active_provider()
 RETURNS boolean
 LANGUAGE sql
