@@ -32,21 +32,20 @@ Apply migrations in order:
    - **Not yet confirmed as applied.**
    - Adds `public.wasla_can_manage_operations()` and staff order read/status-update policies.
    - Stops if row-level security is not enabled on `public.orders`.
-3. `supabase/migrations/20261117_order_lifecycle.sql`
-   - **Not yet confirmed as applied.**
-   - Enforces permitted order status transitions in PostgreSQL, not just in the founder dashboard.
-   - Prevents invalid jumps, dispatch-stage skips, and reopening completed/cancelled orders; aborts if unknown legacy statuses exist.
-4. `supabase/migrations/20261117_courier_dispatch.sql`
-   - **Not yet confirmed as applied.**
-   - Adds courier applications/profiles, assigned-order RLS, dispatch assignment RPC, and courier notifications.
-   - Depends on migrations #1–#3 and safely stops if existing dispatched orders have no courier assigned.
-5. `supabase/migrations/20261118_ticker_role_rpc_permissions.sql`
+3. `supabase/migrations/20261118_ticker_role_rpc_permissions.sql`
    - **Not yet confirmed as applied.**
    - Restricts execution of `public.wasla_can_manage_ticker()` to authenticated users.
-6. `supabase/migrations/20261119_provider_applications.sql`
+4. `supabase/migrations/20261119_provider_applications.sql`
    - **Not yet confirmed as applied.**
    - Creates the private provider application workflow, owner-scoped RLS, founder review policies, column-level grants, and applicant notifications.
    - Depends on the notifications table from migration #1 and the existing `public.is_founder()` helper.
+5. `supabase/migrations/20261120_order_lifecycle.sql`
+   - **Not yet confirmed as applied.**
+   - Enforces permitted order status transitions in PostgreSQL, blocks customer status tampering, and aborts if unknown legacy statuses exist.
+6. `supabase/migrations/20261121_courier_dispatch.sql`
+   - **Not yet confirmed as applied.**
+   - Adds courier applications/profiles, assigned-order RLS, protected dispatch/reassignment RPCs, courier notifications, and least-privilege order update grants.
+   - Depends on migrations #1, #2, and #5. It stops safely if existing dispatched orders have no courier assigned.
 
 Apply migrations in order after reviewing the current production schema. Migration #2 intentionally refuses to proceed if orders RLS is disabled; do not bypass that guard without auditing all existing customer policies. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
 
@@ -114,7 +113,7 @@ These checks do **not** replace a signed-in browser test or a real database tran
 - Approval creates a courier profile through a database trigger; applicants cannot directly activate themselves.
 - `courier-dashboard.html` shows only orders assigned to the active signed-in courier and allows the limited status path: assigned → out for delivery → delivered.
 - The founder dashboard assigns only active couriers to orders in `ready_for_pickup` through the protected `wasla_assign_courier` RPC, and permits reassignment only while an order is still in `assigned` (before the courier starts transit).
-- `supabase/migrations/20261117_courier_dispatch.sql` adds courier applications/profiles, assigned-order RLS, dispatch RPC, and notifications.
+- `supabase/migrations/20261121_courier_dispatch.sql` adds courier applications/profiles, assigned-order RLS, dispatch RPC, and notifications.
 - This migration depends on the operations, notifications, and order-lifecycle migrations. It is **not yet confirmed as applied**.
 - Courier location/GPS streaming, route optimization, proof-of-delivery photos, cash collection reconciliation, and driver earnings are not implemented yet.
 
@@ -122,4 +121,4 @@ These checks do **not** replace a signed-in browser test or a real database tran
 - The founder operations dashboard now loads orders in pages of 50 using Supabase range queries and exact row counts.
 - The user can load additional pages without an unbounded query. Search and filters apply to the records currently loaded in the browser; the interface states this explicitly.
 - This is a read-performance improvement, not a change to order access policies.
-- The founder dashboard now offers only the next allowed status choices. The database migration `20261117_order_lifecycle.sql` independently enforces the same transition graph for every client.
+- The founder dashboard now offers only the next allowed status choices. The database migration `20261120_order_lifecycle.sql` independently enforces the same transition graph for every client.
