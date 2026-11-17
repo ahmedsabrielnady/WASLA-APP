@@ -14,7 +14,7 @@ AS $function$
       WHEN 'قيد المراجعة' THEN p_next = ANY (ARRAY['accepted','cancelled']::text[])
       WHEN 'accepted' THEN p_next = ANY (ARRAY['preparing','ready_for_pickup','completed','cancelled']::text[])
       WHEN 'preparing' THEN p_next = ANY (ARRAY['ready_for_pickup','completed','cancelled']::text[])
-      WHEN 'ready_for_pickup' THEN p_next = ANY (ARRAY['assigned','out_for_delivery','delivered','completed','cancelled']::text[])
+      WHEN 'ready_for_pickup' THEN p_next = ANY (ARRAY['assigned','delivered','completed','cancelled']::text[])
       WHEN 'assigned' THEN p_next = ANY (ARRAY['out_for_delivery','cancelled']::text[])
       WHEN 'out_for_delivery' THEN p_next = ANY (ARRAY['delivered']::text[])
       WHEN 'delivered' THEN p_next = ANY (ARRAY['completed']::text[])
