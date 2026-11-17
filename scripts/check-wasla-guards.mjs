@@ -15,6 +15,7 @@ const required = [
   ['provider-apply.html', 'providerApply'],
   ['founder-providers.html', 'founderProviders'],
   ['supabase/migrations/20261119_provider_applications.sql', 'providerApplicationsMigration'],
+  ['supabase/migrations/20261120_order_lifecycle.sql', 'orderLifecycleMigration'],
 ];
 
 const files = new Map();
@@ -67,6 +68,9 @@ const checks = [
   ['orders staff read is scoped to the staff role function', () => /CREATE POLICY wasla_orders_staff_read[\s\S]*?USING \(public\.wasla_can_manage_operations\(\)\)/.test(files.get('operationsMigration'))],
   ['orders staff update policy is role-scoped', () => /CREATE POLICY wasla_orders_staff_status_update[\s\S]*?WITH CHECK \(public\.wasla_can_manage_operations\(\)\)/.test(files.get('operationsMigration'))],
   ['dashboard changes only order status', () => /\.update\(\{ status: nextStatus \}\)/.test(files.get('dashboard'))],
+  ['founder dashboard offers only valid next order states', () => /const STATUS_TRANSITIONS =/.test(files.get('dashboard')) && /STATUS_TRANSITIONS\[current\]/.test(files.get('dashboard')) && /allowedNext.length === 0/.test(files.get('dashboard'))],
+  ['database enforces order state transitions with a trigger', () => /CREATE TRIGGER wasla_orders_enforce_status_transition[\s\S]*?BEFORE UPDATE OF status ON public\.orders/.test(files.get('orderLifecycleMigration')) && /wasla_order_status_transition_allowed/.test(files.get('orderLifecycleMigration'))],
+  ['order lifecycle migration tests both allowed and forbidden transitions', () => /valid transition rejected/.test(files.get('orderLifecycleMigration')) && /invalid transition accepted/.test(files.get('orderLifecycleMigration')) && /pending','delivered/.test(files.get('orderLifecycleMigration'))],
   ['operations migration refuses to run if orders RLS is disabled', () => /IF coalesce\(v_rls_enabled, false\) IS NOT TRUE THEN/.test(files.get('operationsMigration'))],
   ['homepage declares the installable PWA manifest', () => /rel="manifest" href="\/manifest\.webmanifest"/.test(files.get('homepage'))],
   ['homepage registers the service worker after page load', () => /serviceWorker\.register\("\/sw\.js"\)/.test(files.get('homepage'))],
