@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#059669">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/assets/wasla-icon.svg" type="image/svg+xml">
 <title>وصلة | WASLA - Enterprise Super App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet">
@@ -1069,6 +1071,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+</script>
+<script>
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch((error) => {
+      console.warn("WASLA offline support registration failed:", error);
+    });
+  });
+}
 </script>
 </body>
 </html>
