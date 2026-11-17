@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS public.wasla_provider_products (
   stock_quantity integer NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0),
   is_available boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS wasla_provider_products_provider_created_idx
