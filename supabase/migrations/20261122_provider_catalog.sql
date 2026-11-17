@@ -104,7 +104,10 @@ CREATE POLICY wasla_provider_products_founder_all
   WITH CHECK (public.wasla_can_manage_operations());
 
 REVOKE ALL ON TABLE public.wasla_provider_profiles FROM anon,authenticated;
-GRANT SELECT ON TABLE public.wasla_provider_profiles TO anon,authenticated;
+GRANT SELECT (id,sector,business_name,contact_phone,city,address,description,is_active,is_published)
+  ON TABLE public.wasla_provider_profiles TO anon;
+GRANT SELECT (id,application_id,sector,business_name,contact_phone,city,address,description,is_active,is_published)
+  ON TABLE public.wasla_provider_profiles TO authenticated;
 GRANT UPDATE (business_name,contact_name,contact_phone,city,address,description)
   ON TABLE public.wasla_provider_profiles TO authenticated;
 GRANT UPDATE (is_active,is_published)
