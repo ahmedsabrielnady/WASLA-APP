@@ -16,7 +16,7 @@ $preflight$;
 CREATE TABLE IF NOT EXISTS public.wasla_feedback (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tracking_code text NOT NULL UNIQUE DEFAULT ('WF' || upper(substr(replace(gen_random_uuid()::text,'-',''),1,10))),
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   category text NOT NULL CHECK (category IN ('complaint','suggestion')),
   subject text NOT NULL CHECK (length(btrim(subject)) BETWEEN 3 AND 120),
   message text NOT NULL CHECK (length(btrim(message)) BETWEEN 10 AND 3000),
