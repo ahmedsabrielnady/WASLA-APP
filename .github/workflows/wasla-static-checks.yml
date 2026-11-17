@@ -44,6 +44,8 @@ on:
       - 'courier-dashboard.html'
       - 'merchant-dashboard.html'
       - 'marketplace.html'
+      - 'service-marketplace.html'
+      - 'provider-services.html'
       - 'supabase/migrations/20261119_provider_applications.sql'
       - 'supabase/migrations/20261120_order_lifecycle.sql'
       - 'supabase/migrations/20261121_courier_dispatch.sql'
