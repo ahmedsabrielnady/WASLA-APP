@@ -8,6 +8,8 @@ const pages = [
   'courier-apply.html',
   'founder-couriers.html',
   'courier-dashboard.html',
+  'merchant-dashboard.html',
+  'marketplace.html',
 ];
 
 let checked = 0;
