@@ -4,11 +4,12 @@
 
 WASLA is still in a controlled preview phase. The active implementation is being delivered as a stacked pull-request sequence:
 
-- PR #3 — founder announcement authorization hardening; base: `feature/smart-tracking-announcements`.
-- PR #4 — installable PWA shell, offline fallback, and paginated customer order history; base: PR #3 branch.
-- PR #5 — secure provider onboarding and founder review; base: PR #4 branch.
+- PR #2 — smart order tracking, notifications, and announcement management.
+- PR #3 — founder announcement authorization hardening; based on the smart-tracking layer.
+- PR #4 — installable PWA shell, offline fallback, and paginated customer order history; based on PR #3.
+- PR #5 — secure provider onboarding, merchant checkout, courier workflows, and service appointments; based on PR #4.
 
-All three are draft/open and unmerged at the time of this update. Merge in dependency order only after each layer's database and browser tests pass. No production release has been authorized.
+All four pull requests are draft/open and unmerged at the time of this update. Merge in dependency order only after each layer's database and browser tests pass. No production release has been authorized.
 
 ## Important pages
 
