@@ -29,6 +29,7 @@ on:
       - 'offline.html'
       - 'assets/wasla-icon.svg'
       - 'README.md'
+      - 'vercel.json'
       - 'docs/**'
       - 'supabase/migrations/**'
       - 'scripts/**'
