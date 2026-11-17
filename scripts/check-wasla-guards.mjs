@@ -34,6 +34,8 @@ const checks = [
   ['no hard-coded fake doctor fallback', () => !/dummyDoctors|د\. محمد عبد الله|د\. سارة خالد|د\. أحمد حسن/.test(files.get('admin'))],
   ['no hard-coded teacher demo profiles', () => !/أ\. أحمد محمد|أ\. سارة علي|مراجعة ليلة الامتحان - فيزياء/.test(files.get('homepage'))],
   ['no hard-coded supermarket product prices', () => !/price:\s*\d+/.test(files.get('homepage'))],
+  ['customer order history is paginated with a bounded range', () => /ordersPageSize: 10/.test(files.get('homepage')) && /\.range\(from, to\)/.test(files.get('homepage'))],
+  ['customer order history remains scoped to the signed-in user', () => /\.eq\('user_id', Auth\.user\.id\)[\s\S]{0,120}\.order\('created_at'/.test(files.get('homepage'))],
   ['order history renders untrusted data as text', () => /details\.textContent\s*=\s*order\.details/.test(files.get('homepage'))],
   ['unread notification badge is present', () => /id="notification-count"/.test(files.get('homepage')) && /function updateNotificationBadge/.test(files.get('homepage'))],
   ['logout clears the previous account notification badge', () => /this\.user = null;\s*updateNotificationBadge\(0\)/.test(files.get('homepage'))],
