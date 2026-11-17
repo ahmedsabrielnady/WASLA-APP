@@ -220,7 +220,7 @@ async function refreshDashboard() {
       countOrders(q => q.in('sector',['delivery','توصيل'])),
       countOrders(q => q.gte('created_at',todayIso)),
       sb.from('orders')
-        .select('id,order_number,tracking_code,sector,status,details,created_at,updated_at', { count: 'exact' })
+        .select('id,order_number,tracking_code,sector,status,details,created_at,updated_at,courier_id,courier_assigned_at', { count: 'exact' })
         .order('created_at',{ascending:false})
         .range(0, ordersPageSize - 1),
       sb.from('wasla_courier_profiles')
@@ -310,6 +310,13 @@ function renderOrders() {
     const details = document.createElement('p');
     details.className = 'order-details';
     details.textContent = order.details || 'لا توجد تفاصيل مرفقة.';
+    if (order.courier_id) {
+      const courier = couriers.find(item => item.user_id === order.courier_id);
+      const assigned = document.createElement('p');
+      assigned.className = 'order-meta';
+      assigned.textContent = 'المندوب: ' + (courier?.display_name || 'مندوب مسند') + ' · وقت الإسناد: ' + formatDate(order.courier_assigned_at);
+      details.appendChild(assigned);
+    }
 
     const controls = document.createElement('div');
     controls.className = 'order-controls';
@@ -338,7 +345,7 @@ function renderOrders() {
     controls.append(label,select,save);
     card.append(top,details,controls);
 
-    if (order.status === 'ready_for_pickup') {
+    if (order.status === 'ready_for_pickup' || order.status === 'assigned') {
       const dispatch = document.createElement('div');
       dispatch.className = 'order-controls';
       const dispatchLabel = document.createElement('label');
@@ -350,10 +357,11 @@ function renderOrders() {
         const vehicle = ({motorcycle:'دراجة نارية',car:'سيارة',bicycle:'دراجة',other:'أخرى'})[courier.vehicle_type] || courier.vehicle_type;
         makeOption(courierSelect,courier.user_id,courier.display_name + ' · ' + vehicle);
       });
+      courierSelect.value = order.courier_id || '';
       const assign = document.createElement('button');
       assign.className = 'btn primary';
       assign.type = 'button';
-      assign.textContent = 'إسناد المهمة';
+      assign.textContent = order.status === 'assigned' ? 'إعادة إسناد' : 'إسناد المهمة';
       assign.disabled = couriers.length === 0 || busyIds.has(String(order.id));
       assign.onclick = () => assignCourier(order,courierSelect,assign);
       if (!couriers.length) {
@@ -395,7 +403,7 @@ async function loadMoreOrders() {
   renderOrders();
   try {
     const { data, error, count } = await sb.from('orders')
-      .select('id,order_number,tracking_code,sector,status,details,created_at,updated_at', { count: 'exact' })
+      .select('id,order_number,tracking_code,sector,status,details,created_at,updated_at,courier_id,courier_assigned_at', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(ordersOffset, ordersOffset + ordersPageSize - 1);
     if (error) throw error;
@@ -428,7 +436,7 @@ async function assignCourier(order,select,button) {
     });
     if (error) throw error;
     if (data !== true) throw new Error('Assignment was not confirmed by the database.');
-    setStatus('list-status','تم إسناد الطلب إلى المندوب.');
+    setStatus('list-status','تم حفظ إسناد المندوب.');
     await refreshDashboard();
   } catch (error) {
     console.error('WASLA courier assignment failed:',error);
