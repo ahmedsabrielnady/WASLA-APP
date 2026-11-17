@@ -64,12 +64,13 @@ CREATE TRIGGER wasla_feedback_touch
 BEFORE UPDATE ON public.wasla_feedback
 FOR EACH ROW EXECUTE FUNCTION public.wasla_touch_feedback();
 
+DROP FUNCTION IF EXISTS public.wasla_submit_feedback(text,text,text);
 CREATE OR REPLACE FUNCTION public.wasla_submit_feedback(
   p_category text,
   p_subject text,
   p_message text
 )
-RETURNS uuid
+RETURNS text
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = pg_catalog,public,auth
@@ -103,7 +104,7 @@ BEGIN
   FROM public.users
   WHERE role IN ('admin','founder');
 
-  RETURN v_feedback_id;
+  RETURN v_tracking_code;
 END;
 $function$;
 REVOKE ALL ON FUNCTION public.wasla_submit_feedback(text,text,text) FROM PUBLIC;
