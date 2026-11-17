@@ -9,6 +9,7 @@ const APP_SHELL = [
   "/merchant-dashboard.html",
   "/service-marketplace.html",
   "/provider-services.html",
+  "/feedback.html",
   "/courier-dashboard.html"
 ];
 
