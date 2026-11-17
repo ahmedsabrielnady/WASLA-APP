@@ -93,6 +93,17 @@ Do not use real customer personal data or live payment details.
 - [ ] Confirm the provider cannot move a pending booking directly to completed/no_show or a cancelled booking back to confirmed.
 - [ ] Confirm all displayed and submitted appointment times are interpreted in Africa/Cairo time, including when the browser timezone differs.
 
+## Customer complaints and suggestions
+
+- [ ] Submit a complaint as Customer A and verify a tracking code is returned.
+- [ ] Submit a suggestion as Customer A and verify both are visible only to Customer A and authorized operations staff.
+- [ ] Confirm Customer B cannot read Customer A's feedback through direct table queries or the feedback page.
+- [ ] Confirm a new feedback notification is sent to admin/founder accounts.
+- [ ] Update a feedback item as an authorized founder/admin; test open, in-progress, resolved, and rejected states.
+- [ ] Confirm the customer receives an in-app notification with the updated status and admin reply.
+- [ ] Confirm an ordinary customer cannot call the feedback update RPC or modify status/admin reply directly.
+- [ ] Confirm founder feedback pagination loads exact-count pages without exposing feedback to unauthorized users.
+
 ## Medical clinic queue
 
 - [ ] Confirm only a medical provider owner can check in a patient or call the next patient.
