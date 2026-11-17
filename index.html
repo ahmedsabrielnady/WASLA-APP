@@ -861,6 +861,9 @@ const DB = {
                             locationBox.textContent = 'بيانات الموقع غير صالحة.';
                             return;
                         }
+                        const privacyNote = document.createElement('small');
+                        privacyNote.style.cssText = 'display:block;margin-bottom:6px;color:var(--muted);';
+                        privacyNote.textContent = 'الموقع يُشارك أثناء التوصيل فقط وقد يتأخر حسب اتصال المندوب.';
                         const link = document.createElement('a');
                         link.href = 'https://www.google.com/maps?q=' + encodeURIComponent(lat + ',' + lng);
                         link.target = '_blank';
@@ -870,7 +873,7 @@ const DB = {
                         stamp.style.cssText = 'display:block;margin-top:5px;color:var(--muted);';
                         const updated = new Date(location.updated_at);
                         stamp.textContent = Number.isNaN(updated.getTime()) ? 'وقت التحديث غير متاح' : 'آخر تحديث للموقع: ' + updated.toLocaleString('ar-EG') + (Date.now() - updated.getTime() > 120000 ? ' · الموقع قديم' : '');
-                        locationBox.append(link,stamp);
+                        locationBox.append(privacyNote,link,stamp);
                     };
                     renderLocation(courierLocations.find(location => location.courier_id === order.courier_id));
                     const refreshLocation = document.createElement('button');
