@@ -10,6 +10,7 @@ const required = [
   ['founder-dashboard.html', 'dashboard'],
   ['founder-appointments.html', 'founderAppointments'],
   ['manifest.webmanifest', 'manifest'],
+  ['vercel.json', 'vercelConfig'],
   ['sw.js', 'serviceWorker'],
   ['offline.html', 'offline'],
   ['assets/wasla-icon.svg', 'appIcon'],
@@ -48,6 +49,7 @@ for (const [path, label] of required) {
 if (process.exitCode) process.exit();
 
 const checks = [
+  ['Vercel deployment applies baseline security headers and permits same-origin geolocation only', () => { const config=JSON.parse(files.get('vercelConfig')); const headers=config.headers?.[0]?.headers||[]; const values=Object.fromEntries(headers.map(h=>[h.key,h.value])); return values['X-Content-Type-Options']==='nosniff' && values['X-Frame-Options']==='DENY' && values['Referrer-Policy']==='strict-origin-when-cross-origin' && values['Permissions-Policy']==='geolocation=(self), camera=(), microphone=(), payment=()' && values['Strict-Transport-Security']==='max-age=31536000'; }],
   ['homepage ticker filters scheduled start', () => /\.lte\(['"]starts_at['"],\s*now\)/.test(files.get('homepage'))],
   ['homepage ticker filters scheduled end', () => /\.or\(['"]ends_at\.is\.null,ends_at\.gt\.'\s*\+\s*now\)/.test(files.get('homepage'))],
   ['admin ticker filters scheduled start', () => /\.lte\(['"]starts_at['"],\s*now\)/.test(files.get('admin'))],
