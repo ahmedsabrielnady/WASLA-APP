@@ -16,6 +16,7 @@ All three are draft/open and unmerged at the time of this update. Merge in depen
 |---|---|
 | `index.html` | Customer-facing WASLA portal |
 | `founder-dashboard.html` | New founder/admin operations dashboard for order counts and order-status management |
+| `founder-appointments.html` | Founder-only read-only dashboard for service appointment oversight |
 | `founder-announcements.html` | Founder/admin announcement ticker manager |
 | `admin.html` | Legacy medical/service request page; not the founder operations dashboard. |
 | `marketplace.html` | Restaurant and retail product marketplace with cash-on-delivery checkout. |
@@ -86,6 +87,7 @@ Apply migrations in order after reviewing the current production schema. Migrati
 - Merchant checkout validates stock in the database and reserves quantities atomically; cancellations before dispatch restore stock.
 - Merchants can manage their own product catalog and move orders through accepted, preparing, and ready-for-pickup states.
 - The merchant order inbox loads 50 orders per page, uses the exact database count for load-more availability, and suppresses duplicate cards when new orders arrive during paging.
+- The founder has a read-only appointment oversight page with provider/service, status, schedule, customer phone, and paginated records.
 - Service providers in medical, education, maintenance, and automotive sectors can create service offerings, set weekly availability, and review customer booking requests. Customers see server-calculated available time slots in Africa/Cairo time; the booking RPC revalidates the schedule and overlapping bookings before creating a pending request. Provider confirmation is required before the appointment is confirmed.
 - Confirmed service bookings can be cancelled by customers only at least 12 hours before the appointment. Pending requests can be cancelled at any time.
 - Migration #9 schedules 24-hour and 1-hour in-app appointment reminders every five minutes when the Supabase `pg_cron` extension is enabled. If the extension is unavailable/disabled, reminders are not scheduled and must be enabled separately.
