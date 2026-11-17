@@ -338,7 +338,7 @@ function renderOrdersPagination(host) {
   }
 }
 
-async function loadMoreOrders {
+async function loadMoreOrders() {
   if (ordersLoadingMore || !ordersHasMore) return;
   ordersLoadingMore = true;
   renderOrders();
