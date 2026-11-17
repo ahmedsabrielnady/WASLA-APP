@@ -330,15 +330,17 @@ BEGIN
   UPDATE public.orders
   SET courier_id = p_courier_id,
       courier_assigned_at = now(),
-      status = 'assigned'
+      status = CASE WHEN status = 'ready_for_pickup' THEN 'assigned' ELSE status END
   WHERE id::text = p_order_id
-    AND status = 'ready_for_pickup'
-    AND courier_id IS NULL;
+    AND (
+      (status = 'ready_for_pickup' AND courier_id IS NULL)
+      OR (status = 'assigned' AND courier_id IS NOT NULL)
+    );
 
   PERFORM set_config('wasla.courier_assignment','',true);
   GET DIAGNOSTICS v_updated = ROW_COUNT;
   IF v_updated <> 1 THEN
-    RAISE EXCEPTION 'Order is not ready for courier assignment' USING ERRCODE = '23514';
+    RAISE EXCEPTION 'Order is not ready for initial assignment or safe reassignment' USING ERRCODE = '23514';
   END IF;
   RETURN true;
 END;
