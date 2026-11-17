@@ -28,6 +28,28 @@ $preflight$;
 ALTER TABLE public.orders
   ADD COLUMN IF NOT EXISTS provider_id uuid
   REFERENCES public.wasla_provider_profiles(id) ON DELETE RESTRICT;
+ALTER TABLE public.orders
+  ADD COLUMN IF NOT EXISTS delivery_lat numeric(9,6),
+  ADD COLUMN IF NOT EXISTS delivery_lng numeric(9,6);
+DO $coordinates$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid='public.orders'::regclass
+      AND conname='wasla_orders_delivery_coordinates_pair_check'
+  ) THEN
+    ALTER TABLE public.orders
+      ADD CONSTRAINT wasla_orders_delivery_coordinates_pair_check
+      CHECK (
+        (delivery_lat IS NULL AND delivery_lng IS NULL)
+        OR (
+          delivery_lat BETWEEN -90 AND 90
+          AND delivery_lng BETWEEN -180 AND 180
+        )
+      );
+  END IF;
+END;
+$coordinates$;
 
 CREATE INDEX IF NOT EXISTS wasla_orders_provider_status_created_idx
   ON public.orders(provider_id,status,created_at DESC);
@@ -154,12 +176,15 @@ BEGIN
 END;
 $function$;
 
+DROP FUNCTION IF EXISTS public.wasla_create_market_order(uuid,jsonb,text,text,text);
 CREATE OR REPLACE FUNCTION public.wasla_create_market_order(
   p_provider_id uuid,
   p_items jsonb,
   p_delivery_address text,
   p_customer_phone text,
-  p_notes text DEFAULT ''
+  p_notes text DEFAULT '',
+  p_delivery_lat double precision DEFAULT NULL,
+  p_delivery_lng double precision DEFAULT NULL
 )
 RETURNS text
 LANGUAGE plpgsql
@@ -188,6 +213,10 @@ BEGIN
   END IF;
   IF p_notes IS NOT NULL AND length(p_notes) > 1000 THEN
     RAISE EXCEPTION 'Order notes are too long' USING ERRCODE = '22023';
+  END IF;
+  IF (p_delivery_lat IS NULL) <> (p_delivery_lng IS NULL)
+     OR (p_delivery_lat IS NOT NULL AND (p_delivery_lat NOT BETWEEN -90 AND 90 OR p_delivery_lng NOT BETWEEN -180 AND 180)) THEN
+    RAISE EXCEPTION 'Delivery coordinates must be a valid latitude/longitude pair' USING ERRCODE = '22023';
   END IF;
   IF p_items IS NULL OR jsonb_typeof(p_items) IS DISTINCT FROM 'array' THEN
     RAISE EXCEPTION 'Cart items must be a JSON array' USING ERRCODE = '22023';
@@ -250,7 +279,7 @@ BEGIN
   END LOOP;
 
   PERFORM set_config('wasla.provider_order_creation','authorized',true);
-  INSERT INTO public.orders(user_id,sector,details,status,provider_id)
+  INSERT INTO public.orders(user_id,sector,details,status,provider_id,delivery_lat,delivery_lng)
   VALUES (
     auth.uid(),
     v_provider.sector,
@@ -260,9 +289,12 @@ BEGIN
     'المنتجات: ' || v_summary || E'\n' ||
     'الإجمالي: ' || v_total::text || ' ج.م' || E'\n' ||
     'الدفع: نقدًا عند الاستلام' || E'\n' ||
-    'ملاحظات: ' || coalesce(btrim(p_notes),''),
+    'ملاحظات: ' || coalesce(btrim(p_notes),'') ||
+    CASE WHEN p_delivery_lat IS NOT NULL THEN E'\\nالموقع الجغرافي: ' || p_delivery_lat::text || ',' || p_delivery_lng::text ELSE '' END,
     'pending',
-    p_provider_id
+    p_provider_id,
+    p_delivery_lat,
+    p_delivery_lng
   )
   RETURNING id::text INTO v_order_id;
   PERFORM set_config('wasla.provider_order_creation','',true);
@@ -277,8 +309,8 @@ BEGIN
   RETURN v_order_id;
 END;
 $function$;
-REVOKE ALL ON FUNCTION public.wasla_create_market_order(uuid,jsonb,text,text,text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.wasla_create_market_order(uuid,jsonb,text,text,text) TO authenticated;
+REVOKE ALL ON FUNCTION public.wasla_create_market_order(uuid,jsonb,text,text,text,double precision,double precision) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.wasla_create_market_order(uuid,jsonb,text,text,text,double precision,double precision) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.wasla_update_market_order_status(
   p_order_id text,
