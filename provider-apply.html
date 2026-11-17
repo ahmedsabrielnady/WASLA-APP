@@ -47,6 +47,7 @@ function message(text,error=false){const el=$('message');el.textContent=text;el.
 function showApp(user){$('auth').classList.toggle('hidden',!!user);$('application').classList.toggle('hidden',!user);}
 function statusText(status){return status==='pending'?'طلبك قيد المراجعة':status==='approved'?'تمت الموافقة المبدئية على طلبك، وسيتم التواصل لاستكمال تفعيل النشاط':status==='rejected'?'لم تتم الموافقة على الطلب الحالي':'حالة غير معروفة';}
 async function loadLatest(user){
+ $('application-form').classList.remove('hidden');$('existing').replaceChildren();
  const {data,error}=await client.from('wasla_provider_applications').select('id,business_name,sector,status,admin_note,created_at').eq('applicant_id',user.id).order('created_at',{ascending:false}).limit(1);
  if(error)throw error;
  const latest=data?.[0];$('existing').replaceChildren();
