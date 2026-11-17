@@ -39,6 +39,11 @@ Apply migrations in order:
    - **Not yet confirmed as applied.**
    - Creates the private provider application workflow, owner-scoped RLS, founder review policies, column-level grants, and applicant notifications.
    - Depends on the notifications table from migration #1 and the existing `public.is_founder()` helper.
+5. `supabase/migrations/20261120_order_lifecycle.sql`
+   - **Not yet confirmed as applied.**
+   - Enforces permitted order status transitions in PostgreSQL, not just in the founder dashboard.
+   - Prevents skipping from pending directly to delivered, reopening completed/cancelled orders, and moving delivered orders backwards.
+   - Includes database assertions for valid and invalid transitions.
 
 Apply migrations in order after reviewing the current production schema. Migration #2 intentionally refuses to proceed if orders RLS is disabled; do not bypass that guard without auditing all existing customer policies. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
 
@@ -50,7 +55,7 @@ Apply migrations in order after reviewing the current production schema. Migrati
 - The customer account shows the latest 20 notifications and an unread-count badge. Mark-as-read only updates `read_at`.
 - The home and legacy service-page tickers apply both `starts_at` and `ends_at` filters, including for founder/admin sessions.
 - Founder announcement CRUD is protected by database policies as well as a client-side role check.
-- The founder dashboard checks `wasla_can_manage_operations()` before loading any order data. Status updates are limited in the dashboard UI to the order `status` field.
+- The founder dashboard checks `wasla_can_manage_operations()` before loading any order data. Status updates are limited in the dashboard UI to the order `status` field, and the database lifecycle trigger rejects invalid state transitions.
 - The old delivery request form saves pickup/drop-off coordinates or manual addresses in order details. It does not provide dispatch, driver assignment, live map display, or live driver tracking.
 
 ## Still not production-complete
@@ -78,11 +83,12 @@ These checks do **not** replace a signed-in browser test or a real database tran
 1. Confirm both migrations are applied successfully in Supabase.
 2. Sign in as a founder/admin and verify `/founder-dashboard.html` loads the order queue.
 3. Verify one test order can be read, changed from pending to accepted, and that its owner receives an in-app notification. Use a dedicated test account and test data only.
-4. Verify the customer can mark the notification read and the unread badge decrements correctly.
-5. Verify founder announcement create/update/activate/deactivate/delete using a dedicated test announcement.
-6. Verify an ordinary customer cannot open staff order data or update order status.
-7. Complete the real medical booking and service-provider workflows before marking the platform production-ready.
-8. Only after these checks pass should PR #2 be marked ready, reviewed, merged, and deployed.
+4. Verify invalid status jumps (for example pending → delivered) are rejected by PostgreSQL, while valid transitions succeed.
+5. Verify the customer can mark the notification read and the unread badge decrements correctly.
+6. Verify founder announcement create/update/activate/deactivate/delete using a dedicated test announcement.
+7. Verify an ordinary customer cannot open staff order data or update order status.
+8. Complete the real medical booking and service-provider workflows before marking the platform production-ready.
+9. Only after these checks pass should the stacked PRs be reviewed, merged in dependency order, and deployed.
 
 ## Security notes
 
@@ -102,4 +108,5 @@ These checks do **not** replace a signed-in browser test or a real database tran
 ## Operations dashboard pagination
 - The founder operations dashboard now loads orders in pages of 50 using Supabase range queries and exact row counts.
 - The user can load additional pages without an unbounded query. Search and filters apply to the records currently loaded in the browser; the interface states this explicitly.
-- This is a read-performance improvement, not a change to order access policies or business status transitions.
+- This is a read-performance improvement, not a change to order access policies.
+- The founder dashboard now offers only the next allowed status choices. The database migration `20261120_order_lifecycle.sql` independently enforces the same transition graph for every client.
