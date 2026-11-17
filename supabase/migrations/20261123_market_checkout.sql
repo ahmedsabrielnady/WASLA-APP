@@ -178,15 +178,14 @@ BEGIN
 END;
 $function$;
 
-DROP FUNCTION IF EXISTS public.wasla_create_market_order(uuid,jsonb,text,text,text);
 CREATE OR REPLACE FUNCTION public.wasla_create_market_order(
   p_provider_id uuid,
   p_items jsonb,
   p_delivery_address text,
   p_customer_phone text,
-  p_notes text DEFAULT '',
-  p_delivery_lat double precision DEFAULT NULL,
-  p_delivery_lng double precision DEFAULT NULL
+  p_notes text,
+  p_delivery_lat double precision,
+  p_delivery_lng double precision
 )
 RETURNS text
 LANGUAGE plpgsql
@@ -313,6 +312,26 @@ END;
 $function$;
 REVOKE ALL ON FUNCTION public.wasla_create_market_order(uuid,jsonb,text,text,text,double precision,double precision) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.wasla_create_market_order(uuid,jsonb,text,text,text,double precision,double precision) TO authenticated;
+
+-- Backward-compatible wrapper for clients that have not yet sent GPS coordinates.
+CREATE OR REPLACE FUNCTION public.wasla_create_market_order(
+  p_provider_id uuid,
+  p_items jsonb,
+  p_delivery_address text,
+  p_customer_phone text,
+  p_notes text DEFAULT ''
+)
+RETURNS text
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = pg_catalog,public,auth
+AS $function$
+  SELECT public.wasla_create_market_order(
+    p_provider_id,p_items,p_delivery_address,p_customer_phone,coalesce(p_notes,''),NULL,NULL
+  );
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_create_market_order(uuid,jsonb,text,text,text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.wasla_create_market_order(uuid,jsonb,text,text,text) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.wasla_update_market_order_status(
   p_order_id text,
