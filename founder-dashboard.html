@@ -88,7 +88,7 @@ main{padding-top:20px}.login-card,.panel,.metric{background:var(--card);border:1
         </div>
         <p id="list-status" class="status" role="status">جاري تحميل الطلبات...</p>
         <div id="orders" class="orders"><div class="empty">جاري التحميل...</div></div>
-        <div class="foot">تُعرض أحدث 200 عملية. الأرقام أعلى الصفحة محسوبة من قاعدة البيانات مباشرة.</div>
+        <div class="foot">يتم تحميل الطلبات على دفعات من 50 سجلًا. البحث والفلاتر يطبقان على السجلات المحمّلة حاليًا.</div>
       </section>
     </section>
   </main>
@@ -121,6 +121,10 @@ const STATUS_OPTIONS = [
 ];
 let orders = [];
 let busyIds = new Set();
+let ordersOffset = 0;
+const ordersPageSize = 50;
+let ordersHasMore = false;
+let ordersLoadingMore = false;
 
 function setStatus(id, message, error = false) {
   const el = $(id);
@@ -200,9 +204,9 @@ async function refreshDashboard() {
       countOrders(q => q.in('sector',['delivery','توصيل'])),
       countOrders(q => q.gte('created_at',todayIso)),
       sb.from('orders')
-        .select('id,order_number,tracking_code,sector,status,details,created_at,updated_at')
+        .select('id,order_number,tracking_code,sector,status,details,created_at,updated_at', { count: 'exact' })
         .order('created_at',{ascending:false})
-        .limit(200)
+        .range(0, ordersPageSize - 1)
     ]);
 
     if (result.error) throw result.error;
@@ -213,6 +217,8 @@ async function refreshDashboard() {
     $('metric-today').textContent = today.toLocaleString('ar-EG');
 
     orders = Array.isArray(result.data) ? result.data : [];
+    ordersOffset = orders.length;
+    ordersHasMore = ordersOffset < Number(result.count || 0);
     renderOrders();
     setStatus('list-status','تم تحديث لوحة التشغيل: ' + formatDate(new Date().toISOString()));
   } catch (error) {
@@ -309,6 +315,48 @@ function renderOrders() {
     card.append(top,details,controls);
     host.appendChild(card);
   });
+
+  const pagination = document.getElementById('orders-pagination');
+  if (pagination) pagination.remove();
+  if (ordersHasMore) {
+    const wrap = document.createElement('div');
+    wrap.id = 'orders-pagination';
+    wrap.style.cssText = 'display:flex;justify-content:center;padding:14px;';
+    const more = document.createElement('button');
+    more.className = 'btn soft';
+    more.type = 'button';
+    more.textContent = ordersLoadingMore ? 'جاري تحميل المزيد...' : 'تحميل 50 طلبًا إضافيًا';
+    more.disabled = ordersLoadingMore;
+    more.addEventListener('click', loadMoreOrders);
+    wrap.appendChild(more);
+    host.appendChild(wrap);
+  }
+}
+
+async function loadMoreOrders() {
+  if (ordersLoadingMore || !ordersHasMore) return;
+  ordersLoadingMore = true;
+  renderOrders();
+  try {
+    const { data, error, count } = await sb.from('orders')
+      .select('id,order_number,tracking_code,sector,status,details,created_at,updated_at', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(ordersOffset, ordersOffset + ordersPageSize - 1);
+    if (error) throw error;
+    const existing = new Set(orders.map(order => String(order.id)));
+    (data || []).forEach(order => {
+      if (!existing.has(String(order.id))) orders.push(order);
+    });
+    ordersOffset += (data || []).length;
+    ordersHasMore = ordersOffset < Number(count || 0);
+    setStatus('list-status', 'تم تحميل ' + orders.length.toLocaleString('ar-EG') + ' طلبًا.');
+  } catch (error) {
+    console.error('WASLA additional orders load failed:', error);
+    setStatus('list-status', 'تعذر تحميل المزيد من الطلبات. حاول مرة أخرى.', true);
+  } finally {
+    ordersLoadingMore = false;
+    renderOrders();
+  }
 }
 
 async function updateOrderStatus(order,select,button,pill) {
