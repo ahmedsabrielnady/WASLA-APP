@@ -153,7 +153,12 @@ BEGIN
     VALUES (
       v_feedback.user_id,'تم تحديث رسالتك على وصلة',
       'تم تحديث حالة رسالتك رقم ' || v_feedback.tracking_code ||
-      ' إلى ' || p_status ||
+      ' إلى ' || CASE p_status
+        WHEN 'open' THEN 'مفتوحة'
+        WHEN 'in_progress' THEN 'قيد المعالجة'
+        WHEN 'resolved' THEN 'تم الحل'
+        WHEN 'rejected' THEN 'مرفوضة'
+      END ||
       CASE WHEN coalesce(btrim(p_admin_reply),'') <> '' THEN '. رد الإدارة: ' || btrim(p_admin_reply) ELSE '.' END,
       'feedback_' || p_status,NULL
     );
