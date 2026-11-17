@@ -37,6 +37,8 @@ const checks = [
   ['no hard-coded fake doctor fallback', () => !/dummyDoctors|د\. محمد عبد الله|د\. سارة خالد|د\. أحمد حسن/.test(files.get('admin'))],
   ['no hard-coded teacher demo profiles', () => !/أ\. أحمد محمد|أ\. سارة علي|مراجعة ليلة الامتحان - فيزياء/.test(files.get('homepage'))],
   ['no hard-coded supermarket product prices', () => !/price:\s*\d+/.test(files.get('homepage'))],
+  ['customer-created orders use the canonical pending status', () => /status: 'pending'/.test(files.get('homepage')) && !/status: 'قيد المراجعة'/.test(files.get('homepage'))],
+  ['customer tracking translates canonical order states for display', () => /ready_for_pickup:'جاهز للاستلام'/.test(files.get('homepage')) && /out_for_delivery:'خرج للتوصيل'/.test(files.get('homepage'))],
   ['customer order history is paginated with a bounded range', () => /ordersPageSize: 10/.test(files.get('homepage')) && /\.range\(from, to\)/.test(files.get('homepage'))],
   ['customer order history remains scoped to the signed-in user', () => /\.eq\('user_id', Auth\.user\.id\)[\s\S]{0,120}\.order\('created_at'/.test(files.get('homepage'))],
   ['order history renders untrusted data as text', () => /details\.textContent\s*=\s*order\.details/.test(files.get('homepage'))],
