@@ -364,6 +364,41 @@ $function$;
 REVOKE ALL ON FUNCTION public.wasla_update_market_order_status(text,text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.wasla_update_market_order_status(text,text) TO authenticated;
 
+CREATE OR REPLACE FUNCTION public.wasla_get_merchant_summary(p_provider_id uuid)
+RETURNS TABLE(
+  total_orders bigint,
+  pending_orders bigint,
+  active_orders bigint,
+  completed_orders bigint,
+  completed_sales numeric
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog,public,auth
+AS $function$
+BEGIN
+  IF auth.uid() IS NULL OR NOT public.wasla_owns_provider_profile(p_provider_id) THEN
+    RAISE EXCEPTION 'Only the owning merchant can view this summary' USING ERRCODE = '42501';
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    (SELECT count(*) FROM public.orders o WHERE o.provider_id = p_provider_id),
+    (SELECT count(*) FROM public.orders o WHERE o.provider_id = p_provider_id AND o.status = 'pending'),
+    (SELECT count(*) FROM public.orders o WHERE o.provider_id = p_provider_id AND o.status IN ('accepted','preparing','ready_for_pickup','assigned','out_for_delivery')),
+    (SELECT count(*) FROM public.orders o WHERE o.provider_id = p_provider_id AND o.status IN ('delivered','completed')),
+    coalesce((
+      SELECT sum(item.unit_price * item.quantity)
+      FROM public.wasla_market_order_items item
+      JOIN public.orders o ON o.id::text = item.order_id
+      WHERE item.provider_id = p_provider_id
+        AND o.status IN ('delivered','completed')
+    ),0)::numeric;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_get_merchant_summary(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.wasla_get_merchant_summary(uuid) TO authenticated;
+
 CREATE OR REPLACE FUNCTION public.wasla_cancel_market_order(p_order_id text)
 RETURNS boolean
 LANGUAGE plpgsql
