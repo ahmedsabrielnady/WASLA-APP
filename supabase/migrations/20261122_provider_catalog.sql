@@ -81,7 +81,7 @@ CREATE POLICY wasla_provider_profiles_public_read
   USING (is_active = true AND is_published = true);
 CREATE POLICY wasla_provider_profiles_owner_read
   ON public.wasla_provider_profiles FOR SELECT TO authenticated
-  USING (owner_user_id = auth.uid());
+  USING (public.wasla_owns_provider_profile(id));
 CREATE POLICY wasla_provider_profiles_owner_update
   ON public.wasla_provider_profiles FOR UPDATE TO authenticated
   USING (public.wasla_owns_provider_profile(id))
