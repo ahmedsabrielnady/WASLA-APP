@@ -110,6 +110,13 @@ CREATE TABLE IF NOT EXISTS public.wasla_service_bookings (
   provider_note text,
   status text NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending','confirmed','cancelled','completed','no_show')),
+  queue_number integer CHECK (queue_number IS NULL OR queue_number > 0),
+  queue_date date,
+  queue_status text NOT NULL DEFAULT 'not_arrived'
+    CHECK (queue_status IN ('not_arrived','waiting','called','completed','cancelled','no_show')),
+  queue_arrived_at timestamptz,
+  queue_called_at timestamptz,
+  queue_reminder_3_sent_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -121,6 +128,9 @@ CREATE INDEX IF NOT EXISTS wasla_service_bookings_provider_idx
 CREATE INDEX IF NOT EXISTS wasla_service_bookings_active_slot_idx
   ON public.wasla_service_bookings(provider_id,scheduled_at)
   WHERE status IN ('pending','confirmed');
+CREATE UNIQUE INDEX IF NOT EXISTS wasla_service_bookings_queue_number_uidx
+  ON public.wasla_service_bookings(provider_id,queue_date,queue_number)
+  WHERE queue_number IS NOT NULL;
 
 ALTER TABLE public.wasla_provider_services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.wasla_provider_availability ENABLE ROW LEVEL SECURITY;
@@ -390,7 +400,13 @@ BEGIN
 
   UPDATE public.wasla_service_bookings
   SET status = p_next_status,
-      provider_note = coalesce(nullif(btrim(p_provider_note),''),provider_note)
+      provider_note = coalesce(nullif(btrim(p_provider_note),''),provider_note),
+      queue_status = CASE
+        WHEN p_next_status = 'completed' THEN 'completed'
+        WHEN p_next_status = 'cancelled' THEN 'cancelled'
+        WHEN p_next_status = 'no_show' THEN 'no_show'
+        ELSE queue_status
+      END
   WHERE id = p_booking_id;
 
   v_customer_title := CASE p_next_status
@@ -433,7 +449,9 @@ BEGIN
   IF v_booking.status = 'confirmed' AND v_booking.scheduled_at <= now() + interval '12 hours' THEN
     RAISE EXCEPTION 'Confirmed bookings can only be cancelled at least 12 hours in advance' USING ERRCODE = '22023';
   END IF;
-  UPDATE public.wasla_service_bookings SET status='cancelled' WHERE id=p_booking_id;
+  UPDATE public.wasla_service_bookings
+  SET status='cancelled',queue_status='cancelled'
+  WHERE id=p_booking_id;
   SELECT owner_user_id INTO v_owner FROM public.wasla_provider_profiles WHERE id=v_booking.provider_id;
   INSERT INTO public.wasla_notifications(user_id,title,body,type,order_id)
   VALUES (v_owner,'تم إلغاء حجز','ألغى العميل حجز ' || v_booking.service_name || '.','service_booking_cancelled',NULL);
@@ -579,6 +597,148 @@ AS $function$
 $function$;
 REVOKE ALL ON FUNCTION public.wasla_get_available_service_slots(uuid,date) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.wasla_get_available_service_slots(uuid,date) TO anon,authenticated;
+
+CREATE OR REPLACE FUNCTION public.wasla_check_in_service_booking(p_booking_id uuid)
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog,public,auth
+AS $function$
+DECLARE
+  v_booking public.wasla_service_bookings%ROWTYPE;
+  v_sector text;
+  v_queue_date date := (now() AT TIME ZONE 'Africa/Cairo')::date;
+  v_queue_number integer;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Sign in before checking in a patient' USING ERRCODE = '42501';
+  END IF;
+  SELECT b.* INTO v_booking
+  FROM public.wasla_service_bookings b
+  WHERE b.id = p_booking_id
+  FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Booking not found' USING ERRCODE = 'P0002';
+  END IF;
+  SELECT sector INTO v_sector
+  FROM public.wasla_provider_profiles
+  WHERE id = v_booking.provider_id
+    AND owner_user_id = auth.uid();
+  IF NOT FOUND OR v_sector <> 'medical' THEN
+    RAISE EXCEPTION 'Only the owning medical provider can check in this patient' USING ERRCODE = '42501';
+  END IF;
+  IF v_booking.status <> 'confirmed'
+     OR v_booking.queue_status <> 'not_arrived'
+     OR (v_booking.scheduled_at AT TIME ZONE 'Africa/Cairo')::date <> v_queue_date THEN
+    RAISE EXCEPTION 'Only a confirmed appointment scheduled for today can join the clinic queue' USING ERRCODE = '22023';
+  END IF;
+
+  PERFORM pg_advisory_xact_lock(hashtextextended(v_booking.provider_id::text,0));
+  SELECT coalesce(max(queue_number),0)+1 INTO v_queue_number
+  FROM public.wasla_service_bookings
+  WHERE provider_id = v_booking.provider_id AND queue_date = v_queue_date;
+
+  UPDATE public.wasla_service_bookings
+  SET queue_number = v_queue_number,
+      queue_date = v_queue_date,
+      queue_status = 'waiting',
+      queue_arrived_at = now()
+  WHERE id = p_booking_id;
+
+  INSERT INTO public.wasla_notifications(user_id,title,body,type,order_id)
+  VALUES (
+    v_booking.customer_id,'تم تسجيل وصولك للعيادة',
+    'رقم انتظارك اليوم: ' || v_queue_number || '. ستصلك رسالة عند اقتراب دورك.',
+    'medical_queue_checked_in',NULL
+  );
+  RETURN v_queue_number;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_check_in_service_booking(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.wasla_check_in_service_booking(uuid) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.wasla_call_next_service_booking(p_provider_id uuid)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog,public,auth
+AS $function$
+DECLARE
+  v_next public.wasla_service_bookings%ROWTYPE;
+  v_sector text;
+  v_today date := (now() AT TIME ZONE 'Africa/Cairo')::date;
+  v_waiting record;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Sign in before calling the next patient' USING ERRCODE = '42501';
+  END IF;
+  SELECT sector INTO v_sector
+  FROM public.wasla_provider_profiles
+  WHERE id = p_provider_id AND owner_user_id = auth.uid();
+  IF NOT FOUND OR v_sector <> 'medical' THEN
+    RAISE EXCEPTION 'Only the owning medical provider can manage this queue' USING ERRCODE = '42501';
+  END IF;
+
+  PERFORM pg_advisory_xact_lock(hashtextextended(p_provider_id::text,0));
+  SELECT * INTO v_next
+  FROM public.wasla_service_bookings
+  WHERE provider_id = p_provider_id
+    AND queue_date = v_today
+    AND queue_status = 'waiting'
+    AND status = 'confirmed'
+  ORDER BY queue_number
+  FOR UPDATE SKIP LOCKED
+  LIMIT 1;
+  IF NOT FOUND THEN
+    RETURN NULL;
+  END IF;
+
+  UPDATE public.wasla_service_bookings
+  SET queue_status = 'called',queue_called_at = now()
+  WHERE id = v_next.id;
+
+  INSERT INTO public.wasla_notifications(user_id,title,body,type,order_id)
+  VALUES (
+    v_next.customer_id,'دورك الآن',
+    'يرجى التوجه إلى مقدم الخدمة. رقم انتظارك: ' || v_next.queue_number || '.',
+    'medical_queue_your_turn',NULL
+  );
+
+  FOR v_waiting IN
+    SELECT b.id,b.customer_id,b.queue_number,
+      (SELECT count(*)::integer
+       FROM public.wasla_service_bookings ahead
+       WHERE ahead.provider_id = b.provider_id
+         AND ahead.queue_date = b.queue_date
+         AND ahead.queue_status = 'waiting'
+         AND ahead.status = 'confirmed'
+         AND ahead.queue_number < b.queue_number) AS remaining
+    FROM public.wasla_service_bookings b
+    WHERE b.provider_id = p_provider_id
+      AND b.queue_date = v_today
+      AND b.queue_status = 'waiting'
+      AND b.status = 'confirmed'
+      AND b.queue_reminder_3_sent_at IS NULL
+    ORDER BY b.queue_number
+    FOR UPDATE
+  LOOP
+    IF v_waiting.remaining BETWEEN 1 AND 3 THEN
+      INSERT INTO public.wasla_notifications(user_id,title,body,type,order_id)
+      VALUES (
+        v_waiting.customer_id,'اقترب دورك',
+        'متبقي ' || v_waiting.remaining || ' حالات قبلك في قائمة الانتظار.',
+        'medical_queue_three_left',NULL
+      );
+      UPDATE public.wasla_service_bookings
+      SET queue_reminder_3_sent_at = now()
+      WHERE id = v_waiting.id;
+    END IF;
+  END LOOP;
+  RETURN v_next.id;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_call_next_service_booking(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.wasla_call_next_service_booking(uuid) TO authenticated;
 
 DO $verify$
 BEGIN
