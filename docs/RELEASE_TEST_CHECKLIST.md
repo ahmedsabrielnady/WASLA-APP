@@ -73,6 +73,8 @@ Do not use real customer personal data or live payment details.
 - [ ] Activate and publish a medical provider as founder.
 - [ ] Confirm the provider can create and edit service offerings but cannot create services for a restaurant/market profile through direct API calls.
 - [ ] Configure weekly availability in Africa/Cairo time and verify the public catalog shows only active schedule windows.
+- [ ] Select a date and verify the customer page lists only future, available slots from the public slot RPC; verify a day with no slots clearly shows no availability.
+- [ ] Attempt to submit a forged timestamp not returned by the slot RPC; confirm the booking RPC independently rejects times outside the configured schedule.
 - [ ] Request a booking as Customer A inside a valid window; confirm the booking is pending and the provider receives a private notification.
 - [ ] Confirm Customer A can read the booking and Customer B cannot.
 - [ ] Confirm the provider can read only bookings for its own profile and can confirm or cancel using the status RPC.
