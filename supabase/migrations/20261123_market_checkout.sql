@@ -219,7 +219,7 @@ BEGIN
     EXCEPTION WHEN others THEN
       RAISE EXCEPTION 'Invalid product or quantity in cart' USING ERRCODE = '22023';
     END;
-    IF v_quantity NOT BETWEEN 1 AND 50 THEN
+    IF v_quantity IS NULL OR v_quantity NOT BETWEEN 1 AND 50 THEN
       RAISE EXCEPTION 'Each product quantity must be between 1 and 50' USING ERRCODE = '22023';
     END IF;
 
@@ -326,7 +326,7 @@ BEGIN
   FROM public.orders
   WHERE id::text = p_order_id
   FOR UPDATE;
-  IF NOT FOUND OR v_order.user_id <> auth.uid()
+  IF NOT FOUND OR v_order.user_id IS DISTINCT FROM auth.uid()
      OR v_order.provider_id IS NULL OR v_order.status <> 'pending' THEN
     RAISE EXCEPTION 'Only your pending merchant orders can be cancelled' USING ERRCODE = '42501';
   END IF;
