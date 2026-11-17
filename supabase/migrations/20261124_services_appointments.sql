@@ -343,6 +343,9 @@ BEGIN
   IF p_provider_note IS NOT NULL AND length(p_provider_note) > 1200 THEN
     RAISE EXCEPTION 'Provider note is too long' USING ERRCODE = '22023';
   END IF;
+  IF p_next_status = 'no_show' AND v_booking.scheduled_at > now() THEN
+    RAISE EXCEPTION 'A booking cannot be marked no-show before its scheduled time' USING ERRCODE = '22023';
+  END IF;
 
   UPDATE public.wasla_service_bookings
   SET status = p_next_status,
