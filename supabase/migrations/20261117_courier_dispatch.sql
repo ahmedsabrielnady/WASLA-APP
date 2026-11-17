@@ -234,6 +234,11 @@ ALTER TABLE public.orders
 
 CREATE INDEX IF NOT EXISTS wasla_orders_courier_status_created_idx
   ON public.orders(courier_id,status,created_at DESC);
+-- Couriers and staff may change only the status column through RLS policies.
+-- Assignment itself is available only through the SECURITY DEFINER RPC.
+REVOKE UPDATE ON TABLE public.orders FROM PUBLIC, anon, authenticated;
+GRANT UPDATE (status) ON TABLE public.orders TO authenticated;
+
 
 CREATE OR REPLACE FUNCTION public.wasla_protect_courier_assignment()
 RETURNS trigger
