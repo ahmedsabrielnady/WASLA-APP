@@ -16,6 +16,10 @@ const required = [
   ['founder-providers.html', 'founderProviders'],
   ['supabase/migrations/20261119_provider_applications.sql', 'providerApplicationsMigration'],
   ['supabase/migrations/20261117_order_lifecycle.sql', 'orderLifecycleMigration'],
+  ['supabase/migrations/20261117_courier_dispatch.sql', 'courierMigration'],
+  ['courier-apply.html', 'courierApply'],
+  ['founder-couriers.html', 'founderCouriers'],
+  ['courier-dashboard.html', 'courierDashboard'],
 ];
 
 const files = new Map();
@@ -72,6 +76,15 @@ const checks = [
   ['database enforces order state transitions with a trigger', () => /CREATE TRIGGER wasla_orders_enforce_status_transition[\s\S]*?BEFORE UPDATE OF status ON public\.orders/.test(files.get('orderLifecycleMigration')) && /wasla_order_status_transition_allowed/.test(files.get('orderLifecycleMigration'))],
   ['order lifecycle migration tests both allowed and forbidden transitions', () => /valid transition rejected/.test(files.get('orderLifecycleMigration')) && /invalid transition accepted/.test(files.get('orderLifecycleMigration')) && /pending','delivered/.test(files.get('orderLifecycleMigration'))],
   ['order lifecycle migration blocks unknown legacy states before installing enforcement', () => /unknown existing order statuses require an explicit mapping/.test(files.get('orderLifecycleMigration')) && /status::text NOT IN/.test(files.get('orderLifecycleMigration'))],
+  ['courier application is owner-scoped and founder-reviewed', () => /ENABLE ROW LEVEL SECURITY/.test(files.get('courierMigration')) && /applicant_id = auth.uid\(\)/.test(files.get('courierMigration')) && /wasla_courier_applications_founder_update/.test(files.get('courierMigration'))],
+  ['courier approval creates an active courier profile', () => /CREATE TRIGGER wasla_courier_application_sync/.test(files.get('courierMigration')) && /INSERT INTO public\.wasla_courier_profiles/.test(files.get('courierMigration'))],
+  ['courier sees only assigned orders', () => /courier_id = auth\.uid\(\) AND public\.wasla_is_active_courier\(\)/.test(files.get('courierMigration'))],
+  ['courier status changes are restricted to dispatch and delivery states', () => /status IN \('out_for_delivery','delivered'\)/.test(files.get('courierMigration'))],
+  ['courier assignment RPC requires operations authorization and ready-for-pickup state', () => /wasla_can_manage_operations\(\)/.test(files.get('courierMigration')) && /status = 'ready_for_pickup'[\s\S]{0,80}courier_id IS NULL/.test(files.get('courierMigration'))],
+  ['founder dashboard assigns couriers through the protected RPC', () => /rpc\('wasla_assign_courier'/.test(files.get('dashboard')) && /founder-couriers\.html/.test(files.get('dashboard'))],
+  ['courier portal uses active-courier RPC and owner-scoped order updates', () => /rpc\('wasla_is_active_courier'/.test(files.get('courierDashboard')) && /\.eq\('courier_id',user\.id\)/.test(files.get('courierDashboard'))],
+  ['customer profile links to courier application and portal', () => /courier-apply\.html/.test(files.get('homepage')) && /courier-dashboard\.html/.test(files.get('homepage'))],
+  ['founder courier review uses operations authorization RPC', () => /rpc\('wasla_can_manage_operations'\)/.test(files.get('founderCouriers'))],
   ['order delivery cannot skip dispatch and handoff states', () => files.get('dashboard').includes("accepted: ['preparing','ready_for_pickup','completed','cancelled']") && files.get('dashboard').includes("assigned: ['out_for_delivery','cancelled']") && files.get('orderLifecycleMigration').includes("WHEN 'assigned' THEN p_next = ANY (ARRAY['out_for_delivery','cancelled']::text[])")],
   ['operations migration refuses to run if orders RLS is disabled', () => /IF coalesce\(v_rls_enabled, false\) IS NOT TRUE THEN/.test(files.get('operationsMigration'))],
   ['homepage declares the installable PWA manifest', () => /rel="manifest" href="\/manifest\.webmanifest"/.test(files.get('homepage'))],
