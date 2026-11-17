@@ -188,8 +188,10 @@ BEGIN
   IF p_notes IS NOT NULL AND length(p_notes) > 1000 THEN
     RAISE EXCEPTION 'Order notes are too long' USING ERRCODE = '22023';
   END IF;
-  IF jsonb_typeof(p_items) IS DISTINCT FROM 'array'
-     OR jsonb_array_length(p_items) NOT BETWEEN 1 AND 30 THEN
+  IF p_items IS NULL OR jsonb_typeof(p_items) IS DISTINCT FROM 'array' THEN
+    RAISE EXCEPTION 'Cart items must be a JSON array' USING ERRCODE = '22023';
+  END IF;
+  IF jsonb_array_length(p_items) NOT BETWEEN 1 AND 30 THEN
     RAISE EXCEPTION 'Choose between 1 and 30 order lines' USING ERRCODE = '22023';
   END IF;
   IF (
