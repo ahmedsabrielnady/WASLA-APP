@@ -51,6 +51,10 @@ Apply migrations in order:
    - Creates a provider profile only after founder approval, but leaves it inactive and unpublished until a separate founder action.
    - Adds provider-owned product CRUD, stock/price/availability controls, and public read policies for published products.
    - Depends on migration #4 and the operations authorization helper from migration #2.
+8. `supabase/migrations/20261123_market_checkout.sql`
+   - **Not yet confirmed as applied.**
+   - Adds cash-on-delivery checkout, merchant order ownership, order-item snapshots, stock reservation/restoration, and merchant status transitions.
+   - Depends on migrations #1, #2, #5, #6, and #7.
 
 Apply migrations in order after reviewing the current production schema. Migration #2 intentionally refuses to proceed if orders RLS is disabled; do not bypass that guard without auditing all existing customer policies. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
 
@@ -111,6 +115,17 @@ These checks do **not** replace a signed-in browser test or a real database tran
 - The migration is **not yet confirmed as applied**. Apply it only after `20261116_smart_tracking_announcements.sql` (notifications table) and `20261117_operations_dashboard.sql` have been applied, and after confirming `public.is_founder()` is available in this Supabase project.
 - An approved application is not automatically a live provider listing. Provider verification, profile creation, service catalog, and customer booking integration remain separate release gates.
 
+
+## Merchant checkout and order fulfillment (new foundation)
+- `marketplace.html` supports a single-merchant cart and authenticated checkout.
+- Checkout is cash-on-delivery only; the server validates product ownership, availability, stock, quantities, and provider publication.
+- Stock is reserved atomically at order creation. If the customer cancels while the order is pending, or the merchant cancels before dispatch, stock is restored.
+- `merchant-dashboard.html` shows provider-owned orders and allows pending → accepted → preparing → ready_for_pickup, with cancellation where allowed.
+- Orders are linked to the provider and visible only to the customer, that provider, and authorized operations staff.
+- The existing founder dispatch flow can assign a courier after the merchant marks the order ready.
+- `supabase/migrations/20261123_market_checkout.sql` adds the protected checkout/status RPCs, order-item snapshots, provider order RLS, stock restoration, and provider notifications.
+- This migration depends on migrations #1, #2, #5, #6, and #7.
+- Online payment, delivery fees, invoices, refunds, and multi-merchant carts are not implemented.
 
 ## Provider activation and merchant catalog (new foundation)
 - Approved provider applications create a private provider profile, initially inactive and unpublished.
