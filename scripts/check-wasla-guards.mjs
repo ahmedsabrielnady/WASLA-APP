@@ -15,7 +15,7 @@ const required = [
   ['provider-apply.html', 'providerApply'],
   ['founder-providers.html', 'founderProviders'],
   ['supabase/migrations/20261119_provider_applications.sql', 'providerApplicationsMigration'],
-  ['supabase/migrations/20261120_order_lifecycle.sql', 'orderLifecycleMigration'],
+  ['supabase/migrations/20261117_order_lifecycle.sql', 'orderLifecycleMigration'],
 ];
 
 const files = new Map();
