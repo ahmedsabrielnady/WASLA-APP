@@ -790,12 +790,21 @@ const DB = {
             const to = from + this.ordersPageSize - 1;
             const { data, error } = await supabaseClient
                 .from('orders')
-                .select('id, sector, status, tracking_code, details, created_at, updated_at')
+                .select('id, sector, status, tracking_code, details, created_at, updated_at, courier_id')
                 .eq('user_id', Auth.user.id)
                 .order('created_at', { ascending: false })
                 .range(from, to);
 
             if (error) throw error;
+            const activeCourierIds = [...new Set((data || []).filter(order => order.status === 'out_for_delivery' && order.courier_id).map(order => order.courier_id))];
+            let courierLocations = [];
+            if (activeCourierIds.length) {
+                const locationResult = await supabaseClient.from('wasla_courier_locations')
+                    .select('courier_id,latitude,longitude,accuracy_m,updated_at')
+                    .in('courier_id', activeCourierIds);
+                if (locationResult.error) throw locationResult.error;
+                courierLocations = locationResult.data || [];
+            }
             if (reset) list.replaceChildren();
 
             if ((!Array.isArray(data) || data.length === 0) && reset) {
@@ -838,6 +847,56 @@ const DB = {
                     date.textContent += (date.textContent ? '\n' : '') + 'آخر تحديث: ' + updatedAt.toLocaleString('ar-EG');
                 }
                 card.append(details, date);
+                if (order.status === 'out_for_delivery' && order.courier_id) {
+                    const locationBox = document.createElement('div');
+                    locationBox.style.cssText = 'margin-top:10px;padding:10px;border-radius:10px;background:var(--brand-light);';
+                    const renderLocation = location => {
+                        locationBox.replaceChildren();
+                        if (!location || !Number.isFinite(Number(location.latitude)) || !Number.isFinite(Number(location.longitude))) {
+                            locationBox.textContent = 'موقع المندوب غير متاح حاليًا.';
+                            return;
+                        }
+                        const lat = Number(location.latitude), lng = Number(location.longitude);
+                        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                            locationBox.textContent = 'بيانات الموقع غير صالحة.';
+                            return;
+                        }
+                        const link = document.createElement('a');
+                        link.href = 'https://www.google.com/maps?q=' + encodeURIComponent(lat + ',' + lng);
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.textContent = 'عرض موقع المندوب على الخريطة';
+                        const stamp = document.createElement('small');
+                        stamp.style.cssText = 'display:block;margin-top:5px;color:var(--muted);';
+                        const updated = new Date(location.updated_at);
+                        stamp.textContent = Number.isNaN(updated.getTime()) ? 'وقت التحديث غير متاح' : 'آخر تحديث للموقع: ' + updated.toLocaleString('ar-EG');
+                        locationBox.append(link,stamp);
+                    };
+                    renderLocation(courierLocations.find(location => location.courier_id === order.courier_id));
+                    const refreshLocation = document.createElement('button');
+                    refreshLocation.type = 'button';
+                    refreshLocation.className = 'btn-auth';
+                    refreshLocation.textContent = 'تحديث الموقع';
+                    refreshLocation.style.cssText = 'margin-top:8px;';
+                    refreshLocation.addEventListener('click', async () => {
+                        refreshLocation.disabled = true;
+                        try {
+                            const { data: location, error: locationError } = await supabaseClient
+                                .from('wasla_courier_locations')
+                                .select('courier_id,latitude,longitude,accuracy_m,updated_at')
+                                .eq('courier_id', order.courier_id)
+                                .maybeSingle();
+                            if (locationError) throw locationError;
+                            renderLocation(location);
+                        } catch (locationError) {
+                            UI.toast('تعذر تحديث موقع المندوب.');
+                        } finally {
+                            refreshLocation.disabled = false;
+                        }
+                    });
+                    locationBox.appendChild(refreshLocation);
+                    card.appendChild(locationBox);
+                }
                 list.appendChild(card);
             });
 
