@@ -132,7 +132,7 @@ Do not use real customer personal data or live payment details.
 
 Do not call the platform production-ready until all of the following are true:
 
-- [ ] All nine required migrations are applied successfully in the correct order.
+- [ ] All ten required migrations are applied successfully in the correct order.
 - [ ] Role-based browser tests above pass against the actual Supabase project.
 - [ ] Vercel deployment completes successfully and the deployed commit matches the reviewed PR head.
 - [ ] Customer, merchant, courier, and founder flows work end-to-end on mobile and desktop.
@@ -143,5 +143,6 @@ Do not call the platform production-ready until all of the following are true:
 - Payments are cash on delivery only; online payment, refunds, and reconciliation are not implemented.
 - The marketplace currently supports one merchant per checkout.
 - Location updates stop when the courier portal is closed; this is not background tracking.
-- Service catalogs and appointment booking for medical, education, maintenance, and automotive providers are separate unfinished work.
+- Medical bookings are currently tied to a single provider profile, not a multi-doctor clinic roster or staff scheduling model.
+- Patient medical records, deposits, full EMR, course/LMS delivery, and automated service-provider payouts are not implemented.
 - Merchant revenue analytics, delivery fees, proof-of-delivery, route optimization, and courier earnings are not implemented.
