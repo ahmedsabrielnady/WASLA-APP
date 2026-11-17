@@ -232,6 +232,10 @@ CREATE TRIGGER wasla_courier_application_notify
 AFTER INSERT OR UPDATE OF status ON public.wasla_courier_applications
 FOR EACH ROW EXECUTE FUNCTION public.wasla_notify_courier_application();
 
+ALTER TABLE public.orders
+  ADD COLUMN IF NOT EXISTS courier_id uuid REFERENCES public.wasla_courier_profiles(user_id) ON DELETE RESTRICT,
+  ADD COLUMN IF NOT EXISTS courier_assigned_at timestamptz;
+
 CREATE OR REPLACE FUNCTION public.wasla_notify_courier_assignment()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -256,10 +260,6 @@ DROP TRIGGER IF EXISTS wasla_orders_notify_courier_assignment ON public.orders;
 CREATE TRIGGER wasla_orders_notify_courier_assignment
 AFTER UPDATE OF courier_id ON public.orders
 FOR EACH ROW EXECUTE FUNCTION public.wasla_notify_courier_assignment();
-
-ALTER TABLE public.orders
-  ADD COLUMN IF NOT EXISTS courier_id uuid REFERENCES public.wasla_courier_profiles(user_id) ON DELETE RESTRICT,
-  ADD COLUMN IF NOT EXISTS courier_assigned_at timestamptz;
 
 CREATE TABLE IF NOT EXISTS public.wasla_courier_locations (
   courier_id uuid PRIMARY KEY REFERENCES public.wasla_courier_profiles(user_id) ON DELETE CASCADE,
