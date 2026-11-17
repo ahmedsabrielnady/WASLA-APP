@@ -21,7 +21,7 @@ async function loadApplications(){
  const root=$('applications');root.textContent='جاري تحميل الطلبات...';
  const {data,error}=await client.from('wasla_provider_applications').select('id,applicant_id,sector,business_name,contact_name,contact_phone,city,address,description,status,admin_note,created_at').order('created_at',{ascending:false}).limit(100);
  if(error){root.textContent='تعذر تحميل الطلبات: '+error.message;return;}
- const {data:profiles,error:profileError}=await client.from('wasla_provider_profiles').select('id,application_id,business_name,is_active,is_published').order('created_at',{ascending:false});
+ const {data:profiles,error:profileError}=await client.from('wasla_provider_profiles').select('id,application_id,business_name,sector,is_active,is_published').order('created_at',{ascending:false});
  if(profileError){root.textContent='تعذر تحميل ملفات الأنشطة: '+profileError.message;return;}
  root.replaceChildren();if(!data?.length){root.textContent='لا توجد طلبات حتى الآن.';return;}
  data.forEach(item=>{
