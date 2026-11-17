@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#059669"><title>مراجعة مقدمي الخدمة | وصلة</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>:root{font-family:Tahoma,Arial,sans-serif;background:#f4f7fb;color:#0f172a}*{box-sizing:border-box}body{margin:0;padding:20px}.wrap{max-width:980px;margin:24px auto}.card{background:white;border:1px solid #e2e8f0;border-radius:18px;padding:22px;margin-bottom:16px}.brand{font-weight:900;color:#059669;font-size:24px}p{line-height:1.8;color:#64748b}.field{display:grid;gap:7px;margin:12px 0}input{padding:12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;width:100%}button{padding:10px 16px;border:0;border-radius:10px;background:#059669;color:white;font:inherit;font-weight:700;cursor:pointer;margin:4px}button:disabled{opacity:.5}.reject{background:#b91c1c}.secondary{background:#e2e8f0;color:#0f172a}.notice{padding:12px;border-radius:10px;background:#ecfdf5;color:#065f46;margin:10px 0}.hidden{display:none!important}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.muted{font-size:12px;color:#64748b}.status{font-weight:800;color:#92400e}.app{border-top:1px solid #e2e8f0;padding-top:16px;margin-top:16px}</style></head>
+<body><main class="wrap"><section class="card"><div class="brand">وصلة | لوحة المؤسس</div><h1>طلبات الانضمام كمقدم خدمة</h1><p>هذه الشاشة لا تعتمد النشاط تلقائيًا في السوق. الموافقة هنا تعني قبول الطلب مبدئيًا فقط؛ إنشاء ملف مقدم الخدمة وتفعيل ظهوره للعملاء خطوة تشغيل منفصلة.</p><div id="message" class="notice hidden" role="status" aria-live="polite"></div>
+<section id="login"><h2>تسجيل دخول المؤسس</h2><div class="field"><label for="email">البريد الإلكتروني</label><input id="email" type="email" autocomplete="username"></div><div class="field"><label for="password">كلمة المرور</label><input id="password" type="password" autocomplete="current-password"></div><button id="loginButton">دخول</button></section>
+<section id="dashboard" class="hidden"><div class="row"><button id="refresh" class="secondary">تحديث القائمة</button><button id="logout" class="secondary">تسجيل الخروج</button></div><div id="applications"></div></section></section></main>
+<script>
+const SUPABASE_URL='https://fdduzcytuhoelnnejgkl.supabase.co',SUPABASE_ANON_KEY='sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529';
+const client=window.supabase?.createClient(SUPABASE_URL,SUPABASE_ANON_KEY),$=id=>document.getElementById(id);
+function say(text,error=false){const el=$('message');el.textContent=text;el.classList.remove('hidden');el.style.background=error?'#fef2f2':'#ecfdf5';el.style.color=error?'#991b1b':'#065f46';}
+function show(yes){$('login').classList.toggle('hidden',yes);$('dashboard').classList.toggle('hidden',!yes);}
+async function authorize(){
+ const {data,error}=await client.auth.getUser();if(error)throw error;if(!data.user){show(false);return false;}
+ const {data:allowed,error:roleError}=await client.rpc('is_founder');if(roleError)throw roleError;
+ if(allowed!==true){await client.auth.signOut();show(false);say('هذا القسم متاح لحساب المؤسس فقط.',true);return false;}
+ show(true);await loadApplications();return true;
+}
+const sectorNames={medical:'خدمات طبية',education:'تعليم',restaurants:'مطاعم وأطعمة',market:'سوبر ماركت ومتاجر',maintenance:'صيانة منزلية',automotive:'خدمات سيارات',delivery:'توصيل'};
+const statusNames={pending:'قيد المراجعة',approved:'مقبول مبدئيًا',rejected:'مرفوض'};
+async function loadApplications(){
+ const root=$('applications');root.textContent='جاري تحميل الطلبات...';
+ const {data,error}=await client.from('wasla_provider_applications').select('id,applicant_id,sector,business_name,contact_name,contact_phone,city,address,description,status,admin_note,created_at').order('created_at',{ascending:false}).limit(100);
+ if(error){root.textContent='تعذر تحميل الطلبات: '+error.message;return;}
+ root.replaceChildren();if(!data?.length){root.textContent='لا توجد طلبات حتى الآن.';return;}
+ data.forEach(item=>{
+  const card=document.createElement('article');card.className='app';
+  const title=document.createElement('h2');title.textContent=item.business_name;
+  const meta=document.createElement('p');meta.textContent=(sectorNames[item.sector]||item.sector)+' · '+(statusNames[item.status]||item.status)+' · '+new Date(item.created_at).toLocaleString('ar-EG');
+  const details=document.createElement('p');details.textContent='مسؤول التواصل: '+item.contact_name+' — '+item.contact_phone+'\nالعنوان: '+item.city+'، '+item.address+'\nالوصف: '+(item.description||'—');
+  const note=document.createElement('input');note.value=item.admin_note||'';note.maxLength=1000;note.placeholder='ملاحظة إدارية للمتقدم';
+  const actions=document.createElement('div');actions.className='row';
+  const approve=document.createElement('button');approve.textContent='قبول مبدئي';approve.disabled=item.status!=='pending';
+  const reject=document.createElement('button');reject.textContent='رفض الطلب';reject.className='reject';reject.disabled=item.status!=='pending';
+  const decide=async status=>{
+   approve.disabled=true;reject.disabled=true;
+   try{const {data:userData,error:userError}=await client.auth.getUser();if(userError)throw userError;
+    const {error}=await client.from('wasla_provider_applications').update({status,admin_note:note.value.trim()||null,reviewed_by:userData.user.id,reviewed_at:new Date().toISOString()}).eq('id',item.id).eq('status','pending');
+    if(error)throw error;say('تم تحديث قرار الطلب.');await loadApplications();
+   }catch(e){say('فشل تحديث الطلب: '+e.message,true);approve.disabled=false;reject.disabled=false;}
+  };
+  approve.onclick=()=>decide('approved');reject.onclick=()=>decide('rejected');
+  actions.append(approve,reject);card.append(title,meta,details,note,actions);root.append(card);
+ });
+}
+$('loginButton').onclick=async()=>{try{const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;await authorize();}catch(e){say('تعذر تسجيل الدخول أو التحقق من الصلاحية: '+e.message,true);}};
+$('refresh').onclick=()=>loadApplications();$('logout').onclick=async()=>{await client.auth.signOut();show(false);};
+authorize().catch(e=>{show(false);say('تعذر التحقق من صلاحيات المؤسس: '+e.message,true);});
+</script></body></html>
