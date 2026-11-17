@@ -72,11 +72,12 @@ SET search_path = pg_catalog,public
 AS $function$
 BEGIN
   PERFORM pg_advisory_xact_lock(hashtextextended(NEW.provider_id::text,0));
-  IF EXISTS (
+  IF NEW.is_active AND EXISTS (
     SELECT 1
     FROM public.wasla_provider_availability existing
     WHERE existing.provider_id = NEW.provider_id
       AND existing.weekday = NEW.weekday
+      AND existing.is_active = true
       AND existing.id IS DISTINCT FROM NEW.id
       AND NEW.starts_at < existing.ends_at
       AND existing.starts_at < NEW.ends_at
@@ -90,7 +91,7 @@ $function$;
 REVOKE ALL ON FUNCTION public.wasla_prevent_overlapping_provider_availability() FROM PUBLIC;
 DROP TRIGGER IF EXISTS wasla_availability_prevent_overlap ON public.wasla_provider_availability;
 CREATE TRIGGER wasla_availability_prevent_overlap
-BEFORE INSERT OR UPDATE OF provider_id,weekday,starts_at,ends_at
+BEFORE INSERT OR UPDATE OF provider_id,weekday,starts_at,ends_at,is_active
 ON public.wasla_provider_availability
 FOR EACH ROW EXECUTE FUNCTION public.wasla_prevent_overlapping_provider_availability();
 
