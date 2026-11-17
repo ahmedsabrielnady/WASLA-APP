@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#059669">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/assets/wasla-icon.svg" type="image/svg+xml">
 <title>وصلة | WASLA - Enterprise Super App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Fredoka+One&family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet">
@@ -714,6 +716,10 @@ function updateNotificationBadge(count) {
 }
 
 const DB = {
+    ordersPageSize: 10,
+    ordersOffset: 0,
+    ordersHasMore: false,
+    ordersLoading: false,
     saveOrder: async function(payload) {
         if (!supabaseClient || !Auth.user?.id) {
             UI.toast('تعذر الاتصال الآمن. سجّل الدخول وحاول مرة أخرى.');
@@ -762,62 +768,91 @@ const DB = {
             }
         }
     },
-    loadOrders: async function() {
-        if (!supabaseClient || !Auth.user) return;
+    loadOrders: async function(reset = true) {
+        if (!supabaseClient || !Auth.user || this.ordersLoading) return;
         const list = document.getElementById('orders-list');
         if (!list) return;
-        list.textContent = 'جاري تحميل الطلبات...';
 
-        const { data, error } = await supabaseClient
-            .from('orders')
-            .select('id, sector, status, tracking_code, details, created_at')
-            .eq('user_id', Auth.user.id)
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            console.error('WASLA orders load failed:', error);
-            list.textContent = 'تعذر تحميل طلباتك حالياً.';
-            return;
-        }
-        list.replaceChildren();
-        if (!Array.isArray(data) || data.length === 0) {
-            list.textContent = 'لا توجد طلبات سابقة.';
-            return;
+        this.ordersLoading = true;
+        const oldMoreButton = document.getElementById('orders-load-more');
+        if (oldMoreButton) oldMoreButton.remove();
+        if (reset) {
+            this.ordersOffset = 0;
+            this.ordersHasMore = false;
+            list.textContent = 'جاري تحميل الطلبات...';
         }
 
-        data.forEach(order => {
-            const card = document.createElement('div');
-            card.style.cssText = 'background:var(--card); padding:15px; border-radius:12px; margin-bottom:10px; border-right:4px solid var(--brand); animation: slideUpFade 0.3s ease;';
+        try {
+            const from = this.ordersOffset;
+            const to = from + this.ordersPageSize - 1;
+            const { data, error } = await supabaseClient
+                .from('orders')
+                .select('id, sector, status, tracking_code, details, created_at')
+                .eq('user_id', Auth.user.id)
+                .order('created_at', { ascending: false })
+                .range(from, to);
 
-            const header = document.createElement('div');
-            header.style.cssText = 'display:flex; justify-content:space-between; gap:8px; margin-bottom:5px;';
-            const sector = document.createElement('strong');
-            sector.textContent = order.sector || 'طلب خدمة';
-            const status = document.createElement('span');
-            status.style.cssText = 'font-size:11px; background:var(--brand-light); color:var(--brand); padding:2px 8px; border-radius:10px;';
-            status.textContent = order.status || 'قيد المراجعة';
-            header.append(sector, status);
-            card.appendChild(header);
+            if (error) throw error;
+            if (reset) list.replaceChildren();
 
-            if (order.tracking_code) {
-                const tracking = document.createElement('p');
-                tracking.style.cssText = 'font-size:12px; font-weight:800; color:var(--brand); margin:5px 0;';
-                tracking.textContent = 'رقم التتبع: ' + order.tracking_code;
-                card.appendChild(tracking);
+            if ((!Array.isArray(data) || data.length === 0) && reset) {
+                list.textContent = 'لا توجد طلبات سابقة.';
+                return;
             }
 
-            const details = document.createElement('p');
-            details.style.cssText = 'font-size:13px; color:var(--muted); white-space:pre-wrap;';
-            details.textContent = order.details || 'لا توجد تفاصيل.';
-            const date = document.createElement('p');
-            date.style.cssText = 'font-size:11px; color:var(--muted); margin-top:8px;';
-            const createdAt = order.created_at ? new Date(order.created_at) : null;
-            date.textContent = createdAt && !Number.isNaN(createdAt.getTime())
-                ? createdAt.toLocaleString('ar-EG')
-                : '';
-            card.append(details, date);
-            list.appendChild(card);
-        });
+            (data || []).forEach(order => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background:var(--card); padding:15px; border-radius:12px; margin-bottom:10px; border-right:4px solid var(--brand); animation: slideUpFade 0.3s ease;';
+
+                const header = document.createElement('div');
+                header.style.cssText = 'display:flex; justify-content:space-between; gap:8px; margin-bottom:5px;';
+                const sector = document.createElement('strong');
+                sector.textContent = order.sector || 'طلب خدمة';
+                const status = document.createElement('span');
+                status.style.cssText = 'font-size:11px; background:var(--brand-light); color:var(--brand); padding:2px 8px; border-radius:10px;';
+                status.textContent = order.status || 'قيد المراجعة';
+                header.append(sector, status);
+                card.appendChild(header);
+
+                if (order.tracking_code) {
+                    const tracking = document.createElement('p');
+                    tracking.style.cssText = 'font-size:12px; font-weight:800; color:var(--brand); margin:5px 0;';
+                    tracking.textContent = 'رقم التتبع: ' + order.tracking_code;
+                    card.appendChild(tracking);
+                }
+
+                const details = document.createElement('p');
+                details.style.cssText = 'font-size:13px; color:var(--muted); white-space:pre-wrap;';
+                details.textContent = order.details || 'لا توجد تفاصيل.';
+                const date = document.createElement('p');
+                date.style.cssText = 'font-size:11px; color:var(--muted); margin-top:8px;';
+                const createdAt = order.created_at ? new Date(order.created_at) : null;
+                date.textContent = createdAt && !Number.isNaN(createdAt.getTime())
+                    ? createdAt.toLocaleString('ar-EG')
+                    : '';
+                card.append(details, date);
+                list.appendChild(card);
+            });
+
+            this.ordersOffset += (data || []).length;
+            this.ordersHasMore = Array.isArray(data) && data.length === this.ordersPageSize;
+            if (this.ordersHasMore) {
+                const more = document.createElement('button');
+                more.id = 'orders-load-more';
+                more.type = 'button';
+                more.className = 'btn-auth';
+                more.style.cssText = 'margin:0 20px 20px;width:calc(100% - 40px);';
+                more.textContent = 'تحميل المزيد من الطلبات';
+                more.addEventListener('click', () => this.loadOrders(false));
+                list.appendChild(more);
+            }
+        } catch (error) {
+            console.error('WASLA orders load failed:', error);
+            if (reset) list.textContent = 'تعذر تحميل طلباتك حالياً.';
+            else UI.toast('تعذر تحميل المزيد من الطلبات.');
+        } finally {
+            this.ordersLoading = false;
+        }
     },
     loadNotifications: async function() {
         const list = document.getElementById('notifications-list');
@@ -1069,6 +1104,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+</script>
+<script>
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch((error) => {
+      console.warn("WASLA offline support registration failed:", error);
+    });
+  });
+}
 </script>
 </body>
 </html>

@@ -8,6 +8,10 @@ const required = [
   ['supabase/migrations/20261118_ticker_role_rpc_permissions.sql', 'tickerPermissionsMigration'],
   ['supabase/migrations/20261117_operations_dashboard.sql', 'operationsMigration'],
   ['founder-dashboard.html', 'dashboard'],
+  ['manifest.webmanifest', 'manifest'],
+  ['sw.js', 'serviceWorker'],
+  ['offline.html', 'offline'],
+  ['assets/wasla-icon.svg', 'appIcon'],
 ];
 
 const files = new Map();
@@ -30,6 +34,8 @@ const checks = [
   ['no hard-coded fake doctor fallback', () => !/dummyDoctors|د\. محمد عبد الله|د\. سارة خالد|د\. أحمد حسن/.test(files.get('admin'))],
   ['no hard-coded teacher demo profiles', () => !/أ\. أحمد محمد|أ\. سارة علي|مراجعة ليلة الامتحان - فيزياء/.test(files.get('homepage'))],
   ['no hard-coded supermarket product prices', () => !/price:\s*\d+/.test(files.get('homepage'))],
+  ['customer order history is paginated with a bounded range', () => /ordersPageSize: 10/.test(files.get('homepage')) && /\.range\(from, to\)/.test(files.get('homepage'))],
+  ['customer order history remains scoped to the signed-in user', () => /\.eq\('user_id', Auth\.user\.id\)[\s\S]{0,120}\.order\('created_at'/.test(files.get('homepage'))],
   ['order history renders untrusted data as text', () => /details\.textContent\s*=\s*order\.details/.test(files.get('homepage'))],
   ['unread notification badge is present', () => /id="notification-count"/.test(files.get('homepage')) && /function updateNotificationBadge/.test(files.get('homepage'))],
   ['logout clears the previous account notification badge', () => /this\.user = null;\s*updateNotificationBadge\(0\)/.test(files.get('homepage'))],
@@ -53,6 +59,12 @@ const checks = [
   ['orders staff update policy is role-scoped', () => /CREATE POLICY wasla_orders_staff_status_update[\s\S]*?WITH CHECK \(public\.wasla_can_manage_operations\(\)\)/.test(files.get('operationsMigration'))],
   ['dashboard changes only order status', () => /\.update\(\{ status: nextStatus \}\)/.test(files.get('dashboard'))],
   ['operations migration refuses to run if orders RLS is disabled', () => /IF coalesce\(v_rls_enabled, false\) IS NOT TRUE THEN/.test(files.get('operationsMigration'))],
+  ['homepage declares the installable PWA manifest', () => /rel="manifest" href="\/manifest\.webmanifest"/.test(files.get('homepage'))],
+  ['homepage registers the service worker after page load', () => /serviceWorker\.register\("\/sw\.js"\)/.test(files.get('homepage'))],
+  ['PWA manifest uses standalone display and RTL Arabic metadata', () => /"display": "standalone"/.test(files.get('manifest')) && /"dir": "rtl"/.test(files.get('manifest'))],
+  ['service worker does not intercept cross-origin API requests', () => /url\.origin !== self\.location\.origin/.test(files.get('serviceWorker'))],
+  ['offline navigation shows an explicit disconnected state', () => /caches\.match\("\/offline\.html"\)/.test(files.get('serviceWorker')) && /الاتصال بالإنترنت غير متاح/.test(files.get('offline'))],
+  ['PWA icon is present and scalable', () => /<svg[^>]+viewBox="0 0 512 512"/.test(files.get('appIcon'))],
   ['appointment notifications are emitted by a database trigger', () => /CREATE TRIGGER wasla_appointments_notify_patient[\s\S]*?AFTER INSERT OR UPDATE OF status ON public\.appointments/.test(files.get('migration'))],
   ['order notifications are emitted by a database trigger', () => /CREATE TRIGGER wasla_orders_notify_owner[\s\S]*?AFTER INSERT OR UPDATE OF status ON public\.orders/.test(files.get('migration'))],
 ];
