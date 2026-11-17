@@ -802,7 +802,7 @@ const DB = {
             const to = from + this.ordersPageSize - 1;
             const { data, error } = await supabaseClient
                 .from('orders')
-                .select('id, sector, status, tracking_code, details, created_at, updated_at, courier_id, provider_id')
+                .select('id, sector, status, tracking_code, details, created_at, updated_at, courier_id, provider_id, delivery_lat, delivery_lng')
                 .eq('user_id', Auth.user.id)
                 .order('created_at', { ascending: false })
                 .range(from, to);
@@ -859,6 +859,18 @@ const DB = {
                     date.textContent += (date.textContent ? '\n' : '') + 'آخر تحديث: ' + updatedAt.toLocaleString('ar-EG');
                 }
                 card.append(details, date);
+                if (order.delivery_lat !== null && order.delivery_lng !== null) {
+                    const lat = Number(order.delivery_lat), lng = Number(order.delivery_lng);
+                    if (Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                        const map = document.createElement('a');
+                        map.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+                        map.target = '_blank';
+                        map.rel = 'noopener noreferrer';
+                        map.textContent = 'عرض موقع التسليم المسجل';
+                        map.style.cssText = 'display:block;margin-top:8px;color:var(--brand);font-weight:800;';
+                        card.appendChild(map);
+                    }
+                }
                 if (order.provider_id && order.status === 'pending') {
                     const cancel = document.createElement('button');
                     cancel.type = 'button';
