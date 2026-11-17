@@ -257,6 +257,10 @@ CREATE TRIGGER wasla_orders_notify_courier_assignment
 AFTER UPDATE OF courier_id ON public.orders
 FOR EACH ROW EXECUTE FUNCTION public.wasla_notify_courier_assignment();
 
+ALTER TABLE public.orders
+  ADD COLUMN IF NOT EXISTS courier_id uuid REFERENCES public.wasla_courier_profiles(user_id) ON DELETE RESTRICT,
+  ADD COLUMN IF NOT EXISTS courier_assigned_at timestamptz;
+
 CREATE TABLE IF NOT EXISTS public.wasla_courier_locations (
   courier_id uuid PRIMARY KEY REFERENCES public.wasla_courier_profiles(user_id) ON DELETE CASCADE,
   latitude double precision NOT NULL CHECK (latitude BETWEEN -90 AND 90),
