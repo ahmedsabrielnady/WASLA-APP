@@ -86,7 +86,7 @@ Apply migrations in order after reviewing the current production schema. Migrati
 - Merchant checkout validates stock in the database and reserves quantities atomically; cancellations before dispatch restore stock.
 - Merchants can manage their own product catalog and move orders through accepted, preparing, and ready-for-pickup states.
 - The merchant order inbox loads 50 orders per page, uses the exact database count for load-more availability, and suppresses duplicate cards when new orders arrive during paging.
-- Service providers in medical, education, maintenance, and automotive sectors can create service offerings, set weekly availability, and review customer booking requests. Customers can request an available time; provider confirmation is required before the appointment is confirmed.
+- Service providers in medical, education, maintenance, and automotive sectors can create service offerings, set weekly availability, and review customer booking requests. Customers see server-calculated available time slots in Africa/Cairo time; the booking RPC revalidates the schedule and overlapping bookings before creating a pending request. Provider confirmation is required before the appointment is confirmed.
 - Confirmed service bookings can be cancelled by customers only at least 12 hours before the appointment. Pending requests can be cancelled at any time.
 - The founder can assign active couriers to ready orders; customers can view the last courier location while an order is out for delivery, subject to the courier's browser location permission and active portal session.
 
@@ -97,7 +97,8 @@ Apply migrations in order after reviewing the current production schema. Migrati
 - Education providers can publish bookable services; a full course/LMS catalog, enrollment, lesson delivery, and learning progress are not implemented.
 - The retail marketplace supports live provider-owned products, inventory, checkout totals, and merchant acceptance once a provider is approved, activated, published, and maintains its catalog. Actual local merchant onboarding and stock accuracy still require field verification.
 - Courier onboarding, founder dispatch, courier task pages, delivery status updates, and optional foreground location sharing are implemented. Background tracking, turn-by-turn route maps, reverse geocoding, proof of delivery, cash reconciliation, and courier earnings are not implemented.
-- Notifications are in-app only. Scheduled reminders, Web Push, FCM, and service-worker delivery while the browser is closed are not implemented.
+- Notifications are in-app only. Scheduled appointment reminders, Web Push, FCM, and service-worker delivery while the browser is closed are not implemented.
+- The PWA caches the public marketplace, merchant, service booking, provider, and courier page shells; dynamic Supabase data still requires a network connection.
 - Authenticated end-to-end tests for order creation, status changes, appointment flow, and founder announcement CRUD have not been completed.
 
 ## Automated checks
