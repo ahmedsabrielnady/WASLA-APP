@@ -619,6 +619,7 @@ const Auth = {
     checkSession: async function() {
         if (!supabaseClient) {
             this.user = null;
+            updateNotificationBadge(0);
             return;
         }
         const { data, error } = await supabaseClient.auth.getSession();
@@ -635,6 +636,7 @@ const Auth = {
             await Promise.all([DB.loadOrders(), DB.loadNotifications()]);
         } else {
             this.user = null;
+            updateNotificationBadge(0);
             document.getElementById('auth-section').style.display = 'block';
             document.getElementById('profile-section').style.display = 'none';
             document.getElementById('home-username').textContent = 'أهلاً بك في وصلة 👋';
