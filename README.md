@@ -115,7 +115,7 @@ It runs:
 - Static integrity guards for RLS, role boundaries, booking concurrency, stock handling, order transitions, and tracking privacy.
 - Static integrity guards for scheduled ads, fake/demo data removal, user-scoped notifications, read-at-only updates, auth refresh behavior, delivery coordinates, founder/admin gating, and the orders RLS migration.
 
-These checks do **not** replace a signed-in browser test or a real database transaction test.
+The PostgreSQL grammar parser validates migration statement syntax; it does not execute PL/pgSQL function bodies or prove runtime RLS behavior. These checks do **not** replace a signed-in browser test or a real database transaction test.
 
 ## Safe release sequence
 
