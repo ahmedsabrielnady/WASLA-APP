@@ -29,6 +29,7 @@ const checks = [
   ['no hard-coded supermarket product prices', () => !/price:\s*\d+/.test(files.get('homepage'))],
   ['order history renders untrusted data as text', () => /details\.textContent\s*=\s*order\.details/.test(files.get('homepage'))],
   ['unread notification badge is present', () => /id="notification-count"/.test(files.get('homepage')) && /function updateNotificationBadge/.test(files.get('homepage'))],
+  ['logout clears the previous account notification badge', () => /else\\s*\\{\\s*this\\.user\\s*=\\s*null;\\s*updateNotificationBadge\\(0\\)/.test(files.get('homepage'))],
   ['unread notification count is exact and user-scoped', () => /select\('id', \{ count: 'exact', head: true \}\)[\s\S]{0,180}eq\('user_id', Auth\.user\.id\)[\s\S]{0,80}is\('read_at', null\)/.test(files.get('homepage'))],
   ['mark-as-read blocks duplicate clicks', () => /if \(markReadBusy \|\| item\.read_at\) return;[\s\S]{0,100}markReadBusy = true;[\s\S]{0,100}pointerEvents = 'none'/.test(files.get('homepage'))],
   ['auth refresh is deferred outside auth callback', () => /onAuthStateChange[\s\S]{0,250}setTimeout/.test(files.get('homepage'))],
@@ -40,6 +41,11 @@ const checks = [
   ['notification update grant is restricted to read_at', () => /GRANT UPDATE \(read_at\) ON TABLE public\.wasla_notifications TO authenticated/.test(files.get('migration'))],
   ['ticker public read is constrained to active schedule', () => /starts_at <= now\(\)[\s\S]{0,120}ends_at IS NULL OR ends_at > now\(\)/.test(files.get('migration'))],
   ['founder page enforces a server-side-backed role check', () => /role IN \('(admin', 'founder|founder', 'admin)'\)/.test(files.get('migration')) && /roles\.some\s*\(\s*role\s*=>\s*\['founder','admin'\]\.includes\(role\)\)/.test(files.get('founder'))],
+  ['founder announcement writes require an authenticated user ID', () => /auth\\.getUser\\(\\)[\\s\\S]{0,120}if \\(!user\\?\\.id\\)/.test(files.get('founder'))],
+  ['founder form prevents duplicate submissions', () => /button\\.disabled = true;[\\s\\S]{0,120}finally \\{[\\s\\S]{0,80}button\\.disabled = false/.test(files.get('founder'))],
+  ['founder announcement links are URL-validated', () => /new URL\\(target\\)[\\s\\S]{0,140}https:/.test(files.get('founder'))],
+  ['appointment notifications are emitted by a database trigger', () => /wasla_notify_appointment_patient[\\s\\S]{0,120}AFTER INSERT OR UPDATE OF status ON public\\.appointments/.test(files.get('migration'))],
+  ['order notifications are emitted by a database trigger', () => /wasla_notify_order_owner[\\s\\S]{0,120}AFTER INSERT OR UPDATE OF status ON public\\.orders/.test(files.get('migration'))],
 ];
 
 let failures = 0;
