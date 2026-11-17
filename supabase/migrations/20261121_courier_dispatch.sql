@@ -257,6 +257,79 @@ CREATE TRIGGER wasla_orders_notify_courier_assignment
 AFTER UPDATE OF courier_id ON public.orders
 FOR EACH ROW EXECUTE FUNCTION public.wasla_notify_courier_assignment();
 
+CREATE TABLE IF NOT EXISTS public.wasla_courier_locations (
+  courier_id uuid PRIMARY KEY REFERENCES public.wasla_courier_profiles(user_id) ON DELETE CASCADE,
+  latitude double precision NOT NULL CHECK (latitude BETWEEN -90 AND 90),
+  longitude double precision NOT NULL CHECK (longitude BETWEEN -180 AND 180),
+  accuracy_m double precision CHECK (accuracy_m IS NULL OR accuracy_m BETWEEN 0 AND 100000),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.wasla_courier_locations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS wasla_courier_locations_self_all ON public.wasla_courier_locations;
+DROP POLICY IF EXISTS wasla_courier_locations_customer_read_active ON public.wasla_courier_locations;
+DROP POLICY IF EXISTS wasla_courier_locations_operations_read ON public.wasla_courier_locations;
+CREATE POLICY wasla_courier_locations_self_all
+  ON public.wasla_courier_locations FOR ALL TO authenticated
+  USING (courier_id = auth.uid() AND public.wasla_is_active_courier())
+  WITH CHECK (courier_id = auth.uid() AND public.wasla_is_active_courier());
+CREATE POLICY wasla_courier_locations_customer_read_active
+  ON public.wasla_courier_locations FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.orders o
+    WHERE o.courier_id = wasla_courier_locations.courier_id
+      AND o.user_id = auth.uid()
+      AND o.status = 'out_for_delivery'
+  ));
+CREATE POLICY wasla_courier_locations_operations_read
+  ON public.wasla_courier_locations FOR SELECT TO authenticated
+  USING (public.wasla_can_manage_operations());
+REVOKE ALL ON TABLE public.wasla_courier_locations FROM anon, authenticated;
+GRANT SELECT ON TABLE public.wasla_courier_locations TO authenticated;
+GRANT INSERT (courier_id,latitude,longitude,accuracy_m)
+  ON TABLE public.wasla_courier_locations TO authenticated;
+GRANT UPDATE (latitude,longitude,accuracy_m)
+  ON TABLE public.wasla_courier_locations TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.wasla_touch_courier_location()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = pg_catalog, public
+AS $function$
+BEGIN
+  NEW.updated_at := now();
+  RETURN NEW;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_touch_courier_location() FROM PUBLIC;
+DROP TRIGGER IF EXISTS wasla_courier_location_touch ON public.wasla_courier_locations;
+CREATE TRIGGER wasla_courier_location_touch
+BEFORE UPDATE ON public.wasla_courier_locations
+FOR EACH ROW EXECUTE FUNCTION public.wasla_touch_courier_location();
+
+CREATE OR REPLACE FUNCTION public.wasla_cleanup_courier_location()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $function$
+BEGIN
+  IF OLD.courier_id IS NOT NULL
+     AND (NEW.status = 'delivered' OR NEW.courier_id IS DISTINCT FROM OLD.courier_id)
+     AND NOT EXISTS (
+       SELECT 1 FROM public.orders
+       WHERE courier_id = OLD.courier_id AND status = 'out_for_delivery'
+     ) THEN
+    DELETE FROM public.wasla_courier_locations WHERE courier_id = OLD.courier_id;
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_cleanup_courier_location() FROM PUBLIC;
+DROP TRIGGER IF EXISTS wasla_orders_cleanup_courier_location ON public.orders;
+CREATE TRIGGER wasla_orders_cleanup_courier_location
+AFTER UPDATE OF status,courier_id ON public.orders
+FOR EACH ROW EXECUTE FUNCTION public.wasla_cleanup_courier_location();
+
 ALTER TABLE public.orders
   ADD COLUMN IF NOT EXISTS courier_id uuid REFERENCES public.wasla_courier_profiles(user_id) ON DELETE RESTRICT,
   ADD COLUMN IF NOT EXISTS courier_assigned_at timestamptz;
