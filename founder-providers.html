@@ -42,6 +42,7 @@ async function loadApplications(){
   };
   approve.onclick=()=>decide('approved');reject.onclick=()=>decide('rejected');
   actions.append(approve,reject);
+  card.append(title,meta,details,note,actions);
   const profile=(profiles||[]).find(p=>p.application_id===item.id);
   if(profile){
    const profileState=document.createElement('p');profileState.textContent='حالة الملف: '+(profile.is_active?'مفعّل':'غير مفعّل')+' · '+(profile.is_published?'منشور للعملاء':'غير منشور');
@@ -55,7 +56,7 @@ async function loadApplications(){
    const pendingProfile=document.createElement('p');pendingProfile.textContent='تمت الموافقة المبدئية. سيُنشأ ملف النشاط بعد تطبيق ترحيل كتالوج مقدمي الخدمة.';
    card.append(pendingProfile);
   }
-  card.append(title,meta,details,note,actions);root.append(card);
+  root.append(card);
  });
 }
 $('loginButton').onclick=async()=>{try{const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;await authorize();}catch(e){say('تعذر تسجيل الدخول أو التحقق من الصلاحية: '+e.message,true);}};
