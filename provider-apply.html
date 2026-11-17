@@ -55,9 +55,9 @@ async function loadLatest(user){
  const box=document.createElement('div');box.className='notice';const title=document.createElement('strong');title.textContent=statusText(latest.status);const name=document.createElement('p');name.textContent='النشاط: '+latest.business_name;box.append(title,name);
  if(latest.admin_note){const note=document.createElement('p');note.textContent='ملاحظة الإدارة: '+latest.admin_note;box.append(note);}
  if(latest.status==='approved'){
-  const {data:profile,error:profileError}=await client.from('wasla_provider_profiles').select('id,is_active,is_published').eq('application_id',latest.id).maybeSingle();
+  const {data:profile,error:profileError}=await client.from('wasla_provider_profiles').select('id,sector,is_active,is_published').eq('application_id',latest.id).maybeSingle();
   if(profileError)throw profileError;
-  if(profile){const link=document.createElement('a');link.href='/merchant-dashboard.html';link.textContent='إدارة المنتجات والمخزون';link.style.display='block';box.append(link);const state=document.createElement('p');state.textContent=profile.is_active?(profile.is_published?'النشاط منشور للعملاء.':'النشاط مفعّل لكنه غير منشور بعد.'):'النشاط بانتظار التفعيل والنشر من الإدارة.';box.append(state);}
+  if(profile){const state=document.createElement('p');state.textContent=profile.is_active?(profile.is_published?'النشاط منشور للعملاء.':'النشاط مفعّل لكنه غير منشور بعد.'):'النشاط بانتظار التفعيل والنشر من الإدارة.';box.append(state);if(['restaurants','market'].includes(profile.sector)){const link=document.createElement('a');link.href='/merchant-dashboard.html';link.textContent='إدارة المنتجات والمخزون';link.style.display='block';box.append(link);}else{const serviceNote=document.createElement('p');serviceNote.textContent='ملف النشاط جاهز مبدئيًا. لوحة إدارة الخدمات لهذا التخصص لم تُفعّل بعد.';box.append(serviceNote);}}
  }
  $('existing').append(box);
  if(latest.status!=='rejected'){$('application-form').classList.add('hidden');return;}
