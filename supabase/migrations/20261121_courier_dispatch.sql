@@ -262,6 +262,22 @@ CREATE INDEX IF NOT EXISTS wasla_orders_courier_status_created_idx
 -- Couriers and staff may change only the status column through RLS policies.
 -- Assignment itself is available only through the SECURITY DEFINER RPC.
 REVOKE UPDATE ON TABLE public.orders FROM PUBLIC, anon, authenticated;
+DO $revoke_column_updates$
+DECLARE
+  v_column record;
+BEGIN
+  FOR v_column IN
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'orders'
+  LOOP
+    EXECUTE format(
+      'REVOKE UPDATE (%I) ON TABLE public.orders FROM PUBLIC, anon, authenticated',
+      v_column.column_name
+    );
+  END LOOP;
+END;
+$revoke_column_updates$;
 GRANT UPDATE (status) ON TABLE public.orders TO authenticated;
 
 
