@@ -27,7 +27,7 @@ function startLocationTracking(){
    if(error)throw error;
    say('مشاركة الموقع مفعّلة أثناء التوصيل.');
   }catch(e){say('تعذر تحديث موقعك للعميل: '+e.message,true);}
- },error=>say('تعذر تحديد موقعك. تحقق من إذن الموقع في المتصفح.',true),{enableHighAccuracy:true,maximumAge:15000,timeout:20000});
+ },error=>{if(locationWatchId!==null)navigator.geolocation.clearWatch(locationWatchId);locationWatchId=null;say('تعذر تحديد موقعك. تحقق من إذن الموقع في المتصفح.',true);},{enableHighAccuracy:true,maximumAge:15000,timeout:20000});
 }
 async function loadTasks(){
  const root=$('tasks');root.textContent='جاري تحميل مهامك...';
