@@ -445,6 +445,7 @@ async function assignCourier(order,select,button) {
     button.textContent = 'إسناد المهمة';
   } finally {
     busyIds.delete(String(order.id));
+    renderOrders();
   }
 }
 
@@ -476,6 +477,7 @@ async function updateOrderStatus(order,select,button,pill) {
     button.textContent = 'حفظ الحالة';
   } finally {
     busyIds.delete(id);
+    renderOrders();
   }
 }
 
