@@ -12,7 +12,8 @@ BEGIN
      OR to_regclass('public.wasla_notifications') IS NULL
      OR to_regprocedure('public.wasla_order_status_transition_allowed(text,text)') IS NULL
      OR to_regprocedure('public.wasla_owns_provider_profile(uuid)') IS NULL
-     OR to_regprocedure('public.wasla_can_manage_operations()') IS NULL THEN
+     OR to_regprocedure('public.wasla_can_manage_operations()') IS NULL
+     OR to_regprocedure('public.wasla_is_active_courier()') IS NULL THEN
     RAISE EXCEPTION 'WASLA market checkout migration prerequisites are missing';
   END IF;
   IF NOT EXISTS (
