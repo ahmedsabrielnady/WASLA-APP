@@ -2,11 +2,13 @@
 
 ## Current release state
 
-WASLA is still in a controlled preview phase. The feature branch is:
+WASLA is still in a controlled preview phase. The active implementation is being delivered as a stacked pull-request sequence:
 
-`feature/smart-tracking-announcements`
+- PR #3 — founder announcement authorization hardening; base: `feature/smart-tracking-announcements`.
+- PR #4 — installable PWA shell, offline fallback, and paginated customer order history; base: PR #3 branch.
+- PR #5 — secure provider onboarding and founder review; base: PR #4 branch.
 
-The current pull request is Draft PR #2. It has not been merged into `main` and no production deployment has been authorized.
+All three are draft/open and unmerged at the time of this update. Merge in dependency order only after each layer's database and browser tests pass. No production release has been authorized.
 
 ## Important pages
 
@@ -25,15 +27,20 @@ Apply migrations in order:
 
 1. `supabase/migrations/20261116_smart_tracking_announcements.sql`
    - The project owner reported applying this migration on 2026-11-16.
-   - It adds order tracking fields, private in-app notifications, notification triggers, and scheduled ticker fields/policies.
+   - Adds order tracking fields, private in-app notifications, notification triggers, and scheduled ticker fields/policies.
 2. `supabase/migrations/20261117_operations_dashboard.sql`
-   - **Not yet confirmed as applied to production.**
-   - Adds `public.wasla_can_manage_operations()`.
-   - Adds founder/admin SELECT and status-update policies on `public.orders`.
-   - Grants `UPDATE(status)` for authenticated users.
-   - Stops without changes if row-level security is not enabled on `public.orders`.
+   - **Not yet confirmed as applied.**
+   - Adds `public.wasla_can_manage_operations()` and staff order read/status-update policies.
+   - Stops if row-level security is not enabled on `public.orders`.
+3. `supabase/migrations/20261118_ticker_role_rpc_permissions.sql`
+   - **Not yet confirmed as applied.**
+   - Restricts execution of `public.wasla_can_manage_ticker()` to authenticated users.
+4. `supabase/migrations/20261119_provider_applications.sql`
+   - **Not yet confirmed as applied.**
+   - Creates the private provider application workflow, owner-scoped RLS, founder review policies, column-level grants, and applicant notifications.
+   - Depends on the notifications table from migration #1 and the existing `public.is_founder()` helper.
 
-Do not run the second migration until the first migration is present and the orders table has RLS enabled. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
+Apply migrations in order after reviewing the current production schema. Migration #2 intentionally refuses to proceed if orders RLS is disabled; do not bypass that guard without auditing all existing customer policies. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
 
 ## Current working behavior
 
