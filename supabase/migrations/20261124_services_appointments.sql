@@ -721,6 +721,16 @@ BEGIN
   END IF;
 
   PERFORM pg_advisory_xact_lock(hashtextextended(p_provider_id::text,0));
+  IF EXISTS (
+    SELECT 1 FROM public.wasla_service_bookings
+    WHERE provider_id = p_provider_id
+      AND queue_date = v_today
+      AND queue_status = 'called'
+      AND status = 'confirmed'
+  ) THEN
+    RAISE EXCEPTION 'Complete or close the currently called patient before calling the next one'
+      USING ERRCODE = '55000';
+  END IF;
   SELECT * INTO v_next
   FROM public.wasla_service_bookings
   WHERE provider_id = p_provider_id
