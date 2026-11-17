@@ -312,7 +312,7 @@ function renderOrders() {
     details.textContent = order.details || 'لا توجد تفاصيل مرفقة.';
     if (order.courier_id) {
       const courier = couriers.find(item => item.user_id === order.courier_id);
-      const assigned = document.createElement('p');
+      const assigned = document.createElement('div');
       assigned.className = 'order-meta';
       assigned.textContent = 'المندوب: ' + (courier?.display_name || 'مندوب مسند') + ' · وقت الإسناد: ' + formatDate(order.courier_assigned_at);
       details.appendChild(assigned);
