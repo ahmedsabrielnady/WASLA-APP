@@ -76,6 +76,7 @@ Apply migrations in order after reviewing the current production schema. Migrati
 - Restaurant/market customers can browse published products, place one-merchant cash-on-delivery orders, and cancel while an order is pending.
 - Merchant checkout validates stock in the database and reserves quantities atomically; cancellations before dispatch restore stock.
 - Merchants can manage their own product catalog and move orders through accepted, preparing, and ready-for-pickup states.
+- The merchant order inbox loads 50 orders per page, uses the exact database count for load-more availability, and suppresses duplicate cards when new orders arrive during paging.
 - The founder can assign active couriers to ready orders; customers can view the last courier location while an order is out for delivery, subject to the courier's browser location permission and active portal session.
 
 ## Still not production-complete
