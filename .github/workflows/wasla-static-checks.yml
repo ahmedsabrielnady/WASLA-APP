@@ -36,3 +36,5 @@ jobs:
           package-manager-cache: false
       - name: Compile inline JavaScript blocks
         run: node scripts/check-inline-js.mjs
+      - name: Check platform integrity guards
+        run: node scripts/check-wasla-guards.mjs
