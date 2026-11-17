@@ -64,6 +64,36 @@ CREATE TABLE IF NOT EXISTS public.wasla_provider_availability (
 CREATE INDEX IF NOT EXISTS wasla_provider_availability_lookup_idx
   ON public.wasla_provider_availability(provider_id,weekday,is_active,starts_at);
 
+CREATE OR REPLACE FUNCTION public.wasla_prevent_overlapping_provider_availability()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog,public
+AS $function$
+BEGIN
+  PERFORM pg_advisory_xact_lock(hashtextextended(NEW.provider_id::text,1));
+  IF EXISTS (
+    SELECT 1
+    FROM public.wasla_provider_availability existing
+    WHERE existing.provider_id = NEW.provider_id
+      AND existing.weekday = NEW.weekday
+      AND existing.id IS DISTINCT FROM NEW.id
+      AND NEW.starts_at < existing.ends_at
+      AND existing.starts_at < NEW.ends_at
+  ) THEN
+    RAISE EXCEPTION 'Provider availability windows cannot overlap on the same weekday'
+      USING ERRCODE = '23P01';
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_prevent_overlapping_provider_availability() FROM PUBLIC;
+DROP TRIGGER IF EXISTS wasla_availability_prevent_overlap ON public.wasla_provider_availability;
+CREATE TRIGGER wasla_availability_prevent_overlap
+BEFORE INSERT OR UPDATE OF provider_id,weekday,starts_at,ends_at
+ON public.wasla_provider_availability
+FOR EACH ROW EXECUTE FUNCTION public.wasla_prevent_overlapping_provider_availability();
+
 CREATE TABLE IF NOT EXISTS public.wasla_service_bookings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tracking_code text NOT NULL UNIQUE DEFAULT ('WS' || upper(substr(replace(gen_random_uuid()::text,'-',''),1,10))),
