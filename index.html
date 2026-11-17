@@ -874,9 +874,13 @@ const DB = {
                 card.append(title, body, date);
 
                 if (!item.read_at) {
+                    let markReadBusy = false;
                     card.style.cursor = 'pointer';
                     card.title = 'اضغط لتحديد الإشعار كمقروء';
                     card.addEventListener('click', async () => {
+                        if (markReadBusy || item.read_at) return;
+                        markReadBusy = true;
+                        card.style.pointerEvents = 'none';
                         card.style.opacity = '0.65';
                         const readAt = new Date().toISOString();
                         const { error: updateError } = await supabaseClient
@@ -887,6 +891,8 @@ const DB = {
                             .is('read_at', null);
 
                         if (updateError) {
+                            markReadBusy = false;
+                            card.style.pointerEvents = 'auto';
                             card.style.opacity = '1';
                             console.error('WASLA notification read update failed:', updateError);
                             UI.toast('تعذر تحديث الإشعار. حاول مرة أخرى.');
