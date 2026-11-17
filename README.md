@@ -97,3 +97,9 @@ These checks do **not** replace a signed-in browser test or a real database tran
 - `supabase/migrations/20261119_provider_applications.sql` creates a private application table with owner-scoped RLS, founder review policies, and column-level grants.
 - The migration is **not yet confirmed as applied**. Apply it only after `20261116_smart_tracking_announcements.sql` (notifications table) and `20261117_operations_dashboard.sql` have been applied, and after confirming `public.is_founder()` is available in this Supabase project.
 - An approved application is not automatically a live provider listing. Provider verification, profile creation, service catalog, and customer booking integration remain separate release gates.
+
+
+## Operations dashboard pagination
+- The founder operations dashboard now loads orders in pages of 50 using Supabase range queries and exact row counts.
+- The user can load additional pages without an unbounded query. Search and filters apply to the records currently loaded in the browser; the interface states this explicitly.
+- This is a read-performance improvement, not a change to order access policies or business status transitions.
