@@ -40,6 +40,9 @@ Do not use real customer personal data or live payment details.
 
 - [ ] Create a product with stock quantity 3 and a known price.
 - [ ] Place an authenticated customer order for quantity 2.
+- [ ] Use GPS checkout and confirm the browser permission flow captures coordinates without requiring a typed address.
+- [ ] Confirm the order stores a valid latitude/longitude pair and both the founder and assigned courier can open the delivery point on a map.
+- [ ] Deny GPS permission and confirm manual address checkout still works.
 - [ ] Confirm the server-calculated price snapshot, order items, delivery address, customer phone, and COD method.
 - [ ] Confirm stock becomes 1 and a private new-order notification reaches Merchant A.
 - [ ] Confirm Merchant A can see the order and Merchant B cannot.
