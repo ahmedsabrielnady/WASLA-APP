@@ -165,7 +165,7 @@ a { text-decoration: none; }
 
 <div class="ticker-wrap">
     <div class="ticker-label">وصلة 📢</div>
-    <div class="ticker-content">
+    <div class="ticker-content" id="wasla-announcement-ticker" aria-live="polite">
         <span>✅ وصلة شغالة في شبين القناطر — اطلب دلوقتي</span>
         <span>⚡ توصيل سريع داخل المدينة</span>
         <span>🔧 فنيين • أطباء • مدرسين • سوبر ماركت • سيارات</span>
@@ -384,6 +384,43 @@ try {
     }
 } catch(e) { console.log("Supabase Init Error:", e); }
 
+// Load active offers from the shared offers_ticker table. Static messages remain as fallback.
+async function loadWaslaAnnouncements() {
+    const ticker = document.getElementById('wasla-announcement-ticker');
+    if (!ticker || !supabaseClient) return;
+    try {
+        const now = new Date().toISOString();
+        const { data, error } = await supabaseClient
+            .from('offers_ticker')
+            .select('text_ar, badge_text, target_url, starts_at, ends_at')
+            .eq('is_active', true)
+            .lte('starts_at', now)
+            .or('ends_at.is.null,ends_at.gt.' + now)
+            .order('sort_order', { ascending: true });
+        if (error) throw error;
+        if (!data || data.length === 0) return;
+        ticker.replaceChildren();
+        data.forEach(item => {
+            const span = document.createElement('span');
+            if (item.target_url && (item.target_url.startsWith('https://') || item.target_url.startsWith('http://'))) {
+                const link = document.createElement('a');
+                link.href = item.target_url;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.style.color = 'inherit';
+                link.textContent = (item.badge_text ? item.badge_text + ' · ' : '') + item.text_ar;
+                span.appendChild(link);
+            } else {
+                span.textContent = (item.badge_text ? item.badge_text + ' · ' : '') + item.text_ar;
+            }
+            ticker.appendChild(span);
+        });
+    } catch (error) {
+        // Keep the built-in ticker content if the ticker table is unavailable.
+        console.info('WASLA ticker is not available yet:', error.message);
+    }
+}
+
 document.getElementById('phone-link').href = 'tel:+' + WASLA_PHONE;
 document.getElementById('phone-display').innerText = WASLA_PHONE_DISPLAY;
 
@@ -436,100 +473,100 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 // دالة لجلب الأطباء من قاعدة البيانات
 async function loadDoctors() {
     const container = document.getElementById('doctors-container');
+    if (!container) return;
     container.innerHTML = '<div class="skeleton-card"></div><div class="skeleton-card"></div>';
 
-    if(!supabaseClient) {
-        // في حال عدم توفر الاتصال، نعرض بيانات تجريبية لضمان عدم توقف الواجهة
-        renderDoctorsFallback();
+    if (!supabaseClient) {
+        renderDoctorsFallback('تعذر الاتصال بقاعدة البيانات. لا يمكن عرض بيانات الأطباء حالياً.');
         return;
     }
 
     try {
-        // جلب الأطباء مع ربط اسم الملف الشخصي (إن وجد)
         const { data, error } = await supabaseClient
             .from('health_doctors')
-            .select(`
-                id,
-                clinic_name,
-                consultation_fee,
-                rating,
-                experience_years
-            `);
+            .select('id, clinic_name, consultation_fee, rating, experience_years');
 
         if (error) throw error;
-
-        if (data.length === 0) {
-            // إذا كان الجدول فارغاً، نعرض بيانات تجريبية
-            renderDoctorsFallback();
-        } else {
-            renderDoctors(data);
+        if (!Array.isArray(data) || data.length === 0) {
+            renderDoctorsFallback('لم تتم إضافة أطباء أو عيادات معتمدة بعد.');
+            return;
         }
-
-    } catch(e) {
-        console.error("Error fetching doctors:", e);
-        renderDoctorsFallback();
+        renderDoctors(data);
+    } catch (e) {
+        console.error('Error fetching verified doctors:', e);
+        renderDoctorsFallback('تعذر تحميل بيانات الأطباء. حاول مرة أخرى لاحقاً.');
     }
 }
 
-// دالة لعرض الأطباء (من قاعدة البيانات)
+// عرض بيانات العيادات القادمة من قاعدة البيانات فقط، دون إنشاء بطاقات تجريبية.
 function renderDoctors(doctors) {
     const container = document.getElementById('doctors-container');
-    container.innerHTML = '';
-    
+    container.replaceChildren();
+    let rendered = 0;
+
     doctors.forEach(doc => {
-        // نستخدم clinic_name كاسم للطبيب مؤقتاً (أو يمكن جلبه من profiles)
-        const docName = doc.clinic_name || 'طبيب غير محدد';
-        
-        container.innerHTML += `
-            <div class="doctor-card">
-                <div class="doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
-                <div class="doc-info">
-                    <h3>${docName}</h3>
-                    <p>استشاري</p>
-                    <div class="doc-meta">
-                        <span style="color: #f59e0b;"><i class="fa-solid fa-star"></i> ${doc.rating || '5.0'}</span>
-                        <span><i class="fa-solid fa-clock"></i> ${doc.experience_years || '1'} سنة خبرة</span>
-                    </div>
-                </div>
-                <div class="doc-price">
-                    <span>${doc.consultation_fee || '200'} ج</span>
-                    <button class="btn-book-doctor" onclick="openBookingModal('${doc.id}', '${docName}')">حجز</button>
-                </div>
-            </div>
-        `;
+        if (!doc || !doc.id) return;
+
+        const card = document.createElement('div');
+        card.className = 'doctor-card';
+
+        const avatar = document.createElement('div');
+        avatar.className = 'doc-avatar';
+        avatar.innerHTML = '<i class="fa-solid fa-user-doctor" aria-hidden="true"></i>';
+
+        const info = document.createElement('div');
+        info.className = 'doc-info';
+
+        const name = document.createElement('h3');
+        name.textContent = doc.clinic_name || 'عيادة بدون اسم';
+
+        const specialty = document.createElement('p');
+        specialty.textContent = 'بيانات العيادة المعتمدة';
+
+        const meta = document.createElement('div');
+        meta.className = 'doc-meta';
+        if (doc.rating !== null && doc.rating !== undefined && doc.rating !== '') {
+            const rating = document.createElement('span');
+            rating.textContent = 'التقييم: ' + String(doc.rating);
+            meta.appendChild(rating);
+        }
+        if (doc.experience_years !== null && doc.experience_years !== undefined && doc.experience_years !== '') {
+            const experience = document.createElement('span');
+            experience.textContent = 'الخبرة: ' + String(doc.experience_years) + ' سنة';
+            meta.appendChild(experience);
+        }
+        info.append(name, specialty);
+        if (meta.childNodes.length) info.appendChild(meta);
+
+        const price = document.createElement('div');
+        price.className = 'doc-price';
+        const fee = document.createElement('span');
+        const hasFee = doc.consultation_fee !== null && doc.consultation_fee !== undefined && doc.consultation_fee !== '';
+        fee.textContent = hasFee ? String(doc.consultation_fee) + ' ج' : 'السعر عند التأكيد';
+        const book = document.createElement('button');
+        book.className = 'btn-book-doctor';
+        book.type = 'button';
+        book.textContent = 'طلب حجز';
+        book.addEventListener('click', () => openBookingModal(String(doc.id), String(doc.clinic_name || 'العيادة')));
+        price.append(fee, book);
+
+        card.append(avatar, info, price);
+        container.appendChild(card);
+        rendered++;
     });
+
+    if (!rendered) renderDoctorsFallback('لا توجد بيانات عيادات صالحة للعرض حالياً.');
 }
 
-// دالة عرض بيانات تجريبية (Fallback)
-function renderDoctorsFallback() {
-    const dummyDoctors = [
-        { id: '1', name: 'د. محمد عبد الله', fee: 200, rating: '4.8', exp: 15 },
-        { id: '2', name: 'د. سارة خالد', fee: 150, rating: '5.0', exp: 8 },
-        { id: '3', name: 'د. أحمد حسن', fee: 250, rating: '4.6', exp: 12 }
-    ];
-    
+// لا تعرض أسماء أو أسعار أو معرّفات وهمية عند انقطاع الاتصال أو فراغ الجدول.
+function renderDoctorsFallback(message = 'لا توجد عيادات معتمدة متاحة حالياً.') {
     const container = document.getElementById('doctors-container');
-    container.innerHTML = '';
-    
-    dummyDoctors.forEach(doc => {
-        container.innerHTML += `
-            <div class="doctor-card">
-                <div class="doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
-                <div class="doc-info">
-                    <h3>${doc.name}</h3>
-                    <p>استشاري</p>
-                    <div class="doc-meta">
-                        <span style="color: #f59e0b;"><i class="fa-solid fa-star"></i> ${doc.rating}</span>
-                        <span><i class="fa-solid fa-clock"></i> ${doc.exp} سنة خبرة</span>
-                    </div>
-                </div>
-                <div class="doc-price">
-                    <span>${doc.fee} ج</span>
-                    <button class="btn-book-doctor" onclick="openBookingModal('${doc.id}', '${doc.name}')">حجز</button>
-                </div>
-            </div>
-        `;
-    });
+    if (!container) return;
+    const notice = document.createElement('div');
+    notice.className = 'doctor-card';
+    notice.setAttribute('role', 'status');
+    notice.textContent = message;
+    container.replaceChildren(notice);
 }
 
 // فتح نافذة الحجز
@@ -540,7 +577,8 @@ function openBookingModal(docId, docName) {
     openModal('medical-booking-modal');
 }
 
-// حفظ الحجز في قاعدة البيانات ثم إرسال واتساب
+// تسجيل طلب حجز مبدئي في orders ثم إرساله عبر واتساب.
+// هذا المسار لا ينشئ موعداً مؤكداً في جدول appointments.
 async function submitMedicalBooking() {
     const docId = document.getElementById('booking-doc-id').value;
     const docName = document.getElementById('booking-doc-name').value;
@@ -548,52 +586,72 @@ async function submitMedicalBooking() {
     const phone = document.getElementById('booking-phone').value.trim();
     const date = document.getElementById('booking-date').value;
     const time = document.getElementById('booking-time').value;
-    
-    if(!patientName || !phone || !date) {
-        showToast('يرجى ملء جميع البيانات المطلوبة');
+    const digits = phone.replace(/\D/g, '');
+
+    if (!docId || !patientName || digits.length < 10 || digits.length > 15 || !date || !time) {
+        showToast('راجع اسم المريض ورقم الهاتف والتاريخ والوقت.');
+        return;
+    }
+    const selectedDate = new Date(date + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (Number.isNaN(selectedDate.getTime()) || selectedDate < today) {
+        showToast('اختر تاريخاً صحيحاً اليوم أو بعده.');
         return;
     }
 
     const btn = document.getElementById('booking-submit-btn');
     btn.disabled = true;
-    btn.innerText = 'جاري الحفظ...';
+    btn.innerText = 'جاري تسجيل الطلب...';
 
-    // 1. محاولة الحفظ في قاعدة البيانات (جدول orders)
-    if (supabaseClient) {
-        try {
-            // ملاحظة: نظراً لأن المستخدم لم يقم بتسجيل الدخول بعد، سنحفظ الطلب في جدول orders 
-            // وسنستخدم رقم الهاتف للتواصل.
-            const { error } = await supabaseClient.from('orders').insert([{
-                sector: 'medical',
-                details: `حجز طبي مع ${docName}\nالمريض: ${patientName}\nالتاريخ: ${date}\nالوقت: ${time}\nالهاتف: ${phone}`,
-                status: 'pending'
-            }]);
+    const bookingDetails = [
+        'طلب حجز طبي مبدئي',
+        'معرّف العيادة: ' + docId,
+        'اسم العيادة: ' + docName,
+        'المريض: ' + patientName,
+        'التاريخ: ' + date,
+        'الوقت: ' + time,
+        'الهاتف: ' + phone
+    ].join('\n');
 
-            if (error) throw error;
-            
-            showToast('تم حفظ الحجز بنجاح في النظام!');
-            
-        } catch(e) {
-            console.error("DB Error:", e);
-            showToast('حدث خطأ في حفظ الطلب في النظام، سنحولك للواتساب مباشرة.');
-        }
-    } else {
-        showToast('وضع عدم الاتصال: سنحولك للواتساب مباشرة.');
+    let savedInWasla = false;
+    try {
+        if (!supabaseClient) throw new Error('لا يوجد اتصال بقاعدة البيانات.');
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+        if (userError) throw userError;
+        const bookingOrder = {
+            sector: 'medical',
+            details: bookingDetails,
+            status: 'pending'
+        };
+        if (user?.id) bookingOrder.user_id = user.id;
+
+        const { error } = await supabaseClient.from('orders').insert([bookingOrder]);
+        if (error) throw error;
+        savedInWasla = true;
+        showToast('تم تسجيل طلب الحجز المبدئي. الموعد غير مؤكد حتى تراجعه العيادة.');
+    } catch (error) {
+        console.error('Medical booking request was not saved:', error);
+        showToast('لم يُسجّل الطلب داخل وصلة؛ سيتم فتح واتساب لإرساله للعيادة.');
     }
 
-    // 2. إرسال واتساب (في كل الأحوال)
-    const msg = `*🏥 حجز طبي جديد - وصلة*\n\n👨‍⚕️ الطبيب: ${docName}\n👤 المريض: ${patientName}\n📱 الهاتف: ${phone}\n📅 التاريخ: ${date}\n⏰ الوقت: ${time}`;
-    
+    const msg = [
+        '*🏥 طلب حجز طبي مبدئي - وصلة*',
+        'حالة التسجيل داخل وصلة: ' + (savedInWasla ? 'تم التسجيل كطلب مبدئي، ولم يتأكد الموعد.' : 'لم يتم التسجيل داخل المنصة.'),
+        'العيادة: ' + docName,
+        'معرّف العيادة: ' + docId,
+        'المريض: ' + patientName,
+        'الهاتف: ' + phone,
+        'التاريخ المطلوب: ' + date,
+        'الوقت المطلوب: ' + time
+    ].join('\n');
+
     btn.disabled = false;
     btn.innerText = 'تأكيد الحجز';
     closeModal('medical-booking-modal');
-    
-    // تصفير الحقول
     document.getElementById('booking-patient-name').value = '';
     document.getElementById('booking-phone').value = '';
     document.getElementById('booking-date').value = '';
-    
-    // فتح الواتساب
     setTimeout(() => openWhatsApp(msg), 500);
 }
 
@@ -637,43 +695,71 @@ async function submitDelivery() {
     const phone = document.getElementById('delivery-phone').value.trim();
     const pickupManualVal = document.getElementById('pickup-manual-input')?.value.trim() || '';
     const dropoffManualVal = document.getElementById('dropoff-manual-input')?.value.trim() || '';
-    
-    if(!item) return showToast('اكتب نوع الشحنة');
-    if(!phone || phone.length < 10) return showToast('رقم التليفون غلط');
-    if(!pickupCoords && !pickupManualVal) return showToast('حدد موقع الاستلام');
-    if(!dropoffCoords && !dropoffManualVal) return showToast('حدد موقع التسليم');
-    
+    const digits = phone.replace(/\D/g, '');
+
+    if (!item) return showToast('اكتب نوع الشحنة');
+    if (digits.length < 10 || digits.length > 15) return showToast('راجع رقم التليفون');
+    if (!pickupCoords && !pickupManualVal) return showToast('حدد موقع الاستلام');
+    if (!dropoffCoords && !dropoffManualVal) return showToast('حدد موقع التسليم');
+
     const btn = document.getElementById('delivery-btn');
-    btn.innerText = 'جاري الإرسال...';
     btn.disabled = true;
-    
-    // محاولة الحفظ في الداتا بيز
-    if(supabaseClient) {
-        try {
-            await supabaseClient.from('orders').insert([{
-                sector: 'delivery',
-                details: `الشحنة: ${item}\nمن: ${pickupManualVal || 'GPS'}\nإلى: ${dropoffManualVal || 'GPS'}\nالهاتف: ${phone}`,
-                status: 'pending'
-            }]);
-        } catch(e) { console.log("DB Error:", e); }
+    btn.innerText = 'جاري تسجيل الطلب...';
+
+    const pickupText = pickupCoords
+        ? 'GPS: ' + pickupCoords.lat + ', ' + pickupCoords.lng
+        : pickupManualVal;
+    const dropoffText = dropoffCoords
+        ? 'GPS: ' + dropoffCoords.lat + ', ' + dropoffCoords.lng
+        : dropoffManualVal;
+
+    let savedInWasla = false;
+    try {
+        if (!supabaseClient) throw new Error('لا يوجد اتصال بقاعدة البيانات.');
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+        if (userError) throw userError;
+
+        const deliveryOrder = {
+            sector: 'delivery',
+            details: [
+                'طلب توصيل مبدئي',
+                'الشحنة: ' + item,
+                'من: ' + pickupText,
+                'إلى: ' + dropoffText,
+                'الهاتف: ' + phone
+            ].join('\n'),
+            status: 'pending'
+        };
+        if (user?.id) deliveryOrder.user_id = user.id;
+
+        const { error } = await supabaseClient.from('orders').insert([deliveryOrder]);
+        if (error) throw error;
+        savedInWasla = true;
+        showToast('تم تسجيل طلب التوصيل المبدئي. لم يتم تعيين مندوب بعد.');
+    } catch (error) {
+        console.error('Delivery request was not saved:', error);
+        showToast('لم يُسجّل الطلب داخل وصلة؛ سيتم فتح واتساب لإرساله يدوياً.');
     }
 
-    const waMsg = 
-        `*🛵 طلب توصيل جديد - وصلة*\n\n` +
-        `📦 الشحنة: ${item}\n` +
-        `📱 التليفون: ${phone}\n\n` +
-        `📍 من: ${pickupManualVal || 'موقع GPS'}\n` +
-        `🎯 إلى: ${dropoffManualVal || 'موقع GPS'}\n` +
-        `\n⏰ ${new Date().toLocaleString('ar-EG')}`;
-    
+    const waMsg = [
+        '*🛵 طلب توصيل مبدئي - وصلة*',
+        'حالة التسجيل داخل وصلة: ' + (savedInWasla ? 'تم التسجيل كطلب مبدئي، ولم يتم تعيين مندوب.' : 'لم يتم التسجيل داخل المنصة.'),
+        'الشحنة: ' + item,
+        'الهاتف: ' + phone,
+        'موقع الاستلام: ' + pickupText,
+        'موقع التسليم: ' + dropoffText
+    ].join('\n');
+
     document.getElementById('delivery-item').value = '';
     document.getElementById('delivery-phone').value = '';
-    pickupCoords = null; dropoffCoords = null;
-    resetLocationBtn('pickup'); resetLocationBtn('dropoff');
-    btn.innerText = 'اطلب التوصيل الآن'; btn.disabled = false;
-    
-    showToast('جاري فتح واتساب...');
-    setTimeout(() => openWhatsApp(waMsg), 500);
+    pickupCoords = null;
+    dropoffCoords = null;
+    resetLocationBtn('pickup');
+    resetLocationBtn('dropoff');
+    btn.disabled = false;
+    btn.innerText = 'اطلب التوصيل الآن';
+
+    setTimeout(() => openWhatsApp(waMsg), 400);
 }
 
 function resetLocationBtn(type) {
@@ -735,6 +821,10 @@ function submitComplaint() {
     document.getElementById('complaint-text').value = '';
     closeModal('complaint-modal');
 }
+
+// Populate the ticker from active founder announcements when available.
+loadWaslaAnnouncements();
+
 </script>
 </body>
 </html>

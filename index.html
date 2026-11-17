@@ -211,7 +211,7 @@ a { text-decoration: none; color: inherit; }
 .ind-card.cars .btn-ind-action { background: var(--cars); }
 
 /* ==========================================================================
-   10. PROFILE, AI, MODALS & OVERLAYS
+   10. PROFILE, GUIDE, MODALS & OVERLAYS
    ========================================================================== */
 .auth-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); outline: none; }
 .btn-auth { width: 100%; padding: 15px; border-radius: 12px; background: var(--brand); color: white; font-weight: 800; font-size: 16px; margin-bottom: 10px; cursor: pointer; }
@@ -241,6 +241,20 @@ a { text-decoration: none; color: inherit; }
 
 .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--dark); color: white; padding: 14px 28px; border-radius: 30px; font-weight: 700; opacity: 0; visibility: hidden; transition: 0.4s; z-index: 3000; text-align: center; width: 85%; max-width: 400px;}
 .toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+
+/* Dynamic WASLA announcement ticker */
+.wasla-ticker{display:flex;align-items:center;gap:10px;overflow:hidden;padding:10px 14px;background:var(--brand-light);border-bottom:1px solid var(--border);min-height:46px}
+.wasla-ticker-label{flex:0 0 auto;background:var(--brand);color:#fff;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:900}
+.wasla-ticker-window{min-width:0;overflow:hidden;flex:1}
+.wasla-ticker-track{display:flex;width:max-content;align-items:center;gap:44px;animation:waslaTickerMove 32s linear infinite}
+.wasla-ticker-group{display:flex;align-items:center;gap:44px;white-space:nowrap}
+.wasla-ticker-item{display:inline-flex;align-items:center;gap:8px;color:var(--text);font-size:13px;font-weight:800}
+.wasla-ticker-badge{background:var(--card);color:var(--brand);border:1px solid var(--brand);border-radius:20px;padding:2px 8px;font-size:10px}
+.wasla-ticker-item a{color:inherit;text-decoration:none}
+.wasla-ticker:hover .wasla-ticker-track{animation-play-state:paused}
+@keyframes waslaTickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.wasla-ticker-track{animation:none}.wasla-ticker-window{overflow-x:auto}}
+
 </style>
 </head>
 <body>
@@ -252,10 +266,30 @@ a { text-decoration: none; color: inherit; }
         <div class="brand-text"><h1>وصلة</h1><span>WASLA</span></div>
     </div>
     <div style="display:flex; gap:10px;">
+        <button class="icon-btn" id="notification-bell" style="position:relative;" onclick="Router.navigate('profile'); DB.loadNotifications()" aria-label="الإشعارات">
+            <i class="fa-regular fa-bell"></i>
+            <span id="notification-count" aria-live="polite" style="display:none;position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;border-radius:12px;background:#ef4444;color:#fff;font-size:10px;font-weight:900;line-height:18px;text-align:center;border:2px solid var(--card);"></span>
+        </button>
         <button class="icon-btn" onclick="UI.toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
         <button class="icon-btn" onclick="Router.navigate('profile')"><i class="fa-solid fa-user"></i></button>
     </div>
 </header>
+
+<div class="wasla-ticker" role="region" aria-label="إعلانات وعروض وصلة">
+  <span class="wasla-ticker-label">وصلة | عروض</span>
+  <div class="wasla-ticker-window">
+    <div class="wasla-ticker-track" id="wasla-ticker-track">
+      <div class="wasla-ticker-group">
+        <span class="wasla-ticker-item">وصلة شغالة في شبين القناطر — خدماتك أقرب</span>
+        <span class="wasla-ticker-item">تابع طلباتك وحجوزاتك من حسابك</span>
+      </div>
+      <div class="wasla-ticker-group" aria-hidden="true">
+        <span class="wasla-ticker-item">وصلة شغالة في شبين القناطر — خدماتك أقرب</span>
+        <span class="wasla-ticker-item">تابع طلباتك وحجوزاتك من حسابك</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ==================== VIEW: HOME ==================== -->
 <main id="view-home" class="app-view active">
@@ -265,7 +299,7 @@ a { text-decoration: none; color: inherit; }
     </div>
     <div class="hero">
         <h1>كل احتياجاتك،<br>أقرب مع وصلة.</h1>
-        <p>منصة متكاملة.. مدعومة بالذكاء الاصطناعي.</p>
+        <p>خدمات متعددة في مكان واحد، مع متابعة الطلبات من حسابك.</p>
     </div>
     <div class="section-title">اكتشف الأقسام</div>
     <div class="categories-grid">
@@ -282,42 +316,17 @@ a { text-decoration: none; color: inherit; }
 <div id="view-education" class="app-view">
     <div class="inner-header"><div class="back-btn" onclick="Router.navigate('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>التعليم</h2></div>
     <div class="edu-header">
-        <h1>منصة التعليم</h1>
-        <p>أفضل المعلمين والدورات</p>
+        <h1>التعليم والتدريب</h1>
+        <p>طلبات مدرسين ودورات تعليمية بعد مراجعة مقدمي الخدمة واعتمادهم</p>
     </div>
-    <div class="edu-filter">
-        <div class="edu-pill active">الكل</div>
-        <div class="edu-pill">الثانوية العامة</div>
-        <div class="edu-pill">الإعدادية</div>
-    </div>
-    <div style="padding: 0 20px; margin-bottom: 16px; font-size: 18px; font-weight: bold; color: #0f172a;">المعلمين المميزين</div>
-    <div class="teacher-grid">
-        <div class="teacher-card">
-            <div class="teacher-img-wrapper"><img src="https://ui-avatars.com/api/?name=أحمد+محمد&background=84cc16&color=fff&size=100" alt="T"></div>
-            <div class="teacher-info">
-                <h4>أ. أحمد محمد</h4>
-                <p>الفيزياء</p>
-                <div class="teacher-socials"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
-            </div>
-        </div>
-        <div class="teacher-card">
-            <div class="teacher-img-wrapper"><img src="https://ui-avatars.com/api/?name=سارة+علي&background=84cc16&color=fff&size=100" alt="T"></div>
-            <div class="teacher-info">
-                <h4>أ. سارة علي</h4>
-                <p>الكيمياء</p>
-                <div class="teacher-socials"><a href="#"><i class="fa-brands fa-whatsapp"></i></a><a href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
-            </div>
+    <div class="teacher-card" role="status" aria-live="polite" style="margin:20px;">
+        <div class="teacher-info">
+            <h4>نعمل على إضافة المعلمين والدورات المعتمدة</h4>
+            <p>ستظهر بيانات المعلم والتخصص والمواعيد والتكلفة بعد التحقق من مقدم الخدمة.</p>
         </div>
     </div>
-    <div style="padding: 0 20px; margin-bottom: 16px; font-size: 18px; font-weight: bold; color: #0f172a;">أحدث الدورات</div>
-    <div class="course-card">
-        <div class="course-tag">الثانوية العامة</div>
-        <div class="course-title">مراجعة ليلة الامتحان - فيزياء</div>
-        <div class="course-teacher"><i class="fa-solid fa-user-tie"></i> مع أ. أحمد محمد - 3 محاضرات مكثفة</div>
-        <div class="course-footer">
-            <div class="course-price"><span>400 ج</span> 350 ج</div>
-            <button class="btn-enroll ripple-btn" onclick="Actions.request('تعليمي', 'حجز دورة فيزياء', this)">سجل الآن</button>
-        </div>
+    <div style="padding:0 20px 24px;">
+        <button class="btn-enroll ripple-btn" style="width:100%;" onclick="Actions.request('تعليمي', 'طلب مدرس أو دورة تعليمية')">أرسل طلب مدرس أو دورة</button>
     </div>
 </div>
 
@@ -333,18 +342,13 @@ a { text-decoration: none; color: inherit; }
             <div class="specialty-card"><i class="fa-solid fa-eye"></i><span>عيون</span></div>
         </div>
     </div>
-    <div class="doctor-card">
+    <div class="doctor-card" role="status" aria-live="polite">
         <div class="doc-top">
             <div class="doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
             <div class="doc-details">
-                <h3>د. محمد عبد الله</h3>
-                <p>استشاري باطنة - شبين القناطر</p>
-                <div class="doc-rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i> (4.5)</div>
+                <h3>نعمل على إضافة الأطباء المعتمدين</h3>
+                <p>سيظهر هنا الأطباء ومواعيدهم وأسعار الكشف بعد مراجعة بياناتهم واعتمادها.</p>
             </div>
-        </div>
-        <div class="doc-bottom">
-            <div class="doc-fee">200 ج <span>/ كشف</span></div>
-            <button class="btn-book ripple-btn" onclick="Actions.request('طبي', 'حجز د. محمد عبد الله', this)">حجز</button>
         </div>
     </div>
 </div>
@@ -362,6 +366,9 @@ a { text-decoration: none; color: inherit; }
             <div class="cart-badge-header" id="header-cart-count">0</div>
         </div>
     </div>
+    <div style="margin:12px 20px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--muted);font-size:12px;line-height:1.8;">
+        قائمة الأصناف هنا توضيحية في مرحلة التجهيز. التوفر والسعر ورسوم التوصيل يؤكدها المتجر الشريك قبل اعتماد الطلب.
+    </div>
     <div class="market-categories">
         <div class="market-cat active">الكل</div>
         <div class="market-cat">خضروات</div>
@@ -377,28 +384,31 @@ a { text-decoration: none; color: inherit; }
 <!-- ==================== VIEW: DELIVERY ==================== -->
 <div id="view-delivery" class="app-view">
     <div class="inner-header"><div class="back-btn" onclick="Router.navigate('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>توصيل</h2></div>
-    <div class="del-map">
-        <div class="map-pattern"></div>
-        <div class="map-pin pin-pickup"><i class="fa-solid fa-location-dot"></i></div>
-        <div class="map-pin pin-dropoff"><i class="fa-solid fa-flag-checkered"></i></div>
+    <div class="del-map" role="note" style="height:auto;min-height:120px;padding:24px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--card);color:var(--text);border-bottom:1px solid var(--border);">
+        <i class="fa-solid fa-map-location-dot" style="font-size:32px;color:var(--del);margin-bottom:10px;"></i>
+        <strong>ربط الخريطة وتحديد الموقع المباشر قيد التجهيز</strong>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">أدخل موقعي الاستلام والتسليم، وسيتم تأكيدهما معك قبل تنفيذ الطلب.</p>
     </div>
     <div class="del-form">
         <div class="del-input-group">
             <div class="del-icon icon-pickup"><i class="fa-solid fa-store"></i></div>
-            <input type="text" placeholder="موقع الاستلام (من فين؟)">
+            <input type="text" id="delivery-pickup" placeholder="موقع الاستلام (من فين؟)">
         </div>
         <div class="del-input-group">
             <div class="del-icon icon-dropoff"><i class="fa-solid fa-house"></i></div>
-            <input type="text" placeholder="موقع التسليم (لحد فين؟)">
+            <input type="text" id="delivery-dropoff" placeholder="موقع التسليم (لحد فين؟)">
         </div>
-        <button class="btn-del-submit ripple-btn" onclick="Actions.request('توصيل', 'طلب توصيل جديد', this)">تأكيد الطلب</button>
+        <button class="btn-del-submit ripple-btn" type="button" onclick="Actions.submitDelivery()">تسجيل طلب التوصيل</button>
     </div>
 </div>
 
 <!-- ==================== VIEW: MAINTENANCE & CARS ==================== -->
 <div id="view-maintenance" class="app-view">
     <div class="inner-header"><div class="back-btn" onclick="Router.navigate('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>الصيانة</h2></div>
-    <div class="ind-header"><h2 style="color: var(--maint); font-size: 20px;">فنيين موثوقين</h2></div>
+    <div class="ind-header">
+        <h2 style="color: var(--maint); font-size: 20px;">اطلب فني صيانة</h2>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">الطلب مبدئي، وسيتم تأكيد توفر الفني والتكلفة قبل التنفيذ.</p>
+    </div>
     <div class="ind-grid">
         <div class="ind-card">
             <div class="ind-icon-box"><i class="fa-solid fa-faucet-drip"></i></div>
@@ -421,7 +431,10 @@ a { text-decoration: none; color: inherit; }
 
 <div id="view-cars" class="app-view">
     <div class="inner-header"><div class="back-btn" onclick="Router.navigate('home')"><i class="fa-solid fa-arrow-right"></i></div><h2>السيارات</h2></div>
-    <div class="ind-header"><h2 style="color: var(--cars); font-size: 20px;">خدمات السيارات</h2></div>
+    <div class="ind-header">
+        <h2 style="color: var(--cars); font-size: 20px;">خدمات السيارات</h2>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">يتم تأكيد مقدم الخدمة والسعر والموعد بعد مراجعة الطلب.</p>
+    </div>
     <div class="ind-grid">
         <div class="ind-card cars">
             <div class="ind-icon-box"><i class="fa-solid fa-car-side"></i></div>
@@ -450,17 +463,19 @@ a { text-decoration: none; color: inherit; }
             <h3 id="profile-email">user@wasla.com</h3>
             <button class="btn-auth ripple-btn" style="background:#ef4444; margin-top:20px;" onclick="Auth.logout(this)">تسجيل الخروج</button>
         </div>
+        <div class="section-title">إشعاراتي</div>
+        <div id="notifications-list" style="padding:0 20px 12px;"></div>
         <div class="section-title">طلباتي السابقة</div>
         <div id="orders-list" style="padding:0 20px; padding-bottom: 20px;"></div>
     </div>
 </div>
 
 <!-- ==================== OVERLAYS ==================== -->
-<div class="ai-float" onclick="UI.toggleAI()"><i class="fa-solid fa-robot"></i></div>
+<div class="ai-float" role="button" aria-label="فتح مساعد وصلة التجريبي" tabindex="0" onclick="UI.toggleAssistant()"><i class="fa-solid fa-comments"></i></div>
 <div class="ai-chat" id="ai-chat">
-    <div class="ai-header"><div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-robot"></i><div><h4 style="font-size:14px; margin:0;">Wasla AI</h4><span style="font-size:10px; opacity:0.8;">مساعدك الذكي</span></div></div><button onclick="UI.toggleAI()" style="color:white;"><i class="fa-solid fa-xmark"></i></button></div>
-    <div class="ai-messages" id="ai-messages"><div class="msg bot">أهلاً بك! أنا Wasla AI. كيف أقدر أساعدك اليوم؟</div></div>
-    <div class="ai-input-area"><input type="text" id="ai-input" class="ai-input" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter') AI.send()"><button class="ai-send" onclick="AI.send()"><i class="fa-solid fa-paper-plane"></i></button></div>
+    <div class="ai-header"><div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-robot"></i><div><h4 style="font-size:14px; margin:0;">مساعد وصلة</h4><span style="font-size:10px; opacity:0.8;">نسخة تجريبية تعتمد على كلمات مفتاحية محددة، وليست ذكاءً اصطناعياً أو استشارة طبية</span></div></div><button onclick="UI.toggleAssistant()" style="color:white;"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="ai-messages" id="ai-messages"><div class="msg bot">هذا مساعد إرشادي تجريبي يعتمد على كلمات مفتاحية محددة لتوجيهك إلى أقسام المنصة. لا يقدم تشخيصاً أو استشارة طبية.</div></div>
+    <div class="ai-input-area"><input type="text" id="ai-input" class="ai-input" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter') HelpAssistant.send()"><button class="ai-send" onclick="HelpAssistant.send()"><i class="fa-solid fa-paper-plane"></i></button></div>
 </div>
 
 <div class="sheet-overlay" id="sheet-overlay" onclick="UI.closeSheet()"></div>
@@ -468,13 +483,13 @@ a { text-decoration: none; color: inherit; }
     <div class="sheet-handle"></div>
     <h3 style="text-align:center; margin-bottom:20px;" id="sheet-title">تأكيد الطلب</h3>
     <input type="tel" id="sheet-phone" class="auth-input" placeholder="رقم تليفونك للتأكيد">
-    <button class="btn-auth" onclick="Actions.confirmSheet()">إرسال عبر الواتساب</button>
+    <button class="btn-auth" id="sheet-submit-btn" onclick="Actions.confirmSheet()">تسجيل الطلب والمتابعة</button>
 </div>
 
 <nav class="bottom-nav">
     <div class="nav-item active" onclick="Router.navigate('home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></div>
     <div class="nav-item" onclick="Router.navigate('profile')"><i class="fa-solid fa-box"></i><span>طلباتي</span></div>
-    <div class="nav-item" onclick="UI.toggleAI()"><i class="fa-solid fa-robot"></i><span>المساعد</span></div>
+    <div class="nav-item" onclick="UI.toggleAssistant()"><i class="fa-solid fa-robot"></i><span>مساعد تجريبي</span></div>
     <div class="nav-item" onclick="Router.navigate('profile')"><i class="fa-solid fa-user"></i><span>حسابي</span></div>
 </nav>
 <div id="toast" class="toast"></div>
@@ -492,6 +507,51 @@ try {
     }
 } catch (e) { console.warn("Supabase Init Error:", e); }
 
+async function loadWaslaTicker() {
+    const track = document.getElementById('wasla-ticker-track');
+    if (!track || !supabaseClient) return;
+    const now = new Date().toISOString();
+    const { data, error } = await supabaseClient
+        .from('offers_ticker')
+        .select('id,text_ar,badge_text,target_url,sort_order,starts_at,ends_at')
+        .eq('is_active', true)
+        .lte('starts_at', now)
+        .or('ends_at.is.null,ends_at.gt.' + now)
+        .order('sort_order', { ascending: true })
+        .limit(12);
+    if (error || !Array.isArray(data) || data.length === 0) return;
+
+    const makeGroup = () => {
+        const group = document.createElement('div');
+        group.className = 'wasla-ticker-group';
+        data.forEach(item => {
+            const entry = document.createElement('span');
+            entry.className = 'wasla-ticker-item';
+            const badge = document.createElement('span');
+            badge.className = 'wasla-ticker-badge';
+            badge.textContent = item.badge_text || 'وصلة';
+            const message = document.createElement(item.target_url ? 'a' : 'span');
+            message.textContent = item.text_ar || '';
+            if (item.target_url) {
+                try {
+                    const url = new URL(item.target_url, window.location.origin);
+                    if (url.protocol === 'https:' || url.protocol === 'http:') {
+                        message.href = url.href;
+                        message.target = '_blank';
+                        message.rel = 'noopener noreferrer';
+                    }
+                } catch (_) {}
+            }
+            entry.append(badge, message);
+            group.appendChild(entry);
+        });
+        return group;
+    };
+
+    track.replaceChildren();
+    track.append(makeGroup(), makeGroup());
+}
+
 // ==================== 2. UI MODULE ====================
 const UI = {
     toast: function(msg) {
@@ -505,7 +565,7 @@ const UI = {
         localStorage.setItem('wasla_theme', next);
         document.getElementById('theme-icon').className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
     },
-    toggleAI: function() {
+    toggleAssistant: function() {
         document.getElementById('ai-chat').classList.toggle('open');
     },
     closeSheet: function() {
@@ -557,96 +617,305 @@ const Router = {
 const Auth = {
     user: null,
     checkSession: async function() {
-        if(!supabaseClient) return;
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if(session) {
+        if (!supabaseClient) {
+            this.user = null;
+            updateNotificationBadge(0);
+            return;
+        }
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) throw error;
+        const session = data?.session || null;
+
+        if (session) {
             this.user = session.user;
+            const displayName = this.user.email || this.user.phone || 'حسابك';
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('profile-section').style.display = 'block';
-            document.getElementById('profile-email').innerText = this.user.email;
-            document.getElementById('home-username').innerText = `أهلاً بك، ${this.user.email.split('@')[0]} 👋`;
-            DB.loadOrders();
+            document.getElementById('profile-email').textContent = displayName;
+            document.getElementById('home-username').textContent = `أهلاً بك، ${displayName.split('@')[0]} 👋`;
+            await Promise.all([DB.loadOrders(), DB.loadNotifications()]);
         } else {
             this.user = null;
+            updateNotificationBadge(0);
             document.getElementById('auth-section').style.display = 'block';
             document.getElementById('profile-section').style.display = 'none';
-            document.getElementById('home-username').innerText = `أهلاً بك في وصلة 👋`;
+            document.getElementById('home-username').textContent = 'أهلاً بك في وصلة 👋';
         }
     },
     register: async function(btn) {
-        const email = document.getElementById('auth-email').value;
+        if (!supabaseClient) return UI.toast('خدمة تسجيل الدخول غير متاحة حالياً.');
+        const email = document.getElementById('auth-email').value.trim();
         const password = document.getElementById('auth-pass').value;
-        if(!email || !password) return UI.toast('أدخل البريد وكلمة المرور');
-        btn.innerText = 'جاري الإنشاء...';
-        const { error } = await supabaseClient.auth.signUp({ email, password });
-        btn.innerText = 'إنشاء حساب جديد';
-        if(error) return UI.toast(error.message);
-        UI.toast('تم إنشاء الحساب! يرجى تسجيل الدخول.');
+        if (!email || !password) return UI.toast('أدخل البريد الإلكتروني وكلمة المرور.');
+        btn.disabled = true;
+        btn.textContent = 'جاري إنشاء الحساب...';
+        try {
+            const { error } = await supabaseClient.auth.signUp({ email, password });
+            if (error) throw error;
+            UI.toast('تم إنشاء الحساب. تحقق من بريدك إن طُلب ذلك، ثم سجّل الدخول.');
+        } catch (error) {
+            console.error('WASLA registration failed:', error);
+            UI.toast('تعذر إنشاء الحساب: ' + (error.message || 'خطأ غير معروف'));
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'إنشاء حساب جديد';
+        }
     },
     login: async function(btn) {
-        const email = document.getElementById('auth-email').value;
+        if (!supabaseClient) return UI.toast('خدمة تسجيل الدخول غير متاحة حالياً.');
+        const email = document.getElementById('auth-email').value.trim();
         const password = document.getElementById('auth-pass').value;
-        if(!email || !password) return UI.toast('أدخل البريد وكلمة المرور');
-        btn.innerText = 'جاري الدخول...';
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        btn.innerText = 'دخول';
-        if(error) return UI.toast(error.message);
-        UI.toast('تم تسجيل الدخول بنجاح');
-        this.checkSession();
+        if (!email || !password) return UI.toast('أدخل البريد الإلكتروني وكلمة المرور.');
+        btn.disabled = true;
+        btn.textContent = 'جاري تسجيل الدخول...';
+        try {
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+            UI.toast('تم تسجيل الدخول بنجاح.');
+            await this.checkSession();
+        } catch (error) {
+            console.error('WASLA login failed:', error);
+            UI.toast('تعذر تسجيل الدخول: ' + (error.message || 'خطأ غير معروف'));
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'دخول';
+        }
     },
     logout: async function(btn) {
-        if(!supabaseClient) return;
-        btn.innerText = 'جاري الخروج...';
-        await supabaseClient.auth.signOut();
-        btn.innerText = 'تسجيل الخروج';
-        this.checkSession();
-        Router.navigate('home');
+        if (!supabaseClient) return UI.toast('خدمة تسجيل الدخول غير متاحة حالياً.');
+        btn.disabled = true;
+        btn.textContent = 'جاري تسجيل الخروج...';
+        try {
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) throw error;
+            await this.checkSession();
+            Router.navigate('home');
+        } catch (error) {
+            console.error('WASLA logout failed:', error);
+            UI.toast('تعذر تسجيل الخروج: ' + (error.message || 'خطأ غير معروف'));
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'تسجيل الخروج';
+        }
     }
 };
 
 // ==================== 5. DATABASE MODULE ====================
+function updateNotificationBadge(count) {
+    const badge = document.getElementById('notification-count');
+    const bell = document.getElementById('notification-bell');
+    if (!badge) return;
+    const safeCount = Number.isFinite(Number(count)) ? Math.max(0, Number(count)) : 0;
+    badge.textContent = safeCount > 99 ? '99+' : String(safeCount);
+    badge.style.display = safeCount > 0 ? 'inline-block' : 'none';
+    if (bell) bell.setAttribute('aria-label', safeCount > 0
+        ? 'الإشعارات، ' + safeCount + ' غير مقروء'
+        : 'الإشعارات');
+}
+
 const DB = {
     saveOrder: async function(payload) {
-        if(!supabaseClient) return UI.toast('السيرفر غير متاح');
-        const { error } = await supabaseClient.from('orders').insert([{
-            user_id: Auth.user.id,
-            sector: payload.sectorName,
-            details: payload.details,
-            status: 'قيد المراجعة'
-        }]);
-        
-        if(error) { UI.toast('حدث خطأ في حفظ الطلب'); console.log(error); }
-        else { UI.toast('تم تسجيل طلبك بنجاح!'); }
-
-        const msg = `*طلب جديد - وصلة*\n\n👤 العميل: ${Auth.user.email}\n📞 التليفون: ${payload.phone}\n🛠️ الخدمة: ${payload.sectorName}\n📝 التفاصيل: ${payload.details}`;
-        window.open(`https://wa.me/${WASLA_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
-        
-        UI.closeSheet();
-        this.loadOrders();
-        Router.navigate('profile');
-    },
-    loadOrders: async function() {
-        if(!supabaseClient || !Auth.user) return;
-        const list = document.getElementById('orders-list');
-        list.innerHTML = '<div style="text-align:center; padding:20px;">جاري التحميل...</div>';
-        
-        const { data, error } = await supabaseClient.from('orders').select('*').eq('user_id', Auth.user.id).order('created_at', { ascending: false });
-        
-        if(error || data.length === 0) {
-            list.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">لا توجد طلبات سابقة</div>';
+        if (!supabaseClient || !Auth.user?.id) {
+            UI.toast('تعذر الاتصال الآمن. سجّل الدخول وحاول مرة أخرى.');
             return;
         }
-        
-        list.innerHTML = data.map(o => `
-            <div style="background:var(--card); padding:15px; border-radius:12px; margin-bottom:10px; border-right:4px solid var(--brand); animation: slideUpFade 0.3s ease;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <strong>${o.sector}</strong>
-                    <span style="font-size:11px; background:var(--brand-light); color:var(--brand); padding:2px 8px; border-radius:10px;">${o.status}</span>
-                </div>
-                <p style="font-size:13px; color:var(--muted);">${o.details}</p>
-                <p style="font-size:11px; color:var(--muted); margin-top:8px;">${new Date(o.created_at).toLocaleString('ar-EG')}</p>
-            </div>
-        `).join('');
+
+        const submitBtn = document.getElementById('sheet-submit-btn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'جاري تسجيل الطلب...';
+        }
+
+        // Open from the user's click before awaiting the database to avoid popup blockers.
+        let whatsappWindow = null;
+        try {
+            whatsappWindow = window.open('about:blank', '_blank');
+            const { error } = await supabaseClient.from('orders').insert([{
+                user_id: Auth.user.id,
+                sector: payload.sectorName,
+                details: payload.details,
+                status: 'قيد المراجعة'
+            }]);
+            if (error) throw error;
+
+            UI.toast('تم تسجيل الطلب داخل وصلة.');
+            UI.closeSheet();
+            await this.loadOrders();
+            await this.loadNotifications();
+            Router.navigate('profile');
+
+            const msg = `*طلب جديد - وصلة*\n\n👤 العميل: ${Auth.user.email}\n📞 التليفون: ${payload.phone}\n🛠️ الخدمة: ${payload.sectorName}\n📝 التفاصيل: ${payload.details}`;
+            const whatsappUrl = `https://wa.me/${WASLA_PHONE}?text=${encodeURIComponent(msg)}`;
+            if (whatsappWindow && !whatsappWindow.closed) {
+                whatsappWindow.location.href = whatsappUrl;
+            } else {
+                window.location.href = whatsappUrl;
+            }
+        } catch (error) {
+            if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.close();
+            console.error('WASLA order save failed:', error);
+            UI.toast('لم يُسجّل الطلب. لم نرسله كطلب مؤكد؛ تحقق من الاتصال وحاول مرة أخرى.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'تسجيل الطلب والمتابعة';
+            }
+        }
+    },
+    loadOrders: async function() {
+        if (!supabaseClient || !Auth.user) return;
+        const list = document.getElementById('orders-list');
+        if (!list) return;
+        list.textContent = 'جاري تحميل الطلبات...';
+
+        const { data, error } = await supabaseClient
+            .from('orders')
+            .select('id, sector, status, tracking_code, details, created_at')
+            .eq('user_id', Auth.user.id)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('WASLA orders load failed:', error);
+            list.textContent = 'تعذر تحميل طلباتك حالياً.';
+            return;
+        }
+        list.replaceChildren();
+        if (!Array.isArray(data) || data.length === 0) {
+            list.textContent = 'لا توجد طلبات سابقة.';
+            return;
+        }
+
+        data.forEach(order => {
+            const card = document.createElement('div');
+            card.style.cssText = 'background:var(--card); padding:15px; border-radius:12px; margin-bottom:10px; border-right:4px solid var(--brand); animation: slideUpFade 0.3s ease;';
+
+            const header = document.createElement('div');
+            header.style.cssText = 'display:flex; justify-content:space-between; gap:8px; margin-bottom:5px;';
+            const sector = document.createElement('strong');
+            sector.textContent = order.sector || 'طلب خدمة';
+            const status = document.createElement('span');
+            status.style.cssText = 'font-size:11px; background:var(--brand-light); color:var(--brand); padding:2px 8px; border-radius:10px;';
+            status.textContent = order.status || 'قيد المراجعة';
+            header.append(sector, status);
+            card.appendChild(header);
+
+            if (order.tracking_code) {
+                const tracking = document.createElement('p');
+                tracking.style.cssText = 'font-size:12px; font-weight:800; color:var(--brand); margin:5px 0;';
+                tracking.textContent = 'رقم التتبع: ' + order.tracking_code;
+                card.appendChild(tracking);
+            }
+
+            const details = document.createElement('p');
+            details.style.cssText = 'font-size:13px; color:var(--muted); white-space:pre-wrap;';
+            details.textContent = order.details || 'لا توجد تفاصيل.';
+            const date = document.createElement('p');
+            date.style.cssText = 'font-size:11px; color:var(--muted); margin-top:8px;';
+            const createdAt = order.created_at ? new Date(order.created_at) : null;
+            date.textContent = createdAt && !Number.isNaN(createdAt.getTime())
+                ? createdAt.toLocaleString('ar-EG')
+                : '';
+            card.append(details, date);
+            list.appendChild(card);
+        });
+    },
+    loadNotifications: async function() {
+        const list = document.getElementById('notifications-list');
+        if (!list) return;
+        if (!supabaseClient || !Auth.user) {
+            list.textContent = 'سجّل الدخول لعرض إشعاراتك المرتبطة بحسابك.';
+            updateNotificationBadge(0);
+            return;
+        }
+
+        list.textContent = 'جاري تحميل الإشعارات...';
+        try {
+            const [notificationsResult, unreadResult] = await Promise.all([
+                supabaseClient
+                    .from('wasla_notifications')
+                    .select('id, title, body, type, created_at, read_at')
+                    .eq('user_id', Auth.user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(20),
+                supabaseClient
+                    .from('wasla_notifications')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('user_id', Auth.user.id)
+                    .is('read_at', null)
+            ]);
+
+            const { data, error } = notificationsResult;
+            if (error) throw error;
+
+            let unreadCount = unreadResult.error
+                ? (data || []).filter(item => !item.read_at).length
+                : Number(unreadResult.count || 0);
+            updateNotificationBadge(unreadCount);
+
+            list.replaceChildren();
+            if (!Array.isArray(data) || data.length === 0) {
+                list.textContent = 'لا توجد إشعارات حتى الآن.';
+                return;
+            }
+
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background:var(--card); padding:12px; border-radius:12px; margin-bottom:8px; border-right:4px solid ' + (item.read_at ? 'var(--border)' : 'var(--brand)') + ';';
+
+                const title = document.createElement('strong');
+                title.textContent = item.title || 'إشعار من وصلة';
+                const body = document.createElement('p');
+                body.style.cssText = 'font-size:13px; color:var(--muted); margin-top:4px; white-space:pre-wrap;';
+                body.textContent = item.body || '';
+                const date = document.createElement('small');
+                date.style.color = 'var(--muted)';
+                const createdAt = item.created_at ? new Date(item.created_at) : null;
+                date.textContent = createdAt && !Number.isNaN(createdAt.getTime())
+                    ? createdAt.toLocaleString('ar-EG')
+                    : '';
+                card.append(title, body, date);
+
+                if (!item.read_at) {
+                    let markReadBusy = false;
+                    card.style.cursor = 'pointer';
+                    card.title = 'اضغط لتحديد الإشعار كمقروء';
+                    card.addEventListener('click', async () => {
+                        if (markReadBusy || item.read_at) return;
+                        markReadBusy = true;
+                        card.style.pointerEvents = 'none';
+                        card.style.opacity = '0.65';
+                        const readAt = new Date().toISOString();
+                        const { error: updateError } = await supabaseClient
+                            .from('wasla_notifications')
+                            .update({ read_at: readAt })
+                            .eq('id', item.id)
+                            .eq('user_id', Auth.user.id)
+                            .is('read_at', null);
+
+                        if (updateError) {
+                            markReadBusy = false;
+                            card.style.pointerEvents = 'auto';
+                            card.style.opacity = '1';
+                            console.error('WASLA notification read update failed:', updateError);
+                            UI.toast('تعذر تحديث الإشعار. حاول مرة أخرى.');
+                            return;
+                        }
+                        item.read_at = readAt;
+                        card.style.borderRightColor = 'var(--border)';
+                        card.style.cursor = 'default';
+                        card.style.opacity = '1';
+                        card.title = 'تمت قراءة الإشعار';
+                        unreadCount = Math.max(0, unreadCount - 1);
+                        updateNotificationBadge(unreadCount);
+                    });
+                }
+                list.appendChild(card);
+            });
+        } catch (error) {
+            list.textContent = 'تعذر تحميل الإشعارات حالياً. تحقق من اتصالك ثم حاول مرة أخرى.';
+            updateNotificationBadge(0);
+            console.error('WASLA notifications load failed:', error);
+        }
     }
 };
 
@@ -655,15 +924,25 @@ const Actions = {
     currentReq: null,
     cart: [],
     
-    // Market Data
+    // Illustrative product requests only; live inventory and prices must come from partner stores.
     products: [
-        { id: 1, name: 'طماطم (كيلو)', price: 15, icon: 'fa-apple-whole', color: '#ef4444' },
-        { id: 2, name: 'موز (كيلو)', price: 25, icon: 'fa-lemon', color: '#facc15' },
-        { id: 3, name: 'لبن (لتر)', price: 35, icon: 'fa-bottle-water', color: '#3b82f6' },
-        { id: 4, name: 'خبز فينو', price: 10, icon: 'fa-bread-slice', color: '#d97706' },
-        { id: 5, name: 'بيض (طبق)', price: 60, icon: 'fa-egg', color: '#fde047' },
-        { id: 6, name: 'جبنة بيضاء', price: 45, icon: 'fa-cheese', color: '#fef08a' }
+        { id: 1, name: 'طماطم (كيلو)', icon: 'fa-apple-whole', color: '#ef4444' },
+        { id: 2, name: 'موز (كيلو)', icon: 'fa-lemon', color: '#facc15' },
+        { id: 3, name: 'لبن (لتر)', icon: 'fa-bottle-water', color: '#3b82f6' },
+        { id: 4, name: 'خبز فينو', icon: 'fa-bread-slice', color: '#d97706' },
+        { id: 5, name: 'بيض (طبق)', icon: 'fa-egg', color: '#fde047' },
+        { id: 6, name: 'جبنة بيضاء', icon: 'fa-cheese', color: '#fef08a' }
     ],
+
+    submitDelivery: function() {
+        const pickup = document.getElementById('delivery-pickup')?.value.trim() || '';
+        const dropoff = document.getElementById('delivery-dropoff')?.value.trim() || '';
+        if (!pickup || !dropoff) {
+            UI.toast('أدخل موقعي الاستلام والتسليم أولاً');
+            return;
+        }
+        this.request('توصيل', 'موقع الاستلام: ' + pickup + '\nموقع التسليم: ' + dropoff);
+    },
 
     request: function(sector, details) {
         if(!Auth.user) { UI.toast('يرجى تسجيل الدخول أولاً'); return Router.navigate('profile'); }
@@ -690,7 +969,7 @@ const Actions = {
             <div class="product-card">
                 <div class="product-img"><i class="fa-solid ${p.icon}" style="color:${p.color};"></i></div>
                 <div class="product-title">${p.name}</div>
-                <div class="product-price">${p.price} ج</div>
+                <div class="product-price">السعر يؤكده المتجر</div>
                 ${qty === 0 ? 
                     `<button class="btn-add ripple-btn" onclick="Actions.addToCart(${p.id})"><i class="fa-solid fa-plus"></i> إضافة</button>` :
                     `<div class="qty-controls">
@@ -730,14 +1009,13 @@ const Actions = {
 
     openCart: function() {
         if(this.cart.length === 0) return UI.toast('السلة فارغة');
-        let total = 0;
-        let details = this.cart.map(i => { total += (i.price * i.qty); return `${i.name} (x${i.qty})`; }).join(' + ');
-        this.request('سوبر ماركت', `الطلب: ${details}\nالإجمالي: ${total} ج.م`);
+        const details = this.cart.map(i => `${i.name} (الكمية: ${i.qty})`).join('، ');
+        this.request('سوبر ماركت', `الأصناف المطلوبة: ${details}\nالسعر والتوفر والتوصيل يؤكدها المتجر قبل اعتماد الطلب.`);
     }
 };
 
-// ==================== 7. AI MODULE ====================
-const AI = {
+// ==================== 7. LOCAL KEYWORD GUIDE ====================
+const HelpAssistant = {
     send: function() {
         const input = document.getElementById('ai-input');
         const msg = input.value.trim();
@@ -749,14 +1027,14 @@ const AI = {
             let reply = "عذراً، لم أفهم قصدك. جرب: 'دكتور'، 'توصيل'، 'صيانة'، أو 'سوبر ماركت'.";
             let nav = null;
 
-            if(msg.match(/(دكتور|طبيب|ضرس|أسنان|صحة|مريض)/)) { reply = "تحتاج إلى طبيب. سأفتح لك قسم الصحة الآن."; nav = 'medical'; }
-            else if(msg.match(/(توصيل|مندوب|شحن|طلب)/)) { reply = "خدمة التوصيل جاهزة. سأفتح لك صفحة التوصيل."; nav = 'delivery'; }
-            else if(msg.match(/(صيانة|سباك|كهرب|تكييف|عطل)/)) { reply = "فنيينا جاهزون. سأفتح لك قسم الصيانة."; nav = 'maintenance'; }
-            else if(msg.match(/(ماركت|أكل|بقالة|سوبر|خضار)/)) { reply = "إليك السوبر ماركت. اطلب ما تشاء."; nav = 'market'; }
-            else if(msg.match(/(تعليم|مدرس|دورة|امتحان)/)) { reply = "إليك قسم الدورات التعليمية."; nav = 'education'; }
+            if(msg.match(/(دكتور|طبيب|ضرس|أسنان|صحة|مريض)/)) { reply = "يمكنك فتح قسم الصحة للاطلاع على التخصصات. ستظهر بيانات الأطباء بعد اعتمادها."; nav = 'medical'; }
+            else if(msg.match(/(توصيل|مندوب|شحن|طلب)/)) { reply = "يمكنك إرسال طلب توصيل مبدئي. تأكيد المندوب والتكلفة يتم بعد مراجعة الطلب."; nav = 'delivery'; }
+            else if(msg.match(/(صيانة|سباك|كهرب|تكييف|عطل)/)) { reply = "يمكنك إرسال طلب صيانة مبدئي، وسنراجع توفر الفني والتكلفة قبل التأكيد."; nav = 'maintenance'; }
+            else if(msg.match(/(ماركت|أكل|بقالة|سوبر|خضار)/)) { reply = "الأصناف المعروضة توضيحية؛ المتجر الشريك يؤكد التوفر والسعر قبل اعتماد الطلب."; nav = 'market'; }
+            else if(msg.match(/(تعليم|مدرس|دورة|امتحان)/)) { reply = "قسم التعليم قيد تجهيز ملفات المعلمين والدورات المعتمدة."; nav = 'education'; }
 
             this.addMsg(reply, 'bot');
-            if(nav) setTimeout(() => { Router.navigate(nav); UI.toggleAI(); }, 1200);
+            if(nav) setTimeout(() => { Router.navigate(nav); UI.toggleAssistant(); }, 1200);
         }, 800);
     },
     addMsg: function(text, sender) {
@@ -772,6 +1050,7 @@ const AI = {
 // ==================== 8. INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
     UI.initRipples();
+    loadWaslaTicker();
     
     // Theme
     const savedTheme = localStorage.getItem('wasla_theme') || 'light';
@@ -779,9 +1058,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if(savedTheme === 'dark') document.getElementById('theme-icon').className = 'fa-solid fa-sun';
 
     // Auth & Router
-    Auth.checkSession();
+    Auth.checkSession().catch(error => console.error('WASLA session check failed:', error));
     Router.init();
-    if(supabaseClient) supabaseClient.auth.onAuthStateChange(() => Auth.checkSession());
+    if (supabaseClient) {
+        // Defer auth state work until after Supabase finishes its callback/lock cycle.
+        supabaseClient.auth.onAuthStateChange(() => {
+            window.setTimeout(() => {
+                Auth.checkSession().catch(error => console.error('WASLA auth state refresh failed:', error));
+            }, 0);
+        });
+    }
 });
 </script>
 </body>
