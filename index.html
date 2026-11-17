@@ -869,7 +869,7 @@ const DB = {
                         const stamp = document.createElement('small');
                         stamp.style.cssText = 'display:block;margin-top:5px;color:var(--muted);';
                         const updated = new Date(location.updated_at);
-                        stamp.textContent = Number.isNaN(updated.getTime()) ? 'وقت التحديث غير متاح' : 'آخر تحديث للموقع: ' + updated.toLocaleString('ar-EG');
+                        stamp.textContent = Number.isNaN(updated.getTime()) ? 'وقت التحديث غير متاح' : 'آخر تحديث للموقع: ' + updated.toLocaleString('ar-EG') + (Date.now() - updated.getTime() > 120000 ? ' · الموقع قديم' : '');
                         locationBox.append(link,stamp);
                     };
                     renderLocation(courierLocations.find(location => location.courier_id === order.courier_id));
