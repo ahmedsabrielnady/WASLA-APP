@@ -266,7 +266,10 @@ a { text-decoration: none; color: inherit; }
         <div class="brand-text"><h1>وصلة</h1><span>WASLA</span></div>
     </div>
     <div style="display:flex; gap:10px;">
-        <button class="icon-btn" onclick="Router.navigate('profile'); DB.loadNotifications()" aria-label="الإشعارات"><i class="fa-regular fa-bell"></i></button>
+        <button class="icon-btn" id="notification-bell" style="position:relative;" onclick="Router.navigate('profile'); DB.loadNotifications()" aria-label="الإشعارات">
+            <i class="fa-regular fa-bell"></i>
+            <span id="notification-count" aria-live="polite" style="display:none;position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;border-radius:12px;background:#ef4444;color:#fff;font-size:10px;font-weight:900;line-height:18px;text-align:center;border:2px solid var(--card);"></span>
+        </button>
         <button class="icon-btn" onclick="UI.toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
         <button class="icon-btn" onclick="Router.navigate('profile')"><i class="fa-solid fa-user"></i></button>
     </div>
@@ -696,6 +699,18 @@ const Auth = {
 };
 
 // ==================== 5. DATABASE MODULE ====================
+function updateNotificationBadge(count) {
+    const badge = document.getElementById('notification-count');
+    const bell = document.getElementById('notification-bell');
+    if (!badge) return;
+    const safeCount = Number.isFinite(Number(count)) ? Math.max(0, Number(count)) : 0;
+    badge.textContent = safeCount > 99 ? '99+' : String(safeCount);
+    badge.style.display = safeCount > 0 ? 'inline-block' : 'none';
+    if (bell) bell.setAttribute('aria-label', safeCount > 0
+        ? 'الإشعارات، ' + safeCount + ' غير مقروء'
+        : 'الإشعارات');
+}
+
 const DB = {
     saveOrder: async function(payload) {
         if (!supabaseClient || !Auth.user?.id) {
@@ -807,54 +822,92 @@ const DB = {
         if (!list) return;
         if (!supabaseClient || !Auth.user) {
             list.textContent = 'سجّل الدخول لعرض إشعاراتك المرتبطة بحسابك.';
+            updateNotificationBadge(0);
             return;
         }
+
         list.textContent = 'جاري تحميل الإشعارات...';
-        const { data, error } = await supabaseClient
-            .from('wasla_notifications')
-            .select('id, title, body, type, created_at, read_at')
-            .eq('user_id', Auth.user.id)
-            .order('created_at', { ascending: false })
-            .limit(20);
-        if (error) {
-            list.textContent = 'الإشعارات ستظهر بعد تفعيل نظام الإشعارات في قاعدة البيانات.';
-            console.info('WASLA notifications unavailable:', error.message);
-            return;
-        }
-        list.replaceChildren();
-        if (!data || data.length === 0) {
-            list.textContent = 'لا توجد إشعارات جديدة.';
-            return;
-        }
-        data.forEach(item => {
-            const card = document.createElement('div');
-            card.style.cssText = 'background:var(--card); padding:12px; border-radius:12px; margin-bottom:8px; border-right:4px solid ' + (item.read_at ? 'var(--border)' : 'var(--brand)') + ';';
-            const title = document.createElement('strong');
-            title.textContent = item.title;
-            const body = document.createElement('p');
-            body.style.cssText = 'font-size:13px; color:var(--muted); margin-top:4px;';
-            body.textContent = item.body;
-            const date = document.createElement('small');
-            date.style.color = 'var(--muted)';
-            date.textContent = new Date(item.created_at).toLocaleString('ar-EG');
-            card.append(title, body, date);
-            if (!item.read_at) {
-                card.style.cursor = 'pointer';
-                card.title = 'اضغط لتحديد الإشعار كمقروء';
-                card.addEventListener('click', async () => {
-                    const { error: updateError } = await supabaseClient
-                        .from('wasla_notifications')
-                        .update({ read_at: new Date().toISOString() })
-                        .eq('id', item.id)
-                        .eq('user_id', Auth.user.id);
-                    if (!updateError) {
+        try {
+            const [notificationsResult, unreadResult] = await Promise.all([
+                supabaseClient
+                    .from('wasla_notifications')
+                    .select('id, title, body, type, created_at, read_at')
+                    .eq('user_id', Auth.user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(20),
+                supabaseClient
+                    .from('wasla_notifications')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('user_id', Auth.user.id)
+                    .is('read_at', null)
+            ]);
+
+            const { data, error } = notificationsResult;
+            if (error) throw error;
+
+            let unreadCount = unreadResult.error
+                ? (data || []).filter(item => !item.read_at).length
+                : Number(unreadResult.count || 0);
+            updateNotificationBadge(unreadCount);
+
+            list.replaceChildren();
+            if (!Array.isArray(data) || data.length === 0) {
+                list.textContent = 'لا توجد إشعارات حتى الآن.';
+                return;
+            }
+
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background:var(--card); padding:12px; border-radius:12px; margin-bottom:8px; border-right:4px solid ' + (item.read_at ? 'var(--border)' : 'var(--brand)') + ';';
+
+                const title = document.createElement('strong');
+                title.textContent = item.title || 'إشعار من وصلة';
+                const body = document.createElement('p');
+                body.style.cssText = 'font-size:13px; color:var(--muted); margin-top:4px; white-space:pre-wrap;';
+                body.textContent = item.body || '';
+                const date = document.createElement('small');
+                date.style.color = 'var(--muted)';
+                const createdAt = item.created_at ? new Date(item.created_at) : null;
+                date.textContent = createdAt && !Number.isNaN(createdAt.getTime())
+                    ? createdAt.toLocaleString('ar-EG')
+                    : '';
+                card.append(title, body, date);
+
+                if (!item.read_at) {
+                    card.style.cursor = 'pointer';
+                    card.title = 'اضغط لتحديد الإشعار كمقروء';
+                    card.addEventListener('click', async () => {
+                        card.style.opacity = '0.65';
+                        const readAt = new Date().toISOString();
+                        const { error: updateError } = await supabaseClient
+                            .from('wasla_notifications')
+                            .update({ read_at: readAt })
+                            .eq('id', item.id)
+                            .eq('user_id', Auth.user.id)
+                            .is('read_at', null);
+
+                        if (updateError) {
+                            card.style.opacity = '1';
+                            console.error('WASLA notification read update failed:', updateError);
+                            UI.toast('تعذر تحديث الإشعار. حاول مرة أخرى.');
+                            return;
+                        }
+                        item.read_at = readAt;
                         card.style.borderRightColor = 'var(--border)';
                         card.style.cursor = 'default';
-                    }
-                });
-            }
-            list.appendChild(card);
-        });
+                        card.style.opacity = '1';
+                        card.title = 'تمت قراءة الإشعار';
+                        unreadCount = Math.max(0, unreadCount - 1);
+                        updateNotificationBadge(unreadCount);
+                    });
+                }
+                list.appendChild(card);
+            });
+        } catch (error) {
+            list.textContent = 'تعذر تحميل الإشعارات حالياً. تحقق من اتصالك ثم حاول مرة أخرى.';
+            updateNotificationBadge(0);
+            console.error('WASLA notifications load failed:', error);
+        }
     }
 };
 
