@@ -21,6 +21,8 @@ async function loadApplications(){
  const root=$('applications');root.textContent='جاري تحميل الطلبات...';
  const {data,error}=await client.from('wasla_provider_applications').select('id,applicant_id,sector,business_name,contact_name,contact_phone,city,address,description,status,admin_note,created_at').order('created_at',{ascending:false}).limit(100);
  if(error){root.textContent='تعذر تحميل الطلبات: '+error.message;return;}
+ const {data:profiles,error:profileError}=await client.from('wasla_provider_profiles').select('id,application_id,business_name,is_active,is_published').order('created_at',{ascending:false});
+ if(profileError){root.textContent='تعذر تحميل ملفات الأنشطة: '+profileError.message;return;}
  root.replaceChildren();if(!data?.length){root.textContent='لا توجد طلبات حتى الآن.';return;}
  data.forEach(item=>{
   const card=document.createElement('article');card.className='app';
@@ -39,7 +41,21 @@ async function loadApplications(){
    }catch(e){say('فشل تحديث الطلب: '+e.message,true);approve.disabled=false;reject.disabled=false;}
   };
   approve.onclick=()=>decide('approved');reject.onclick=()=>decide('rejected');
-  actions.append(approve,reject);card.append(title,meta,details,note,actions);root.append(card);
+  actions.append(approve,reject);
+  const profile=(profiles||[]).find(p=>p.application_id===item.id);
+  if(profile){
+   const profileState=document.createElement('p');profileState.textContent='حالة الملف: '+(profile.is_active?'مفعّل':'غير مفعّل')+' · '+(profile.is_published?'منشور للعملاء':'غير منشور');
+   const activate=document.createElement('button');activate.className='secondary';activate.textContent=profile.is_active?'إيقاف النشاط':'تفعيل النشاط';
+   activate.onclick=async()=>{activate.disabled=true;try{const patch={is_active:!profile.is_active};if(profile.is_active)patch.is_published=false;const {error}=await client.from('wasla_provider_profiles').update(patch).eq('id',profile.id);if(error)throw error;say('تم تحديث تفعيل النشاط.');await loadApplications();}catch(e){say('تعذر تحديث التفعيل: '+e.message,true);activate.disabled=false;}};
+   const publish=document.createElement('button');publish.className='secondary';publish.textContent=profile.is_published?'إخفاء من السوق':'نشر في السوق';publish.disabled=!profile.is_active;
+   publish.onclick=async()=>{publish.disabled=true;try{const {error}=await client.from('wasla_provider_profiles').update({is_published:!profile.is_published}).eq('id',profile.id);if(error)throw error;say('تم تحديث ظهور النشاط.');await loadApplications();}catch(e){say('تعذر تحديث النشر: '+e.message,true);publish.disabled=!profile.is_active;}};
+   const merchantLink=document.createElement('a');merchantLink.href='/merchant-dashboard.html';merchantLink.textContent='فتح لوحة التاجر';
+   card.append(profileState,activate,publish,merchantLink);
+  }else if(item.status==='approved'){
+   const pendingProfile=document.createElement('p');pendingProfile.textContent='تمت الموافقة المبدئية. سيُنشأ ملف النشاط بعد تطبيق ترحيل كتالوج مقدمي الخدمة.';
+   card.append(pendingProfile);
+  }
+  card.append(title,meta,details,note,actions);root.append(card);
  });
 }
 $('loginButton').onclick=async()=>{try{const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;await authorize();}catch(e){say('تعذر تسجيل الدخول أو التحقق من الصلاحية: '+e.message,true);}};
