@@ -64,7 +64,7 @@ Apply migrations in order:
    - Depends on migrations #1, #2, #5, #6, and #7.
 9. `supabase/migrations/20261124_services_appointments.sql`
    - **Not yet confirmed as applied.**
-   - Adds provider service catalogs, weekly availability, customer appointments, provider confirmation/cancellation, customer cancellation, private notifications, and concurrent overlap protection.
+   - Adds provider service catalogs, weekly availability, customer appointments, provider confirmation/cancellation, customer cancellation, private notifications, concurrent overlap protection, clinic check-in/queue RPCs, patient turn notifications, and optional pg_cron reminders.
    - Depends on provider profiles and notification infrastructure from migrations #1, #2, and #7.
 
 Apply migrations in order after reviewing the current production schema. Migration #2 intentionally refuses to proceed if orders RLS is disabled; do not bypass that guard without auditing all existing customer policies. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
