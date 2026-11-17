@@ -54,7 +54,7 @@ async function loadMarketOrders(provider,reset=true){
  });
  marketOrderOffset+=orders.length;
  if(marketOrderOffset<marketOrderCount){
-  const more=document.createElement('button');more.id='loadMoreMarketOrders';more.textContent='تحميل 50 طلبًا إضافيًا';more.onclick=async()=>{more.disabled=true;more.textContent='جاري التحميل...';try{await loadMarketOrders(provider,false);}catch(e){say('تعذر تحميل المزيد من الطلبات: '+e.message,true);more.disabled=false;more.textContent='إعادة المحاولة';}};root.append(more);
+  const more=document.createElement('button');more.id='loadMoreMarketOrders';more.textContent='تحميل 50 طلبًا إضافيًا';more.onclick=async()=>{more.disabled=true;more.textContent='جاري التحميل...';try{await loadMarketOrders(provider,false);}catch(e){say('تعذر تحميل المزيد من الطلبات: '+e.message,true);more.disabled=false;more.textContent='إعادة المحاولة';if(!more.isConnected)root.append(more);}};root.append(more);
  }
 }
 $('loginButton').onclick=async()=>{try{const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;await authorize();}catch(e){say('تعذر تسجيل الدخول أو تحميل ملف النشاط: '+e.message,true);}};
