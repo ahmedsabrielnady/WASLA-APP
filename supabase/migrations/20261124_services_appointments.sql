@@ -402,6 +402,58 @@ $function$;
 REVOKE ALL ON FUNCTION public.wasla_cancel_service_booking(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.wasla_cancel_service_booking(uuid) TO authenticated;
 
+CREATE OR REPLACE FUNCTION public.wasla_get_available_service_slots(
+  p_service_id uuid,
+  p_date date
+)
+RETURNS TABLE(slot_at timestamptz)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog,public
+AS $function$
+  SELECT DISTINCT (slots.slot_local AT TIME ZONE 'Africa/Cairo') AS slot_at
+  FROM public.wasla_provider_services service
+  JOIN public.wasla_provider_profiles provider
+    ON provider.id = service.provider_id
+  JOIN public.wasla_provider_availability availability
+    ON availability.provider_id = provider.id
+  CROSS JOIN LATERAL generate_series(
+    (p_date + availability.starts_at)::timestamp,
+    (p_date + availability.ends_at - make_interval(mins => service.duration_minutes))::timestamp,
+    make_interval(mins => availability.slot_minutes)
+  ) AS slots(slot_local)
+  WHERE service.id = p_service_id
+    AND service.is_available = true
+    AND provider.sector IN ('medical','education','maintenance','automotive')
+    AND provider.is_active = true
+    AND provider.is_published = true
+    AND availability.is_active = true
+    AND availability.weekday = extract(dow FROM p_date)::smallint
+    AND p_date >= (now() AT TIME ZONE 'Africa/Cairo')::date
+    AND p_date <= (now() AT TIME ZONE 'Africa/Cairo')::date + 90
+    AND (slots.slot_local AT TIME ZONE 'Africa/Cairo') > now()
+    AND NOT EXISTS (
+      SELECT 1
+      FROM public.wasla_service_bookings booking
+      WHERE booking.provider_id = provider.id
+        AND booking.status IN ('pending','confirmed')
+        AND tstzrange(
+          booking.scheduled_at,
+          booking.scheduled_at + make_interval(mins => booking.duration_minutes),
+          '[)'
+        ) && tstzrange(
+          slots.slot_local AT TIME ZONE 'Africa/Cairo',
+          (slots.slot_local AT TIME ZONE 'Africa/Cairo') + make_interval(mins => service.duration_minutes),
+          '[)'
+        )
+    )
+  ORDER BY slot_at
+  LIMIT 100;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_get_available_service_slots(uuid,date) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.wasla_get_available_service_slots(uuid,date) TO anon,authenticated;
+
 DO $verify$
 BEGIN
   IF NOT EXISTS (
