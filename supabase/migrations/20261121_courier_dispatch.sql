@@ -362,7 +362,11 @@ DROP POLICY IF EXISTS wasla_orders_courier_read_assigned ON public.orders;
 DROP POLICY IF EXISTS wasla_orders_courier_update_assigned ON public.orders;
 CREATE POLICY wasla_orders_courier_read_assigned
   ON public.orders FOR SELECT TO authenticated
-  USING (courier_id = auth.uid() AND public.wasla_is_active_courier());
+  USING (
+    courier_id = auth.uid()
+    AND public.wasla_is_active_courier()
+    AND status IN ('assigned','out_for_delivery','delivered')
+  );
 CREATE POLICY wasla_orders_courier_update_assigned
   ON public.orders FOR UPDATE TO authenticated
   USING (
