@@ -5,6 +5,7 @@ const required = [
   ['admin.html', 'admin'],
   ['founder-announcements.html', 'founder'],
   ['supabase/migrations/20261116_smart_tracking_announcements.sql', 'migration'],
+  ['supabase/migrations/20261118_ticker_role_rpc_permissions.sql', 'tickerPermissionsMigration'],
   ['supabase/migrations/20261117_operations_dashboard.sql', 'operationsMigration'],
   ['founder-dashboard.html', 'dashboard'],
 ];
@@ -42,7 +43,8 @@ const checks = [
   ['notification row access is user-scoped', () => /USING\s*\(auth\.uid\(\)\s*=\s*user_id\)/.test(files.get('migration'))],
   ['notification update grant is restricted to read_at', () => /GRANT UPDATE \(read_at\) ON TABLE public\.wasla_notifications TO authenticated/.test(files.get('migration'))],
   ['ticker public read is constrained to active schedule', () => /starts_at <= now\(\)[\s\S]{0,120}ends_at IS NULL OR ends_at > now\(\)/.test(files.get('migration'))],
-  ['founder page enforces a server-side-backed role check', () => /role IN \('(admin', 'founder|founder', 'admin)'\)/.test(files.get('migration')) && /roles\.some\s*\(\s*role\s*=>\s*\['founder',\s*'admin'\]\.includes\(role\)\)/.test(files.get('founder'))],
+  ['founder announcement page uses the database authorization RPC', () => /rpc\('wasla_can_manage_ticker'\)/.test(files.get('founder')) && !/roles\.some\s*\(\s*role\s*=>/.test(files.get('founder'))],
+  ['ticker authorization RPC is executable only by authenticated users', () => /REVOKE ALL ON FUNCTION public\.wasla_can_manage_ticker\(\) FROM PUBLIC/.test(files.get('tickerPermissionsMigration')) && /GRANT EXECUTE ON FUNCTION public\.wasla_can_manage_ticker\(\) TO authenticated/.test(files.get('tickerPermissionsMigration')) && /has_function_privilege\('anon',[\s\S]*?EXECUTE/.test(files.get('tickerPermissionsMigration'))],
   ['founder announcement writes require an authenticated user ID', () => /auth\.getUser\(\)[\s\S]{0,300}if\s*\(!user\?\.id\)/.test(files.get('founder'))],
   ['founder form prevents duplicate submissions', () => /button\.disabled = true;[\s\S]{0,3000}finally\s*\{[\s\S]{0,200}button\.disabled = false/.test(files.get('founder'))],
   ['founder announcement links are URL-validated', () => /new URL\(target\)[\s\S]{0,300}https:/.test(files.get('founder'))],
