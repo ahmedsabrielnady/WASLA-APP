@@ -113,6 +113,7 @@ GitHub Actions workflow: `.github/workflows/wasla-static-checks.yml`
 It runs:
 - Inline JavaScript syntax compilation for all tracked customer, provider, merchant, founder, and courier pages.
 - PostgreSQL grammar parsing for every Supabase migration.
+- Direct Node.js syntax checks for the service worker and validation scripts.
 - Static integrity guards for RLS, role boundaries, booking concurrency, stock handling, order transitions, and tracking privacy.
 - Static integrity guards for scheduled ads, fake/demo data removal, user-scoped notifications, read-at-only updates, auth refresh behavior, delivery coordinates, founder/admin gating, and the orders RLS migration.
 
@@ -127,7 +128,7 @@ The PostgreSQL grammar parser validates migration statement syntax; it does not 
 5. Verify the customer can mark the notification read and the unread badge decrements correctly.
 6. Verify founder announcement create/update/activate/deactivate/delete using a dedicated test announcement.
 7. Verify an ordinary customer cannot open staff order data or update order status.
-8. Complete the real medical booking and service-provider workflows before marking the platform production-ready.
+8. Complete medical booking, same-day clinic check-in/queue, 24-hour/1-hour reminders (with `pg_cron` enabled), GPS checkout, merchant fulfillment, and courier map/delivery workflows before marking the platform production-ready.
 9. Only after these checks pass should the stacked PRs be reviewed, merged in dependency order, and deployed.
 
 ## Security notes
