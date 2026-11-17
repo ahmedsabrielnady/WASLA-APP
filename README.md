@@ -113,7 +113,7 @@ These checks do **not** replace a signed-in browser test or a real database tran
 - `founder-couriers.html` lets authorized operations staff review applications and activate/deactivate courier profiles.
 - Approval creates a courier profile through a database trigger; applicants cannot directly activate themselves.
 - `courier-dashboard.html` shows only orders assigned to the active signed-in courier and allows the limited status path: assigned → out for delivery → delivered.
-- The founder dashboard assigns only active couriers to orders in `ready_for_pickup` through the protected `wasla_assign_courier` RPC.
+- The founder dashboard assigns only active couriers to orders in `ready_for_pickup` through the protected `wasla_assign_courier` RPC, and permits reassignment only while an order is still in `assigned` (before the courier starts transit).
 - `supabase/migrations/20261117_courier_dispatch.sql` adds courier applications/profiles, assigned-order RLS, dispatch RPC, and notifications.
 - This migration depends on the operations, notifications, and order-lifecycle migrations. It is **not yet confirmed as applied**.
 - Courier location/GPS streaming, route optimization, proof-of-delivery photos, cash collection reconciliation, and driver earnings are not implemented yet.
