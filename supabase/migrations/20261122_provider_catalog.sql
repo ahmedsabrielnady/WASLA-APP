@@ -47,7 +47,6 @@ CREATE TABLE IF NOT EXISTS public.wasla_provider_products (
   is_available boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  CHECK (stock_quantity > 0 OR is_available = false)
 );
 
 CREATE INDEX IF NOT EXISTS wasla_provider_products_provider_created_idx
@@ -99,6 +98,7 @@ CREATE POLICY wasla_provider_products_public_read
   ON public.wasla_provider_products FOR SELECT TO anon,authenticated
   USING (
     is_available = true
+    AND stock_quantity > 0
     AND EXISTS (
       SELECT 1 FROM public.wasla_provider_profiles p
       WHERE p.id = provider_id AND p.sector IN ('restaurants','market') AND p.is_active = true AND p.is_published = true
