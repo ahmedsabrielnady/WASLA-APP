@@ -13,6 +13,8 @@ const pages = [
   'marketplace.html',
   'service-marketplace.html',
   'provider-services.html',
+  'feedback.html',
+  'founder-feedback.html',
 ];
 
 let checked = 0;
