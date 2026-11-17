@@ -245,6 +245,34 @@ $function$;
 REVOKE ALL ON FUNCTION public.wasla_can_manage_provider_catalog(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.wasla_can_manage_provider_catalog(uuid) TO authenticated;
 
+CREATE OR REPLACE FUNCTION public.wasla_get_owned_provider_profiles()
+RETURNS TABLE (
+  id uuid,
+  business_name text,
+  contact_name text,
+  contact_phone text,
+  city text,
+  address text,
+  description text,
+  sector text,
+  is_active boolean,
+  is_published boolean,
+  created_at timestamptz
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog,public,auth
+AS $function$
+  SELECT p.id,p.business_name,p.contact_name,p.contact_phone,p.city,p.address,
+         p.description,p.sector,p.is_active,p.is_published,p.created_at
+  FROM public.wasla_provider_profiles p
+  WHERE p.owner_user_id = auth.uid()
+  ORDER BY p.created_at DESC;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_get_owned_provider_profiles() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.wasla_get_owned_provider_profiles() TO authenticated;
+
 CREATE OR REPLACE FUNCTION public.wasla_is_active_provider()
 RETURNS boolean
 LANGUAGE sql
