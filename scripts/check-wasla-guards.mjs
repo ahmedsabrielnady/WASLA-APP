@@ -18,6 +18,8 @@ const required = [
   ['supabase/migrations/20261120_order_lifecycle.sql', 'orderLifecycleMigration'],
   ['supabase/migrations/20261121_courier_dispatch.sql', 'courierMigration'],
   ['supabase/migrations/20261122_provider_catalog.sql', 'providerCatalogMigration'],
+  ['supabase/migrations/20261123_market_checkout.sql', 'marketMigration'],
+
   ['merchant-dashboard.html', 'merchantDashboard'],
   ['marketplace.html', 'marketplace'],
 
@@ -99,6 +101,7 @@ const checks = [
   ['courier location is private to courier, active customer orders, and operations', () => /wasla_courier_locations_customer_read_active/.test(files.get('courierMigration')) && /o\.user_id = auth\.uid\(\)/.test(files.get('courierMigration')) && /o\.status = 'out_for_delivery'/.test(files.get('courierMigration'))],
   ['courier portal explains location sharing, consent, and stop conditions', () => /عند بدء التوصيل سيطلب المتصفح إذن الموقع/.test(files.get('courierDashboard')) && /أثناء بقاء البوابة مفتوحة/.test(files.get('courierDashboard')) && /يتوقف التحديث بعد التسليم أو تسجيل الخروج/.test(files.get('courierDashboard'))],
   ['courier location is updated only during active delivery with explicit browser geolocation', () => /watchPosition/.test(files.get('courierDashboard')) && /wasla_courier_locations/.test(files.get('courierDashboard')) && /now-lastLocationSentAt<30000/.test(files.get('courierDashboard'))],
+  ['customers can cancel only their pending merchant orders through the cancellation RPC', () => /wasla_cancel_market_order/.test(files.get('marketMigration')) && /order\.provider_id && order\.status === 'pending'/.test(files.get('homepage')) && /DB\.loadOrders\(true\)/.test(files.get('homepage'))],
   ['customer tracking displays a validated map link for the active courier', () => /wasla_courier_locations/.test(files.get('homepage')) && /google\.com\/maps\?q=/.test(files.get('homepage')) && /status === 'out_for_delivery'/.test(files.get('homepage'))],
   ['courier order columns are created before dependent triggers and RLS policies', () => files.get('courierMigration').indexOf('ALTER TABLE public.orders') < files.get('courierMigration').indexOf('CREATE TRIGGER wasla_orders_notify_courier_assignment') && files.get('courierMigration').indexOf('ALTER TABLE public.orders') < files.get('courierMigration').indexOf('CREATE POLICY wasla_courier_locations_customer_read_active')],
   ['courier assignment and reassignment create private in-app notifications', () => /wasla_orders_notify_courier_assignment/.test(files.get('courierMigration')) && /courier_assigned/.test(files.get('courierMigration')) && /courier_reassigned/.test(files.get('courierMigration')) && /from\('wasla_notifications'\)/.test(files.get('courierDashboard'))],
