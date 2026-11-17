@@ -71,7 +71,7 @@ SECURITY DEFINER
 SET search_path = pg_catalog,public
 AS $function$
 BEGIN
-  PERFORM pg_advisory_xact_lock(hashtextextended(NEW.provider_id::text,1));
+  PERFORM pg_advisory_xact_lock(hashtextextended(NEW.provider_id::text,0));
   IF EXISTS (
     SELECT 1
     FROM public.wasla_provider_availability existing
