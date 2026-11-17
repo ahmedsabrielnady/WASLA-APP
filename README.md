@@ -112,6 +112,7 @@ Apply migrations in order after reviewing the current production schema. Migrati
 - Courier onboarding, founder dispatch, courier task pages, delivery status updates, and optional foreground location sharing are implemented. Background tracking, turn-by-turn route maps, reverse geocoding, proof of delivery, cash reconciliation, and courier earnings are not implemented.
 - Notifications are in-app only. Appointment reminders use `pg_cron` when enabled; Web Push, FCM, and service-worker notification delivery while the browser is closed are not implemented.
 - The PWA caches the public marketplace, merchant, service booking, provider, and courier page shells; dynamic Supabase data still requires a network connection.
+- Vercel serves baseline security headers from `vercel.json`, including anti-framing, MIME-sniffing protection, a strict referrer policy, HSTS, and same-origin geolocation permission for courier tracking.
 - Authenticated end-to-end tests for order creation, status changes, appointment flow, and founder announcement CRUD have not been completed.
 
 ## Automated checks
