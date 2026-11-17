@@ -741,7 +741,7 @@ const DB = {
                 user_id: Auth.user.id,
                 sector: payload.sectorName,
                 details: payload.details,
-                status: 'قيد المراجعة'
+                status: 'pending'
             }]);
             if (error) throw error;
 
@@ -788,7 +788,7 @@ const DB = {
             const to = from + this.ordersPageSize - 1;
             const { data, error } = await supabaseClient
                 .from('orders')
-                .select('id, sector, status, tracking_code, details, created_at')
+                .select('id, sector, status, tracking_code, details, created_at, updated_at')
                 .eq('user_id', Auth.user.id)
                 .order('created_at', { ascending: false })
                 .range(from, to);
@@ -811,7 +811,7 @@ const DB = {
                 sector.textContent = order.sector || 'طلب خدمة';
                 const status = document.createElement('span');
                 status.style.cssText = 'font-size:11px; background:var(--brand-light); color:var(--brand); padding:2px 8px; border-radius:10px;';
-                status.textContent = order.status || 'قيد المراجعة';
+                status.textContent = ({pending:'قيد المراجعة','قيد المراجعة':'قيد المراجعة',accepted:'مقبول',preparing:'جارٍ التجهيز',ready_for_pickup:'جاهز للاستلام',assigned:'تم تعيين مندوب',out_for_delivery:'خرج للتوصيل',delivered:'تم التسليم',completed:'مكتمل',cancelled:'ملغي'})[order.status] || order.status || 'قيد المراجعة';
                 header.append(sector, status);
                 card.appendChild(header);
 
