@@ -39,6 +39,7 @@ const checks = [
   ['no hard-coded supermarket product prices', () => !/price:\s*\d+/.test(files.get('homepage'))],
   ['founder operations loads bounded order pages', () => /ordersPageSize = 50/.test(files.get('dashboard')) && /\.range\(0, ordersPageSize - 1\)/.test(files.get('dashboard'))],
   ['founder operations can load additional order pages', () => /async function loadMoreOrders\(\)/.test(files.get('dashboard')) && /\.range\(ordersOffset, ordersOffset \+ ordersPageSize - 1\)/.test(files.get('dashboard')) && /loadMoreOrders/.test(files.get('dashboard'))],
+  ['founder operations keeps pagination available when filters have no matches', () => /if \(!visible\.length\)[\s\S]{0,220}renderOrdersPagination\(host\)/.test(files.get('dashboard'))],
   ['founder operations paginates by exact database count', () => /count: 'exact'/.test(files.get('dashboard')) && /ordersOffset < Number\(result\.count \|\| 0\)/.test(files.get('dashboard'))],
   ['customer-created orders use the canonical pending status', () => /status: 'pending'/.test(files.get('homepage')) && !/status: 'قيد المراجعة'/.test(files.get('homepage'))],
   ['customer tracking translates canonical order states for display', () => /ready_for_pickup:'جاهز للاستلام'/.test(files.get('homepage')) && /out_for_delivery:'خرج للتوصيل'/.test(files.get('homepage'))],
