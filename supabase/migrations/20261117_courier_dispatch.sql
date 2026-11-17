@@ -228,6 +228,31 @@ CREATE TRIGGER wasla_courier_application_notify
 AFTER INSERT OR UPDATE OF status ON public.wasla_courier_applications
 FOR EACH ROW EXECUTE FUNCTION public.wasla_notify_courier_application();
 
+CREATE OR REPLACE FUNCTION public.wasla_notify_courier_assignment()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public, auth
+AS $function$
+BEGIN
+  IF NEW.courier_id IS NOT DISTINCT FROM OLD.courier_id THEN RETURN NEW; END IF;
+  IF OLD.courier_id IS NOT NULL THEN
+    INSERT INTO public.wasla_notifications(user_id,title,body,type,order_id)
+    VALUES (OLD.courier_id,'تم نقل مهمة التوصيل','تم نقل مهمة الطلب ' || coalesce(NEW.tracking_code,NEW.id::text) || ' إلى مندوب آخر.','courier_reassigned','order:' || NEW.id::text);
+  END IF;
+  IF NEW.courier_id IS NOT NULL THEN
+    INSERT INTO public.wasla_notifications(user_id,title,body,type,order_id)
+    VALUES (NEW.courier_id,'مهمة توصيل جديدة','تم إسناد الطلب ' || coalesce(NEW.tracking_code,NEW.id::text) || ' إليك. افتح بوابة المندوب لمراجعة التفاصيل.','courier_assigned','order:' || NEW.id::text);
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_notify_courier_assignment() FROM PUBLIC;
+DROP TRIGGER IF EXISTS wasla_orders_notify_courier_assignment ON public.orders;
+CREATE TRIGGER wasla_orders_notify_courier_assignment
+AFTER UPDATE OF courier_id ON public.orders
+FOR EACH ROW EXECUTE FUNCTION public.wasla_notify_courier_assignment();
+
 ALTER TABLE public.orders
   ADD COLUMN IF NOT EXISTS courier_id uuid REFERENCES public.wasla_courier_profiles(user_id) ON DELETE RESTRICT,
   ADD COLUMN IF NOT EXISTS courier_assigned_at timestamptz;
