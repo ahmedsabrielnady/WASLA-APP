@@ -183,11 +183,41 @@ AFTER INSERT OR UPDATE OF status ON public.wasla_courier_applications
 FOR EACH ROW EXECUTE FUNCTION public.wasla_notify_courier_application();
 
 ALTER TABLE public.orders
-  ADD COLUMN IF NOT EXISTS courier_id uuid REFERENCES public.wasla_courier_profiles(user_id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS courier_id uuid REFERENCES public.wasla_courier_profiles(user_id) ON DELETE RESTRICT,
   ADD COLUMN IF NOT EXISTS courier_assigned_at timestamptz;
 
 CREATE INDEX IF NOT EXISTS wasla_orders_courier_status_created_idx
   ON public.orders(courier_id,status,created_at DESC);
+
+CREATE OR REPLACE FUNCTION public.wasla_require_courier_for_dispatch()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $function$
+BEGIN
+  IF NEW.status IN ('assigned','out_for_delivery') AND NEW.courier_id IS NULL THEN
+    RAISE EXCEPTION 'A courier must be assigned before dispatch' USING ERRCODE = '23514';
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_require_courier_for_dispatch() FROM PUBLIC;
+DROP TRIGGER IF EXISTS wasla_orders_require_courier_for_dispatch ON public.orders;
+CREATE TRIGGER wasla_orders_require_courier_for_dispatch
+BEFORE INSERT OR UPDATE OF status,courier_id ON public.orders
+FOR EACH ROW EXECUTE FUNCTION public.wasla_require_courier_for_dispatch();
+
+DO $dispatch_preflight$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM public.orders
+    WHERE status IN ('assigned','out_for_delivery') AND courier_id IS NULL
+  ) THEN
+    RAISE EXCEPTION 'WASLA courier migration stopped: existing dispatched orders need explicit courier reconciliation';
+  END IF;
+END;
+$dispatch_preflight$;
 
 DROP POLICY IF EXISTS wasla_orders_courier_read_assigned ON public.orders;
 DROP POLICY IF EXISTS wasla_orders_courier_update_assigned ON public.orders;
