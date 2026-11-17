@@ -10,6 +10,8 @@ const pages = [
   'courier-dashboard.html',
   'merchant-dashboard.html',
   'marketplace.html',
+  'service-marketplace.html',
+  'provider-services.html',
 ];
 
 let checked = 0;
