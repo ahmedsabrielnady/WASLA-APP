@@ -91,6 +91,12 @@ BEGIN
   IF p_message IS NULL OR length(btrim(p_message)) NOT BETWEEN 10 AND 3000 THEN
     RAISE EXCEPTION 'Message must contain 10 to 3000 characters' USING ERRCODE = '22023';
   END IF;
+  IF (
+    SELECT count(*) FROM public.wasla_feedback
+    WHERE user_id = auth.uid() AND created_at > now() - interval '1 hour'
+  ) >= 5 THEN
+    RAISE EXCEPTION 'Feedback submission limit reached; try again later' USING ERRCODE = '54000';
+  END IF;
 
   INSERT INTO public.wasla_feedback(user_id,category,subject,message)
   VALUES (auth.uid(),p_category,btrim(p_subject),btrim(p_message))
