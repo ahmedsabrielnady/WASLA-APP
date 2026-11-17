@@ -240,6 +240,45 @@ REVOKE UPDATE ON TABLE public.orders FROM PUBLIC, anon, authenticated;
 GRANT UPDATE (status) ON TABLE public.orders TO authenticated;
 
 
+CREATE OR REPLACE FUNCTION public.wasla_authorize_order_status_actor()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public, auth
+AS $function$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    IF auth.uid() IS NOT NULL
+       AND NOT public.wasla_can_manage_operations()
+       AND NEW.status IS DISTINCT FROM 'pending' THEN
+      RAISE EXCEPTION 'Customer-created orders must start as pending' USING ERRCODE = '42501';
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  IF NEW.status IS NOT DISTINCT FROM OLD.status OR auth.uid() IS NULL THEN
+    RETURN NEW;
+  END IF;
+  IF public.wasla_can_manage_operations() THEN
+    RETURN NEW;
+  END IF;
+  IF public.wasla_is_active_courier()
+     AND (
+       (OLD.status = 'assigned' AND NEW.status = 'out_for_delivery')
+       OR (OLD.status = 'out_for_delivery' AND NEW.status = 'delivered')
+     ) THEN
+    RETURN NEW;
+  END IF;
+
+  RAISE EXCEPTION 'This account is not authorized to change the order status' USING ERRCODE = '42501';
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_authorize_order_status_actor() FROM PUBLIC;
+DROP TRIGGER IF EXISTS wasla_orders_authorize_status_actor ON public.orders;
+CREATE TRIGGER wasla_orders_authorize_status_actor
+BEFORE INSERT OR UPDATE OF status ON public.orders
+FOR EACH ROW EXECUTE FUNCTION public.wasla_authorize_order_status_actor();
+
 CREATE OR REPLACE FUNCTION public.wasla_protect_courier_assignment()
 RETURNS trigger
 LANGUAGE plpgsql
