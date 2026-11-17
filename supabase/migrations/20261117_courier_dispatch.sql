@@ -40,6 +40,9 @@ CREATE INDEX IF NOT EXISTS wasla_courier_applications_owner_created_idx
   ON public.wasla_courier_applications(applicant_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS wasla_courier_applications_status_created_idx
   ON public.wasla_courier_applications(status, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS wasla_courier_one_pending_application_uidx
+  ON public.wasla_courier_applications(applicant_id)
+  WHERE status = 'pending';
 
 CREATE TABLE IF NOT EXISTS public.wasla_courier_profiles (
   user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -95,6 +98,26 @@ GRANT UPDATE (status, admin_note, reviewed_by, reviewed_at)
 REVOKE ALL ON TABLE public.wasla_courier_profiles FROM anon, authenticated;
 GRANT SELECT ON TABLE public.wasla_courier_profiles TO authenticated;
 GRANT INSERT, UPDATE, DELETE ON TABLE public.wasla_courier_profiles TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.wasla_touch_courier_records()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = pg_catalog, public
+AS $function$
+BEGIN
+  NEW.updated_at := now();
+  RETURN NEW;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_touch_courier_records() FROM PUBLIC;
+DROP TRIGGER IF EXISTS wasla_courier_application_touch ON public.wasla_courier_applications;
+CREATE TRIGGER wasla_courier_application_touch
+BEFORE UPDATE ON public.wasla_courier_applications
+FOR EACH ROW EXECUTE FUNCTION public.wasla_touch_courier_records();
+DROP TRIGGER IF EXISTS wasla_courier_profile_touch ON public.wasla_courier_profiles;
+CREATE TRIGGER wasla_courier_profile_touch
+BEFORE UPDATE ON public.wasla_courier_profiles
+FOR EACH ROW EXECUTE FUNCTION public.wasla_touch_courier_records();
 
 CREATE OR REPLACE FUNCTION public.wasla_is_active_courier()
 RETURNS boolean
@@ -276,6 +299,12 @@ GRANT EXECUTE ON FUNCTION public.wasla_assign_courier(text, uuid) TO authenticat
 
 DO $verify$
 BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_indexes
+    WHERE schemaname = 'public' AND indexname = 'wasla_courier_one_pending_application_uidx'
+  ) THEN
+    RAISE EXCEPTION 'WASLA courier verification failed: pending application uniqueness missing';
+  END IF;
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
     WHERE schemaname = 'public' AND tablename = 'orders'
