@@ -150,6 +150,15 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_constraint
     WHERE conrelid='public.wasla_service_bookings'::regclass
+      AND conname='wasla_service_bookings_queue_number_check'
+  ) THEN
+    ALTER TABLE public.wasla_service_bookings
+      ADD CONSTRAINT wasla_service_bookings_queue_number_check
+      CHECK (queue_number IS NULL OR queue_number > 0);
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid='public.wasla_service_bookings'::regclass
       AND conname='wasla_service_bookings_queue_status_check'
   ) THEN
     ALTER TABLE public.wasla_service_bookings
