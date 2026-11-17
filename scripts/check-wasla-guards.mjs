@@ -36,7 +36,7 @@ const checks = [
   ['notification row access is user-scoped', () => /USING\s*\(auth\.uid\(\)\s*=\s*user_id\)/.test(files.get('migration'))],
   ['notification update grant is restricted to read_at', () => /GRANT UPDATE \(read_at\) ON TABLE public\.wasla_notifications TO authenticated/.test(files.get('migration'))],
   ['ticker public read is constrained to active schedule', () => /starts_at <= now\(\)[\s\S]{0,120}ends_at IS NULL OR ends_at > now\(\)/.test(files.get('migration'))],
-  ['founder page enforces a server-side-backed role check', () => /role IN \('founder', 'admin'\)/.test(files.get('migration')) && /roles\.some\(role=>\['founder','admin'\]\.includes\(role\)\)/.test(files.get('founder'))],
+  ['founder page enforces a server-side-backed role check', () => /role IN \('(admin', 'founder|founder', 'admin)'\)/.test(files.get('migration')) && /roles\.some\(role=>\['founder','admin'\]\.includes\(role\)\)/.test(files.get('founder'))],
 ];
 
 let failures = 0;
