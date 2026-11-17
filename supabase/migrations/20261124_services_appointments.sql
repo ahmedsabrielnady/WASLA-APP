@@ -332,6 +332,12 @@ BEGIN
     'لديك طلب حجز جديد لخدمة ' || v_service.name || '. راجع لوحة مقدم الخدمة لتأكيد الموعد.',
     'service_booking_pending',NULL
   );
+  INSERT INTO public.wasla_notifications(user_id,title,body,type,order_id)
+  VALUES (
+    auth.uid(),'تم استلام طلب الحجز',
+    'استلمنا طلبك لخدمة ' || v_service.name || '. الموعد غير مؤكد حتى يراجعه مقدم الخدمة.',
+    'service_booking_submitted',NULL
+  );
   RETURN v_booking_id;
 END;
 $function$;
