@@ -18,6 +18,8 @@ All four pull requests are draft/open and unmerged at the time of this update. M
 | `index.html` | Customer-facing WASLA portal |
 | `founder-dashboard.html` | New founder/admin operations dashboard for order counts and order-status management |
 | `founder-appointments.html` | Founder-only read-only dashboard for service appointment oversight |
+| `feedback.html` | Customer complaints and suggestions portal with status tracking |
+| `founder-feedback.html` | Founder/admin feedback triage, status, and response dashboard |
 | `founder-announcements.html` | Founder/admin announcement ticker manager |
 | `admin.html` | Legacy medical/service request page; not the founder operations dashboard. |
 | `marketplace.html` | Restaurant and retail product marketplace with cash-on-delivery checkout. |
@@ -66,6 +68,10 @@ Apply migrations in order:
    - **Not yet confirmed as applied.**
    - Adds provider service catalogs, weekly availability, customer appointments, provider confirmation/cancellation, customer cancellation, private notifications, concurrent overlap protection, clinic check-in/queue RPCs, patient turn notifications, and optional pg_cron reminders.
    - Depends on provider profiles and notification infrastructure from migrations #1, #2, and #7.
+10. `supabase/migrations/20261125_feedback_center.sql`
+   - **Not yet confirmed as applied.**
+   - Adds private customer complaints/suggestions, customer tracking, founder/admin review and responses, and in-app notifications.
+   - Depends on the notification table from migration #1, the operations authorization helper from migration #2, and `public.users`.
 
 Apply migrations in order after reviewing the current production schema. Migration #2 intentionally refuses to proceed if orders RLS is disabled; do not bypass that guard without auditing all existing customer policies. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
 
@@ -89,6 +95,7 @@ Apply migrations in order after reviewing the current production schema. Migrati
 - Merchants can manage their own product catalog and move orders through accepted, preparing, and ready-for-pickup states.
 - The merchant order inbox loads 50 orders per page, uses the exact database count for load-more availability, and suppresses duplicate cards when new orders arrive during paging.
 - The founder has a read-only appointment oversight page with provider/service, status, schedule, customer phone, and paginated records.
+- Customers can submit private complaints and suggestions, track their status, and receive an in-app notification when the founder/admin responds. Operations staff can triage, resolve, or reject messages from the founder feedback dashboard.
 - Service providers in medical, education, maintenance, and automotive sectors can create service offerings, set weekly availability, and review customer booking requests. Customers see server-calculated available time slots in Africa/Cairo time; the booking RPC revalidates the schedule and overlapping bookings before creating a pending request. Provider confirmation is required before the appointment is confirmed.
 - Medical providers can check patients in, assign daily queue numbers, call the next patient, and trigger in-app “your turn” and “three cases before you” notifications. Queue numbering is per medical provider profile and Cairo calendar day.
 - Confirmed service bookings can be cancelled by customers only at least 12 hours before the appointment. Pending requests can be cancelled at any time.
@@ -121,7 +128,7 @@ The PostgreSQL grammar parser validates migration statement syntax; it does not 
 
 ## Safe release sequence
 
-1. Back up Supabase, inspect existing order statuses and RLS policies, then apply the nine migrations in documented order. Do not apply a migration with a failed preflight.
+1. Back up Supabase, inspect existing order statuses and RLS policies, then apply the ten migrations in documented order. Do not apply a migration with a failed preflight.
 2. Sign in as a founder/admin and verify `/founder-dashboard.html` loads the order queue.
 3. Verify one test order can be read, changed from pending to accepted, and that its owner receives an in-app notification. Use a dedicated test account and test data only.
 4. Verify invalid status jumps (for example pending → delivered) are rejected by PostgreSQL, while valid transitions succeed.
