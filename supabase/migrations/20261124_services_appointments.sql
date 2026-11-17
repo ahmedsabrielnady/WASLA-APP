@@ -119,11 +119,45 @@ CREATE TABLE IF NOT EXISTS public.wasla_service_bookings (
   queue_reminder_3_sent_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  CHECK (
+  CONSTRAINT wasla_service_bookings_queue_pair_check CHECK (
     (queue_number IS NULL AND queue_date IS NULL)
     OR (queue_number IS NOT NULL AND queue_date IS NOT NULL)
   )
 );
+
+ALTER TABLE public.wasla_service_bookings
+  ADD COLUMN IF NOT EXISTS queue_number integer,
+  ADD COLUMN IF NOT EXISTS queue_date date,
+  ADD COLUMN IF NOT EXISTS queue_status text NOT NULL DEFAULT 'not_arrived',
+  ADD COLUMN IF NOT EXISTS queue_arrived_at timestamptz,
+  ADD COLUMN IF NOT EXISTS queue_called_at timestamptz,
+  ADD COLUMN IF NOT EXISTS queue_reminder_3_sent_at timestamptz;
+
+DO $queue_constraint$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid='public.wasla_service_bookings'::regclass
+      AND conname='wasla_service_bookings_queue_pair_check'
+  ) THEN
+    ALTER TABLE public.wasla_service_bookings
+      ADD CONSTRAINT wasla_service_bookings_queue_pair_check
+      CHECK (
+        (queue_number IS NULL AND queue_date IS NULL)
+        OR (queue_number IS NOT NULL AND queue_date IS NOT NULL)
+      );
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid='public.wasla_service_bookings'::regclass
+      AND conname='wasla_service_bookings_queue_status_check'
+  ) THEN
+    ALTER TABLE public.wasla_service_bookings
+      ADD CONSTRAINT wasla_service_bookings_queue_status_check
+      CHECK (queue_status IN ('not_arrived','waiting','called','completed','cancelled','no_show'));
+  END IF;
+END;
+$queue_constraint$;
 
 CREATE INDEX IF NOT EXISTS wasla_service_bookings_customer_idx
   ON public.wasla_service_bookings(customer_id,scheduled_at DESC);
