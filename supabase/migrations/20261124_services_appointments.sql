@@ -27,6 +27,23 @@ CREATE TABLE IF NOT EXISTS public.wasla_provider_services (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE OR REPLACE FUNCTION public.wasla_can_manage_service_catalog(p_provider_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog,public,auth
+AS $function$
+  SELECT EXISTS (
+    SELECT 1 FROM public.wasla_provider_profiles
+    WHERE id = p_provider_id
+      AND owner_user_id = auth.uid()
+      AND sector IN ('medical','education','maintenance','automotive')
+  );
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_can_manage_service_catalog(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.wasla_can_manage_service_catalog(uuid) TO authenticated;
+
 CREATE INDEX IF NOT EXISTS wasla_provider_services_provider_idx
   ON public.wasla_provider_services(provider_id,is_available,created_at DESC);
 
@@ -49,7 +66,7 @@ CREATE INDEX IF NOT EXISTS wasla_provider_availability_lookup_idx
 
 CREATE TABLE IF NOT EXISTS public.wasla_service_bookings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  tracking_code text NOT NULL UNIQUE DEFAULT ('WS' || upper(substr(encode(gen_random_bytes(8),'hex'),1,10))),
+  tracking_code text NOT NULL UNIQUE DEFAULT ('WS' || upper(substr(replace(gen_random_uuid()::text,'-',''),1,10))),
   customer_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
   provider_id uuid NOT NULL REFERENCES public.wasla_provider_profiles(id) ON DELETE RESTRICT,
   service_id uuid REFERENCES public.wasla_provider_services(id) ON DELETE SET NULL,
@@ -93,8 +110,8 @@ CREATE POLICY wasla_services_public_read
   );
 CREATE POLICY wasla_services_owner_all
   ON public.wasla_provider_services FOR ALL TO authenticated
-  USING (public.wasla_owns_provider_profile(provider_id))
-  WITH CHECK (public.wasla_owns_provider_profile(provider_id));
+  USING (public.wasla_can_manage_service_catalog(provider_id))
+  WITH CHECK (public.wasla_can_manage_service_catalog(provider_id));
 CREATE POLICY wasla_services_founder_all
   ON public.wasla_provider_services FOR ALL TO authenticated
   USING (public.wasla_can_manage_operations())
@@ -115,8 +132,8 @@ CREATE POLICY wasla_availability_public_read
   );
 CREATE POLICY wasla_availability_owner_all
   ON public.wasla_provider_availability FOR ALL TO authenticated
-  USING (public.wasla_owns_provider_profile(provider_id))
-  WITH CHECK (public.wasla_owns_provider_profile(provider_id));
+  USING (public.wasla_can_manage_service_catalog(provider_id))
+  WITH CHECK (public.wasla_can_manage_service_catalog(provider_id));
 CREATE POLICY wasla_availability_founder_all
   ON public.wasla_provider_availability FOR ALL TO authenticated
   USING (public.wasla_can_manage_operations())
