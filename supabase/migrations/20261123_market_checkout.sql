@@ -43,7 +43,9 @@ BEGIN
       CHECK (
         (delivery_lat IS NULL AND delivery_lng IS NULL)
         OR (
-          delivery_lat BETWEEN -90 AND 90
+          delivery_lat IS NOT NULL
+          AND delivery_lng IS NOT NULL
+          AND delivery_lat BETWEEN -90 AND 90
           AND delivery_lng BETWEEN -180 AND 180
         )
       );
