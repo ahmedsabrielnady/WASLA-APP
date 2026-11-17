@@ -51,6 +51,7 @@ main{padding-top:20px}.login-card,.panel,.metric{background:var(--card);border:1
     </section>
 
     <section id="dashboard" class="hidden">
+      <div class="panel-head"><h2>إدارة التشغيل والتوصيل</h2><a class="btn soft" href="/founder-couriers.html">إدارة المندوبين</a></div>
       <div class="metrics">
         <div class="metric"><div class="k">إجمالي الطلبات</div><div class="v" id="metric-total">—</div></div>
         <div class="metric"><div class="k">قيد المراجعة</div><div class="v" id="metric-pending">—</div></div>
@@ -124,7 +125,7 @@ const STATUS_TRANSITIONS = {
   'قيد المراجعة': ['accepted','cancelled'],
   accepted: ['preparing','ready_for_pickup','completed','cancelled'],
   preparing: ['ready_for_pickup','completed','cancelled'],
-  ready_for_pickup: ['assigned','out_for_delivery','delivered','completed','cancelled'],
+  ready_for_pickup: ['out_for_delivery','delivered','completed','cancelled'],
   assigned: ['out_for_delivery','cancelled'],
   out_for_delivery: ['delivered'],
   delivered: ['completed'],
@@ -132,6 +133,7 @@ const STATUS_TRANSITIONS = {
   cancelled: []
 };
 let orders = [];
+let couriers = [];
 let busyIds = new Set();
 let ordersOffset = 0;
 const ordersPageSize = 50;
@@ -209,7 +211,7 @@ async function refreshDashboard() {
     startOfDay.setHours(0,0,0,0);
     const todayIso = startOfDay.toISOString();
 
-    const [total,pending,medical,delivery,today,result] = await Promise.all([
+    const [total,pending,medical,delivery,today,result,courierResult] = await Promise.all([
       countOrders(q => q),
       countOrders(q => q.in('status',['pending','قيد المراجعة'])),
       countOrders(q => q.in('sector',['medical','طبي','الصحة'])),
@@ -218,10 +220,16 @@ async function refreshDashboard() {
       sb.from('orders')
         .select('id,order_number,tracking_code,sector,status,details,created_at,updated_at', { count: 'exact' })
         .order('created_at',{ascending:false})
-        .range(0, ordersPageSize - 1)
+        .range(0, ordersPageSize - 1),
+      sb.from('wasla_courier_profiles')
+        .select('user_id,display_name,phone,vehicle_type')
+        .eq('is_active',true)
+        .order('display_name')
     ]);
 
     if (result.error) throw result.error;
+    if (courierResult.error) throw courierResult.error;
+    couriers = Array.isArray(courierResult.data) ? courierResult.data : [];
     $('metric-total').textContent = total.toLocaleString('ar-EG');
     $('metric-pending').textContent = pending.toLocaleString('ar-EG');
     $('metric-medical').textContent = medical.toLocaleString('ar-EG');
@@ -327,6 +335,34 @@ function renderOrders() {
 
     controls.append(label,select,save);
     card.append(top,details,controls);
+
+    if (order.status === 'ready_for_pickup') {
+      const dispatch = document.createElement('div');
+      dispatch.className = 'order-controls';
+      const dispatchLabel = document.createElement('label');
+      dispatchLabel.textContent = 'إسناد إلى مندوب نشط';
+      const courierSelect = document.createElement('select');
+      courierSelect.setAttribute('aria-label','اختيار مندوب للطلب');
+      makeOption(courierSelect,'','اختر المندوب');
+      couriers.forEach(courier => {
+        const vehicle = ({motorcycle:'دراجة نارية',car:'سيارة',bicycle:'دراجة',other:'أخرى'})[courier.vehicle_type] || courier.vehicle_type;
+        makeOption(courierSelect,courier.user_id,courier.display_name + ' · ' + vehicle);
+      });
+      const assign = document.createElement('button');
+      assign.className = 'btn primary';
+      assign.type = 'button';
+      assign.textContent = 'إسناد المهمة';
+      assign.disabled = couriers.length === 0 || busyIds.has(String(order.id));
+      assign.onclick = () => assignCourier(order,courierSelect,assign);
+      if (!couriers.length) {
+        const empty = document.createElement('span');
+        empty.textContent = 'لا يوجد مندوب نشط. راجع إدارة المندوبين.';
+        dispatch.append(dispatchLabel,empty);
+      } else {
+        dispatch.append(dispatchLabel,courierSelect,assign);
+      }
+      card.appendChild(dispatch);
+    }
     host.appendChild(card);
   });
 
@@ -374,6 +410,31 @@ async function loadMoreOrders() {
   } finally {
     ordersLoadingMore = false;
     renderOrders();
+  }
+}
+
+async function assignCourier(order,select,button) {
+  const courierId = select.value;
+  if (!courierId || busyIds.has(String(order.id))) return;
+  busyIds.add(String(order.id));
+  button.disabled = true;
+  button.textContent = 'جاري الإسناد...';
+  try {
+    const { data, error } = await sb.rpc('wasla_assign_courier', {
+      p_order_id: String(order.id),
+      p_courier_id: courierId
+    });
+    if (error) throw error;
+    if (data !== true) throw new Error('Assignment was not confirmed by the database.');
+    setStatus('list-status','تم إسناد الطلب إلى المندوب.');
+    await refreshDashboard();
+  } catch (error) {
+    console.error('WASLA courier assignment failed:',error);
+    setStatus('list-status','تعذر إسناد الطلب. تحقق من حالة الطلب والمندوب.',true);
+    button.disabled = false;
+    button.textContent = 'إسناد المهمة';
+  } finally {
+    busyIds.delete(String(order.id));
   }
 }
 
