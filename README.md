@@ -129,6 +129,7 @@ These checks do **not** replace a signed-in browser test or a real database tran
 - `marketplace.html` supports a single-merchant cart and authenticated checkout.
 - Checkout is cash-on-delivery only; the server validates product ownership, availability, stock, quantities, and provider publication.
 - Stock is reserved atomically at order creation. If the customer cancels while the order is pending, or the merchant cancels before dispatch, stock is restored.
+- Pending orders do not expire automatically yet; they continue to reserve stock until the customer or merchant cancels them.
 - `merchant-dashboard.html` shows provider-owned orders and allows pending → accepted → preparing → ready_for_pickup, with cancellation where allowed.
 - Orders are linked to the provider and visible only to the customer, that provider, and authorized operations staff.
 - The existing founder dispatch flow can assign a courier after the merchant marks the order ready.
