@@ -35,7 +35,7 @@ Apply migrations in order:
 3. `supabase/migrations/20261117_order_lifecycle.sql`
    - **Not yet confirmed as applied.**
    - Enforces permitted order status transitions in PostgreSQL, not just in the founder dashboard.
-   - Prevents skipping from pending directly to delivered, reopening completed/cancelled orders, and moving delivered orders backwards.
+   - Prevents skipping from pending directly to delivered, skipping dispatch/handoff stages, reopening completed/cancelled orders, and moving delivered orders backwards. It also stops safely if existing orders contain an unknown legacy status.
    - Includes database assertions for valid and invalid transitions.
 4. `supabase/migrations/20261118_ticker_role_rpc_permissions.sql`
    - **Not yet confirmed as applied.**
