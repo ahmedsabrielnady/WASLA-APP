@@ -84,6 +84,7 @@ const checks = [
   ['courier cannot be deactivated while assigned jobs remain open', () => /wasla_courier_prevent_deactivation_with_jobs/.test(files.get('courierMigration')) && /Courier has active assigned orders/.test(files.get('courierMigration'))],
   ['courier sees only assigned orders', () => /courier_id = auth\.uid\(\) AND public\.wasla_is_active_courier\(\)/.test(files.get('courierMigration'))],
   ['courier status changes are restricted to dispatch and delivery states', () => /status IN \('out_for_delivery','delivered'\)/.test(files.get('courierMigration'))],
+  ['courier assignment RPC supports only initial assignment or pre-dispatch reassignment', () => /status = CASE WHEN status = 'ready_for_pickup' THEN 'assigned' ELSE status END/.test(files.get('courierMigration')) && /status = 'assigned' AND courier_id IS NOT NULL/.test(files.get('courierMigration'))],
   ['courier assignment RPC requires operations authorization and ready-for-pickup state', () => /wasla_can_manage_operations\(\)/.test(files.get('courierMigration')) && /status = 'ready_for_pickup'[\s\S]{0,80}courier_id IS NULL/.test(files.get('courierMigration'))],
   ['founder dashboard assigns couriers through the protected RPC', () => /rpc\('wasla_assign_courier'/.test(files.get('dashboard')) && /founder-couriers\.html/.test(files.get('dashboard'))],
   ['courier portal uses active-courier RPC and owner-scoped order updates', () => /rpc\('wasla_is_active_courier'/.test(files.get('courierDashboard')) && /\.eq\('courier_id',user\.id\)/.test(files.get('courierDashboard'))],
