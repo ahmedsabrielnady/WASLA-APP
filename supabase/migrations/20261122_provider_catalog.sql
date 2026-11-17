@@ -6,8 +6,9 @@ BEGIN;
 DO $preflight$
 BEGIN
   IF to_regclass('public.wasla_provider_applications') IS NULL
-     OR to_regclass('public.wasla_notifications') IS NULL THEN
-    RAISE EXCEPTION 'WASLA provider catalog migration requires provider applications and notifications migrations first';
+     OR to_regclass('public.wasla_notifications') IS NULL
+     OR to_regprocedure('public.wasla_can_manage_operations()') IS NULL THEN
+    RAISE EXCEPTION 'WASLA provider catalog migration requires provider applications, notifications, and operations migrations first';
   END IF;
 END;
 $preflight$;
