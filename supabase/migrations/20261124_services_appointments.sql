@@ -24,11 +24,7 @@ CREATE TABLE IF NOT EXISTS public.wasla_provider_services (
   duration_minutes integer NOT NULL DEFAULT 30 CHECK (duration_minutes BETWEEN 5 AND 480),
   is_available boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  CHECK (
-    (queue_number IS NULL AND queue_date IS NULL)
-    OR (queue_number IS NOT NULL AND queue_date IS NOT NULL)
-  )
+  updated_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE OR REPLACE FUNCTION public.wasla_can_manage_service_catalog(p_provider_id uuid)
@@ -122,7 +118,11 @@ CREATE TABLE IF NOT EXISTS public.wasla_service_bookings (
   queue_called_at timestamptz,
   queue_reminder_3_sent_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CHECK (
+    (queue_number IS NULL AND queue_date IS NULL)
+    OR (queue_number IS NOT NULL AND queue_date IS NOT NULL)
+  )
 );
 
 CREATE INDEX IF NOT EXISTS wasla_service_bookings_customer_idx
