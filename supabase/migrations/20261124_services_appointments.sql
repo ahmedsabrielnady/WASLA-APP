@@ -24,7 +24,11 @@ CREATE TABLE IF NOT EXISTS public.wasla_provider_services (
   duration_minutes integer NOT NULL DEFAULT 30 CHECK (duration_minutes BETWEEN 5 AND 480),
   is_available boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CHECK (
+    (queue_number IS NULL AND queue_date IS NULL)
+    OR (queue_number IS NOT NULL AND queue_date IS NOT NULL)
+  )
 );
 
 CREATE OR REPLACE FUNCTION public.wasla_can_manage_service_catalog(p_provider_id uuid)
@@ -687,8 +691,8 @@ BEGIN
     AND queue_status = 'waiting'
     AND status = 'confirmed'
   ORDER BY queue_number
-  FOR UPDATE SKIP LOCKED
-  LIMIT 1;
+  LIMIT 1
+  FOR UPDATE SKIP LOCKED;
   IF NOT FOUND THEN
     RETURN NULL;
   END IF;
