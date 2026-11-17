@@ -18,6 +18,8 @@ on:
       - 'index.html'
       - 'admin.html'
       - 'founder-announcements.html'
+      - 'founder-dashboard.html'
+      - 'supabase/migrations/**'
       - 'scripts/**'
       - '.github/workflows/**'
 
