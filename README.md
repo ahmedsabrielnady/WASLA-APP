@@ -75,6 +75,16 @@ Apply migrations in order:
 
 Apply migrations in order after reviewing the current production schema. Migration #2 intentionally refuses to proceed if orders RLS is disabled; do not bypass that guard without auditing all existing customer policies. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
 
+## Vercel preview status
+
+- Vercel reported successful preview deployments for commit `8163d43b2c7bb76d5743b97e2cadb3da2045f035` on the three connected projects:
+  - [wasla-app preview](https://wasla-app-git-feature-wasla-provider-on-cdbec9-ahmedsabrielnady.vercel.app)
+  - [wasla-app-31tc preview](https://wasla-app-31tc-git-feature-wasla-provid-3ed1be-ahmedsabrielnady.vercel.app)
+  - [wasla-app-gg2f preview](https://wasla-app-gg2f-git-feature-wasla-provid-c6bf93-ahmedsabrielnady.vercel.app)
+- These previews are older than the current branch head and must not be treated as a deployment of the latest code.
+- Later preview attempts were rate-limited. The repository currently appears connected to three Vercel projects, causing redundant deployment attempts; consolidate to one intended project before the next deployment window.
+- Production deployment remains unauthorized and has not been performed.
+
 ## Release verification
 
 - Before any production release, complete `docs/RELEASE_TEST_CHECKLIST.md` using dedicated customer, merchant, courier, and founder accounts.
