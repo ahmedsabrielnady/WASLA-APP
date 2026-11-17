@@ -118,8 +118,13 @@ SECURITY DEFINER
 SET search_path = pg_catalog, public, auth
 AS $function$
 BEGIN
-  IF NEW.status = 'approved' AND (TG_OP = 'INSERT' OR OLD.status IS DISTINCT FROM NEW.status) THEN
-    INSERT INTO public.wasla_courier_profiles(
+  IF NEW.status <> 'approved' THEN
+    RETURN NEW;
+  END IF;
+  IF TG_OP = 'UPDATE' AND OLD.status IS NOT DISTINCT FROM NEW.status THEN
+    RETURN NEW;
+  END IF;
+  INSERT INTO public.wasla_courier_profiles(
       user_id, display_name, phone, city, vehicle_type, vehicle_plate, is_active
     )
     VALUES (
@@ -134,10 +139,10 @@ BEGIN
       vehicle_plate = EXCLUDED.vehicle_plate,
       is_active = true,
       updated_at = now();
-  END IF;
   RETURN NEW;
 END;
 $function$;
+REVOKE ALL ON FUNCTION public.wasla_sync_courier_approval() FROM PUBLIC;
 DROP TRIGGER IF EXISTS wasla_courier_application_sync ON public.wasla_courier_applications;
 CREATE TRIGGER wasla_courier_application_sync
 AFTER INSERT OR UPDATE OF status ON public.wasla_courier_applications
@@ -171,6 +176,7 @@ BEGIN
   RETURN NEW;
 END;
 $function$;
+REVOKE ALL ON FUNCTION public.wasla_notify_courier_application() FROM PUBLIC;
 DROP TRIGGER IF EXISTS wasla_courier_application_notify ON public.wasla_courier_applications;
 CREATE TRIGGER wasla_courier_application_notify
 AFTER INSERT OR UPDATE OF status ON public.wasla_courier_applications
