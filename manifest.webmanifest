@@ -1,0 +1,20 @@
+{
+  "name": "وصلة | WASLA",
+  "short_name": "وصلة",
+  "description": "منصة وصلة للخدمات والحجوزات والطلبات",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "/assets/wasla-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
