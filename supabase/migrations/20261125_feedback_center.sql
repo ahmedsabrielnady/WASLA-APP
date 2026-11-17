@@ -107,8 +107,11 @@ BEGIN
     CASE p_category WHEN 'complaint' THEN 'شكوى جديدة على وصلة' ELSE 'اقتراح جديد على وصلة' END,
     'وصلت رسالة جديدة رقم ' || v_tracking_code || ' وتحتاج إلى مراجعة.',
     'feedback_new',NULL
-  FROM public.users
-  WHERE role IN ('admin','founder');
+  FROM (
+    SELECT id FROM public.users WHERE role IN ('admin','founder')
+    UNION
+    SELECT id FROM public.profiles WHERE role IN ('admin','founder')
+  ) operations_users;
 
   RETURN v_tracking_code;
 END;
