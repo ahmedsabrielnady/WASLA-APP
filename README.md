@@ -67,7 +67,11 @@ Apply migrations in order after reviewing the current production schema. Migrati
 - The home and legacy service-page tickers apply both `starts_at` and `ends_at` filters, including for founder/admin sessions.
 - Founder announcement CRUD is protected by database policies as well as a client-side role check.
 - The founder dashboard checks `wasla_can_manage_operations()` before loading any order data. Status updates are limited in the dashboard UI to the order `status` field, and the database lifecycle trigger rejects invalid state transitions.
-- The old delivery request form saves pickup/drop-off coordinates or manual addresses in order details. It does not provide dispatch, driver assignment, live map display, or live driver tracking.
+- The legacy delivery request form still stores pickup/drop-off coordinates or manual addresses in order details; it is not yet connected to the new courier dispatch flow.
+- Restaurant/market customers can browse published products, place one-merchant cash-on-delivery orders, and cancel while an order is pending.
+- Merchant checkout validates stock in the database and reserves quantities atomically; cancellations before dispatch restore stock.
+- Merchants can manage their own product catalog and move orders through accepted, preparing, and ready-for-pickup states.
+- The founder can assign active couriers to ready orders; customers can view the last courier location while an order is out for delivery, subject to the courier's browser location permission and active portal session.
 
 ## Still not production-complete
 
