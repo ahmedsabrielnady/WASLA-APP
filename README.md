@@ -107,7 +107,7 @@ Apply migrations in order after reviewing the current production schema. Migrati
 - The legacy medical form still creates only a preliminary request. The new service marketplace and booking RPC use dedicated `wasla_service_bookings` records, weekly provider schedules, and provider confirmation. The legacy form has not yet been replaced by the new appointment flow.
 - The new service booking flow supports provider-defined weekly time windows, prevents overlapping bookings including concurrent requests, and includes a basic per-provider medical waiting queue. It is not yet linked to multi-doctor clinic rosters, staff roles, patient medical records, deposits, or a full clinic queue/EMR system.
 - Education providers can publish bookable services; a full course/LMS catalog, enrollment, lesson delivery, and learning progress are not implemented.
-- The retail marketplace supports live provider-owned products, inventory, checkout totals, and merchant acceptance once a provider is approved, activated, published, and maintains its catalog. Actual local merchant onboarding and stock accuracy still require field verification.
+- The retail marketplace supports live provider-owned products, inventory, single-merchant checkout, cash-on-delivery orders, and merchant fulfillment once a provider is approved, activated, published, and maintains its catalog. Actual local merchant onboarding and stock accuracy still require field verification.
 - Courier onboarding, founder dispatch, courier task pages, delivery status updates, and optional foreground location sharing are implemented. Background tracking, turn-by-turn route maps, reverse geocoding, proof of delivery, cash reconciliation, and courier earnings are not implemented.
 - Notifications are in-app only. Appointment reminders use `pg_cron` when enabled; Web Push, FCM, and service-worker notification delivery while the browser is closed are not implemented.
 - The PWA caches the public marketplace, merchant, service booking, provider, and courier page shells; dynamic Supabase data still requires a network connection.
@@ -135,7 +135,7 @@ The PostgreSQL grammar parser validates migration statement syntax; it does not 
 5. Verify the customer can mark the notification read and the unread badge decrements correctly.
 6. Verify founder announcement create/update/activate/deactivate/delete using a dedicated test announcement.
 7. Verify an ordinary customer cannot open staff order data or update order status.
-8. Complete medical booking, same-day clinic check-in/queue, 24-hour/1-hour reminders (with `pg_cron` enabled), GPS checkout, merchant fulfillment, and courier map/delivery workflows before marking the platform production-ready.
+8. Complete medical/service booking, same-day clinic check-in/queue, 24-hour/1-hour reminders (with `pg_cron` enabled), customer feedback, GPS checkout, merchant fulfillment, and courier map/delivery workflows before marking the platform production-ready.
 9. Only after these checks pass should the stacked PRs be reviewed, merged in dependency order, and deployed.
 
 ## Security notes
@@ -170,7 +170,7 @@ The PostgreSQL grammar parser validates migration statement syntax; it does not 
 - The founder review page separately controls activity and public publication.
 - `merchant-dashboard.html` lets the provider manage product name, category, description, price, stock quantity, and availability.
 - `marketplace.html` shows only active/published businesses and available products.
-- This is a catalog and inventory foundation only; customer checkout, order routing to merchants, payment collection, and sales reporting are not implemented yet.
+- Customer checkout and merchant fulfillment are implemented in migration #23 with cash-on-delivery only. Online payment, delivery fees, refunds, invoices, and sales analytics are not implemented.
 - `supabase/migrations/20261122_provider_catalog.sql` contains the profile/product schema, RLS policies, approval sync trigger, and least-privilege grants.
 
 ## Courier onboarding and dispatch (new foundation)
@@ -181,7 +181,7 @@ The PostgreSQL grammar parser validates migration statement syntax; it does not 
 - The founder dashboard assigns only active couriers to orders in `ready_for_pickup` through the protected `wasla_assign_courier` RPC, and permits reassignment only while an order is still in `assigned` (before the courier starts transit).
 - `supabase/migrations/20261121_courier_dispatch.sql` adds courier applications/profiles, assigned-order RLS, dispatch RPC, and notifications.
 - This migration depends on the operations, notifications, and order-lifecycle migrations. It is **not yet confirmed as applied**.
-- Courier location/GPS streaming, route optimization, proof-of-delivery photos, cash collection reconciliation, and driver earnings are not implemented yet.
+- Courier location sharing is foreground-only and requires browser permission; background tracking, route optimization, proof-of-delivery photos, cash collection reconciliation, and driver earnings are not implemented.
 
 ## Operations dashboard pagination
 - The founder operations dashboard now loads orders in pages of 50 using Supabase range queries and exact row counts.
