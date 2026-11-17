@@ -5,6 +5,9 @@ const pages = [
   'admin.html',
   'founder-announcements.html',
   'founder-dashboard.html',
+  'courier-apply.html',
+  'founder-couriers.html',
+  'courier-dashboard.html',
 ];
 
 let checked = 0;
