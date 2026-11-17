@@ -32,7 +32,7 @@ function startLocationTracking(){
 async function loadTasks(){
  const root=$('tasks');root.textContent='جاري تحميل مهامك...';
  const [ordersResult,alertsResult]=await Promise.all([
-  db.from('orders').select('id,tracking_code,sector,status,details,created_at,updated_at').in('status',['assigned','out_for_delivery']).order('created_at',{ascending:true}).limit(100),
+  db.from('orders').select('id,tracking_code,sector,status,details,delivery_lat,delivery_lng,created_at,updated_at').in('status',['assigned','out_for_delivery']).order('created_at',{ascending:true}).limit(100),
   db.from('wasla_notifications').select('id,title,body,read_at,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(10)
  ]);
  if(ordersResult.error)throw ordersResult.error;if(alertsResult.error)throw alertsResult.error;
@@ -54,9 +54,14 @@ async function loadTasks(){
   const h=document.createElement('h2');h.textContent='طلب '+(order.tracking_code||String(order.id));
   const p=document.createElement('p');p.textContent=(order.sector||'خدمة')+' · '+(labels[order.status]||order.status);
   const details=document.createElement('p');details.textContent=order.details||'لا توجد تفاصيل إضافية';
+  let mapLink=null;
+  if(Number.isFinite(Number(order.delivery_lat))&&Number.isFinite(Number(order.delivery_lng))&&order.delivery_lat!==null&&order.delivery_lng!==null){
+   const lat=Number(order.delivery_lat),lng=Number(order.delivery_lng);
+   if(lat>=-90&&lat<=90&&lng>=-180&&lng<=180){mapLink=document.createElement('a');mapLink.href='https://www.google.com/maps?q='+lat+','+lng;mapLink.target='_blank';mapLink.rel='noopener noreferrer';mapLink.textContent='فتح موقع التسليم على الخريطة';mapLink.className='map-link';}
+  }
   const action=document.createElement('button');action.textContent=order.status==='assigned'?'بدء التوصيل':'تأكيد التسليم';
   action.onclick=async()=>{action.disabled=true;try{const next=order.status==='assigned'?'out_for_delivery':'delivered';const {data:updated,error:updateError}=await db.from('orders').update({status:next}).eq('id',order.id).eq('courier_id',user.id).select('id').maybeSingle();if(updateError)throw updateError;if(!updated)throw Error('لم يتم تحديث المهمة. تحقق من إسنادها لحسابك.');say(next==='delivered'?'تم تسجيل التسليم.':'تم بدء التوصيل.');await loadTasks();}catch(e){say('تعذر تحديث المهمة: '+e.message,true);action.disabled=false;}};
-  card.append(h,p,details,action);root.append(card);
+  if(mapLink)card.append(h,p,details,mapLink,action);else card.append(h,p,details,action);root.append(card);
  });
 }
 $('loginButton').onclick=async()=>{try{const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;await authorize();}catch(e){say('تعذر تسجيل الدخول: '+e.message,true);}};
