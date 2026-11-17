@@ -119,6 +119,29 @@ CREATE TRIGGER wasla_courier_profile_touch
 BEFORE UPDATE ON public.wasla_courier_profiles
 FOR EACH ROW EXECUTE FUNCTION public.wasla_touch_courier_records();
 
+CREATE OR REPLACE FUNCTION public.wasla_prevent_courier_deactivation_with_open_jobs()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $function$
+BEGIN
+  IF OLD.is_active = true AND NEW.is_active = false AND EXISTS (
+    SELECT 1 FROM public.orders
+    WHERE courier_id = OLD.user_id AND status IN ('assigned','out_for_delivery')
+  ) THEN
+    RAISE EXCEPTION 'Courier has active assigned orders; reassign or complete them before deactivation'
+      USING ERRCODE = '23514';
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_prevent_courier_deactivation_with_open_jobs() FROM PUBLIC;
+DROP TRIGGER IF EXISTS wasla_courier_prevent_deactivation_with_jobs ON public.wasla_courier_profiles;
+CREATE TRIGGER wasla_courier_prevent_deactivation_with_jobs
+BEFORE UPDATE OF is_active ON public.wasla_courier_profiles
+FOR EACH ROW EXECUTE FUNCTION public.wasla_prevent_courier_deactivation_with_open_jobs();
+
 CREATE OR REPLACE FUNCTION public.wasla_is_active_courier()
 RETURNS boolean
 LANGUAGE sql
@@ -296,10 +319,10 @@ BEGIN
   IF NOT public.wasla_can_manage_operations() THEN
     RAISE EXCEPTION 'Not authorized to assign couriers' USING ERRCODE = '42501';
   END IF;
-  IF NOT EXISTS (
-    SELECT 1 FROM public.wasla_courier_profiles
-    WHERE user_id = p_courier_id AND is_active = true
-  ) THEN
+  PERFORM 1 FROM public.wasla_courier_profiles
+  WHERE user_id = p_courier_id AND is_active = true
+  FOR UPDATE;
+  IF NOT FOUND THEN
     RAISE EXCEPTION 'Courier is not active or does not exist' USING ERRCODE = '23503';
   END IF;
 
