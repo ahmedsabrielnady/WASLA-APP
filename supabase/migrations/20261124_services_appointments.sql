@@ -444,6 +444,14 @@ BEGIN
   IF p_next_status = 'confirmed' AND v_booking.scheduled_at <= now() THEN
     RAISE EXCEPTION 'A past appointment cannot be confirmed' USING ERRCODE = '22023';
   END IF;
+  IF p_next_status = 'completed'
+     AND EXISTS (
+       SELECT 1 FROM public.wasla_provider_profiles
+       WHERE id = v_booking.provider_id AND sector = 'medical'
+     )
+     AND v_booking.queue_status <> 'called' THEN
+    RAISE EXCEPTION 'A medical visit must be called from the clinic queue before completion' USING ERRCODE = '22023';
+  END IF;
   IF p_next_status = 'no_show' AND v_booking.scheduled_at > now() THEN
     RAISE EXCEPTION 'A booking cannot be marked no-show before its scheduled time' USING ERRCODE = '22023';
   END IF;
