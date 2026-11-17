@@ -17,7 +17,12 @@ All three are draft/open and unmerged at the time of this update. Merge in depen
 | `index.html` | Customer-facing WASLA portal |
 | `founder-dashboard.html` | New founder/admin operations dashboard for order counts and order-status management |
 | `founder-announcements.html` | Founder/admin announcement ticker manager |
-| `admin.html` | Legacy service request page. It is **not** the founder operations dashboard. |
+| `admin.html` | Legacy medical/service request page; not the founder operations dashboard. |
+| `marketplace.html` | Restaurant and retail product marketplace with cash-on-delivery checkout. |
+| `merchant-dashboard.html` | Merchant profile, product, stock, and order management. |
+| `service-marketplace.html` | Public medical, education, maintenance, and automotive service catalog with appointment requests. |
+| `provider-services.html` | Provider service catalog, weekly schedule, and appointment management. |
+| `courier-dashboard.html` | Courier task and delivery status portal. |
 
 Use `/founder-dashboard.html` for the operations dashboard and `/founder-announcements.html` for ticker management.
 
@@ -58,7 +63,7 @@ Apply migrations in order:
 9. `supabase/migrations/20261124_services_appointments.sql`
    - **Not yet confirmed as applied.**
    - Adds provider service catalogs, weekly availability, customer appointments, provider confirmation/cancellation, customer cancellation, private notifications, and concurrent overlap protection.
-   - Depends on provider profiles and notification infrastructure from migrations #1, #2, #7, and #8.
+   - Depends on provider profiles and notification infrastructure from migrations #1, #2, and #7.
 
 Apply migrations in order after reviewing the current production schema. Migration #2 intentionally refuses to proceed if orders RLS is disabled; do not bypass that guard without auditing all existing customer policies. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
 
@@ -88,10 +93,10 @@ Apply migrations in order after reviewing the current production schema. Migrati
 ## Still not production-complete
 
 - The legacy medical form still creates only a preliminary request. The new service marketplace and booking RPC use dedicated `wasla_service_bookings` records, weekly provider schedules, and provider confirmation. The legacy form has not yet been replaced by the new appointment flow.
-- No doctor time-slot availability, conflict prevention, deposit collection, or clinic queue integration is wired into the public booking flow.
-- Education providers and courses are placeholders pending verified provider onboarding.
-- The supermarket list is illustrative. Live stores, inventory, prices, checkout totals, and partner acceptance are not connected.
-- Delivery has no live maps/reverse geocoding, driver assignment, dispatch, route tracking, or courier app.
+- The new service booking flow supports provider-defined weekly time windows and prevents overlapping bookings, including concurrent requests. It is not yet linked to existing clinic doctor rosters, doctor-specific shift templates, patient medical records, deposits, or clinic queue management.
+- Education providers can publish bookable services; a full course/LMS catalog, enrollment, lesson delivery, and learning progress are not implemented.
+- The retail marketplace supports live provider-owned products, inventory, checkout totals, and merchant acceptance once a provider is approved, activated, published, and maintains its catalog. Actual local merchant onboarding and stock accuracy still require field verification.
+- Courier onboarding, founder dispatch, courier task pages, delivery status updates, and optional foreground location sharing are implemented. Background tracking, turn-by-turn route maps, reverse geocoding, proof of delivery, cash reconciliation, and courier earnings are not implemented.
 - Notifications are in-app only. Scheduled reminders, Web Push, FCM, and service-worker delivery while the browser is closed are not implemented.
 - Authenticated end-to-end tests for order creation, status changes, appointment flow, and founder announcement CRUD have not been completed.
 
@@ -100,14 +105,16 @@ Apply migrations in order after reviewing the current production schema. Migrati
 GitHub Actions workflow: `.github/workflows/wasla-static-checks.yml`
 
 It runs:
-- Inline JavaScript syntax compilation for the four application pages.
+- Inline JavaScript syntax compilation for all tracked customer, provider, merchant, founder, and courier pages.
+- PostgreSQL grammar parsing for every Supabase migration.
+- Static integrity guards for RLS, role boundaries, booking concurrency, stock handling, order transitions, and tracking privacy.
 - Static integrity guards for scheduled ads, fake/demo data removal, user-scoped notifications, read-at-only updates, auth refresh behavior, delivery coordinates, founder/admin gating, and the orders RLS migration.
 
 These checks do **not** replace a signed-in browser test or a real database transaction test.
 
 ## Safe release sequence
 
-1. Confirm both migrations are applied successfully in Supabase.
+1. Back up Supabase, inspect existing order statuses and RLS policies, then apply the nine migrations in documented order. Do not apply a migration with a failed preflight.
 2. Sign in as a founder/admin and verify `/founder-dashboard.html` loads the order queue.
 3. Verify one test order can be read, changed from pending to accepted, and that its owner receives an in-app notification. Use a dedicated test account and test data only.
 4. Verify invalid status jumps (for example pending → delivered) are rejected by PostgreSQL, while valid transitions succeed.
