@@ -69,7 +69,11 @@ CREATE POLICY wasla_courier_applications_select_own
 CREATE POLICY wasla_courier_applications_insert_own
   ON public.wasla_courier_applications FOR INSERT TO authenticated
   WITH CHECK (applicant_id = auth.uid() AND status = 'pending'
-    AND admin_note IS NULL AND reviewed_by IS NULL AND reviewed_at IS NULL);
+    AND admin_note IS NULL AND reviewed_by IS NULL AND reviewed_at IS NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM public.wasla_courier_profiles
+      WHERE user_id = auth.uid()
+    ));
 CREATE POLICY wasla_courier_applications_founder_select
   ON public.wasla_courier_applications FOR SELECT TO authenticated
   USING (public.wasla_can_manage_operations());
