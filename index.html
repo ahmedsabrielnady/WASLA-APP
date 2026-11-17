@@ -828,9 +828,13 @@ const DB = {
                 const date = document.createElement('p');
                 date.style.cssText = 'font-size:11px; color:var(--muted); margin-top:8px;';
                 const createdAt = order.created_at ? new Date(order.created_at) : null;
+                const updatedAt = order.updated_at ? new Date(order.updated_at) : null;
                 date.textContent = createdAt && !Number.isNaN(createdAt.getTime())
-                    ? createdAt.toLocaleString('ar-EG')
+                    ? 'تاريخ الطلب: ' + createdAt.toLocaleString('ar-EG')
                     : '';
+                if (updatedAt && !Number.isNaN(updatedAt.getTime())) {
+                    date.textContent += (date.textContent ? '\n' : '') + 'آخر تحديث: ' + updatedAt.toLocaleString('ar-EG');
+                }
                 card.append(details, date);
                 list.appendChild(card);
             });
