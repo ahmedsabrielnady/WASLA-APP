@@ -35,20 +35,18 @@ Apply migrations in order:
 3. `supabase/migrations/20261117_order_lifecycle.sql`
    - **Not yet confirmed as applied.**
    - Enforces permitted order status transitions in PostgreSQL, not just in the founder dashboard.
-   - Prevents skipping from pending directly to delivered, skipping dispatch/handoff stages, reopening completed/cancelled orders, and moving delivered orders backwards. It also stops safely if existing orders contain an unknown legacy status.
-   - Includes database assertions for valid and invalid transitions.
-4. `supabase/migrations/20261118_ticker_role_rpc_permissions.sql`
+   - Prevents invalid jumps, dispatch-stage skips, and reopening completed/cancelled orders; aborts if unknown legacy statuses exist.
+4. `supabase/migrations/20261117_courier_dispatch.sql`
+   - **Not yet confirmed as applied.**
+   - Adds courier applications/profiles, assigned-order RLS, dispatch assignment RPC, and courier notifications.
+   - Depends on migrations #1–#3 and safely stops if existing dispatched orders have no courier assigned.
+5. `supabase/migrations/20261118_ticker_role_rpc_permissions.sql`
    - **Not yet confirmed as applied.**
    - Restricts execution of `public.wasla_can_manage_ticker()` to authenticated users.
-4. `supabase/migrations/20261119_provider_applications.sql`
+6. `supabase/migrations/20261119_provider_applications.sql`
    - **Not yet confirmed as applied.**
    - Creates the private provider application workflow, owner-scoped RLS, founder review policies, column-level grants, and applicant notifications.
    - Depends on the notifications table from migration #1 and the existing `public.is_founder()` helper.
-5. `supabase/migrations/20261117_order_lifecycle.sql`
-   - **Not yet confirmed as applied.**
-   - Enforces permitted order status transitions in PostgreSQL, not just in the founder dashboard.
-   - Prevents skipping from pending directly to delivered, reopening completed/cancelled orders, and moving delivered orders backwards.
-   - Includes database assertions for valid and invalid transitions.
 
 Apply migrations in order after reviewing the current production schema. Migration #2 intentionally refuses to proceed if orders RLS is disabled; do not bypass that guard without auditing all existing customer policies. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
 
