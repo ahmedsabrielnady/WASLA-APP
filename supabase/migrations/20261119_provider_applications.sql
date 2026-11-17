@@ -45,8 +45,8 @@ CREATE POLICY wasla_provider_applications_insert_own
 
 CREATE POLICY wasla_provider_applications_update_own_pending
   ON public.wasla_provider_applications FOR UPDATE TO authenticated
-  USING (applicant_id = auth.uid() AND status = 'pending')
-  WITH CHECK (applicant_id = auth.uid() AND status = 'pending');
+  USING (applicant_id = auth.uid() AND status = 'pending' AND admin_note IS NULL AND reviewed_by IS NULL AND reviewed_at IS NULL)
+  WITH CHECK (applicant_id = auth.uid() AND status = 'pending' AND admin_note IS NULL AND reviewed_by IS NULL AND reviewed_at IS NULL);
 
 CREATE POLICY wasla_provider_applications_founder_select
   ON public.wasla_provider_applications FOR SELECT TO authenticated
