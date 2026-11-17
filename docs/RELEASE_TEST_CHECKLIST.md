@@ -93,6 +93,18 @@ Do not use real customer personal data or live payment details.
 - [ ] Confirm the provider cannot move a pending booking directly to completed/no_show or a cancelled booking back to confirmed.
 - [ ] Confirm all displayed and submitted appointment times are interpreted in Africa/Cairo time, including when the browser timezone differs.
 
+## Medical clinic queue
+
+- [ ] Confirm only a medical provider owner can check in a patient or call the next patient.
+- [ ] Confirm check-in is limited to confirmed appointments scheduled for the current Africa/Cairo date.
+- [ ] Check in multiple patients and verify queue numbers are unique and sequential per provider/day.
+- [ ] Confirm the customer receives the queue number notification after check-in.
+- [ ] Call the next patient and confirm the correct lowest waiting number is selected and receives “your turn now”.
+- [ ] Confirm waiting patients with one to three cases ahead receive one “approaching your turn” notification, without duplicates.
+- [ ] Confirm non-medical providers cannot access medical queue RPCs.
+- [ ] Confirm completed, cancelled, and no-show appointments leave the active waiting queue.
+- [ ] Confirm a future appointment cannot be marked no-show.
+
 ## Customer, notifications, and operations
 
 - [ ] Confirm customer order history is scoped to the signed-in customer.
