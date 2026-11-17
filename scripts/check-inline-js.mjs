@@ -4,6 +4,7 @@ const pages = [
   'index.html',
   'admin.html',
   'founder-announcements.html',
+  'founder-dashboard.html',
 ];
 
 let checked = 0;
