@@ -82,3 +82,11 @@ These checks do **not** replace a signed-in browser test or a real database tran
 - Browser pages use the Supabase publishable/anon key only.
 - Never put a Supabase service-role key or other server secret in HTML, JavaScript, GitHub, or a browser.
 - Frontend checks are for user experience only. Supabase RLS and database privileges are the actual access boundary.
+
+
+## Provider onboarding (new foundation)
+- `provider-apply.html` lets an authenticated user submit a provider application.
+- `founder-providers.html` provides founder-only review for pending applications.
+- `supabase/migrations/20261119_provider_applications.sql` creates a private application table with owner-scoped RLS, founder review policies, and column-level grants.
+- The migration is **not yet confirmed as applied**. Apply it only after verifying the preceding ticker and operations migrations and confirming `public.is_founder()` is available in this Supabase project.
+- An approved application is not automatically a live provider listing. Provider verification, profile creation, service catalog, and customer booking integration remain separate release gates.
