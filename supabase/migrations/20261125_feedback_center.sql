@@ -7,6 +7,7 @@ DO $preflight$
 BEGIN
   IF to_regclass('public.wasla_notifications') IS NULL
      OR to_regclass('public.users') IS NULL
+     OR to_regclass('public.profiles') IS NULL
      OR to_regprocedure('public.wasla_can_manage_operations()') IS NULL THEN
     RAISE EXCEPTION 'WASLA feedback center prerequisites are missing';
   END IF;
