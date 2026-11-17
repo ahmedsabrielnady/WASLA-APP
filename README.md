@@ -55,6 +55,10 @@ Apply migrations in order:
    - **Not yet confirmed as applied.**
    - Adds cash-on-delivery checkout, merchant order ownership, order-item snapshots, stock reservation/restoration, and merchant status transitions.
    - Depends on migrations #1, #2, #5, #6, and #7.
+9. `supabase/migrations/20261124_services_appointments.sql`
+   - **Not yet confirmed as applied.**
+   - Adds provider service catalogs, weekly availability, customer appointments, provider confirmation/cancellation, customer cancellation, private notifications, and concurrent overlap protection.
+   - Depends on provider profiles and notification infrastructure from migrations #1, #2, #7, and #8.
 
 Apply migrations in order after reviewing the current production schema. Migration #2 intentionally refuses to proceed if orders RLS is disabled; do not bypass that guard without auditing all existing customer policies. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
 
@@ -77,11 +81,13 @@ Apply migrations in order after reviewing the current production schema. Migrati
 - Merchant checkout validates stock in the database and reserves quantities atomically; cancellations before dispatch restore stock.
 - Merchants can manage their own product catalog and move orders through accepted, preparing, and ready-for-pickup states.
 - The merchant order inbox loads 50 orders per page, uses the exact database count for load-more availability, and suppresses duplicate cards when new orders arrive during paging.
+- Service providers in medical, education, maintenance, and automotive sectors can create service offerings, set weekly availability, and review customer booking requests. Customers can request an available time; provider confirmation is required before the appointment is confirmed.
+- Confirmed service bookings can be cancelled by customers only at least 12 hours before the appointment. Pending requests can be cancelled at any time.
 - The founder can assign active couriers to ready orders; customers can view the last courier location while an order is out for delivery, subject to the courier's browser location permission and active portal session.
 
 ## Still not production-complete
 
-- Medical booking is still a preliminary request, not a confirmed appointment. The legacy form writes a generic order request and opens WhatsApp; it does not create a row in `appointments` or `health_appointments`.
+- The legacy medical form still creates only a preliminary request. The new service marketplace and booking RPC use dedicated `wasla_service_bookings` records, weekly provider schedules, and provider confirmation. The legacy form has not yet been replaced by the new appointment flow.
 - No doctor time-slot availability, conflict prevention, deposit collection, or clinic queue integration is wired into the public booking flow.
 - Education providers and courses are placeholders pending verified provider onboarding.
 - The supermarket list is illustrative. Live stores, inventory, prices, checkout totals, and partner acceptance are not connected.
