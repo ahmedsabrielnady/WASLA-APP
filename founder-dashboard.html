@@ -122,10 +122,10 @@ const STATUS_OPTIONS = [
 const STATUS_TRANSITIONS = {
   pending: ['accepted','cancelled'],
   'قيد المراجعة': ['accepted','cancelled'],
-  accepted: ['preparing','ready_for_pickup','assigned','out_for_delivery','delivered','completed','cancelled'],
-  preparing: ['ready_for_pickup','assigned','out_for_delivery','delivered','completed','cancelled'],
+  accepted: ['preparing','ready_for_pickup','completed','cancelled'],
+  preparing: ['ready_for_pickup','completed','cancelled'],
   ready_for_pickup: ['assigned','out_for_delivery','delivered','completed','cancelled'],
-  assigned: ['out_for_delivery','delivered','completed','cancelled'],
+  assigned: ['out_for_delivery','cancelled'],
   out_for_delivery: ['delivered'],
   delivered: ['completed'],
   completed: [],
