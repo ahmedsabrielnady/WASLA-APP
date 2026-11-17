@@ -389,10 +389,13 @@ async function loadWaslaAnnouncements() {
     const ticker = document.getElementById('wasla-announcement-ticker');
     if (!ticker || !supabaseClient) return;
     try {
+        const now = new Date().toISOString();
         const { data, error } = await supabaseClient
             .from('offers_ticker')
-            .select('text_ar, badge_text, target_url')
+            .select('text_ar, badge_text, target_url, starts_at, ends_at')
             .eq('is_active', true)
+            .lte('starts_at', now)
+            .or('ends_at.is.null,ends_at.gt.' + now)
             .order('sort_order', { ascending: true });
         if (error) throw error;
         if (!data || data.length === 0) return;
