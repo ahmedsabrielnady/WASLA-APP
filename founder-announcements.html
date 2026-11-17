@@ -101,18 +101,12 @@ async function ensureFounder() {
       return false;
     }
 
-    const [userRoleResult, profileRoleResult] = await Promise.all([
-      sb.from('users').select('role').eq('id', session.user.id).maybeSingle(),
-      sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle()
-    ]);
+    // Ask the same SECURITY DEFINER function used by the database RLS policy.
+    // Never trust client-visible profile rows or user-editable metadata for authorization.
+    const { data: allowed, error: roleError } = await sb.rpc('wasla_can_manage_ticker');
+    if (roleError) throw roleError;
 
-    const roles = [
-      session.user.app_metadata?.role,
-      userRoleResult.data?.role,
-      profileRoleResult.data?.role
-    ];
-
-    if (!roles.some(role => ['founder', 'admin'].includes(role))) {
+    if (allowed !== true) {
       showLogin('هذا الحساب لا يملك صلاحية مؤسس أو مدير. استخدم حسابًا مخولًا.');
       await sb.auth.signOut();
       return false;
