@@ -99,6 +99,8 @@ Do not use real customer personal data or live payment details.
 - [ ] Confirm founder operations pagination loads additional order pages without duplicates.
 - [ ] Confirm status transitions are enforced by PostgreSQL, not only by disabled UI options.
 - [ ] Confirm all staff pages reject unauthorized accounts.
+- [ ] Confirm the founder appointment dashboard rejects ordinary customer accounts and only displays private appointment records to authorized operations staff.
+- [ ] Confirm founder appointment pagination uses exact database counts and does not expose appointment records to unauthorized users.
 
 ## Release blockers
 
