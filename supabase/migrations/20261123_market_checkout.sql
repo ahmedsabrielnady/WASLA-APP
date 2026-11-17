@@ -390,7 +390,7 @@ BEGIN
   END IF;
 
   INSERT INTO public.wasla_notifications(user_id,title,body,type,order_id)
-  VALUES (v_owner,v_title,v_body,'market_order_' || NEW.status,'order:' || NEW.id::text);
+  VALUES (v_owner,v_title,v_body,'market_order_' || NEW.status,NEW.id::text);
   RETURN NEW;
 END;
 $function$;
