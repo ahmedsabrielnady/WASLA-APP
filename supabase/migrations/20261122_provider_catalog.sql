@@ -120,8 +120,8 @@ GRANT SELECT (id,application_id,sector,business_name,contact_phone,city,address,
   ON TABLE public.wasla_provider_profiles TO authenticated;
 GRANT UPDATE (business_name,contact_name,contact_phone,city,address,description)
   ON TABLE public.wasla_provider_profiles TO authenticated;
-GRANT UPDATE (is_active,is_published)
-  ON TABLE public.wasla_provider_profiles TO authenticated;
+REVOKE UPDATE (is_active,is_published)
+  ON TABLE public.wasla_provider_profiles FROM anon,authenticated;
 
 REVOKE ALL ON TABLE public.wasla_provider_products FROM anon,authenticated;
 GRANT SELECT ON TABLE public.wasla_provider_products TO anon,authenticated;
@@ -196,6 +196,37 @@ SELECT
 FROM public.wasla_provider_applications
 WHERE status = 'approved'
 ON CONFLICT (application_id) DO NOTHING;
+
+CREATE OR REPLACE FUNCTION public.wasla_set_provider_state(
+  p_provider_id uuid,
+  p_is_active boolean,
+  p_is_published boolean
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog,public,auth
+AS $function$
+BEGIN
+  IF NOT public.wasla_can_manage_operations() THEN
+    RAISE EXCEPTION 'Not authorized to manage provider publication' USING ERRCODE = '42501';
+  END IF;
+  IF p_is_published AND NOT p_is_active THEN
+    RAISE EXCEPTION 'An inactive provider cannot be published' USING ERRCODE = '23514';
+  END IF;
+  UPDATE public.wasla_provider_profiles
+  SET is_active = p_is_active,
+      is_published = p_is_published,
+      updated_at = now()
+  WHERE id = p_provider_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Provider profile not found' USING ERRCODE = 'P0002';
+  END IF;
+  RETURN true;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_set_provider_state(uuid,boolean,boolean) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.wasla_set_provider_state(uuid,boolean,boolean) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.wasla_is_active_provider()
 RETURNS boolean
