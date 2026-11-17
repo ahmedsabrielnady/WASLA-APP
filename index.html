@@ -792,7 +792,7 @@ const DB = {
             const to = from + this.ordersPageSize - 1;
             const { data, error } = await supabaseClient
                 .from('orders')
-                .select('id, sector, status, tracking_code, details, created_at, updated_at, courier_id')
+                .select('id, sector, status, tracking_code, details, created_at, updated_at, courier_id, provider_id')
                 .eq('user_id', Auth.user.id)
                 .order('created_at', { ascending: false })
                 .range(from, to);
@@ -849,6 +849,28 @@ const DB = {
                     date.textContent += (date.textContent ? '\n' : '') + 'آخر تحديث: ' + updatedAt.toLocaleString('ar-EG');
                 }
                 card.append(details, date);
+                if (order.provider_id && order.status === 'pending') {
+                    const cancel = document.createElement('button');
+                    cancel.type = 'button';
+                    cancel.className = 'btn-auth';
+                    cancel.textContent = 'إلغاء الطلب';
+                    cancel.style.cssText = 'margin-top:8px;background:#b91c1c;color:white;';
+                    cancel.addEventListener('click', async () => {
+                        cancel.disabled = true;
+                        try {
+                            const { data: cancelled, error: cancelError } = await supabaseClient.rpc('wasla_cancel_market_order', { p_order_id: String(order.id) });
+                            if (cancelError) throw cancelError;
+                            if (cancelled !== true) throw new Error('لم يتم تأكيد الإلغاء.');
+                            UI.toast('تم إلغاء الطلب وإعادة الكميات للمخزون.');
+                            await DB.loadOrders(true);
+                            await DB.loadNotifications();
+                        } catch (cancelError) {
+                            UI.toast('تعذر إلغاء الطلب: ' + cancelError.message);
+                            cancel.disabled = false;
+                        }
+                    });
+                    card.appendChild(cancel);
+                }
                 if (order.status === 'out_for_delivery' && order.courier_id) {
                     const locationBox = document.createElement('div');
                     locationBox.style.cssText = 'margin-top:10px;padding:10px;border-radius:10px;background:var(--brand-light);';
