@@ -212,6 +212,30 @@ ALTER TABLE public.orders
 CREATE INDEX IF NOT EXISTS wasla_orders_courier_status_created_idx
   ON public.orders(courier_id,status,created_at DESC);
 
+CREATE OR REPLACE FUNCTION public.wasla_protect_courier_assignment()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $function$
+BEGIN
+  IF TG_OP = 'INSERT' AND NEW.courier_id IS NOT NULL THEN
+    RAISE EXCEPTION 'Courier assignment must be performed by the authorized dispatch RPC' USING ERRCODE = '42501';
+  END IF;
+  IF TG_OP = 'UPDATE'
+     AND NEW.courier_id IS DISTINCT FROM OLD.courier_id
+     AND current_setting('wasla.courier_assignment', true) IS DISTINCT FROM 'authorized' THEN
+    RAISE EXCEPTION 'Courier assignment must be performed by the authorized dispatch RPC' USING ERRCODE = '42501';
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.wasla_protect_courier_assignment() FROM PUBLIC;
+DROP TRIGGER IF EXISTS wasla_orders_protect_courier_assignment ON public.orders;
+CREATE TRIGGER wasla_orders_protect_courier_assignment
+BEFORE INSERT OR UPDATE OF courier_id ON public.orders
+FOR EACH ROW EXECUTE FUNCTION public.wasla_protect_courier_assignment();
+
 CREATE OR REPLACE FUNCTION public.wasla_require_courier_for_dispatch()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -279,6 +303,7 @@ BEGIN
     RAISE EXCEPTION 'Courier is not active or does not exist' USING ERRCODE = '23503';
   END IF;
 
+  PERFORM set_config('wasla.courier_assignment','authorized',true);
   UPDATE public.orders
   SET courier_id = p_courier_id,
       courier_assigned_at = now(),
@@ -287,6 +312,7 @@ BEGIN
     AND status = 'ready_for_pickup'
     AND courier_id IS NULL;
 
+  PERFORM set_config('wasla.courier_assignment','',true);
   GET DIAGNOSTICS v_updated = ROW_COUNT;
   IF v_updated <> 1 THEN
     RAISE EXCEPTION 'Order is not ready for courier assignment' USING ERRCODE = '23514';
