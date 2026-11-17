@@ -258,7 +258,8 @@ function renderOrders() {
 
   host.replaceChildren();
   if (!visible.length) {
-    host.innerHTML = '<div class="empty">لا توجد طلبات مطابقة للبحث أو الفلاتر.</div>';
+    host.innerHTML = '<div class="empty">لا توجد طلبات مطابقة ضمن السجلات المحمّلة حاليًا.</div>';
+    renderOrdersPagination(host);
     return;
   }
 
@@ -316,6 +317,10 @@ function renderOrders() {
     host.appendChild(card);
   });
 
+  renderOrdersPagination(host);
+}
+
+function renderOrdersPagination(host) {
   const pagination = document.getElementById('orders-pagination');
   if (pagination) pagination.remove();
   if (ordersHasMore) {
@@ -333,7 +338,7 @@ function renderOrders() {
   }
 }
 
-async function loadMoreOrders() {
+async function loadMoreOrders {
   if (ordersLoadingMore || !ordersHasMore) return;
   ordersLoadingMore = true;
   renderOrders();
