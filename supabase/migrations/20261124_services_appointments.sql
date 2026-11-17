@@ -468,8 +468,8 @@ BEGIN
     RETURNING due.customer_id,due.service_name,due.scheduled_at
   )
   INSERT INTO public.wasla_notifications(user_id,title,body,type,order_id)
-  SELECT customer_id,'تذكير بموعدك غدًا',
-    'تذكير: لديك موعد لخدمة ' || service_name || ' غدًا تقريبًا. الموعد ' ||
+  SELECT customer_id,'تذكير بموعدك القادم',
+    'تذكير: لديك موعد قادم لخدمة ' || service_name || '. الموعد ' ||
     to_char(scheduled_at AT TIME ZONE 'Africa/Cairo','YYYY-MM-DD HH24:MI') || '.',
     'service_booking_reminder_24h',NULL
   FROM marked;
