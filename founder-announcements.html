@@ -42,60 +42,309 @@
   </section>
 </div>
 <script>
-const SUPABASE_URL='https://fdduzcytuhoelnnejgkl.supabase.co';
-const SUPABASE_ANON_KEY='sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529';
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-const $=id=>document.getElementById(id);
-function status(id,msg,isError=false){const el=$(id);el.textContent=msg;el.className=isError?'status error':'status';}
-function toLocal(v){if(!v)return '';const d=new Date(v);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
-function toIso(v){return v?new Date(v).toISOString():null;}
-function resetForm(){$('announcement-form').reset();$('edit-id').value='';$('badge-text').value='عرض خاص';$('is-active').checked=true;$('save').textContent='حفظ الإعلان';$('form-status').textContent='';}
-async function ensureFounder(){
- const {data:{session}}=await sb.auth.getSession();
- if(!session){$('login-card').classList.remove('hidden');$('app').classList.add('hidden');$('logout').classList.add('hidden');return false;}
- const [userRole, profileRole] = await Promise.all([
-  sb.from('users').select('role').eq('id',session.user.id).maybeSingle(),
-  sb.from('profiles').select('role').eq('id',session.user.id).maybeSingle()
- ]);
- const roles=[session.user.app_metadata?.role,userRole.data?.role,profileRole.data?.role];
- if(!roles.some(role=>['founder','admin'].includes(role))){
-  status('login-status','الحساب لا يحمل صلاحية مؤسس أو مدير في قاعدة البيانات.',true);
-  await sb.auth.signOut();return false;
- }
- $('login-card').classList.add('hidden');$('app').classList.remove('hidden');$('logout').classList.remove('hidden');await loadItems();return true;
+const SUPABASE_URL = 'https://fdduzcytuhoelnnejgkl.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529';
+const sb = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) || null;
+const $ = id => document.getElementById(id);
+
+function status(id, message, isError = false) {
+  const el = $(id);
+  if (!el) return;
+  el.textContent = message;
+  el.className = isError ? 'status error' : 'status';
 }
-async function loadItems(){
- const host=$('items');host.textContent='جاري التحميل...';
- const {data,error}=await sb.from('offers_ticker').select('id,text_ar,badge_text,target_url,is_active,starts_at,ends_at,created_at,sort_order').order('created_at',{ascending:false});
- if(error){host.textContent='تعذر تحميل الإعلانات: '+error.message;return;}
- host.replaceChildren();
- if(!data?.length){host.textContent='لا توجد إعلانات بعد.';return;}
- data.forEach(item=>{
-  const row=document.createElement('div');row.className='item';
-  const info=document.createElement('div');const title=document.createElement('strong');title.textContent=item.text_ar;
-  const meta=document.createElement('p');meta.className='muted';meta.textContent=(item.is_active?'مفعّل':'متوقف')+' • يبدأ: '+new Date(item.starts_at).toLocaleString('ar-EG')+' • ينتهي: '+(item.ends_at?new Date(item.ends_at).toLocaleString('ar-EG'):'بدون موعد انتهاء');
-  info.append(title,meta);
-  const actions=document.createElement('div');actions.className='actions';
-  const edit=document.createElement('button');edit.className='btn secondary';edit.textContent='تعديل';edit.onclick=()=>{ $('edit-id').value=item.id;$('message').value=item.text_ar;$('badge-text').value=item.badge_text||'عرض خاص';$('target-url').value=item.target_url||'';$('starts-at').value=toLocal(item.starts_at);$('ends-at').value=toLocal(item.ends_at);$('is-active').checked=item.is_active;$('save').textContent='حفظ التعديلات';window.scrollTo({top:0,behavior:'smooth'});};
-  const toggle=document.createElement('button');toggle.className='btn secondary';toggle.textContent=item.is_active?'إيقاف':'تفعيل';toggle.onclick=async()=>{const {error}=await sb.from('offers_ticker').update({is_active:!item.is_active,updated_at:new Date().toISOString()}).eq('id',item.id);if(error)alert('تعذر التحديث: '+error.message);else loadItems();};
-  const del=document.createElement('button');del.className='btn danger';del.textContent='حذف';del.onclick=async()=>{if(!confirm('تأكيد حذف الإعلان؟'))return;const {error}=await sb.from('offers_ticker').delete().eq('id',item.id);if(error)alert('تعذر الحذف: '+error.message);else loadItems();};
-  actions.append(edit,toggle,del);row.append(info,actions);host.append(row);
- });
+
+function toLocal(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    .toISOString().slice(0, 16);
 }
-$('login').onclick=async()=>{status('login-status','جاري تسجيل الدخول...');const {error}=await sb.auth.signInWithPassword({email:$('email').value,password:$('password').value});if(error){status('login-status',error.message,true);return;}await ensureFounder();};
-$('logout').onclick=async()=>{await sb.auth.signOut();await ensureFounder();};
-$('reset').onclick=resetForm;
-$('announcement-form').onsubmit=async e=>{
- e.preventDefault();const message=$('message').value.trim();if(!message)return status('form-status','اكتب نص الإعلان.',true);
- const target=$('target-url').value.trim();if(target&&!/^https?:\/\//i.test(target))return status('form-status','الرابط يجب أن يبدأ بـ https:// أو http://',true);
- const start=$('starts-at').value?toIso($('starts-at').value):new Date().toISOString();const end=$('ends-at').value?toIso($('ends-at').value):null;
- if(end&&new Date(end)<=new Date(start))return status('form-status','موعد النهاية يجب أن يكون بعد البداية.',true);
- const payload={text_ar:message,badge_text:$('badge-text').value.trim()||'عرض خاص',target_url:target||null,is_active:$('is-active').checked,starts_at:start,ends_at:end,updated_at:new Date().toISOString()};
- const id=$('edit-id').value;const result=id?await sb.from('offers_ticker').update(payload).eq('id',id):await sb.from('offers_ticker').insert({...payload,created_by:(await sb.auth.getUser()).data.user.id});
- if(result.error){status('form-status','تعذر الحفظ: '+result.error.message,true);return;}
- status('form-status','تم حفظ الإعلان.');resetForm();await loadItems();
+
+function toIso(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function resetForm() {
+  $('announcement-form').reset();
+  $('edit-id').value = '';
+  $('badge-text').value = 'عرض خاص';
+  $('is-active').checked = true;
+  $('save').textContent = 'حفظ الإعلان';
+  $('save').disabled = false;
+  $('form-status').textContent = '';
+}
+
+function showLogin(message = '') {
+  $('login-card').classList.remove('hidden');
+  $('app').classList.add('hidden');
+  $('logout').classList.add('hidden');
+  if (message) status('login-status', message, true);
+}
+
+async function ensureFounder() {
+  if (!sb) {
+    showLogin('تعذر تحميل مكتبة الاتصال. حدّث الصفحة وحاول مرة أخرى.');
+    return false;
+  }
+
+  try {
+    const { data, error } = await sb.auth.getSession();
+    if (error) throw error;
+    const session = data?.session;
+
+    if (!session) {
+      showLogin();
+      return false;
+    }
+
+    const [userRoleResult, profileRoleResult] = await Promise.all([
+      sb.from('users').select('role').eq('id', session.user.id).maybeSingle(),
+      sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle()
+    ]);
+
+    const roles = [
+      session.user.app_metadata?.role,
+      userRoleResult.data?.role,
+      profileRoleResult.data?.role
+    ];
+
+    if (!roles.some(role => ['founder', 'admin'].includes(role))) {
+      showLogin('هذا الحساب لا يملك صلاحية مؤسس أو مدير. استخدم حسابًا مخولًا.');
+      await sb.auth.signOut();
+      return false;
+    }
+
+    $('login-card').classList.add('hidden');
+    $('app').classList.remove('hidden');
+    $('logout').classList.remove('hidden');
+    await loadItems();
+    return true;
+  } catch (error) {
+    console.error('WASLA founder session check failed:', error);
+    showLogin('تعذر التحقق من صلاحيات الحساب. تحقق من الاتصال وحاول مرة أخرى.');
+    return false;
+  }
+}
+
+async function loadItems() {
+  const host = $('items');
+  host.textContent = 'جاري تحميل الإعلانات...';
+
+  try {
+    const { data, error } = await sb
+      .from('offers_ticker')
+      .select('id,text_ar,badge_text,target_url,is_active,starts_at,ends_at,created_at,sort_order')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    host.replaceChildren();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      host.textContent = 'لا توجد إعلانات بعد.';
+      return;
+    }
+
+    data.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'item';
+
+      const info = document.createElement('div');
+      const title = document.createElement('strong');
+      title.textContent = item.text_ar || 'إعلان بدون نص';
+
+      const meta = document.createElement('p');
+      meta.className = 'muted';
+      const startDate = item.starts_at ? new Date(item.starts_at) : null;
+      const endDate = item.ends_at ? new Date(item.ends_at) : null;
+      const startText = startDate && !Number.isNaN(startDate.getTime())
+        ? startDate.toLocaleString('ar-EG') : 'غير محدد';
+      const endText = endDate && !Number.isNaN(endDate.getTime())
+        ? endDate.toLocaleString('ar-EG') : 'بدون موعد انتهاء';
+      const now = Date.now();
+      const inWindow = (!startDate || startDate.getTime() <= now)
+        && (!endDate || endDate.getTime() > now);
+      const stateText = !item.is_active
+        ? 'متوقف'
+        : (inWindow ? 'مفعّل ويظهر الآن' : 'مفعّل خارج فترة العرض');
+      meta.textContent = stateText + ' • يبدأ: ' + startText + ' • ينتهي: ' + endText;
+      info.append(title, meta);
+
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+
+      const edit = document.createElement('button');
+      edit.className = 'btn secondary';
+      edit.textContent = 'تعديل';
+      edit.onclick = () => {
+        $('edit-id').value = item.id;
+        $('message').value = item.text_ar || '';
+        $('badge-text').value = item.badge_text || 'عرض خاص';
+        $('target-url').value = item.target_url || '';
+        $('starts-at').value = toLocal(item.starts_at);
+        $('ends-at').value = toLocal(item.ends_at);
+        $('is-active').checked = Boolean(item.is_active);
+        $('save').textContent = 'حفظ التعديلات';
+        $('form-status').textContent = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      const toggle = document.createElement('button');
+      toggle.className = 'btn secondary';
+      toggle.textContent = item.is_active ? 'إيقاف' : 'تفعيل';
+      toggle.onclick = async () => {
+        toggle.disabled = true;
+        try {
+          const { error } = await sb.from('offers_ticker')
+            .update({ is_active: !item.is_active, updated_at: new Date().toISOString() })
+            .eq('id', item.id);
+          if (error) throw error;
+          await loadItems();
+        } catch (error) {
+          console.error('WASLA ticker toggle failed:', error);
+          alert('تعذر تغيير حالة الإعلان. تحقق من الصلاحيات والاتصال.');
+          toggle.disabled = false;
+        }
+      };
+
+      const del = document.createElement('button');
+      del.className = 'btn danger';
+      del.textContent = 'حذف';
+      del.onclick = async () => {
+        if (!confirm('تأكيد حذف الإعلان؟')) return;
+        del.disabled = true;
+        try {
+          const { error } = await sb.from('offers_ticker').delete().eq('id', item.id);
+          if (error) throw error;
+          await loadItems();
+        } catch (error) {
+          console.error('WASLA ticker delete failed:', error);
+          alert('تعذر حذف الإعلان. تحقق من الصلاحيات والاتصال.');
+          del.disabled = false;
+        }
+      };
+
+      actions.append(edit, toggle, del);
+      row.append(info, actions);
+      host.append(row);
+    });
+  } catch (error) {
+    console.error('WASLA ticker load failed:', error);
+    host.textContent = 'تعذر تحميل الإعلانات. تحقق من الاتصال والصلاحيات ثم أعد المحاولة.';
+  }
+}
+
+$('login').onclick = async () => {
+  if (!sb) return status('login-status', 'خدمة تسجيل الدخول غير متاحة حالياً.', true);
+  const button = $('login');
+  const email = $('email').value.trim();
+  const password = $('password').value;
+  if (!email || !password) return status('login-status', 'أدخل البريد الإلكتروني وكلمة المرور.', true);
+
+  button.disabled = true;
+  status('login-status', 'جاري تسجيل الدخول...');
+  try {
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    await ensureFounder();
+  } catch (error) {
+    console.error('WASLA founder login failed:', error);
+    status('login-status', 'تعذر تسجيل الدخول. راجع البيانات وحاول مرة أخرى.', true);
+  } finally {
+    button.disabled = false;
+  }
 };
-// Login and logout handlers refresh the page state explicitly; avoid async work inside auth callbacks.
+
+$('logout').onclick = async () => {
+  try {
+    const { error } = await sb.auth.signOut();
+    if (error) throw error;
+    resetForm();
+    showLogin('تم تسجيل الخروج.');
+  } catch (error) {
+    console.error('WASLA founder logout failed:', error);
+    status('form-status', 'تعذر تسجيل الخروج. حاول مرة أخرى.', true);
+  }
+};
+
+$('reset').onclick = resetForm;
+
+$('announcement-form').onsubmit = async event => {
+  event.preventDefault();
+  if (!sb) return status('form-status', 'خدمة قاعدة البيانات غير متاحة.', true);
+
+  const button = $('save');
+  if (button.disabled) return;
+
+  const message = $('message').value.trim();
+  if (!message) return status('form-status', 'اكتب نص الإعلان.', true);
+
+  const target = $('target-url').value.trim();
+  if (target) {
+    try {
+      const parsed = new URL(target);
+      if (!['https:', 'http:'].includes(parsed.protocol) || !parsed.hostname) {
+        return status('form-status', 'الرابط يجب أن يكون رابط ويب يبدأ بـ https:// أو http://', true);
+      }
+    } catch (_) {
+      return status('form-status', 'الرابط غير صالح. أدخل رابطًا صحيحًا.', true);
+    }
+  }
+
+  const startValue = $('starts-at').value;
+  const endValue = $('ends-at').value;
+  const start = startValue ? toIso(startValue) : new Date().toISOString();
+  const end = endValue ? toIso(endValue) : null;
+  if (!start || (endValue && !end)) {
+    return status('form-status', 'راجع تاريخ بداية ونهاية الإعلان.', true);
+  }
+  if (end && new Date(end) <= new Date(start)) {
+    return status('form-status', 'موعد النهاية يجب أن يكون بعد البداية.', true);
+  }
+
+  button.disabled = true;
+  button.textContent = 'جاري الحفظ...';
+  status('form-status', 'جاري حفظ الإعلان...');
+
+  try {
+    const { data: { user }, error: userError } = await sb.auth.getUser();
+    if (userError) throw userError;
+    if (!user?.id) throw new Error('No authenticated founder session');
+
+    const payload = {
+      text_ar: message,
+      badge_text: $('badge-text').value.trim() || 'عرض خاص',
+      target_url: target || null,
+      is_active: $('is-active').checked,
+      starts_at: start,
+      ends_at: end,
+      updated_at: new Date().toISOString()
+    };
+
+    const id = $('edit-id').value;
+    const result = id
+      ? await sb.from('offers_ticker').update(payload).eq('id', id)
+      : await sb.from('offers_ticker').insert({ ...payload, created_by: user.id });
+
+    if (result.error) throw result.error;
+    status('form-status', 'تم حفظ الإعلان بنجاح.');
+    resetForm();
+    await loadItems();
+  } catch (error) {
+    console.error('WASLA ticker save failed:', error);
+    status('form-status', 'تعذر حفظ الإعلان. تحقق من الصلاحيات والاتصال وحاول مرة أخرى.', true);
+  } finally {
+    button.disabled = false;
+    if (button.textContent === 'جاري الحفظ...') {
+      button.textContent = $('edit-id').value ? 'حفظ التعديلات' : 'حفظ الإعلان';
+    }
+  }
+};
+
+// Load the current session explicitly. No asynchronous auth work runs inside an auth callback.
 ensureFounder();
 </script>
 </body>
