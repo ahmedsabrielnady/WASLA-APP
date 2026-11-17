@@ -30,7 +30,7 @@ const checks = [
   ['order history renders untrusted data as text', () => /details\.textContent\s*=\s*order\.details/.test(files.get('homepage'))],
   ['unread notification badge is present', () => /id="notification-count"/.test(files.get('homepage')) && /function updateNotificationBadge/.test(files.get('homepage'))],
   ['unread notification count is exact and user-scoped', () => /select\('id', \{ count: 'exact', head: true \}\)[\s\S]{0,180}eq\('user_id', Auth\.user\.id\)[\s\S]{0,80}is\('read_at', null\)/.test(files.get('homepage'))],
-  ['mark-as-read blocks duplicate clicks', () => /markReadBusy[\s\S]{0,200}if \(markReadBusy \|\| item\.read_at\) return/.test(files.get('homepage'))],
+  ['mark-as-read blocks duplicate clicks', () => /if \(markReadBusy \|\| item\.read_at\) return;[\s\S]{0,100}markReadBusy = true;[\s\S]{0,100}pointerEvents = 'none'/.test(files.get('homepage'))],
   ['auth refresh is deferred outside auth callback', () => /onAuthStateChange[\s\S]{0,250}setTimeout/.test(files.get('homepage'))],
   ['medical request retains the selected clinic ID', () => /معرّف العيادة:\s*'\s*\+\s*docId/.test(files.get('admin'))],
   ['delivery request persists pickup GPS coordinates', () => /pickupCoords\.lat[\s\S]{0,80}pickupCoords\.lng/.test(files.get('admin'))],
