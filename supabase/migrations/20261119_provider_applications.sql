@@ -82,6 +82,41 @@ CREATE TRIGGER wasla_provider_application_touch
 BEFORE UPDATE ON public.wasla_provider_applications
 FOR EACH ROW EXECUTE FUNCTION public.wasla_touch_provider_application();
 
+CREATE OR REPLACE FUNCTION public.wasla_notify_provider_application()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public, auth
+AS $function$
+DECLARE
+  v_title text;
+  v_body text;
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    v_title := 'تم استلام طلب الانضمام';
+    v_body := 'تم استلام طلب نشاط ' || NEW.business_name || ' وهو الآن قيد المراجعة.';
+  ELSIF OLD.status IS DISTINCT FROM NEW.status THEN
+    v_title := 'تم تحديث طلب الانضمام';
+    v_body := CASE NEW.status
+      WHEN 'approved' THEN 'تم قبول طلب نشاط ' || NEW.business_name || ' مبدئيًا. ستتواصل الإدارة لاستكمال التفعيل.'
+      WHEN 'rejected' THEN 'لم تتم الموافقة على طلب نشاط ' || NEW.business_name || '. راجع ملاحظة الإدارة في حسابك.'
+      ELSE 'تم تحديث حالة طلب نشاط ' || NEW.business_name || '.'
+    END;
+  ELSE
+    RETURN NEW;
+  END IF;
+
+  INSERT INTO public.wasla_notifications(user_id, title, body, type, order_id)
+  VALUES (NEW.applicant_id, v_title, v_body, 'provider_application_' || NEW.status, 'provider-application:' || NEW.id::text);
+  RETURN NEW;
+END;
+$function$;
+
+DROP TRIGGER IF EXISTS wasla_provider_application_notify ON public.wasla_provider_applications;
+CREATE TRIGGER wasla_provider_application_notify
+AFTER INSERT OR UPDATE OF status ON public.wasla_provider_applications
+FOR EACH ROW EXECUTE FUNCTION public.wasla_notify_provider_application();
+
 DO $verify$
 BEGIN
   IF NOT EXISTS (
