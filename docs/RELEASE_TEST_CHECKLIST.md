@@ -67,6 +67,23 @@ Do not use real customer personal data or live payment details.
 - [ ] Deny location permission and confirm status updates still work while the UI reports that location sharing is unavailable.
 - [ ] Confirm the courier can only move assigned → out_for_delivery → delivered.
 
+## Service catalog and appointment booking
+
+- [ ] Submit and approve a medical/service provider application; verify the resulting profile remains inactive and unpublished until founder activation.
+- [ ] Activate and publish a medical provider as founder.
+- [ ] Confirm the provider can create and edit service offerings but cannot create services for a restaurant/market profile through direct API calls.
+- [ ] Configure weekly availability in Africa/Cairo time and verify the public catalog shows only active schedule windows.
+- [ ] Request a booking as Customer A inside a valid window; confirm the booking is pending and the provider receives a private notification.
+- [ ] Confirm Customer A can read the booking and Customer B cannot.
+- [ ] Confirm the provider can read only bookings for its own profile and can confirm or cancel using the status RPC.
+- [ ] Confirm the customer receives a private notification after provider confirmation/cancellation.
+- [ ] Attempt two overlapping bookings for the same provider at the same time; confirm only one succeeds, including concurrent requests.
+- [ ] Attempt a booking outside weekly availability, before now, beyond 90 days, or overlapping an existing pending/confirmed booking; confirm the database rejects it.
+- [ ] Cancel a pending booking as the customer; confirm it becomes cancelled.
+- [ ] Confirm a customer cannot cancel a confirmed appointment within 12 hours, but can cancel more than 12 hours before it.
+- [ ] Confirm the provider cannot move a pending booking directly to completed/no_show or a cancelled booking back to confirmed.
+- [ ] Confirm all displayed and submitted appointment times are interpreted in Africa/Cairo time, including when the browser timezone differs.
+
 ## Customer, notifications, and operations
 
 - [ ] Confirm customer order history is scoped to the signed-in customer.
@@ -81,7 +98,7 @@ Do not use real customer personal data or live payment details.
 
 Do not call the platform production-ready until all of the following are true:
 
-- [ ] All required migrations are applied successfully in the correct order.
+- [ ] All nine required migrations are applied successfully in the correct order.
 - [ ] Role-based browser tests above pass against the actual Supabase project.
 - [ ] Vercel deployment completes successfully and the deployed commit matches the reviewed PR head.
 - [ ] Customer, merchant, courier, and founder flows work end-to-end on mobile and desktop.
