@@ -70,7 +70,7 @@ CREATE POLICY wasla_provider_profiles_owner_read
 CREATE POLICY wasla_provider_profiles_owner_update
   ON public.wasla_provider_profiles FOR UPDATE TO authenticated
   USING (owner_user_id = auth.uid())
-  WITH CHECK (owner_user_id = auth.uid() AND is_active = (SELECT p.is_active FROM public.wasla_provider_profiles p WHERE p.id = id));
+  WITH CHECK (owner_user_id = auth.uid());
 CREATE POLICY wasla_provider_profiles_founder_all
   ON public.wasla_provider_profiles FOR ALL TO authenticated
   USING (public.wasla_can_manage_operations())
