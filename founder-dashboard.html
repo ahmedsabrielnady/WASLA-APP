@@ -125,7 +125,7 @@ const STATUS_TRANSITIONS = {
   'قيد المراجعة': ['accepted','cancelled'],
   accepted: ['preparing','ready_for_pickup','completed','cancelled'],
   preparing: ['ready_for_pickup','completed','cancelled'],
-  ready_for_pickup: ['out_for_delivery','delivered','completed','cancelled'],
+  ready_for_pickup: ['delivered','completed','cancelled'],
   assigned: ['out_for_delivery','cancelled'],
   out_for_delivery: ['delivered'],
   delivered: ['completed'],
