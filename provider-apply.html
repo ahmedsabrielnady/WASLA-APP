@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#059669">
+<title>الانضمام كمقدم خدمة | وصلة</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;color:#0f172a;background:#f4f7fb}*{box-sizing:border-box}body{margin:0;padding:20px}.wrap{max-width:620px;margin:24px auto}.card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:24px;box-shadow:0 12px 32px #0f172a0b}.brand{color:#059669;font-size:25px;font-weight:900;margin-bottom:8px}p{line-height:1.8;color:#64748b}.field{display:grid;gap:7px;margin:14px 0}label{font-weight:700;font-size:14px}input,select,textarea{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:12px;font:inherit;background:#fff}textarea{min-height:100px;resize:vertical}.btn{width:100%;padding:13px;border:0;border-radius:12px;background:#059669;color:#fff;font:inherit;font-weight:800;cursor:pointer;margin-top:10px}.btn:disabled{opacity:.55;cursor:wait}.secondary{background:#e2e8f0;color:#0f172a}.notice{padding:14px;border-radius:12px;background:#ecfdf5;color:#065f46;margin:14px 0;line-height:1.8}.error{background:#fef2f2;color:#991b1b}.muted{font-size:12px;color:#64748b}.hidden{display:none!important}a{color:#059669}
+</style>
+</head>
+<body><main class="wrap"><section class="card">
+<div class="brand">وصلة | WASLA</div><h1>انضم كمقدم خدمة</h1><p>قدّم بيانات نشاطك لمراجعتها. إرسال الطلب لا يعني اعتماد النشاط أو ظهوره للعملاء؛ الاعتماد يتم بعد مراجعة الإدارة والتحقق من البيانات.</p>
+<div id="message" class="notice hidden" role="status" aria-live="polite"></div>
+<section id="auth">
+<h2>تسجيل الدخول</h2>
+<div class="field"><label for="email">البريد الإلكتروني</label><input id="email" type="email" autocomplete="email" required></div>
+<div class="field"><label for="password">كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required></div>
+<button class="btn" id="login">دخول</button><button class="btn secondary" id="register">إنشاء حساب</button>
+<p class="muted">إذا كان تأكيد البريد الإلكتروني مطلوبًا، أكمل التأكيد ثم سجّل الدخول.</p>
+</section>
+<section id="application" class="hidden">
+<div id="existing"></div>
+<form id="application-form">
+<h2>بيانات النشاط</h2>
+<div class="field"><label for="sector">مجال الخدمة</label><select id="sector" required><option value="">اختر المجال</option><option value="medical">خدمات طبية</option><option value="education">تعليم</option><option value="restaurants">مطاعم وأطعمة</option><option value="market">سوبر ماركت ومتاجر</option><option value="maintenance">صيانة منزلية</option><option value="automotive">خدمات سيارات</option><option value="delivery">توصيل</option></select></div>
+<div class="field"><label for="business">اسم النشاط أو المنشأة</label><input id="business" maxlength="140" required></div>
+<div class="field"><label for="contact">اسم مسؤول التواصل</label><input id="contact" maxlength="100" required></div>
+<div class="field"><label for="phone">رقم الهاتف</label><input id="phone" type="tel" inputmode="tel" maxlength="24" required></div>
+<div class="field"><label for="city">المدينة / المنطقة</label><input id="city" value="شبين القناطر" maxlength="100" required></div>
+<div class="field"><label for="address">العنوان التفصيلي</label><input id="address" maxlength="240" required></div>
+<div class="field"><label for="description">وصف النشاط والخدمات</label><textarea id="description" maxlength="1200"></textarea></div>
+<button class="btn" id="submit" type="submit">إرسال طلب المراجعة</button>
+</form>
+<button class="btn secondary" id="logout">تسجيل الخروج</button>
+</section>
+<p class="muted"><a href="/">العودة إلى وصلة</a></p>
+</section></main>
+<script>
+const SUPABASE_URL='https://fdduzcytuhoelnnejgkl.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529';
+const client=window.supabase?.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $=id=>document.getElementById(id);
+function message(text,error=false){const el=$('message');el.textContent=text;el.classList.remove('hidden','error');if(error)el.classList.add('error');}
+function showApp(user){$('auth').classList.toggle('hidden',!!user);$('application').classList.toggle('hidden',!user);}
+function statusText(status){return status==='pending'?'طلبك قيد المراجعة':status==='approved'?'تمت الموافقة المبدئية على طلبك، وسيتم التواصل لاستكمال تفعيل النشاط':status==='rejected'?'لم تتم الموافقة على الطلب الحالي':'حالة غير معروفة';}
+async function loadLatest(user){
+ const {data,error}=await client.from('wasla_provider_applications').select('id,business_name,sector,status,admin_note,created_at').eq('applicant_id',user.id).order('created_at',{ascending:false}).limit(1);
+ if(error)throw error;
+ const latest=data?.[0];$('existing').replaceChildren();
+ if(!latest)return;
+ const box=document.createElement('div');box.className='notice';const title=document.createElement('strong');title.textContent=statusText(latest.status);const name=document.createElement('p');name.textContent='النشاط: '+latest.business_name;box.append(title,name);
+ if(latest.admin_note){const note=document.createElement('p');note.textContent='ملاحظة الإدارة: '+latest.admin_note;box.append(note);}
+ $('existing').append(box);
+ if(latest.status!=='rejected'){$('application-form').classList.add('hidden');return;}
+ $('application-form').classList.remove('hidden');
+}
+async function refresh(){
+ if(!client){showApp(null);message('تعذر تهيئة الاتصال بالخدمة.',true);return;}
+ const {data,error}=await client.auth.getSession();if(error)throw error;
+ const user=data.session?.user||null;showApp(user);if(user)await loadLatest(user);
+}
+$('login').onclick=async()=>{try{const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;await refresh();}catch(e){message('تعذر تسجيل الدخول: '+e.message,true);}};
+$('register').onclick=async()=>{try{const {data,error}=await client.auth.signUp({email:$('email').value.trim(),password:$('password').value});if(error)throw error;if(data.session)await refresh();else message('تم إنشاء الحساب. راجع بريدك لتأكيده ثم سجّل الدخول.');}catch(e){message('تعذر إنشاء الحساب: '+e.message,true);}};
+$('logout').onclick=async()=>{try{const {error}=await client.auth.signOut();if(error)throw error;showApp(null);$('existing').replaceChildren();$('application-form').reset();message('تم تسجيل الخروج.');}catch(e){message('تعذر تسجيل الخروج: '+e.message,true);}};
+$('application-form').onsubmit=async(event)=>{
+ event.preventDefault();const button=$('submit');button.disabled=true;
+ try{
+  const {data,error:authError}=await client.auth.getUser();if(authError)throw authError;if(!data.user)throw new Error('سجّل الدخول أولاً.');
+  const payload={applicant_id:data.user.id,sector:$('sector').value,business_name:$('business').value.trim(),contact_name:$('contact').value.trim(),contact_phone:$('phone').value.trim(),city:$('city').value.trim(),address:$('address').value.trim(),description:$('description').value.trim()};
+  const {error}=await client.from('wasla_provider_applications').insert(payload);if(error)throw error;
+  message('تم استلام طلبك. سيظل قيد المراجعة حتى تتخذ الإدارة قرارًا؛ لم يتم اعتماد النشاط بعد.');
+  $('application-form').classList.add('hidden');await loadLatest(data.user);
+ }catch(e){message('لم يتم إرسال الطلب: '+e.message,true);}finally{button.disabled=false;}
+};
+refresh().catch(e=>message('تعذر تحميل حسابك: '+e.message,true));
+</script></body></html>
