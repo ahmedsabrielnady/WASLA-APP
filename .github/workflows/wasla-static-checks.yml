@@ -7,10 +7,30 @@ on:
       - 'admin.html'
       - 'founder-announcements.html'
       - 'founder-dashboard.html'
+      - 'founder-appointments.html'
+      - 'courier-apply.html'
+      - 'founder-couriers.html'
+      - 'courier-dashboard.html'
+      - 'merchant-dashboard.html'
+      - 'marketplace.html'
+      - 'service-marketplace.html'
+      - 'provider-services.html'
+      - 'feedback.html'
+      - 'founder-feedback.html'
+      - 'supabase/migrations/20261119_provider_applications.sql'
+      - 'supabase/migrations/20261120_order_lifecycle.sql'
+      - 'supabase/migrations/20261121_courier_dispatch.sql'
+      - 'supabase/migrations/20261122_provider_catalog.sql'
+      - 'supabase/migrations/20261123_market_checkout.sql'
+      - 'founder-providers.html'
+      - 'provider-apply.html'
       - 'manifest.webmanifest'
       - 'sw.js'
       - 'offline.html'
       - 'assets/wasla-icon.svg'
+      - 'README.md'
+      - 'vercel.json'
+      - 'docs/**'
       - 'supabase/migrations/**'
       - 'scripts/**'
       - '.github/workflows/**'
@@ -23,6 +43,23 @@ on:
       - 'admin.html'
       - 'founder-announcements.html'
       - 'founder-dashboard.html'
+      - 'founder-appointments.html'
+      - 'courier-apply.html'
+      - 'founder-couriers.html'
+      - 'courier-dashboard.html'
+      - 'merchant-dashboard.html'
+      - 'marketplace.html'
+      - 'service-marketplace.html'
+      - 'provider-services.html'
+      - 'feedback.html'
+      - 'founder-feedback.html'
+      - 'supabase/migrations/20261119_provider_applications.sql'
+      - 'supabase/migrations/20261120_order_lifecycle.sql'
+      - 'supabase/migrations/20261121_courier_dispatch.sql'
+      - 'supabase/migrations/20261122_provider_catalog.sql'
+      - 'supabase/migrations/20261123_market_checkout.sql'
+      - 'founder-providers.html'
+      - 'provider-apply.html'
       - 'manifest.webmanifest'
       - 'sw.js'
       - 'offline.html'
@@ -41,6 +78,14 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PostgreSQL SQL parser
+        run: python -m pip install pglast
+      - name: Parse all Supabase migration SQL
+        run: python scripts/check-sql-syntax.py
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
@@ -48,5 +93,10 @@ jobs:
           package-manager-cache: false
       - name: Compile inline JavaScript blocks
         run: node scripts/check-inline-js.mjs
+      - name: Check service worker and validation script syntax
+        run: |
+          node --check sw.js
+          node --check scripts/check-inline-js.mjs
+          node --check scripts/check-wasla-guards.mjs
       - name: Check platform integrity guards
         run: node scripts/check-wasla-guards.mjs

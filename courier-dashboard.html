@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#059669"><title>مهام المندوب | وصلة</title><link rel="manifest" href="/manifest.webmanifest"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>:root{font-family:Tahoma,Arial,sans-serif;background:#f4f7fb;color:#0f172a}*{box-sizing:border-box}body{margin:0;padding:18px}.wrap{max-width:850px;margin:20px auto}.card{background:white;border:1px solid #e2e8f0;border-radius:18px;padding:20px;margin-bottom:14px}.brand{font-size:23px;font-weight:900;color:#059669}p{line-height:1.8;color:#64748b}.field{margin:10px 0}input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit}button{padding:12px 16px;border:0;border-radius:10px;background:#059669;color:white;font:inherit;font-weight:800;cursor:pointer;margin:4px}button:disabled{opacity:.5}.secondary{background:#e2e8f0;color:#0f172a}.notice{padding:12px;border-radius:10px;background:#ecfdf5;color:#065f46}.hidden{display:none!important}.task{border-top:1px solid #e2e8f0;padding:14px 0}.error{background:#fef2f2;color:#991b1b}
+</style></head><body><main class="wrap"><section class="card"><div class="brand">وصلة | بوابة المندوب</div><h1>مهام التوصيل</h1><p>عند بدء التوصيل سيطلب المتصفح إذن الموقع. إذا وافقت، يشارك التطبيق موقعك مع صاحب الطلب النشط كل 30 ثانية أثناء بقاء البوابة مفتوحة. يتوقف التحديث بعد التسليم أو تسجيل الخروج، ويمكنك رفض الإذن مع استمرار تحديث حالة المهمة.</p><div id="message" class="notice hidden" role="status"></div>
+<section id="login"><h2>تسجيل الدخول</h2><div class="field"><input id="email" type="email" placeholder="البريد الإلكتروني" autocomplete="username"></div><div class="field"><input id="password" type="password" placeholder="كلمة المرور" autocomplete="current-password"></div><button id="loginButton">دخول</button></section>
+<section id="portal" class="hidden"><button id="refresh" class="secondary">تحديث المهام</button><button id="logout" class="secondary">تسجيل الخروج</button><div id="alerts"></div><div id="tasks"></div></section></section></main>
+<script>
+const URL='https://fdduzcytuhoelnnejgkl.supabase.co',KEY='sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529',db=window.supabase?.createClient(URL,KEY),$=id=>document.getElementById(id);let user=null,locationWatchId=null,lastLocationSentAt=0;
+function say(t,err=false){const e=$('message');e.textContent=t;e.classList.remove('hidden','error');if(err)e.classList.add('error');}
+function show(ok){$('login').classList.toggle('hidden',ok);$('portal').classList.toggle('hidden',!ok);}
+const labels={assigned:'تم إسناد المهمة',out_for_delivery:'في الطريق للعميل',delivered:'تم التسليم',completed:'مكتمل'};
+async function authorize(){const {data,error}=await db.auth.getUser();if(error)throw error;user=data.user;if(!user){show(false);return;}const {data:active,error:roleError}=await db.rpc('wasla_is_active_courier');if(roleError)throw roleError;if(active!==true){await db.auth.signOut();user=null;show(false);say('هذا الحساب غير مفعل كمندوب. قدّم طلبًا وانتظر اعتماد الإدارة.',true);return;}show(true);await loadTasks();}
+function stopLocationTracking(){
+ if(locationWatchId!==null && navigator.geolocation){navigator.geolocation.clearWatch(locationWatchId);}
+ locationWatchId=null;lastLocationSentAt=0;
+}
+function startLocationTracking(){
+ if(locationWatchId!==null)return;
+ if(!navigator.geolocation){say('المتصفح لا يدعم تحديد الموقع؛ سيظل تحديث حالة الطلب متاحًا.',true);return;}
+ locationWatchId=navigator.geolocation.watchPosition(async position=>{
+  const now=Date.now();if(now-lastLocationSentAt<30000)return;
+  lastLocationSentAt=now;
+  try{
+   const {error}=await db.from('wasla_courier_locations').upsert({
+    courier_id:user.id,latitude:position.coords.latitude,longitude:position.coords.longitude,accuracy_m:position.coords.accuracy
+   },{onConflict:'courier_id'});
+   if(error)throw error;
+   say('مشاركة الموقع مفعّلة أثناء التوصيل.');
+  }catch(e){say('تعذر تحديث موقعك للعميل: '+e.message,true);}
+ },error=>{if(locationWatchId!==null)navigator.geolocation.clearWatch(locationWatchId);locationWatchId=null;say('تعذر تحديد موقعك. تحقق من إذن الموقع في المتصفح.',true);},{enableHighAccuracy:true,maximumAge:15000,timeout:20000});
+}
+async function loadTasks(){
+ const root=$('tasks');root.textContent='جاري تحميل مهامك...';
+ const [ordersResult,alertsResult]=await Promise.all([
+  db.from('orders').select('id,tracking_code,sector,status,details,delivery_lat,delivery_lng,created_at,updated_at').in('status',['assigned','out_for_delivery']).order('created_at',{ascending:true}).limit(100),
+  db.from('wasla_notifications').select('id,title,body,read_at,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(10)
+ ]);
+ if(ordersResult.error)throw ordersResult.error;if(alertsResult.error)throw alertsResult.error;
+ const alerts=$('alerts');alerts.replaceChildren();
+ (alertsResult.data||[]).forEach(item=>{
+  const box=document.createElement('article');box.className='task';
+  const title=document.createElement('strong');title.textContent=item.title;
+  const body=document.createElement('p');body.textContent=item.body;
+  const time=document.createElement('small');time.textContent=new Date(item.created_at).toLocaleString('ar-EG');
+  box.append(title,body,time);
+  if(!item.read_at){const read=document.createElement('button');read.className='secondary';read.textContent='تحديد كمقروء';read.onclick=async()=>{read.disabled=true;try{const {error}=await db.from('wasla_notifications').update({read_at:new Date().toISOString()}).eq('id',item.id).eq('user_id',user.id);if(error)throw error;await loadTasks();}catch(e){say('تعذر تحديث الإشعار: '+e.message,true);read.disabled=false;}};box.append(read);}
+  alerts.append(box);
+ });
+ root.replaceChildren();
+ const data=ordersResult.data;
+ if(!data?.length){stopLocationTracking();root.textContent='لا توجد مهام مسندة إليك حاليًا.';return;}if(data.some(order=>order.status==='out_for_delivery'))startLocationTracking();else stopLocationTracking();
+ data.forEach(order=>{
+  const card=document.createElement('article');card.className='task';
+  const h=document.createElement('h2');h.textContent='طلب '+(order.tracking_code||String(order.id));
+  const p=document.createElement('p');p.textContent=(order.sector||'خدمة')+' · '+(labels[order.status]||order.status);
+  const details=document.createElement('p');details.textContent=order.details||'لا توجد تفاصيل إضافية';
+  let mapLink=null;
+  if(Number.isFinite(Number(order.delivery_lat))&&Number.isFinite(Number(order.delivery_lng))&&order.delivery_lat!==null&&order.delivery_lng!==null){
+   const lat=Number(order.delivery_lat),lng=Number(order.delivery_lng);
+   if(lat>=-90&&lat<=90&&lng>=-180&&lng<=180){mapLink=document.createElement('a');mapLink.href='https://www.google.com/maps?q='+lat+','+lng;mapLink.target='_blank';mapLink.rel='noopener noreferrer';mapLink.textContent='فتح موقع التسليم على الخريطة';mapLink.className='map-link';}
+  }
+  const action=document.createElement('button');action.textContent=order.status==='assigned'?'بدء التوصيل':'تأكيد التسليم';
+  action.onclick=async()=>{action.disabled=true;try{const next=order.status==='assigned'?'out_for_delivery':'delivered';const {data:updated,error:updateError}=await db.from('orders').update({status:next}).eq('id',order.id).eq('courier_id',user.id).select('id').maybeSingle();if(updateError)throw updateError;if(!updated)throw Error('لم يتم تحديث المهمة. تحقق من إسنادها لحسابك.');say(next==='delivered'?'تم تسجيل التسليم.':'تم بدء التوصيل.');await loadTasks();}catch(e){say('تعذر تحديث المهمة: '+e.message,true);action.disabled=false;}};
+  if(mapLink)card.append(h,p,details,mapLink,action);else card.append(h,p,details,action);root.append(card);
+ });
+}
+$('loginButton').onclick=async()=>{try{const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;await authorize();}catch(e){say('تعذر تسجيل الدخول: '+e.message,true);}};
+$('refresh').onclick=()=>loadTasks().catch(e=>say('تعذر تحديث المهام: '+e.message,true));$('logout').onclick=async()=>{stopLocationTracking();await db.auth.signOut();user=null;show(false);};authorize().catch(e=>{show(false);say('تعذر فتح بوابة المندوب: '+e.message,true);});
+</script></body></html>

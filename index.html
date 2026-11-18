@@ -312,6 +312,9 @@ a { text-decoration: none; color: inherit; }
         <div class="cat-card ripple-btn" onclick="Router.navigate('maintenance')"><div class="cat-icon" style="background: var(--maint-bg); color: var(--maint);"><i class="fa-solid fa-screwdriver-wrench"></i></div><h3>الصيانة المنزلية</h3><p>سباكة وكهرباء</p></div>
         <div class="cat-card ripple-btn" onclick="Router.navigate('cars')"><div class="cat-icon" style="background: var(--cars-bg); color: var(--cars-dark);"><i class="fa-solid fa-car"></i></div><h3>خدمات السيارات</h3><p>غسيل وصيانة</p></div>
     </div>
+    <div style="padding:0 20px 20px;">
+        <a class="btn-auth ripple-btn" href="/service-marketplace.html" style="display:block;text-align:center;background:var(--brand);color:white;">استعرض مقدمي الخدمات واحجز موعدًا</a>
+    </div>
 </main>
 
 <!-- ==================== VIEW: EDUCATION ==================== -->
@@ -327,6 +330,7 @@ a { text-decoration: none; color: inherit; }
             <p>ستظهر بيانات المعلم والتخصص والمواعيد والتكلفة بعد التحقق من مقدم الخدمة.</p>
         </div>
     </div>
+    <div style="padding:0 20px 10px;"><a class="btn-enroll ripple-btn" href="/service-marketplace.html" style="display:block;width:100%;text-align:center;">تصفح الخدمات التعليمية واحجز</a></div>
     <div style="padding:0 20px 24px;">
         <button class="btn-enroll ripple-btn" style="width:100%;" onclick="Actions.request('تعليمي', 'طلب مدرس أو دورة تعليمية')">أرسل طلب مدرس أو دورة</button>
     </div>
@@ -352,6 +356,7 @@ a { text-decoration: none; color: inherit; }
                 <p>سيظهر هنا الأطباء ومواعيدهم وأسعار الكشف بعد مراجعة بياناتهم واعتمادها.</p>
             </div>
         </div>
+    <div style="padding:0 20px 24px;"><a class="btn-auth ripple-btn" href="/service-marketplace.html" style="display:block;text-align:center;background:var(--brand);color:white;">ابحث عن طبيب واحجز موعدًا متاحًا</a></div>
     </div>
 </div>
 
@@ -361,7 +366,7 @@ a { text-decoration: none; color: inherit; }
     <div class="market-header">
         <div>
             <h2 style="font-size: 22px; margin-bottom: 4px;">اطلب من البيت</h2>
-            <p style="font-size: 13px; opacity: 0.9;">التوصيل خلال 30 دقيقة</p>
+            <p style="font-size: 13px; opacity: 0.9;">طلبات من المتاجر المعتمدة حسب التوفر والمنطقة</p>
         </div>
         <div class="cart-icon-header" onclick="Actions.openCart()">
             <i class="fa-solid fa-cart-shopping"></i>
@@ -369,8 +374,9 @@ a { text-decoration: none; color: inherit; }
         </div>
     </div>
     <div style="margin:12px 20px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--muted);font-size:12px;line-height:1.8;">
-        قائمة الأصناف هنا توضيحية في مرحلة التجهيز. التوفر والسعر ورسوم التوصيل يؤكدها المتجر الشريك قبل اعتماد الطلب.
+        هذه قائمة عرض توضيحي. افتح السوق المتصل لعرض المتاجر التي نشرت منتجاتها وأسعارها فعليًا.
     </div>
+    <div style="padding:0 20px 12px;"><a href="/marketplace.html" class="btn-auth ripple-btn" style="display:block;text-align:center;background:var(--brand);color:white;">تصفح السوق والطلب من المتاجر</a></div>
     <div class="market-categories">
         <div class="market-cat active">الكل</div>
         <div class="market-cat">خضروات</div>
@@ -428,6 +434,7 @@ a { text-decoration: none; color: inherit; }
                 <button class="btn-ind-action ripple-btn" onclick="Actions.request('صيانة', 'طلب كهربائي', this)">اطلب فني</button>
             </div>
         </div>
+    <div style="padding:0 20px 24px;"><a class="btn-auth ripple-btn" href="/service-marketplace.html" style="display:block;text-align:center;background:var(--brand);color:white;">تصفح فنيي الصيانة واحجز خدمة</a></div>
     </div>
 </div>
 
@@ -446,6 +453,7 @@ a { text-decoration: none; color: inherit; }
                 <button class="btn-ind-action ripple-btn" onclick="Actions.request('سيارات', 'حجز غسيل سيارة', this)">احجز الآن</button>
             </div>
         </div>
+    <div style="padding:0 20px 24px;"><a class="btn-auth ripple-btn" href="/service-marketplace.html" style="display:block;text-align:center;background:var(--brand);color:white;">تصفح خدمات السيارات واحجز موعدًا</a></div>
     </div>
 </div>
 
@@ -464,6 +472,14 @@ a { text-decoration: none; color: inherit; }
             <div style="width:80px; height:80px; border-radius:50%; background:var(--brand-light); color:var(--brand); font-size:32px; display:flex; align-items:center; justify-content:center; margin:0 auto 15px;"><i class="fa-solid fa-user"></i></div>
             <h3 id="profile-email">user@wasla.com</h3>
             <button class="btn-auth ripple-btn" style="background:#ef4444; margin-top:20px;" onclick="Auth.logout(this)">تسجيل الخروج</button>
+            <a class="btn-auth ripple-btn" href="/provider-apply.html" style="display:block;margin-top:10px;text-align:center;background:var(--brand);color:white;">انضم كمقدم خدمة</a>
+            <a class="btn-auth ripple-btn" href="/courier-apply.html" style="display:block;margin-top:10px;text-align:center;background:var(--del);color:white;">قدّم للعمل كمندوب</a>
+            <a class="btn-auth ripple-btn" href="/courier-dashboard.html" style="display:block;margin-top:10px;text-align:center;background:var(--cars);color:white;">بوابة المندوب</a>
+            <a class="btn-auth ripple-btn" href="/marketplace.html" style="display:block;margin-top:10px;text-align:center;background:var(--brand);color:white;">تصفح المتاجر والمطاعم</a>
+            <a class="btn-auth ripple-btn" href="/merchant-dashboard.html" style="display:block;margin-top:10px;text-align:center;background:var(--brand);color:white;">لوحة التاجر</a>
+            <a class="btn-auth ripple-btn" href="/service-marketplace.html" style="display:block;margin-top:10px;text-align:center;background:var(--brand);color:white;">حجز الخدمات والمواعيد</a>
+            <a class="btn-auth ripple-btn" href="/provider-services.html" style="display:block;margin-top:10px;text-align:center;background:var(--brand);color:white;">لوحة مقدم الخدمة</a>
+            <a class="btn-auth ripple-btn" href="/feedback.html" style="display:block;margin-top:10px;text-align:center;background:var(--brand);color:white;">الشكاوى والاقتراحات</a>
         </div>
         <div class="section-title">إشعاراتي</div>
         <div id="notifications-list" style="padding:0 20px 12px;"></div>
@@ -740,7 +756,7 @@ const DB = {
                 user_id: Auth.user.id,
                 sector: payload.sectorName,
                 details: payload.details,
-                status: 'قيد المراجعة'
+                status: 'pending'
             }]);
             if (error) throw error;
 
@@ -787,12 +803,21 @@ const DB = {
             const to = from + this.ordersPageSize - 1;
             const { data, error } = await supabaseClient
                 .from('orders')
-                .select('id, sector, status, tracking_code, details, created_at')
+                .select('id, sector, status, tracking_code, details, created_at, updated_at, courier_id, provider_id, delivery_lat, delivery_lng')
                 .eq('user_id', Auth.user.id)
                 .order('created_at', { ascending: false })
                 .range(from, to);
 
             if (error) throw error;
+            const activeCourierIds = [...new Set((data || []).filter(order => order.status === 'out_for_delivery' && order.courier_id).map(order => order.courier_id))];
+            let courierLocations = [];
+            if (activeCourierIds.length) {
+                const locationResult = await supabaseClient.from('wasla_courier_locations')
+                    .select('courier_id,latitude,longitude,accuracy_m,updated_at')
+                    .in('courier_id', activeCourierIds);
+                if (locationResult.error) throw locationResult.error;
+                courierLocations = locationResult.data || [];
+            }
             if (reset) list.replaceChildren();
 
             if ((!Array.isArray(data) || data.length === 0) && reset) {
@@ -810,7 +835,7 @@ const DB = {
                 sector.textContent = order.sector || 'طلب خدمة';
                 const status = document.createElement('span');
                 status.style.cssText = 'font-size:11px; background:var(--brand-light); color:var(--brand); padding:2px 8px; border-radius:10px;';
-                status.textContent = order.status || 'قيد المراجعة';
+                status.textContent = ({pending:'قيد المراجعة','قيد المراجعة':'قيد المراجعة',accepted:'مقبول',preparing:'جارٍ التجهيز',ready_for_pickup:'جاهز للاستلام',assigned:'تم تعيين مندوب',out_for_delivery:'خرج للتوصيل',delivered:'تم التسليم',completed:'مكتمل',cancelled:'ملغي'})[order.status] || order.status || 'قيد المراجعة';
                 header.append(sector, status);
                 card.appendChild(header);
 
@@ -827,10 +852,101 @@ const DB = {
                 const date = document.createElement('p');
                 date.style.cssText = 'font-size:11px; color:var(--muted); margin-top:8px;';
                 const createdAt = order.created_at ? new Date(order.created_at) : null;
+                const updatedAt = order.updated_at ? new Date(order.updated_at) : null;
                 date.textContent = createdAt && !Number.isNaN(createdAt.getTime())
-                    ? createdAt.toLocaleString('ar-EG')
+                    ? 'تاريخ الطلب: ' + createdAt.toLocaleString('ar-EG')
                     : '';
+                if (updatedAt && !Number.isNaN(updatedAt.getTime())) {
+                    date.textContent += (date.textContent ? '\n' : '') + 'آخر تحديث: ' + updatedAt.toLocaleString('ar-EG');
+                }
                 card.append(details, date);
+                if (order.delivery_lat !== null && order.delivery_lng !== null) {
+                    const lat = Number(order.delivery_lat), lng = Number(order.delivery_lng);
+                    if (Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                        const map = document.createElement('a');
+                        map.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+                        map.target = '_blank';
+                        map.rel = 'noopener noreferrer';
+                        map.textContent = 'عرض موقع التسليم المسجل';
+                        map.style.cssText = 'display:block;margin-top:8px;color:var(--brand);font-weight:800;';
+                        card.appendChild(map);
+                    }
+                }
+                if (order.provider_id && order.status === 'pending') {
+                    const cancel = document.createElement('button');
+                    cancel.type = 'button';
+                    cancel.className = 'btn-auth';
+                    cancel.textContent = 'إلغاء الطلب';
+                    cancel.style.cssText = 'margin-top:8px;background:#b91c1c;color:white;';
+                    cancel.addEventListener('click', async () => {
+                        cancel.disabled = true;
+                        try {
+                            const { data: cancelled, error: cancelError } = await supabaseClient.rpc('wasla_cancel_market_order', { p_order_id: String(order.id) });
+                            if (cancelError) throw cancelError;
+                            if (cancelled !== true) throw new Error('لم يتم تأكيد الإلغاء.');
+                            UI.toast('تم إلغاء الطلب وإعادة الكميات للمخزون.');
+                            await DB.loadOrders(true);
+                            await DB.loadNotifications();
+                        } catch (cancelError) {
+                            UI.toast('تعذر إلغاء الطلب: ' + cancelError.message);
+                            cancel.disabled = false;
+                        }
+                    });
+                    card.appendChild(cancel);
+                }
+                if (order.status === 'out_for_delivery' && order.courier_id) {
+                    const locationBox = document.createElement('div');
+                    locationBox.style.cssText = 'margin-top:10px;padding:10px;border-radius:10px;background:var(--brand-light);';
+                    const renderLocation = location => {
+                        locationBox.replaceChildren();
+                        if (!location || !Number.isFinite(Number(location.latitude)) || !Number.isFinite(Number(location.longitude))) {
+                            locationBox.textContent = 'موقع المندوب غير متاح حاليًا.';
+                            return;
+                        }
+                        const lat = Number(location.latitude), lng = Number(location.longitude);
+                        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                            locationBox.textContent = 'بيانات الموقع غير صالحة.';
+                            return;
+                        }
+                        const privacyNote = document.createElement('small');
+                        privacyNote.style.cssText = 'display:block;margin-bottom:6px;color:var(--muted);';
+                        privacyNote.textContent = 'الموقع يُشارك أثناء التوصيل فقط وقد يتأخر حسب اتصال المندوب.';
+                        const link = document.createElement('a');
+                        link.href = 'https://www.google.com/maps?q=' + encodeURIComponent(lat + ',' + lng);
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.textContent = 'عرض موقع المندوب على الخريطة';
+                        const stamp = document.createElement('small');
+                        stamp.style.cssText = 'display:block;margin-top:5px;color:var(--muted);';
+                        const updated = new Date(location.updated_at);
+                        stamp.textContent = Number.isNaN(updated.getTime()) ? 'وقت التحديث غير متاح' : 'آخر تحديث للموقع: ' + updated.toLocaleString('ar-EG') + (Date.now() - updated.getTime() > 120000 ? ' · الموقع قديم' : '');
+                        locationBox.append(privacyNote,link,stamp);
+                    };
+                    renderLocation(courierLocations.find(location => location.courier_id === order.courier_id));
+                    const refreshLocation = document.createElement('button');
+                    refreshLocation.type = 'button';
+                    refreshLocation.className = 'btn-auth';
+                    refreshLocation.textContent = 'تحديث الموقع';
+                    refreshLocation.style.cssText = 'margin-top:8px;';
+                    refreshLocation.addEventListener('click', async () => {
+                        refreshLocation.disabled = true;
+                        try {
+                            const { data: location, error: locationError } = await supabaseClient
+                                .from('wasla_courier_locations')
+                                .select('courier_id,latitude,longitude,accuracy_m,updated_at')
+                                .eq('courier_id', order.courier_id)
+                                .maybeSingle();
+                            if (locationError) throw locationError;
+                            renderLocation(location);
+                        } catch (locationError) {
+                            UI.toast('تعذر تحديث موقع المندوب.');
+                        } finally {
+                            refreshLocation.disabled = false;
+                        }
+                    });
+                    locationBox.appendChild(refreshLocation);
+                    card.appendChild(locationBox);
+                }
                 list.appendChild(card);
             });
 

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#059669"><title>السوق والمتاجر | وصلة</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>:root{font-family:Tahoma,Arial,sans-serif;background:#f4f7fb;color:#0f172a}*{box-sizing:border-box}body{margin:0;padding:18px}.wrap{max-width:1100px;margin:20px auto}.head,.provider{background:white;border:1px solid #e2e8f0;border-radius:18px;padding:20px;margin-bottom:14px}.brand{font-size:24px;font-weight:900;color:#059669}.filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button{padding:10px 15px;border:0;border-radius:10px;background:#059669;color:white;font:inherit;font-weight:800;cursor:pointer}.active{background:#0f172a}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.product{border:1px solid #e2e8f0;border-radius:12px;padding:14px}.price{font-weight:900;color:#059669;font-size:18px}.muted{color:#64748b;font-size:13px;line-height:1.7}.notice{padding:12px;background:#ecfdf5;border-radius:10px;color:#065f46}.hidden{display:none!important}
+</style></head><body><main class="wrap"><section class="head"><div class="brand">وصلة | السوق</div><div><a href="/">حسابي وطلباتي</a></div><h1>متاجر ومطاعم شبين القناطر</h1><p class="muted">تصفح الأنشطة والمنتجات المنشورة والمعتمدة، أضف المنتجات إلى سلة نشاط واحد، وأرسل طلبك بالدفع نقدًا عند الاستلام.</p><div class="filters"><button data-sector="all" class="active">الكل</button><button data-sector="restaurants">مطاعم وأطعمة</button><button data-sector="market">سوبر ماركت ومتاجر</button></div><div id="message" class="notice hidden"></div></section><section id="cartBox" class="provider hidden"><h2>سلة الطلب</h2><p id="cartMerchant" class="muted"></p><div id="cartItems"></div><p id="cartTotal" class="price"></p><div class="field"><label for="deliveryAddress">عنوان التوصيل أو علامة مميزة</label><input id="deliveryAddress" maxlength="400" placeholder="اكتب العنوان أو حدد موقعك الحالي"><button type="button" id="useCurrentLocation">استخدم موقعي الحالي GPS</button><p id="locationStatus" class="muted">يمكنك تحديد الموقع بدل كتابة العنوان يدويًا، مع إضافة علامة مميزة إن لزم.</p></div><div class="field"><label for="customerPhone">رقم هاتف للتواصل</label><input id="customerPhone" type="tel" maxlength="24" placeholder="01xxxxxxxxx"></div><div class="field"><label for="orderNotes">ملاحظات</label><input id="orderNotes" maxlength="1000" placeholder="ملاحظات اختيارية"></div><p class="muted">الدفع المتاح حاليًا: نقدًا عند الاستلام. لن يتم خصم أي مبلغ إلكتروني.</p><button id="checkout">تأكيد الطلب</button></section><div id="catalog"></div></main>
+<script>
+const URL='https://fdduzcytuhoelnnejgkl.supabase.co',KEY='sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529',db=window.supabase?.createClient(URL,KEY),$=id=>document.getElementById(id);let allProviders=[],allProducts=[],filter='all',cart=[],cartProviderId=null,cartProviderName='',cartDeliveryCoords=null;
+function say(t){$('message').textContent=t;$('message').classList.remove('hidden');}
+async function load(){const root=$('catalog');root.textContent='جاري تحميل السوق...';const {data:providers,error:pe}=await db.from('wasla_provider_profiles').select('id,business_name,sector,contact_phone,city,address,description').in('sector',['restaurants','market']).order('business_name');if(pe)throw pe;allProviders=providers||[];if(!allProviders.length){root.textContent='لا توجد متاجر أو مطاعم منشورة حاليًا.';return;}const ids=allProviders.map(p=>p.id);const {data:products,error:pr}=await db.from('wasla_provider_products').select('id,provider_id,name,category,description,price,stock_quantity').in('provider_id',ids).eq('is_available',true).gt('stock_quantity',0).order('name');if(pr)throw pr;allProducts=products||[];render();}
+function renderCart(){
+ const box=$('cartBox'),items=$('cartItems');items.replaceChildren();
+ if(!cart.length){box.classList.add('hidden');cartProviderId=null;cartProviderName='';return;}
+ box.classList.remove('hidden');$('cartMerchant').textContent='النشاط: '+cartProviderName;
+ let total=0;
+ cart.forEach(item=>{const row=document.createElement('div');row.className='row';const label=document.createElement('span');label.textContent=item.name+' · '+Number(item.price).toFixed(2)+' ج.م';const quantity=document.createElement('span');quantity.textContent='الكمية: '+item.quantity;const minus=document.createElement('button');minus.textContent='−';minus.onclick=()=>{item.quantity--;if(item.quantity<=0)cart=cart.filter(x=>x.id!==item.id);renderCart();};const plus=document.createElement('button');plus.textContent='+';plus.disabled=item.quantity>=item.stock_quantity;plus.onclick=()=>{if(item.quantity<item.stock_quantity)item.quantity++;renderCart();};const remove=document.createElement('button');remove.className='danger';remove.textContent='حذف';remove.onclick=()=>{cart=cart.filter(x=>x.id!==item.id);renderCart();};total+=Number(item.price)*item.quantity;row.append(label,quantity,minus,plus,remove);items.append(row);});
+ $('cartTotal').textContent='الإجمالي: '+total.toFixed(2)+' ج.م';
+}
+function addToCart(item){
+ const provider=allProviders.find(p=>p.id===item.provider_id);if(!provider)return;
+ if(cartProviderId&&cartProviderId!==provider.id){if(!confirm('السلة تحتوي منتجات من نشاط آخر. هل تريد تفريغها والبدء مع هذا النشاط؟'))return;cart=[];}
+ cartProviderId=provider.id;cartProviderName=provider.business_name;
+ const existing=cart.find(x=>x.id===item.id);
+ if(existing){if(existing.quantity<item.stock_quantity)existing.quantity++;else say('الكمية المطلوبة تجاوزت المخزون المتاح.');}
+ else cart.push({...item,quantity:1});
+ renderCart();
+}
+$('useCurrentLocation').onclick=()=>{
+ const button=$('useCurrentLocation'),status=$('locationStatus');
+ if(!navigator.geolocation){status.textContent='المتصفح لا يدعم تحديد الموقع. اكتب العنوان يدويًا.';return;}
+ button.disabled=true;status.textContent='جارٍ تحديد موقعك...';
+ navigator.geolocation.getCurrentPosition(position=>{
+  cartDeliveryCoords={lat:Number(position.coords.latitude.toFixed(6)),lng:Number(position.coords.longitude.toFixed(6))};
+  if(!$('deliveryAddress').value.trim())$('deliveryAddress').value='موقعي الحالي';
+  status.textContent='تم تحديد موقع التسليم. يمكنك إضافة علامة مميزة في خانة العنوان.';
+  button.disabled=false;
+ },error=>{
+  cartDeliveryCoords=null;
+  status.textContent=error.code===1?'لم تسمح بالوصول للموقع. اكتب العنوان يدويًا.':'تعذر تحديد الموقع الآن. اكتب العنوان يدويًا.';
+  button.disabled=false;
+ },{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
+};
+$('checkout').onclick=async()=>{
+ const button=$('checkout');button.disabled=true;
+ try{
+  const {data:userResult,error:userError}=await db.auth.getUser();if(userError)throw userError;
+  if(!userResult.user){say('سجّل الدخول أولًا من حسابك في وصلة لإرسال الطلب.');return;}
+  if(!cart.length||!cartProviderId)throw Error('السلة فارغة.');
+  const address=$('deliveryAddress').value.trim()||(cartDeliveryCoords?'موقعي الحالي':'');
+  const phone=$('customerPhone').value.trim();
+  if((address.length<5&&!cartDeliveryCoords)||phone.length<8)throw Error('حدد موقع التسليم أو أدخل عنوانًا صحيحًا، وأدخل رقم هاتف للتواصل.');
+  const {data,error}=await db.rpc('wasla_create_market_order',{p_provider_id:cartProviderId,p_items:cart.map(x=>({product_id:x.id,quantity:x.quantity})),p_delivery_address:address,p_customer_phone:phone,p_notes:$('orderNotes').value.trim(),p_delivery_lat:cartDeliveryCoords?.lat??null,p_delivery_lng:cartDeliveryCoords?.lng??null});
+  if(error)throw error;
+  say('تم إرسال الطلب رقم '+data+'. الدفع نقدًا عند الاستلام. تابع الحالة من سجل طلباتك.');
+  cart=[];cartProviderId=null;cartProviderName='';cartDeliveryCoords=null;renderCart();$('deliveryAddress').value='';$('customerPhone').value='';$('orderNotes').value='';$('locationStatus').textContent='يمكنك تحديد الموقع بدل كتابة العنوان يدويًا، مع إضافة علامة مميزة إن لزم.';await load();
+ }catch(e){say('تعذر إرسال الطلب: '+e.message);}finally{button.disabled=false;}
+};
+function render(){const root=$('catalog');root.replaceChildren();const providers=allProviders.filter(p=>filter==='all'||p.sector===filter);if(!providers.length){root.textContent='لا توجد نتائج لهذا التصنيف.';return;}providers.forEach(p=>{const card=document.createElement('section');card.className='provider';const title=document.createElement('h2');title.textContent=p.business_name;const type=document.createElement('p');type.className='muted';type.textContent=(p.sector==='market'?'سوبر ماركت ومتجر':'مطعم وأطعمة')+' · '+p.city+' · '+p.address;const desc=document.createElement('p');desc.className='muted';desc.textContent=p.description||'';const contact=document.createElement('a');contact.href='tel:'+p.contact_phone;contact.textContent='اتصال بالنشاط: '+p.contact_phone;const grid=document.createElement('div');grid.className='grid';const items=allProducts.filter(x=>x.provider_id===p.id);if(!items.length){const empty=document.createElement('p');empty.textContent='لا توجد منتجات متاحة حاليًا.';grid.append(empty);}items.forEach(item=>{const product=document.createElement('article');product.className='product';const name=document.createElement('h3');name.textContent=item.name;const category=document.createElement('p');category.className='muted';category.textContent=item.category+' · متاح: '+item.stock_quantity;const description=document.createElement('p');description.className='muted';description.textContent=item.description||'';const price=document.createElement('div');price.className='price';price.textContent=Number(item.price).toFixed(2)+' ج.م';const add=document.createElement('button');add.textContent='إضافة للسلة';add.onclick=()=>addToCart(item);product.append(name,category,description,price,add);grid.append(product);});card.append(title,type,desc,contact,grid);root.append(card);});}
+document.querySelectorAll('[data-sector]').forEach(button=>button.onclick=()=>{filter=button.dataset.sector;document.querySelectorAll('[data-sector]').forEach(b=>b.classList.toggle('active',b===button));render();});
+db.auth.getUser().then(({data,error})=>{if(!error&&data.user?.phone)$('customerPhone').value=data.user.phone;}).catch(()=>{});
+load().catch(e=>{ $('catalog').textContent='تعذر تحميل السوق: '+e.message;});
+</script></body></html>

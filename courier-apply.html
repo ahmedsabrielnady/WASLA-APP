@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#059669"><title>التقديم للعمل كمندوب | وصلة</title><link rel="manifest" href="/manifest.webmanifest"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;color:#0f172a;background:#f4f7fb}*{box-sizing:border-box}body{margin:0;padding:20px}.wrap{max-width:620px;margin:24px auto}.card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:24px;box-shadow:0 12px 32px #0f172a0b}.brand{color:#059669;font-size:25px;font-weight:900}p{line-height:1.8;color:#64748b}.field{display:grid;gap:7px;margin:14px 0}label{font-weight:700;font-size:14px}input,select{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:12px;font:inherit;background:#fff}.btn{width:100%;padding:13px;border:0;border-radius:12px;background:#059669;color:#fff;font:inherit;font-weight:800;cursor:pointer;margin-top:10px}.btn:disabled{opacity:.55;cursor:wait}.secondary{background:#e2e8f0;color:#0f172a}.notice{padding:14px;border-radius:12px;background:#ecfdf5;color:#065f46;margin:14px 0;line-height:1.8}.error{background:#fef2f2;color:#991b1b}.muted{font-size:12px;color:#64748b}.hidden{display:none!important}a{color:#059669}
+</style></head><body><main class="wrap"><section class="card">
+<div class="brand">وصلة | WASLA</div><h1>قدّم للعمل كمندوب توصيل</h1><p>أرسل بياناتك لمراجعة الإدارة. لن تستقبل طلبات توصيل قبل اعتماد طلبك وتفعيل حساب المندوب. الموافقة ليست ضمانًا لوجود مهام أو دخل ثابت.</p>
+<div id="message" class="notice hidden" role="status" aria-live="polite"></div>
+<section id="auth"><h2>تسجيل الدخول</h2><div class="field"><label for="email">البريد الإلكتروني</label><input id="email" type="email" autocomplete="email"></div><div class="field"><label for="password">كلمة المرور</label><input id="password" type="password" autocomplete="current-password"></div><button class="btn" id="login">دخول</button><button class="btn secondary" id="register">إنشاء حساب</button></section>
+<section id="application" class="hidden"><div id="existing"></div>
+<form id="form"><h2>بيانات المندوب ووسيلة الانتقال</h2>
+<div class="field"><label for="name">الاسم بالكامل</label><input id="name" maxlength="100" required></div>
+<div class="field"><label for="phone">رقم الهاتف</label><input id="phone" type="tel" inputmode="tel" maxlength="24" required></div>
+<div class="field"><label for="city">منطقة العمل</label><input id="city" value="شبين القناطر" maxlength="100" required></div>
+<div class="field"><label for="vehicle">وسيلة الانتقال</label><select id="vehicle" required><option value="">اختر</option><option value="motorcycle">دراجة نارية</option><option value="car">سيارة</option><option value="bicycle">دراجة</option><option value="other">أخرى</option></select></div>
+<div class="field"><label for="plate">رقم اللوحة (إن وجد)</label><input id="plate" maxlength="40"></div>
+<button class="btn" id="submit" type="submit">إرسال طلب المراجعة</button></form>
+<button class="btn secondary" id="logout">تسجيل الخروج</button></section>
+<p class="muted"><a href="/">العودة إلى وصلة</a></p></section></main>
+<script>
+const URL='https://fdduzcytuhoelnnejgkl.supabase.co',KEY='sb_publishable_qRwoBnYmdrjrNfAVhTChnA_H8XzY529',db=window.supabase?.createClient(URL,KEY),$=id=>document.getElementById(id);
+function say(t,err=false){const e=$('message');e.textContent=t;e.classList.remove('hidden','error');if(err)e.classList.add('error');}
+function show(user){$('auth').classList.toggle('hidden',!!user);$('application').classList.toggle('hidden',!user);}
+const vehicleNames={motorcycle:'دراجة نارية',car:'سيارة',bicycle:'دراجة',other:'أخرى'};
+async function latest(user){
+ $('form').classList.remove('hidden');$('existing').replaceChildren();
+ const {data,error}=await db.from('wasla_courier_applications').select('id,full_name,vehicle_type,status,admin_note,created_at').eq('applicant_id',user.id).order('created_at',{ascending:false}).limit(1);
+ if(error)throw error;const item=data?.[0];if(!item)return;
+ const box=document.createElement('div');box.className='notice';const title=document.createElement('strong');
+ title.textContent=item.status==='pending'?'طلبك قيد المراجعة':item.status==='approved'?'تم قبول طلبك مبدئيًا': 'لم تتم الموافقة على الطلب';
+ const detail=document.createElement('p');detail.textContent=item.full_name+' · '+(vehicleNames[item.vehicle_type]||item.vehicle_type);
+ box.append(title,detail);if(item.admin_note){const note=document.createElement('p');note.textContent='ملاحظة الإدارة: '+item.admin_note;box.append(note);}
+ $('existing').append(box);if(item.status!=='rejected')$('form').classList.add('hidden');
+}
+async function refresh(){if(!db){show(null);say('تعذر الاتصال بالخدمة.',true);return;}const {data,error}=await db.auth.getSession();if(error)throw error;const user=data.session?.user||null;show(user);if(user)await latest(user);}
+$('login').onclick=async()=>{try{const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;await refresh();}catch(e){say('تعذر تسجيل الدخول: '+e.message,true);}};
+$('register').onclick=async()=>{try{const {data,error}=await db.auth.signUp({email:$('email').value.trim(),password:$('password').value});if(error)throw error;if(data.session)await refresh();else say('تم إنشاء الحساب. أكّد بريدك الإلكتروني ثم سجّل الدخول.');}catch(e){say('تعذر إنشاء الحساب: '+e.message,true);}};
+$('logout').onclick=async()=>{try{const {error}=await db.auth.signOut();if(error)throw error;show(null);$('existing').replaceChildren();$('form').reset();say('تم تسجيل الخروج.');}catch(e){say('تعذر تسجيل الخروج: '+e.message,true);}};
+$('form').onsubmit=async ev=>{ev.preventDefault();const b=$('submit');b.disabled=true;try{const {data,error:authError}=await db.auth.getUser();if(authError)throw authError;if(!data.user)throw Error('سجّل الدخول أولاً.');const payload={applicant_id:data.user.id,full_name:$('name').value.trim(),phone:$('phone').value.trim(),city:$('city').value.trim(),vehicle_type:$('vehicle').value,vehicle_plate:$('plate').value.trim()};const {error}=await db.from('wasla_courier_applications').insert(payload);if(error)throw error;say('تم استلام طلبك. انتظر قرار الإدارة قبل استلام أي مهمة.');$('form').classList.add('hidden');await latest(data.user);}catch(e){say('لم يتم إرسال الطلب: '+e.message,true);}finally{b.disabled=false;}};
+refresh().catch(e=>say('تعذر تحميل الحساب: '+e.message,true));
+</script></body></html>

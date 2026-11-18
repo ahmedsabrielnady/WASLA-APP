@@ -1,5 +1,17 @@
-const CACHE_NAME = "wasla-shell-v1";
-const APP_SHELL = ["/", "/index.html", "/offline.html", "/manifest.webmanifest", "/assets/wasla-icon.svg"];
+const CACHE_NAME = "wasla-shell-v2";
+const APP_SHELL = [
+  "/",
+  "/index.html",
+  "/offline.html",
+  "/manifest.webmanifest",
+  "/assets/wasla-icon.svg",
+  "/marketplace.html",
+  "/merchant-dashboard.html",
+  "/service-marketplace.html",
+  "/provider-services.html",
+  "/feedback.html",
+  "/courier-dashboard.html"
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
