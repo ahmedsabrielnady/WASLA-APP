@@ -608,6 +608,11 @@ const Auth = {
 const DB = {
     saveOrder: async function(payload) {
         if(!supabaseClient) return UI.toast('السيرفر غير متاح');
+        if(!Auth.user) {
+            UI.toast('انتهت جلسة الدخول. سجّل الدخول ثم أعد إرسال الطلب.');
+            Router.navigate('profile');
+            return;
+        }
         const { error } = await supabaseClient.from('orders').insert([{
             user_id: Auth.user.id,
             sector: payload.sectorName,
@@ -677,6 +682,11 @@ const Actions = {
         const phone = document.getElementById('sheet-phone').value;
         if(!phone || phone.length < 10) return UI.toast('أدخل رقم صحيح');
         this.currentReq.phone = phone;
+        if (!Auth.user) {
+            UI.toast('سجّل الدخول أولاً حتى نتمكن من حفظ طلبك ومتابعته');
+            Router.navigate('profile');
+            return;
+        }
         DB.saveOrder(this.currentReq);
     },
 
