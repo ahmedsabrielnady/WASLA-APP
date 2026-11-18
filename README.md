@@ -69,12 +69,12 @@ Apply migrations in order:
    - Adds provider service catalogs, weekly availability, customer appointments, provider confirmation/cancellation, customer cancellation, private notifications, concurrent overlap protection, clinic check-in/queue RPCs, patient turn notifications, and optional pg_cron reminders.
    - Depends on provider profiles and notification infrastructure from migrations #1, #2, and #7.
 10. `supabase/migrations/20261125_feedback_center.sql`
+    - **Not yet confirmed as applied.**
+    - Adds private customer complaints/suggestions, customer tracking, founder/admin review and responses, and in-app notifications.
+    - Depends on the notification table from migration #1, the operations authorization helper from migration #2, and `public.users`.
 11. `supabase/migrations/20261126_order_actor_hardening.sql`
     - **Not yet confirmed as applied.**
     - Replaces the order actor trigger function to enforce the full merchant pending → accepted → preparing → ready-for-pickup sequence and verifies that courier status transitions are made only by the courier assigned to that order.
-   - **Not yet confirmed as applied.**
-   - Adds private customer complaints/suggestions, customer tracking, founder/admin review and responses, and in-app notifications.
-   - Depends on the notification table from migration #1, the operations authorization helper from migration #2, and `public.users`.
 
 Apply migrations in order after reviewing the current production schema. Migration #2 intentionally refuses to proceed if orders RLS is disabled; do not bypass that guard without auditing all existing customer policies. The migration intentionally does not enable RLS itself because doing so without reviewing the existing customer insert/read policies could break customer orders.
 
