@@ -38,6 +38,9 @@ Do not use real customer personal data or live payment details.
 
 ## Merchant checkout and stock
 
+- [ ] As Merchant A, attempt to move an order directly from `accepted` to `ready_for_pickup`; confirm the database rejects the skipped `preparing` state.
+- [ ] As Merchant A, complete `pending` → `accepted` → `preparing` → `ready_for_pickup`; confirm each transition succeeds and invalid reverse/skip transitions fail.
+
 - [ ] Create a product with stock quantity 3 and a known price.
 - [ ] Place an authenticated customer order for quantity 2.
 - [ ] Use GPS checkout and confirm the browser permission flow captures coordinates without requiring a typed address.
@@ -55,6 +58,8 @@ Do not use real customer personal data or live payment details.
 - [ ] Confirm multi-merchant carts are not silently combined; the UI must keep one provider per checkout.
 
 ## Courier dispatch and tracking
+
+- [ ] As an active Courier B who is not assigned to an order, attempt a direct status transition on Courier A's order; confirm both RLS and the database actor trigger reject it.
 
 - [ ] Submit and approve a courier application.
 - [ ] Confirm only active couriers appear in dispatch choices.
@@ -132,7 +137,7 @@ Do not use real customer personal data or live payment details.
 
 Do not call the platform production-ready until all of the following are true:
 
-- [ ] All ten required migrations are applied successfully in the correct order.
+- [ ] All eleven required migrations are applied successfully in the correct order.
 - [ ] Role-based browser tests above pass against the actual Supabase project.
 - [ ] Vercel deployment completes successfully and the deployed commit matches the reviewed PR head.
 - [ ] Customer, merchant, courier, and founder flows work end-to-end on mobile and desktop.
