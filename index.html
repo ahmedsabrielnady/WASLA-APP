@@ -605,6 +605,12 @@ const Auth = {
 };
 
 // ==================== 5. DATABASE MODULE ====================
+function escapeHTML(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[char]));
+}
+
 const DB = {
     saveOrder: async function(payload) {
         if(!supabaseClient) return UI.toast('السيرفر غير متاح');
@@ -645,10 +651,10 @@ const DB = {
         list.innerHTML = data.map(o => `
             <div style="background:var(--card); padding:15px; border-radius:12px; margin-bottom:10px; border-right:4px solid var(--brand); animation: slideUpFade 0.3s ease;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <strong>${o.sector}</strong>
-                    <span style="font-size:11px; background:var(--brand-light); color:var(--brand); padding:2px 8px; border-radius:10px;">${o.status}</span>
+                    <strong>${escapeHTML(o.sector)}</strong>
+                    <span style="font-size:11px; background:var(--brand-light); color:var(--brand); padding:2px 8px; border-radius:10px;" >${escapeHTML(o.status)}</span>
                 </div>
-                <p style="font-size:13px; color:var(--muted);">${o.details}</p>
+                <p style="font-size:13px; color:var(--muted);" >${escapeHTML(o.details)}</p>
                 <p style="font-size:11px; color:var(--muted); margin-top:8px;">${new Date(o.created_at).toLocaleString('ar-EG')}</p>
             </div>
         `).join('');
