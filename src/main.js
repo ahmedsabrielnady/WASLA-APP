@@ -570,6 +570,17 @@ root.addEventListener("input", (event) => {
 async function init() {
   render();
   await Promise.all([loadCatalog(), loadAccount()]);
+
+  if (state.view === "operations" && ["staff", "admin"].includes(state.profile?.role)) {
+    try {
+      state.operationsOrders = await dataApi.getOperationsOrders();
+    } catch (error) {
+      showToast(error.message, "error");
+    }
+  } else if (state.view === "operations") {
+    state.view = "home";
+  }
+
   render();
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
