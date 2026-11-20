@@ -1,0 +1,12 @@
+{
+  "name": "wasla-phase-one",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "WASLA mobile-first PWA foundation",
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "test": "node --test",
+    "verify": "npm run check && npm test"
+  }
+}
