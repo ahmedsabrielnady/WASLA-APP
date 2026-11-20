@@ -1,0 +1,13 @@
+{
+  "name": "وصلة WASLA",
+  "short_name": "وصلة",
+  "description": "خدمات شبين القناطر في مكان واحد",
+  "lang": "ar-EG",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f9f8",
+  "theme_color": "#0f9b70",
+  "icons": []
+}
