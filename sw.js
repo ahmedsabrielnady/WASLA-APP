@@ -4,6 +4,7 @@ const APP_SHELL = [
   "./index.html",
   "./styles.css",
   "./manifest.webmanifest",
+  "./wasla-icon.svg",
   "./src/config.js",
   "./src/domain.js",
   "./src/supabase.js",
