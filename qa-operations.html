@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="./styles.css"><title>WASLA Operations Component QA</title></head>
+<body>
+<main style="max-width:1100px;margin:20px auto;padding:16px">
+<h1>WASLA Operations QA</h1>
+<div id="preview-admin"></div><div id="preview-staff"></div><div id="preview-customer"></div>
+<pre id="result" style="direction:ltr;text-align:left;white-space:pre-wrap;background:#fff;color:#111;padding:16px;border:1px solid #ddd"></pre>
+</main>
+<script type="module">
+import { renderOperationsView } from "./src/operations.js";
+import { dataApi } from "./src/supabase.js";
+
+const checks=[];
+const sampleOrders=[{
+ id:"10000000-0000-4000-8000-000000000001",
+ ref:"OR-QA-0001",sector:"maintenance",status:"new",
+ price_egp:50,deposit_egp:0,deposit_paid:false,
+ created_at:new Date().toISOString(),updated_at:new Date().toISOString(),
+ scheduled_at:null,address:"شارع الاختبار",provider_id:null,item_id:4,
+ product_id:null,quantity:1
+}];
+const sampleProviders=[
+ {id:"20000000-0000-4000-8000-000000000001",kind:"technician",display_name:"فني معتمد",specialty:"سباكة",area:"شبين",approved:true,active:true,is_test:false},
+ {id:"20000000-0000-4000-8000-000000000002",kind:"technician",display_name:"فني ينتظر الاعتماد",specialty:"كهرباء",area:"شبين",approved:false,active:true,is_test:false},
+ {id:"20000000-0000-4000-8000-000000000003",kind:"technician",display_name:"فني تجريبي",specialty:"تجريبي",area:"شبين",approved:true,active:true,is_test:true}
+];
+function check(name,ok,details){checks.push({check:name,ok:Boolean(ok),...(details===undefined?{}:{details})});}
+function mount(selector,profile){
+ const el=document.querySelector(selector);
+ el.innerHTML=renderOperationsView({profile,orders:sampleOrders,providers:sampleProviders,preview:true,saving:false});
+ return el;
+}
+try {
+ const admin=mount("#preview-admin",{role:"admin",full_name:"Founder QA"});
+ const staff=mount("#preview-staff",{role:"staff",full_name:"Staff QA"});
+ const customer=mount("#preview-customer",{role:"customer",full_name:"Customer QA"});
+
+ check("admin sees operations console",!!admin.querySelector(".operations-page"));
+ check("staff sees operations console",!!staff.querySelector(".operations-page"));
+ check("customer is denied operations console",!customer.querySelector(".operations-page"));
+
+ for(const [name,el] of [["admin",admin],["staff",staff]]){
+  check(name+" sees one order",el.querySelectorAll(".ops-order-card").length===1);
+  check(name+" sees approved non-test technician",!!el.querySelector('.ops-action-form select option[value="20000000-0000-4000-8000-000000000001"]'));
+  check(name+" sees pending provider approval",!!el.querySelector('[data-action="approve-provider"][data-provider-id="20000000-0000-4000-8000-000000000002"]'));
+  check(name+" cannot assign test provider",!el.querySelector('.ops-action-form select option[value="20000000-0000-4000-8000-000000000003"]'));
+  check(name+" status changes disabled in preview",el.querySelector('[data-action="ops-set-status"]')?.disabled===true);
+  check(name+" approval disabled in preview",el.querySelector('[data-action="approve-provider"]')?.disabled===true);
+  check(name+" quote and assign disabled in preview",[...el.querySelectorAll('.ops-action-form button[type="submit"]')].every(b=>b.disabled));
+  check(name+" preview notice visible",el.textContent.includes("للقراءة فقط"));
+ }
+
+ const clinic=renderOperationsView({
+  profile:{role:"admin"},orders:[{...sampleOrders[0],sector:"clinic"}],
+  providers:sampleProviders,preview:true,saving:false
+ });
+ check("clinic booking excluded from generic assignment",clinic.includes("الحجوزات الطبية لها مسار مستقل"));
+
+ const less=String.fromCharCode(60), greater=String.fromCharCode(62);
+ const hostile=less+"img src=x onerror=alert(1)"+greater;
+ const escaped=renderOperationsView({
+  profile:{role:"admin"},orders:sampleOrders,
+  providers:[{...sampleProviders[0],display_name:hostile}],
+  preview:true,saving:false
+ });
+ check("provider HTML is escaped",escaped.includes("&lt;img")&&!escaped.includes(hostile));
+
+ let writes=0;
+ const originalFetch=window.fetch;
+ window.fetch=async()=>{writes++;return new Response(null,{status:204});};
+ const attempts=[
+  ["status",()=>dataApi.updateOrderStatus(sampleOrders[0].id,"confirmed")],
+  ["quote",()=>dataApi.quoteOrder(sampleOrders[0].id,100)],
+  ["assignment",()=>dataApi.assignOrder(sampleOrders[0].id,sampleProviders[0].id)],
+  ["approval",()=>dataApi.approveProvider(sampleProviders[1].id)]
+ ];
+ for(const [label,action] of attempts){
+  try{await action();check(label+" write guard",false);}
+  catch(e){check(label+" write guard",String(e.message).includes("نسخة معاينة"),String(e.message));}
+ }
+ window.fetch=originalFetch;
+ check("preview mutation guards send zero requests",writes===0,String(writes));
+
+ document.querySelector("#result").textContent=JSON.stringify({
+  result:checks.every(x=>x.ok)?"PASS":"FAIL",
+  passed:checks.filter(x=>x.ok).length,
+  total:checks.length,
+  checks,
+  note:"Synthetic role/order/provider records. Mutating Data API methods are blocked by the preview guard before fetch. No production writes."
+ },null,2);
+} catch(error) {
+ document.querySelector("#result").textContent=JSON.stringify({
+  result:"FAIL",error:String(error),passed:checks.filter(x=>x.ok).length,total:checks.length,checks
+ },null,2);
+}
+</script>
+</body>
+</html>
