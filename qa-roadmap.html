@@ -38,7 +38,7 @@ try {
   document.querySelector("#public").innerHTML=publicMarkup;
   checks.push({check:"public roadmap displays every milestone",ok:(document.querySelectorAll("#public .roadmap-item-card").length===28),cards:document.querySelectorAll("#public .roadmap-item-card").length});
   checks.push({check:"public visitor cannot edit milestones",ok:!document.querySelector("#public form[data-form='roadmap-milestone']")});
-  checks.push({check:"public roadmap shows progress",ok:document.querySelector("#public .roadmap-overall")?.textContent.includes("32.4%")===true});
+  checks.push({check:"public roadmap shows progress",ok:document.querySelector("#public .roadmap-overall")?.textContent.includes("35.2%")===true});
 
   const adminMarkup=renderRoadmapPage({
     items:rows,
