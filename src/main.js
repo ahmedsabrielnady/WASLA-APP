@@ -1,6 +1,7 @@
 import { CONFIG } from "./config.js";
 import { SECTORS, canRequestService, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, sectorLabel, statusLabel } from "./domain.js";
 import { authApi, dataApi } from "./supabase.js";
+import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
 
 const root = document.querySelector("#app");
 const state = {
@@ -19,7 +20,11 @@ const state = {
   myOrders: [],
   operationsOrders: [],
   busy: false,
-  loadError: ""
+  loadError: "",
+  roadmapItems: [],
+  roadmapAudit: [],
+  roadmapError: "",
+  roadmapSavingId: ""
 };
 
 function icon(text) {
@@ -66,6 +71,7 @@ function header() {
         <span><strong>وصلة</strong><small>WASLA · شبين القناطر</small></span>
       </a>
       <nav class="top-actions" aria-label="القائمة الرئيسية">
+        <button class="nav-link" data-action="roadmap">خطة الإنجاز</button>
         <button class="nav-link" data-action="orders" ${authenticated ? "" : "disabled"}>طلباتي</button>
         ${isStaff ? '<button class="nav-link" data-action="operations">التشغيل</button>' : ""}
         ${authenticated
@@ -166,6 +172,7 @@ function homeView() {
     </section>
 
     ${offerTicker()}
+    ${renderRoadmapHome(state.roadmapItems, state.roadmapError)}
 
     <section class="section-block">
       <div class="section-heading">
@@ -248,6 +255,17 @@ function operationsView() {
   `;
 }
 
+function roadmapView() {
+  return renderRoadmapPage({
+    items: state.roadmapItems,
+    profile: state.profile,
+    preview: CONFIG.isPublicPreview,
+    error: state.roadmapError,
+    audit: state.roadmapAudit,
+    savingId: state.roadmapSavingId
+  });
+}
+
 function authModal() {
   const register = state.authMode === "register";
   return `
@@ -317,6 +335,7 @@ function modalView() {
 function render() {
   const view = state.view === "orders" ? ordersView()
     : state.view === "operations" ? operationsView()
+    : state.view === "roadmap" ? roadmapView()
     : homeView();
 
   root.innerHTML = `
@@ -352,6 +371,71 @@ async function loadCatalog() {
   } else {
     // Offers are supplemental; an offers failure must not hide the service catalogue.
     state.offers = [];
+  }
+}
+
+async function loadRoadmap() {
+  state.roadmapError = "";
+  try {
+    const rows = await dataApi.getRoadmap();
+    state.roadmapItems = Array.isArray(rows) ? rows : [];
+  } catch (error) {
+    state.roadmapItems = [];
+    state.roadmapError = error.message || "تعذر تحميل خطة الإنجاز.";
+  }
+}
+
+async function loadRoadmapAudit() {
+  if (state.profile?.role !== "admin" || CONFIG.isPublicPreview) {
+    state.roadmapAudit = [];
+    return;
+  }
+  try {
+    state.roadmapAudit = await dataApi.getRoadmapAudit(10);
+  } catch (error) {
+    state.roadmapAudit = [];
+    showToast(error.message || "تعذر تحميل سجل تغييرات الخطة.", "error");
+  }
+}
+
+async function refreshRoadmap() {
+  await loadRoadmap();
+  await loadRoadmapAudit();
+  state.view = "roadmap";
+  render();
+}
+
+async function submitRoadmapMilestone(form) {
+  if (state.profile?.role !== "admin") {
+    throw new Error("تعديل خطة الإنجاز متاح لحساب المؤسس فقط.");
+  }
+  if (CONFIG.isPublicPreview) {
+    throw new Error("تعديل الخطة متوقف في نسخة المعاينة.");
+  }
+
+  const id = String(form.dataset.milestoneId || "");
+  const values = Object.fromEntries(new FormData(form).entries());
+  const validation = validateRoadmapUpdate(
+    values.status,
+    Number(values.progress_percent),
+    values.test_status
+  );
+  if (!validation.valid) throw new Error(validation.message);
+
+  state.roadmapSavingId = id;
+  render();
+  try {
+    await dataApi.updateRoadmapMilestone(id, {
+      status: values.status,
+      progressPercent: Number(values.progress_percent),
+      testStatus: values.test_status
+    });
+    await loadRoadmap();
+    await loadRoadmapAudit();
+    showToast("تم تحديث البند وإعادة حساب نسبة الإنجاز.", "success");
+  } finally {
+    state.roadmapSavingId = "";
+    render();
   }
 }
 
@@ -425,6 +509,7 @@ async function afterLogin() {
   state.user = await authApi.getUser();
   state.profile = await dataApi.getProfile(state.user.id);
   await dataApi.completePendingConsent();
+  if (state.profile?.role === "admin") await loadRoadmapAudit();
 
   state.modal = null;
   if (state.pendingService) {
@@ -604,9 +689,12 @@ root.addEventListener("click", async (event) => {
       await authApi.signOut();
       state.user = state.profile = state.session = null;
       state.myOrders = [];
+      state.roadmapAudit = [];
       state.view = "home";
       render();
       showToast("تم تسجيل الخروج.", "success");
+    } else if (action === "roadmap" || action === "reload-roadmap") {
+      await refreshRoadmap();
     } else if (action === "orders" || action === "reload-orders") {
       await refreshMyOrders();
     } else if (action === "operations" || action === "reload-operations") {
@@ -650,6 +738,7 @@ root.addEventListener("submit", async (event) => {
   try {
     if (form.dataset.form === "auth") await submitAuth(form);
     if (form.dataset.form === "order") await submitOrder(form);
+    if (form.dataset.form === "roadmap-milestone") await submitRoadmapMilestone(form);
   } catch (error) {
     state.busy = false;
     render();
@@ -675,7 +764,8 @@ root.addEventListener("input", (event) => {
 
 async function init() {
   render();
-  await Promise.all([loadCatalog(), loadAccount()]);
+  await Promise.all([loadCatalog(), loadAccount(), loadRoadmap()]);
+  if (state.profile?.role === "admin") await loadRoadmapAudit();
 
   if (state.view === "operations" && ["staff", "admin"].includes(state.profile?.role)) {
     try {
