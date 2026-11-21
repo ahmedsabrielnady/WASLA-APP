@@ -6,6 +6,12 @@ const API_ROOT = CONFIG.supabaseUrl.replace(/\/$/, "");
 
 let refreshInFlight = null;
 
+function assertLiveWritesAllowed(action) {
+  if (CONFIG.isPublicPreview && window.__WASLA_QA_MOCK__ !== true) {
+    throw new Error(`هذه نسخة معاينة؛ ${action} متوقف حتى لا نكتب بيانات تجريبية في قاعدة البيانات الحية.`);
+  }
+}
+
 function getStoredSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
@@ -151,6 +157,7 @@ export const authApi = {
   },
 
   async signUp({ email, password, fullName, phone }) {
+    assertLiveWritesAllowed("إنشاء الحسابات");
     const result = await authRequest("/auth/v1/signup", {
       email: String(email).trim(),
       password,
@@ -248,6 +255,7 @@ export const dataApi = {
   },
 
   async acceptRequiredConsents() {
+    assertLiveWritesAllowed("حفظ الموافقات");
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
 
@@ -272,10 +280,12 @@ export const dataApi = {
 
   async completePendingConsent() {
     if (localStorage.getItem(PENDING_CONSENT_KEY) !== "1") return;
+    if (CONFIG.isPublicPreview && window.__WASLA_QA_MOCK__ !== true) return;
     await this.acceptRequiredConsents();
   },
 
   async setOrderLocation(orderId, { lat, lng, address = null }) {
+    assertLiveWritesAllowed("حفظ إحداثيات الطلب");
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("انتهت جلسة الدخول. سجل الدخول مرة أخرى.");
 
@@ -292,6 +302,7 @@ export const dataApi = {
   },
 
   async createServiceOrder(service, { address, notes }) {
+    assertLiveWritesAllowed("إرسال الطلبات");
     if (!service?.id || !service?.sector) {
       throw new Error("الخدمة المختارة غير صالحة.");
     }
