@@ -9,6 +9,8 @@
 </main>
 <script type="module">
 import { renderOperationsView } from "./src/operations.js";
+import { renderRoadmapPage, renderRoadmapHome } from "./src/roadmap.js";
+import { calculateRoadmapMetrics, validateRoadmapUpdate } from "./src/domain.js";
 import { dataApi } from "./src/supabase.js";
 
 const checks=[];
@@ -81,6 +83,111 @@ try {
  }
  window.fetch=originalFetch;
  check("preview mutation guards send zero requests",writes===0,String(writes));
+
+
+ // Roadmap progress and founder/editor permissions.
+ const roadmapItems = [
+  {
+   id:"qa-item-1",area:"اختبار",title:"بند قيد التنفيذ",
+   description:"عنصر اصطناعي لقياس النسبة والتعديل.",
+   weight:6,status:"in_progress",progress_percent:60,
+   test_status:"not_tested",sort_order:1,public_visible:true
+  },
+  {
+   id:"qa-item-2",area:"اختبار",title:"بند مكتمل",
+   description:"عنصر اصطناعي مكتمل ومختبر.",
+   weight:4,status:"done",progress_percent:100,
+   test_status:"passed",sort_order:2,public_visible:true
+  }
+ ];
+ const roadmapAudit = [{
+  id:1,milestone_id:"qa-item-1",milestone_title_snapshot:"بند قيد التنفيذ",
+  old_status:"planned",new_status:"in_progress",
+  old_progress_percent:0,new_progress_percent:60,
+  old_test_status:"not_tested",new_test_status:"not_tested",
+  created_at:new Date().toISOString()
+ }];
+ const metricsBefore = calculateRoadmapMetrics(roadmapItems);
+ const roadmapHome = renderRoadmapHome(roadmapItems,"");
+ check("weighted roadmap formula uses item weights",metricsBefore.weightedProgress===76,{actual:metricsBefore.weightedProgress,expected:76});
+ check("verified completion excludes unfinished work",metricsBefore.verifiedCompletion===40,{actual:metricsBefore.verifiedCompletion,expected:40});
+ check("home progress card shows calculated percent",roadmapHome.includes("76%"));
+
+ const adminRoadmap = renderRoadmapPage({
+  items:roadmapItems,profile:{role:"admin"},preview:false,audit:roadmapAudit,savingId:""
+ });
+ const staffRoadmap = renderRoadmapPage({
+  items:roadmapItems,profile:{role:"staff"},preview:false,audit:roadmapAudit,savingId:""
+ });
+ const customerRoadmap = renderRoadmapPage({
+  items:roadmapItems,profile:{role:"customer"},preview:false,audit:roadmapAudit,savingId:""
+ });
+ const previewAdminRoadmap = renderRoadmapPage({
+  items:roadmapItems,profile:{role:"admin"},preview:true,audit:roadmapAudit,savingId:""
+ });
+ check("founder sees milestone editor",adminRoadmap.includes('data-form="roadmap-milestone"'));
+ check("founder sees change audit",adminRoadmap.includes("آخر تحديثات الخطة"));
+ check("staff cannot see milestone editor",!staffRoadmap.includes('data-form="roadmap-milestone"'));
+ check("customer cannot see milestone editor",!customerRoadmap.includes('data-form="roadmap-milestone"'));
+ check("public preview admin editor is locked",!previewAdminRoadmap.includes('data-form="roadmap-milestone"')&&previewAdminRoadmap.includes("التعديل متوقف"));
+
+ const updatedMetrics=calculateRoadmapMetrics([
+  {...roadmapItems[0],progress_percent:80},
+  roadmapItems[1]
+ ]);
+ check("progress percent increases after item completion update",updatedMetrics.weightedProgress===88,{actual:updatedMetrics.weightedProgress,expected:88});
+ check("completion is rejected without passed test",!validateRoadmapUpdate("done",100,"not_tested").valid);
+ check("completion is accepted only at 100 percent with passed test",validateRoadmapUpdate("done",100,"passed").valid);
+ check("planned item cannot have partial progress",!validateRoadmapUpdate("planned",25,"not_tested").valid);
+
+ // Exercise the actual Supabase client request builder with a mocked fetch.
+ const originalFetch = window.fetch;
+ const mockRequests=[];
+ localStorage.setItem("wasla.auth.session.v1",JSON.stringify({
+  access_token:"mock-roadmap-admin-token",
+  refresh_token:"mock-roadmap-refresh",
+  expires_at:Math.floor(Date.now()/1000)+3600,
+  token_type:"bearer"
+ }));
+ window.fetch=async(url,init={})=>{
+  mockRequests.push({url:String(url),method:init.method||"GET",body:init.body||null});
+  return new Response(null,{status:204});
+ };
+ window.__WASLA_QA_MOCK__=true;
+ await dataApi.updateRoadmapMilestone("qa-item-1",{
+  status:"in_progress",progressPercent:65,testStatus:"failed"
+ });
+ const roadmapPatch=mockRequests.find(x=>x.url.includes("/rest/v1/roadmap_milestones"));
+ check("founder roadmap update sends PATCH",roadmapPatch?.method==="PATCH",roadmapPatch);
+ check("roadmap PATCH contains status progress and test result",(()=>{try{
+  const body=JSON.parse(roadmapPatch?.body||"{}");
+  return body.status==="in_progress"&&body.progress_percent===65&&body.test_status==="failed";
+ }catch{return false;}})());
+ const requestsBeforeInvalid=mockRequests.length;
+ try {
+  await dataApi.updateRoadmapMilestone("qa-item-1",{
+   status:"done",progressPercent:100,testStatus:"not_tested"
+  });
+  check("invalid completion rejected before API call",false);
+ } catch(error) {
+  check("invalid completion rejected before API call",String(error.message).includes("100%"));
+ }
+ check("invalid completion made no network call",mockRequests.length===requestsBeforeInvalid);
+
+ window.__WASLA_QA_MOCK__=false;
+ const requestsBeforePublic=mockRequests.length;
+ try {
+  await dataApi.updateRoadmapMilestone("qa-item-1",{
+   status:"in_progress",progressPercent:70,testStatus:"failed"
+  });
+  check("public preview blocks roadmap updates",false);
+ } catch(error) {
+  check("public preview blocks roadmap updates",String(error.message).includes("نسخة معاينة"));
+ }
+ check("public preview roadmap block sent no request",mockRequests.length===requestsBeforePublic);
+ window.fetch=originalFetch;
+ window.__WASLA_QA_MOCK__=false;
+ localStorage.removeItem("wasla.auth.session.v1");
 
  document.querySelector("#result").textContent=JSON.stringify({
   result:checks.every(x=>x.ok)?"PASS":"FAIL",
