@@ -8,7 +8,7 @@ const API_ROOT = CONFIG.supabaseUrl.replace(/\/$/, "");
 let refreshInFlight = null;
 
 function assertLiveWritesAllowed(action) {
-  if (CONFIG.isPublicPreview && window.__WASLA_QA_MOCK__ !== true) {
+  if (CONFIG.isPublicPreview) {
     throw new Error(`هذه نسخة معاينة؛ ${action} متوقف حتى لا نكتب بيانات تجريبية في قاعدة البيانات الحية.`);
   }
 }
@@ -328,7 +328,7 @@ export const dataApi = {
 
   async completePendingConsent() {
     if (localStorage.getItem(PENDING_CONSENT_KEY) !== "1") return;
-    if (CONFIG.isPublicPreview && window.__WASLA_QA_MOCK__ !== true) return;
+    if (CONFIG.isPublicPreview) return;
     await this.acceptRequiredConsents();
   },
 
