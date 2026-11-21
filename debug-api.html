@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>WASLA API Diagnostic</title></head>
+<body>
+<pre id="result">Testing Supabase REST…</pre>
+<script type="module">
+const out = document.getElementById("result");
+const base = "https://yfgvimcqbtthnrbzbhft.supabase.co";
+const key = "sb_publishable_Aej6zAcIojeoTI7GUxcXbA_lSKKqUmh";
+async function run(name, path) {
+  try {
+    const response = await fetch(base + path, {
+      headers: {
+        apikey: key,
+        Authorization: "Bearer " + key,
+        Accept: "application/json"
+      },
+      cache: "no-store"
+    });
+    const text = await response.text();
+    let parsed;
+    try { parsed = JSON.parse(text); } catch { parsed = text; }
+    return {
+      name,
+      status: response.status,
+      ok: response.ok,
+      contentType: response.headers.get("content-type"),
+      count: Array.isArray(parsed) ? parsed.length : null,
+      body: parsed
+    };
+  } catch (error) {
+    return {name, error: String(error)};
+  }
+}
+const result = await Promise.all([
+  run("service_items", "/rest/v1/service_items?select=id,sector,name,price_egp,active&active=eq.true&order=sector.asc,name.asc"),
+  run("offers", "/rest/v1/offers?select=id,text,sort_order&active=eq.true&order=sort_order.asc,id.asc")
+]);
+out.textContent = JSON.stringify(result, null, 2);
+</script>
+</body>
+</html>
