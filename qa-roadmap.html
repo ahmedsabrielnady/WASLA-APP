@@ -31,6 +31,8 @@ try {
   const metrics = calculateRoadmapMetrics(rows);
   checks.push({check:"weighted progress matches database formula",ok:metrics.totalWeight===143&&metrics.weightedProgress===35.2,metrics});
   checks.push({check:"verified completion excludes unfinished work",ok:metrics.verifiedCompletion===13.3,verified:metrics.verifiedCompletion});
+  checks.push({check:"passed test weight is tracked separately",ok:metrics.passedTestProgress===24.5,passedTestProgress:metrics.passedTestProgress});
+  checks.push({check:"done and blocked counts match stored plan",ok:metrics.doneCount===5&&metrics.blockedCount===5&&metrics.plannedCount===5,done:metrics.doneCount,blocked:metrics.blockedCount,planned:metrics.plannedCount});
 
   const publicMarkup=renderRoadmapPage({items:rows,profile:null,preview:true,audit:[]});
   document.querySelector("#public").innerHTML=publicMarkup;
