@@ -86,8 +86,13 @@
       checks.push({check:"mock session is loaded",ok:!!testSession?.access_token});
       checks.push({check:"mock Auth user is returned",ok:testUser?.id===userId,user:testUser});
       checks.push({check:"mock profile role is returned",ok:testProfile?.role===role,profile:testProfile});
-      await waitFor(()=>document.querySelector("#app")?.textContent.includes("لوحة التشغيل") ||
-        (role==="customer" && document.querySelector("#app")?.textContent.includes("خدمات مدينتك")), "role-specific view");
+      await waitFor(() => {
+        const opsReady = !!document.querySelector(".operations-page");
+        const customerReady = role === "customer"
+          && !opsReady
+          && document.querySelector("#app")?.textContent.includes("خدمات مدينتك");
+        return role === "customer" ? customerReady : opsReady;
+      }, "fully loaded role-specific view");
 
       const ops=document.querySelector(".operations-page");
       checks.push({check:"customer cannot open operations",ok:role==="customer" ? !ops : !!ops});
