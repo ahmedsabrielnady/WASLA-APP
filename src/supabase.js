@@ -275,6 +275,22 @@ export const dataApi = {
     await this.acceptRequiredConsents();
   },
 
+  async setOrderLocation(orderId, { lat, lng, address = null }) {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("انتهت جلسة الدخول. سجل الدخول مرة أخرى.");
+
+    return request("/rest/v1/rpc/set_order_location", {
+      method: "POST",
+      token: session.access_token,
+      body: {
+        p_order: orderId,
+        p_lat: Number(lat),
+        p_lng: Number(lng),
+        p_address: address ? String(address).trim() : null
+      }
+    });
+  },
+
   async createServiceOrder(service, { address, notes }) {
     if (!service?.id || !service?.sector) {
       throw new Error("الخدمة المختارة غير صالحة.");
