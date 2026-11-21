@@ -65,16 +65,18 @@ try {
   calls.push({url:String(url),method:init.method||"GET",body:init.body||null});
   return new Response(null,{status:204});
  };
+
  try {
   await dataApi.updateRoadmapMilestone("one",{
    status:"in_progress",progressPercent:65,testStatus:"failed"
   });
-  check("public preview blocks roadmap update",false);
+  check("public preview blocks valid roadmap update",false);
  } catch(error) {
-  check("public preview blocks roadmap update",String(error.message).includes("نسخة معاينة"));
+  check("public preview blocks valid roadmap update",String(error.message).includes("نسخة معاينة"));
  }
  check("preview roadmap guard sends no API request",calls.length===0,String(calls.length));
- const requestsBeforeInvalid=calls.length;
+
+ const beforeInvalid=calls.length;
  try {
   await dataApi.updateRoadmapMilestone("one",{
    status:"done",progressPercent:100,testStatus:"not_tested"
@@ -83,7 +85,7 @@ try {
  } catch(error) {
   check("invalid completion rejected before API call",String(error.message).includes("100%"));
  }
- check("invalid completion made no network call",calls.length===requestsBeforeInvalid);
+ check("invalid completion made no network call",calls.length===beforeInvalid);
  window.fetch=originalFetch;
  localStorage.removeItem("wasla.auth.session.v1");
 
