@@ -1,5 +1,5 @@
 import { CONFIG } from "./config.js";
-import { SECTORS, canRequestService, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, sectorLabel, statusLabel } from "./domain.js";
+import { SECTORS, canRequestService, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
 import { authApi, dataApi } from "./supabase.js";
 import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
 
