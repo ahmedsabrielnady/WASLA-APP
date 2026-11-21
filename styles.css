@@ -248,3 +248,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .stat-card strong { font-size: 22px; }
   .modal-card { padding: 25px 18px 18px; }
 }
+
+.location-button { margin-top: 3px; border-color: #b8d8cb; color: #176c50; background: #f5fbf8; }
+.location-help { margin: -5px 0 3px; font-size: 10px; line-height: 1.7; color: #71847c; }
+.location-note { margin: 9px 0 0; padding: 6px 9px; border-radius: 9px; background: #edf8f2; color: #237451; font-size: 10px; font-weight: 700; }
