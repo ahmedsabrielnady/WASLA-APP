@@ -1,9 +1,9 @@
 /**
- * Generated from the connected Supabase project "wasla".
+ * Generated from connected Supabase project "wasla".
  * Project ref: yfgvimcqbtthnrbzbhft
  * Generated: 2026-11-21
  *
- * Contains schema types only; it does not contain private API keys.
+ * Schema types only. No service-role or secret keys are included.
  */
 export type Json =
   | string
@@ -460,6 +460,108 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      roadmap_milestone_audit: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: number
+          milestone_id: string
+          milestone_title_snapshot: string
+          new_progress_percent: number
+          new_status: string
+          new_test_status: string
+          old_progress_percent: number
+          old_status: string
+          old_test_status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: never
+          milestone_id: string
+          milestone_title_snapshot: string
+          new_progress_percent: number
+          new_status: string
+          new_test_status: string
+          old_progress_percent: number
+          old_status: string
+          old_test_status: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: never
+          milestone_id?: string
+          milestone_title_snapshot?: string
+          new_progress_percent?: number
+          new_status?: string
+          new_test_status?: string
+          old_progress_percent?: number
+          old_status?: string
+          old_test_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_milestone_audit_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roadmap_milestone_audit_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "roadmap_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roadmap_milestones: {
+        Row: {
+          area: string
+          created_at: string
+          description: string
+          id: string
+          progress_percent: number
+          public_visible: boolean
+          sort_order: number
+          status: string
+          test_status: string
+          title: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          area: string
+          created_at?: string
+          description: string
+          id: string
+          progress_percent?: number
+          public_visible?: boolean
+          sort_order: number
+          status?: string
+          test_status?: string
+          title: string
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          area?: string
+          created_at?: string
+          description?: string
+          id?: string
+          progress_percent?: number
+          public_visible?: boolean
+          sort_order?: number
+          status?: string
+          test_status?: string
+          title?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
       }
       service_items: {
         Row: {
