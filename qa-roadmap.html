@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="./styles.css"><title>WASLA Roadmap QA</title></head>
+<body>
+<main style="max-width:1000px;margin:20px auto;padding:16px">
+<h1>WASLA Roadmap QA</h1>
+<div id="founder"></div><div id="staff"></div><div id="customer"></div><div id="preview"></div>
+<pre id="result" style="direction:ltr;text-align:left;white-space:pre-wrap;background:#fff;color:#111;padding:16px;border:1px solid #ddd"></pre>
+</main>
+<script type="module">
+import { renderRoadmapPage, renderRoadmapHome } from "./src/roadmap.js";
+import { calculateRoadmapMetrics, validateRoadmapUpdate } from "./src/domain.js";
+import { dataApi } from "./src/supabase.js";
+
+const checks=[];
+const testItems=[
+ {id:"one",area:"اختبار",title:"بند قيد التنفيذ",description:"اختبار نسبة البند.",weight:6,status:"in_progress",progress_percent:60,test_status:"not_tested",sort_order:1,public_visible:true},
+ {id:"two",area:"اختبار",title:"بند مكتمل",description:"بند اجتاز الاختبار.",weight:4,status:"done",progress_percent:100,test_status:"passed",sort_order:2,public_visible:true}
+];
+const testAudit=[{id:1,milestone_id:"one",milestone_title_snapshot:"بند قيد التنفيذ",old_status:"planned",new_status:"in_progress",old_progress_percent:0,new_progress_percent:60,old_test_status:"not_tested",new_test_status:"not_tested",created_at:new Date().toISOString()}];
+function check(name,ok,details){checks.push({check:name,ok:Boolean(ok),...(details===undefined?{}:{details})});}
+
+try {
+ const metrics=calculateRoadmapMetrics(testItems);
+ check("weighted progress formula",metrics.weightedProgress===76,{actual:metrics.weightedProgress});
+ check("verified completion formula",metrics.verifiedCompletion===40,{actual:metrics.verifiedCompletion});
+ check("tested weight formula",metrics.passedTestProgress===40);
+
+ const home=renderRoadmapHome(testItems,"");
+ check("home page shows calculated percentage",home.includes("76%"));
+
+ const founder=renderRoadmapPage({items:testItems,profile:{role:"admin"},preview:false,audit:testAudit,savingId:""});
+ const staff=renderRoadmapPage({items:testItems,profile:{role:"staff"},preview:false,audit:testAudit,savingId:""});
+ const customer=renderRoadmapPage({items:testItems,profile:{role:"customer"},preview:false,audit:testAudit,savingId:""});
+ const previewFounder=renderRoadmapPage({items:testItems,profile:{role:"admin"},preview:true,audit:testAudit,savingId:""});
+
+ document.querySelector("#founder").innerHTML=founder;
+ document.querySelector("#staff").innerHTML=staff;
+ document.querySelector("#customer").innerHTML=customer;
+ document.querySelector("#preview").innerHTML=previewFounder;
+
+ check("founder sees editor",!!document.querySelector("#founder [data-form='roadmap-milestone']"));
+ check("founder sees audit log",document.querySelector("#founder").textContent.includes("آخر تحديثات الخطة"));
+ check("staff cannot edit roadmap",!document.querySelector("#staff [data-form='roadmap-milestone']"));
+ check("customer cannot edit roadmap",!document.querySelector("#customer [data-form='roadmap-milestone']"));
+ check("admin preview sees locked notice and no editor",!document.querySelector("#preview [data-form='roadmap-milestone']")&&document.querySelector("#preview").textContent.includes("التعديل متوقف"));
+
+ check("done requires 100 and passed",validateRoadmapUpdate("done",100,"passed").valid);
+ check("done rejected without passed test",!validateRoadmapUpdate("done",100,"not_tested").valid);
+ check("100 rejected on in-progress status",!validateRoadmapUpdate("in_progress",100,"passed").valid);
+ check("planned requires zero progress",!validateRoadmapUpdate("planned",5,"not_tested").valid);
+
+ const changed=calculateRoadmapMetrics([{...testItems[0],progress_percent:80},testItems[1]]);
+ check("updating item progress recalculates weighted percent",changed.weightedProgress===88,{actual:changed.weightedProgress});
+
+ const originalFetch=window.fetch;
+ const calls=[];
+ localStorage.setItem("wasla.auth.session.v1",JSON.stringify({
+  access_token:"mock-roadmap-admin-token",
+  refresh_token:"mock-roadmap-refresh",
+  expires_at:Math.floor(Date.now()/1000)+3600,
+  token_type:"bearer"
+ }));
+ window.fetch=async(url,init={})=>{
+  calls.push({url:String(url),method:init.method||"GET",body:init.body||null});
+  return new Response(null,{status:204});
+ };
+ window.__WASLA_QA_MOCK__=true;
+ await dataApi.updateRoadmapMilestone("one",{status:"in_progress",progressPercent:65,testStatus:"failed"});
+ const patch=calls[0];
+ check("founder save uses PATCH",patch?.method==="PATCH");
+ check("founder save transmits status, percent and test outcome",(()=>{try{
+  const body=JSON.parse(patch.body);
+  return body.status==="in_progress"&&body.progress_percent===65&&body.test_status==="failed";
+ }catch{return false;}})());
+
+ const beforeInvalid=calls.length;
+ try{
+  await dataApi.updateRoadmapMilestone("one",{status:"done",progressPercent:100,testStatus:"not_tested"});
+  check("invalid completion blocked",false);
+ }catch(e){
+  check("invalid completion blocked",String(e.message).includes("100%"));
+ }
+ check("invalid completion causes no request",calls.length===beforeInvalid);
+
+ window.__WASLA_QA_MOCK__=false;
+ const beforePreview=calls.length;
+ try{
+  await dataApi.updateRoadmapMilestone("one",{status:"in_progress",progressPercent:70,testStatus:"failed"});
+  check("public preview write blocked",false);
+ }catch(e){
+  check("public preview write blocked",String(e.message).includes("نسخة معاينة"));
+ }
+ check("preview block causes no request",calls.length===beforePreview);
+
+ window.fetch=originalFetch;
+ window.__WASLA_QA_MOCK__=false;
+ localStorage.removeItem("wasla.auth.session.v1");
+
+ document.querySelector("#result").textContent=JSON.stringify({
+  result:checks.every(x=>x.ok)?"PASS":"FAIL",
+  passed:checks.filter(x=>x.ok).length,total:checks.length,checks,
+  note:"Synthetic records and mocked PATCH requests only. No live roadmap rows were updated by this browser test."
+ },null,2);
+} catch(error) {
+ document.querySelector("#result").textContent=JSON.stringify({result:"FAIL",error:String(error),passed:checks.filter(x=>x.ok).length,total:checks.length,checks},null,2);
+}
+</script>
+</body>
+</html>
