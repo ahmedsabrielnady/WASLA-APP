@@ -10,7 +10,9 @@ const state = {
   user: null,
   profile: null,
   session: null,
-  view: new URLSearchParams(location.search).get("view") === "operations" ? "operations" : "home",
+  view: ["operations", "roadmap"].includes(new URLSearchParams(location.search).get("view"))
+    ? new URLSearchParams(location.search).get("view")
+    : "home",
   modal: null,
   authMode: "login",
   pendingService: null,
