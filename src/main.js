@@ -270,7 +270,9 @@ function authModal() {
           ` : ""}
           <button class="btn btn-primary btn-block" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "جارٍ التنفيذ..." : (register ? "إنشاء الحساب" : "تسجيل الدخول")}</button>
         </form>
-        <button class="switch-auth" data-action="switch-auth">${register ? "لديك حساب بالفعل؟ تسجيل الدخول" : "ليس لديك حساب؟ إنشاء حساب جديد"}</button>
+${CONFIG.isPublicPreview
+          ? '<p class="form-footnote preview-auth-note">إنشاء الحسابات متوقف في نسخة المعاينة لحماية قاعدة البيانات الحية.</p>'
+          : `<button class="switch-auth" data-action="switch-auth">${register ? "لديك حساب بالفعل؟ تسجيل الدخول" : "ليس لديك حساب؟ إنشاء حساب جديد"}</button>`}
       </section>
     </div>
   `;
@@ -298,7 +300,8 @@ function orderModal() {
             <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على سياسة الخصوصية.</span></label>
           </div>
           <p class="form-footnote">إرسال الطلب لا يعني تنفيذ الدفع الإلكتروني. أي عربون أو تكلفة إضافية يتم توضيحها قبل التنفيذ.</p>
-          <button class="btn btn-primary btn-block" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "جارٍ إرسال الطلب..." : "تأكيد إرسال الطلب"}</button>
+          ${CONFIG.isPublicPreview ? '<p class="form-footnote preview-auth-note">هذه نسخة معاينة متصلة بقاعدة بيانات حية؛ إرسال الطلبات الفعلية متوقف هنا.</p>' : ""}
+          <button class="btn btn-primary btn-block" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>${CONFIG.isPublicPreview ? "الإرسال متوقف في المعاينة" : (state.busy ? "جارٍ إرسال الطلب..." : "تأكيد إرسال الطلب")}</button>
         </form>
       </section>
     </div>
@@ -318,6 +321,7 @@ function render() {
 
   root.innerHTML = `
     ${header()}
+    ${CONFIG.isPublicPreview ? '<div class="preview-banner" role="note">نسخة معاينة — يمكنك تصفح الخدمات وتسجيل الدخول للقراءة، لكن إنشاء الحسابات والطلبات وحفظ الموافقات متوقف لحماية قاعدة البيانات الحية.</div>' : ""}
     <main class="app-main">${view}</main>
     <footer class="site-footer">
       <div class="footer-brand"><span class="brand-mark small">و</span><strong>وصلة WASLA</strong></div>
@@ -510,6 +514,9 @@ async function captureDeviceLocation() {
 }
 
 async function submitOrder(form) {
+  if (CONFIG.isPublicPreview && window.__WASLA_QA_MOCK__ !== true) {
+    throw new Error("إرسال الطلبات الفعلية متوقف في نسخة المعاينة؛ يمكنك تصفح الخدمات واختبار خطوات النموذج فقط.");
+  }
   const values = Object.fromEntries(new FormData(form).entries());
   state.pendingAddress = String(values.address ?? "");
   if (!state.pendingService) throw new Error("اختر الخدمة من جديد.");
