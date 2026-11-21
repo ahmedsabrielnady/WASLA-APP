@@ -35,8 +35,10 @@ export function renderRoadmapHome(items, error) {
     metrics.weightedProgress + '%</strong></div>' +
     progressBar(metrics.weightedProgress, "إنجاز خطة وصلة") +
     '<div class="roadmap-home-meta"><span>' + metrics.doneCount +
-    ' بند مكتمل ومختبر</span><span>' + Math.max(0, metrics.milestoneCount - metrics.doneCount) +
-    ' بند متبقٍ أو قيد التنفيذ</span></div>' +
+    ' بنود مكتملة ومختبرة</span><span>' + Math.max(0, metrics.milestoneCount - metrics.doneCount) +
+    ' بندًا غير مكتمل</span></div>' +
+    '<div class="roadmap-home-meta"><span>الاكتمال المثبت بالاختبار: ' +
+    metrics.verifiedCompletion + '%</span></div>' +
     '<button class="btn btn-outline btn-small" data-action="roadmap">عرض الخطة ونسب كل بند</button>' +
     '</section>';
 }
