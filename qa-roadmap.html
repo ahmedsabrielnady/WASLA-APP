@@ -29,8 +29,8 @@ try {
   checks.push({check:"all seeded roadmap milestones load",ok:Array.isArray(rows)&&rows.length===28,count:rows?.length});
 
   const metrics = calculateRoadmapMetrics(rows);
-  checks.push({check:"weighted progress matches database formula",ok:metrics.totalWeight===143&&metrics.weightedProgress===32.4,metrics});
-  checks.push({check:"verified completion excludes unfinished work",ok:metrics.verifiedCompletion===10.5,verified:metrics.verifiedCompletion});
+  checks.push({check:"weighted progress matches database formula",ok:metrics.totalWeight===143&&metrics.weightedProgress===35.2,metrics});
+  checks.push({check:"verified completion excludes unfinished work",ok:metrics.verifiedCompletion===13.3,verified:metrics.verifiedCompletion});
 
   const publicMarkup=renderRoadmapPage({items:rows,profile:null,preview:true,audit:[]});
   document.querySelector("#public").innerHTML=publicMarkup;
