@@ -1,4 +1,5 @@
 import { CONFIG } from "./config.js";
+import { validateRoadmapUpdate } from "./domain.js";
 
 const SESSION_KEY = "wasla.auth.session.v1";
 const PENDING_CONSENT_KEY = "wasla.pending-consent.v1";
