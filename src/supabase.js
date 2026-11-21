@@ -292,13 +292,82 @@ export const dataApi = {
     if (!session?.access_token) throw new Error("سجل الدخول لعرض لوحة التشغيل.");
 
     const query = new URLSearchParams({
-      select: "id,ref,sector,status,price_egp,created_at,scheduled_at",
+      select: "id,ref,sector,status,price_egp,deposit_egp,deposit_paid,created_at,updated_at,scheduled_at,address,provider_id,item_id,product_id,quantity",
       order: "created_at.desc",
       limit: "50"
     });
 
     return request(`/rest/v1/orders?${query}`, {
       token: session.access_token
+    });
+  },
+
+  async getOperationsProviders() {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول لعرض مقدمي الخدمة.");
+
+    const query = new URLSearchParams({
+      select: "id,kind,display_name,specialty,area,approved,active,is_test,created_at",
+      order: "created_at.desc",
+      limit: "100"
+    });
+
+    return request(`/rest/v1/providers?${query}`, {
+      token: session.access_token
+    });
+  },
+
+  async updateOrderStatus(orderId, status, note = null) {
+    assertLiveWritesAllowed("تغيير حالات الطلبات");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+
+    return request("/rest/v1/rpc/set_order_status", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_order: orderId, p_to: status, p_note: note }
+    });
+  },
+
+  async quoteOrder(orderId, price) {
+    assertLiveWritesAllowed("إرسال عروض الأسعار");
+    const numericPrice = Number(price);
+    if (!Number.isInteger(numericPrice) || numericPrice < 0 || numericPrice > 10000000) {
+      throw new Error("أدخل سعرًا صحيحًا بالجنيه.");
+    }
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+
+    return request("/rest/v1/rpc/quote_order", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_order: orderId, p_price: numericPrice }
+    });
+  },
+
+  async assignOrder(orderId, providerId) {
+    assertLiveWritesAllowed("تعيين مقدمي الخدمة");
+    if (!orderId || !providerId) throw new Error("اختر الطلب ومقدم الخدمة.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+
+    return request("/rest/v1/rpc/assign_order", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_order: orderId, p_provider: providerId }
+    });
+  },
+
+  async approveProvider(providerId) {
+    assertLiveWritesAllowed("اعتماد مقدمي الخدمة");
+    if (!providerId) throw new Error("مقدم الخدمة غير محدد.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+
+    return request("/rest/v1/rpc/approve_provider", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_provider: providerId }
     });
   },
 
