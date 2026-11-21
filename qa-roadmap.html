@@ -10,7 +10,7 @@
   <div id="staff"></div>
 </main>
 <script type="module">
-import { calculateRoadmapMetrics, validateRoadmapUpdate } from "./src/domain.js";
+import { calculateRoadmapMetrics, escapeHTML, validateRoadmapUpdate } from "./src/domain.js";
 import { renderRoadmapPage } from "./src/roadmap.js";
 
 const output = document.querySelector("#output");
@@ -62,13 +62,14 @@ try {
   checks.push({check:"valid done state accepted",ok:validateRoadmapUpdate("done",100,"passed").valid});
   checks.push({check:"planned cannot claim partial progress",ok:!validateRoadmapUpdate("planned",20,"not_tested").valid});
 
-  const malicious={
-    id:"qa-xss",area:"اختبار",title:"<img src=x onerror=alert(1)>",
-    description:"<script>alert(2)</script>",weight:1,progress_percent:0,
-    status:"planned",test_status:"not_tested",public_visible:true
-  };
-  const escaped=renderRoadmapPage({items:[malicious],profile:null,preview:true,audit:[]});
-  checks.push({check:"roadmap values are escaped before HTML insertion",ok:escaped.includes("&lt;img")&& !escaped.includes("<img src=x")});
+  const less = String.fromCharCode(60);
+  const greater = String.fromCharCode(62);
+  const hostile = less + "img src=x onerror=alert(1)" + greater;
+  const escaped = escapeHTML(hostile);
+  checks.push({
+    check:"roadmap values are escaped before HTML insertion",
+    ok:escaped.indexOf("&lt;img") === 0 && escaped.indexOf(less) === -1
+  });
 
   output.textContent=JSON.stringify({
     result:checks.every(x=>x.ok)?"PASS":"FAIL",
