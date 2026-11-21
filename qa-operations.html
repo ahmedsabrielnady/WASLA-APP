@@ -37,9 +37,9 @@ const sampleProviders=[
  {id:"20000000-0000-4000-8000-000000000003",kind:"technician",display_name:"فني تجريبي",specialty:"تجريبي",area:"شبين",approved:true,active:true,is_test:true}
 ];
 function check(name,ok,details){checks.push({check:name,ok:Boolean(ok),...(details===undefined?{}:{details})});}
-function mount(selector,profile){
+function mount(selector,profile,renderer){
  const el=document.querySelector(selector);
- el.innerHTML=renderOperationsView({profile,orders:sampleOrders,providers:sampleProviders,preview:true,saving:false});
+ el.innerHTML=renderer({profile,orders:sampleOrders,providers:sampleProviders,preview:true,saving:false});
  return el;
 }
 try {
@@ -49,9 +49,9 @@ try {
   import("./src/domain.js"),
   import("./src/supabase.js")
  ]);
- const admin=mount("#preview-admin",{role:"admin",full_name:"Founder QA"});
- const staff=mount("#preview-staff",{role:"staff",full_name:"Staff QA"});
- const customer=mount("#preview-customer",{role:"customer",full_name:"Customer QA"});
+ const admin=mount("#preview-admin",{role:"admin",full_name:"Founder QA"},renderOperationsView);
+ const staff=mount("#preview-staff",{role:"staff",full_name:"Staff QA"},renderOperationsView);
+ const customer=mount("#preview-customer",{role:"customer",full_name:"Customer QA"},renderOperationsView);
 
  check("admin sees operations console",!!admin.querySelector(".operations-page"));
  check("staff sees operations console",!!staff.querySelector(".operations-page"));
