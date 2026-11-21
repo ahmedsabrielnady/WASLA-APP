@@ -35,16 +35,20 @@ function showToast(message, kind = "info") {
 }
 
 function offerTicker() {
-  const messages = state.offers.length
+  const hasPublishedOffers = state.offers.length > 0;
+  const messages = hasPublishedOffers
     ? state.offers.map((offer) => offer.text)
     : ["وصلة تجمع خدماتك المحلية في مكان واحد", "خدمات شبين القناطر أقرب وأسهل مع وصلة"];
 
   const text = messages.map((message) => escapeHTML(message)).join("　　✦　　");
+  const note = hasPublishedOffers
+    ? "الإعلانات نصوص منشورة من لوحة المنصة؛ لا يُحتسب خصم تلقائي قبل تفعيل محرك العروض."
+    : "لا توجد عروض منشورة حاليًا؛ الرسائل المعروضة تعريفية فقط.";
   return `
     <div class="ticker" aria-label="إعلانات المنصة">
       <div class="ticker-track"><span>${text}</span><span aria-hidden="true">${text}</span></div>
     </div>
-    <p class="ticker-note">الإعلانات المعروضة نصوص منشورة من لوحة المنصة؛ لا يُحتسب خصم تلقائي قبل تفعيل محرك العروض.</p>
+    <p class="ticker-note">${note}</p>
   `;
 }
 
@@ -319,15 +323,24 @@ function render() {
 
 async function loadCatalog() {
   state.loadError = "";
-  try {
-    const [services, offers] = await Promise.all([
-      dataApi.getServices(),
-      dataApi.getOffers()
-    ]);
-    state.services = Array.isArray(services) ? services : [];
-    state.offers = Array.isArray(offers) ? offers : [];
-  } catch (error) {
-    state.loadError = error.message || "تعذر تحميل البيانات.";
+
+  const [servicesResult, offersResult] = await Promise.allSettled([
+    dataApi.getServices(),
+    dataApi.getOffers()
+  ]);
+
+  if (servicesResult.status === "fulfilled") {
+    state.services = Array.isArray(servicesResult.value) ? servicesResult.value : [];
+  } else {
+    state.services = [];
+    state.loadError = servicesResult.reason?.message || "تعذر تحميل الخدمات.";
+  }
+
+  if (offersResult.status === "fulfilled") {
+    state.offers = Array.isArray(offersResult.value) ? offersResult.value : [];
+  } else {
+    // Offers are supplemental; an offers failure must not hide the service catalogue.
+    state.offers = [];
   }
 }
 
