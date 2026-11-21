@@ -37,6 +37,15 @@ export function isValidAddress(value) {
   return address.length >= 4 && address.length <= 255;
 }
 
+export function isValidCoordinates(latitude, longitude) {
+  const lat = Number(latitude);
+  const lng = Number(longitude);
+  return Number.isFinite(lat)
+    && Number.isFinite(lng)
+    && lat >= -90 && lat <= 90
+    && lng >= -180 && lng <= 180;
+}
+
 export function formatEGP(value) {
   if (value === null || value === undefined || value === "") {
     return "يتحدد بعد المعاينة";
