@@ -1,5 +1,5 @@
 import { CONFIG } from "./config.js";
-import { SECTORS, canRequestService, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, sectorLabel, statusLabel } from "./domain.js";
+import { SECTORS, canRequestService, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, sectorLabel, statusLabel } from "./domain.js";
 import { authApi, dataApi } from "./supabase.js";
 
 const root = document.querySelector("#app");
@@ -13,6 +13,8 @@ const state = {
   modal: null,
   authMode: "login",
   pendingService: null,
+  pendingLocation: null,
+  pendingAddress: "",
   search: "",
   myOrders: [],
   operationsOrders: [],
@@ -284,7 +286,11 @@ function orderModal() {
         <h2 id="order-title">طلب خدمة: ${escapeHTML(item.name)}</h2>
         <p class="modal-subtitle">السعر المعروض من قاعدة البيانات: <strong>${escapeHTML(formatEGP(item.price_egp))}</strong></p>
         <form data-form="order" novalidate>
-          <label>عنوان تنفيذ الخدمة<input name="address" required minlength="4" maxlength="255" autocomplete="street-address" placeholder="الشارع والمنطقة ورقم العقار"></label>
+          <button class="btn btn-outline btn-block location-button" type="button" data-action="get-location" ${state.busy ? "disabled" : ""}>📍 استخدم موقعي الحالي</button>
+          <p class="location-help">${state.pendingLocation
+            ? `تم تحديد موقعك بدقة تقريبية ${Math.round(state.pendingLocation.accuracy)} متر. يمكنك تعديل العنوان.`
+            : "يمكنك استخدام GPS لتسجيل موقع تنفيذ الخدمة دون كتابة عنوان تفصيلي."}</p>
+          <label>عنوان تنفيذ الخدمة<input name="address" required minlength="4" maxlength="255" autocomplete="street-address" value="${escapeHTML(state.pendingAddress || (state.pendingLocation ? "موقعي الحالي" : ""))}" placeholder="الشارع والمنطقة ورقم العقار"></label>
           <label>ملاحظات إضافية<textarea name="notes" maxlength="500" rows="3" placeholder="تفاصيل تساعد مقدم الخدمة"></textarea></label>
           <div class="consent-panel">
             <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على شروط الاستخدام.</span></label>
@@ -374,6 +380,8 @@ function openOrder(item) {
     return;
   }
   state.pendingService = item;
+  state.pendingLocation = null;
+  state.pendingAddress = "";
   state.modal = "order";
   render();
   root.querySelector('input[name="address"]')?.focus();
@@ -465,8 +473,44 @@ async function submitAuth(form) {
   }
 }
 
+async function captureDeviceLocation() {
+  if (!navigator.geolocation) {
+    throw new Error("المتصفح لا يدعم تحديد الموقع.");
+  }
+
+  const position = await new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      resolve,
+      (error) => {
+        const messages = {
+          1: "لم تسمح بالوصول إلى الموقع. يمكنك كتابة العنوان يدويًا.",
+          2: "تعذر تحديد موقعك الحالي. حاول مرة أخرى أو اكتب العنوان.",
+          3: "انتهت مهلة تحديد الموقع. حاول مرة أخرى."
+        };
+        reject(new Error(messages[error.code] || "تعذر تحديد الموقع."));
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 120000 }
+    );
+  });
+
+  const { latitude, longitude, accuracy } = position.coords;
+  if (!isValidCoordinates(latitude, longitude)) {
+    throw new Error("إحداثيات الموقع التي أرجعها الجهاز غير صالحة.");
+  }
+
+  state.pendingLocation = {
+    lat: latitude,
+    lng: longitude,
+    accuracy: Number.isFinite(accuracy) ? accuracy : 0
+  };
+  if (!state.pendingAddress.trim()) state.pendingAddress = "موقعي الحالي";
+  render();
+  showToast("تم تحديد موقعك. راجع العنوان قبل إرسال الطلب.", "success");
+}
+
 async function submitOrder(form) {
   const values = Object.fromEntries(new FormData(form).entries());
+  state.pendingAddress = String(values.address ?? "");
   if (!state.pendingService) throw new Error("اختر الخدمة من جديد.");
   if (!isValidAddress(values.address)) {
     throw new Error("أدخل عنوانًا واضحًا لا يقل عن 4 أحرف.");
@@ -487,13 +531,36 @@ async function submitOrder(form) {
     notes: values.notes
   });
   const record = Array.isArray(result) ? result[0] : result;
+  let locationSaved = true;
+
+  if (state.pendingLocation && record?.out_order_id) {
+    try {
+      await dataApi.setOrderLocation(record.out_order_id, {
+        lat: state.pendingLocation.lat,
+        lng: state.pendingLocation.lng,
+        address: values.address
+      });
+    } catch {
+      // The order already exists; do not ask the customer to submit it again.
+      locationSaved = false;
+    }
+  }
 
   state.modal = null;
   state.pendingService = null;
+  state.pendingLocation = null;
+  state.pendingAddress = "";
   state.myOrders = await dataApi.getMyOrders(state.user.id);
   state.view = "orders";
   render();
-  showToast(record?.out_ref ? `تم استلام طلبك رقم ${record.out_ref}` : "تم استلام طلبك.", "success");
+
+  const ref = record?.out_ref ? `رقم ${record.out_ref}` : "طلبك";
+  showToast(
+    locationSaved
+      ? `تم استلام ${ref}`
+      : `تم استلام ${ref}، لكن تعذر حفظ إحداثيات GPS. لم يتم تكرار الطلب.`,
+    locationSaved ? "success" : "error"
+  );
 }
 
 root.addEventListener("click", async (event) => {
@@ -505,6 +572,11 @@ root.addEventListener("click", async (event) => {
 
   try {
     if (action === "auth") openAuth("login");
+    else if (action === "get-location") {
+      const currentAddress = root.querySelector('input[name="address"]')?.value ?? state.pendingAddress;
+      state.pendingAddress = currentAddress;
+      await captureDeviceLocation();
+    }
     else if (action === "close-modal" || action === "backdrop") {
       state.modal = null;
       render();
@@ -571,6 +643,10 @@ root.addEventListener("submit", async (event) => {
 });
 
 root.addEventListener("input", (event) => {
+  if (event.target.matches('input[name="address"]')) {
+    state.pendingAddress = event.target.value;
+    return;
+  }
   if (!event.target.matches("[data-search]")) return;
   const cursor = event.target.selectionStart;
   state.search = event.target.value;
