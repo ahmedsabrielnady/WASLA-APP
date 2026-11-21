@@ -7,6 +7,7 @@ import {
   formatEGP,
   isEgyptianPhone,
   isValidAddress,
+  isValidCoordinates,
   sectorLabel,
   statusLabel
 } from "../src/domain.js";
@@ -57,4 +58,12 @@ test("sector and status labels have safe fallbacks", () => {
 test("EGP formatter handles absent and numeric values", () => {
   assert.equal(formatEGP(null), "يتحدد بعد المعاينة");
   assert.match(formatEGP(150), /١٥٠|150/);
+});
+
+test("GPS coordinate validation enforces latitude and longitude ranges", () => {
+  assert.equal(isValidCoordinates(30.32, 31.25), true);
+  assert.equal(isValidCoordinates(-90, 180), true);
+  assert.equal(isValidCoordinates(90.01, 31), false);
+  assert.equal(isValidCoordinates(30, -181), false);
+  assert.equal(isValidCoordinates("north", 31), false);
 });
