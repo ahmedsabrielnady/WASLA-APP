@@ -221,7 +221,7 @@ export const dataApi = {
     if (!session?.access_token) throw new Error("سجل الدخول لعرض طلباتك.");
 
     const query = new URLSearchParams({
-      select: "id,ref,sector,status,price_egp,deposit_egp,deposit_paid,created_at,scheduled_at",
+      select: "id,ref,sector,status,price_egp,deposit_egp,deposit_paid,created_at,scheduled_at,lat,lng",
       customer_id: `eq.${userId}`,
       order: "created_at.desc",
       limit: "30"
