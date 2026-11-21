@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="./styles.css"><title>WASLA Roadmap QA</title></head>
+<body>
+<main id="qa" style="max-width:1100px;margin:20px auto;padding:16px">
+  <h1>WASLA Roadmap QA</h1>
+  <div id="output"></div>
+  <div id="public"></div>
+  <div id="admin"></div>
+  <div id="staff"></div>
+</main>
+<script type="module">
+import { calculateRoadmapMetrics, validateRoadmapUpdate } from "./src/domain.js";
+import { renderRoadmapPage } from "./src/roadmap.js";
+
+const output = document.querySelector("#output");
+const checks = [];
+const base = "https://yfgvimcqbtthnrbzbhft.supabase.co";
+const key = "sb_publishable_Aej6zAcIojeoTI7GUxcXbA_lSKKqUmh";
+
+try {
+  const url = base + "/rest/v1/roadmap_milestones?select=id,area,title,description,weight,status,progress_percent,test_status,sort_order,public_visible,updated_at&public_visible=eq.true&order=sort_order.asc";
+  const response = await fetch(url, {
+    headers: { apikey:key, Authorization:"Bearer "+key, Accept:"application/json" },
+    cache:"no-store"
+  });
+  const rows = await response.json();
+  checks.push({check:"public roadmap REST access",ok:response.status===200, status:response.status});
+  checks.push({check:"all seeded roadmap milestones load",ok:Array.isArray(rows)&&rows.length===28,count:rows?.length});
+
+  const metrics = calculateRoadmapMetrics(rows);
+  checks.push({check:"weighted progress matches database formula",ok:metrics.totalWeight===143&&metrics.weightedProgress===32.4,metrics});
+  checks.push({check:"verified completion excludes unfinished work",ok:metrics.verifiedCompletion===10.5,verified:metrics.verifiedCompletion});
+
+  const publicMarkup=renderRoadmapPage({items:rows,profile:null,preview:true,audit:[]});
+  document.querySelector("#public").innerHTML=publicMarkup;
+  checks.push({check:"public roadmap displays every milestone",ok:(document.querySelectorAll("#public .roadmap-item-card").length===28),cards:document.querySelectorAll("#public .roadmap-item-card").length});
+  checks.push({check:"public visitor cannot edit milestones",ok:!document.querySelector("#public form[data-form='roadmap-milestone']")});
+  checks.push({check:"public roadmap shows progress",ok:document.querySelector("#public .roadmap-overall")?.textContent.includes("32.4%")===true});
+
+  const adminMarkup=renderRoadmapPage({
+    items:rows,
+    profile:{role:"admin",full_name:"QA Admin"},
+    preview:false,
+    audit:[{
+      id:1,milestone_id:"foundation-rtl-pwa",milestone_title_snapshot:"واجهة عربية متجاوبة وتطبيق PWA",
+      actor_id:"qa",old_status:"in_progress",new_status:"done",
+      old_progress_percent:90,new_progress_percent:100,
+      old_test_status:"not_tested",new_test_status:"passed",
+      created_at:new Date().toISOString()
+    }]
+  });
+  document.querySelector("#admin").innerHTML=adminMarkup;
+  checks.push({check:"admin sees milestone editor",ok:document.querySelectorAll("#admin form[data-form='roadmap-milestone']").length===28,forms:document.querySelectorAll("#admin form[data-form='roadmap-milestone']").length});
+  checks.push({check:"admin sees audit history",ok:document.querySelector("#admin .roadmap-audit-row")!==null});
+
+  const staffMarkup=renderRoadmapPage({items:rows,profile:{role:"staff"},preview:false,audit:[]});
+  document.querySelector("#staff").innerHTML=staffMarkup;
+  checks.push({check:"staff cannot edit founder roadmap",ok:!document.querySelector("#staff form[data-form='roadmap-milestone']")});
+
+  checks.push({check:"done requires 100 percent and passed test",ok:!validateRoadmapUpdate("done",100,"not_tested").valid});
+  checks.push({check:"valid done state accepted",ok:validateRoadmapUpdate("done",100,"passed").valid});
+  checks.push({check:"planned cannot claim partial progress",ok:!validateRoadmapUpdate("planned",20,"not_tested").valid});
+
+  const malicious={
+    id:"qa-xss",area:"اختبار",title:"<img src=x onerror=alert(1)>",
+    description:"<script>alert(2)</script>",weight:1,progress_percent:0,
+    status:"planned",test_status:"not_tested",public_visible:true
+  };
+  const escaped=renderRoadmapPage({items:[malicious],profile:null,preview:true,audit:[]});
+  checks.push({check:"roadmap values are escaped before HTML insertion",ok:escaped.includes("&lt;img")&& !escaped.includes("<img src=x")});
+
+  output.textContent=JSON.stringify({
+    result:checks.every(x=>x.ok)?"PASS":"FAIL",
+    passed:checks.filter(x=>x.ok).length,
+    total:checks.length,
+    checks,
+    note:"Read-only live data fetch; admin and staff editors rendered with synthetic profiles. No update request was sent."
+  },null,2);
+} catch(error) {
+  output.textContent=JSON.stringify({result:"FAIL",error:String(error),checks},null,2);
+}
+</script>
+</body>
+</html>
