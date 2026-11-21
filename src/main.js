@@ -599,7 +599,7 @@ async function captureDeviceLocation() {
 }
 
 async function submitOrder(form) {
-  if (CONFIG.isPublicPreview && window.__WASLA_QA_MOCK__ !== true) {
+  if (CONFIG.isPublicPreview) {
     throw new Error("إرسال الطلبات الفعلية متوقف في نسخة المعاينة؛ يمكنك تصفح الخدمات واختبار خطوات النموذج فقط.");
   }
   const values = Object.fromEntries(new FormData(form).entries());
