@@ -8,6 +8,8 @@ import {
   isEgyptianPhone,
   isValidAddress,
   isValidCoordinates,
+  calculateRoadmapMetrics,
+  validateRoadmapUpdate,
   sectorLabel,
   statusLabel
 } from "../src/domain.js";
@@ -66,4 +68,36 @@ test("GPS coordinate validation enforces latitude and longitude ranges", () => {
   assert.equal(isValidCoordinates(90.01, 31), false);
   assert.equal(isValidCoordinates(30, -181), false);
   assert.equal(isValidCoordinates("north", 31), false);
+});
+
+
+test("roadmap weighted completion gives greater influence to higher-weight work", () => {
+  const metrics = calculateRoadmapMetrics([
+    { weight: 2, progress_percent: 100, status: "done", test_status: "passed" },
+    { weight: 3, progress_percent: 50, status: "in_progress", test_status: "not_tested" }
+  ]);
+
+  assert.equal(metrics.weightedProgress, 70);
+  assert.equal(metrics.verifiedCompletion, 40);
+  assert.equal(metrics.testedProgress, 40);
+  assert.equal(metrics.doneCount, 1);
+  assert.equal(metrics.totalWeight, 5);
+});
+
+test("roadmap metrics handle empty and invalid rows without NaN", () => {
+  assert.equal(calculateRoadmapMetrics([]).weightedProgress, 0);
+  const metrics = calculateRoadmapMetrics([
+    { weight: 0, progress_percent: 100 },
+    { weight: 2, progress_percent: 50, status: "in_progress", test_status: "failed" }
+  ]);
+  assert.equal(metrics.weightedProgress, 50);
+  assert.equal(metrics.passedTestProgress, 0);
+});
+
+test("roadmap completion requires 100 percent and a passed test", () => {
+  assert.equal(validateRoadmapUpdate("done", 100, "passed").valid, true);
+  assert.equal(validateRoadmapUpdate("done", 100, "not_tested").valid, false);
+  assert.equal(validateRoadmapUpdate("done", 90, "passed").valid, false);
+  assert.equal(validateRoadmapUpdate("planned", 10, "not_tested").valid, false);
+  assert.equal(validateRoadmapUpdate("blocked", 25, "not_tested").valid, true);
 });
