@@ -79,6 +79,13 @@
 
     try{
       await import("./src/main.js");
+      const authModule = await import("./src/supabase.js");
+      const testSession = authModule.authApi.getSession();
+      const testUser = await authModule.authApi.getUser();
+      const testProfile = testUser?.id ? await authModule.dataApi.getProfile(testUser.id) : null;
+      checks.push({check:"mock session is loaded",ok:!!testSession?.access_token});
+      checks.push({check:"mock Auth user is returned",ok:testUser?.id===userId,user:testUser});
+      checks.push({check:"mock profile role is returned",ok:testProfile?.role===role,profile:testProfile});
       await waitFor(()=>document.querySelector("#app")?.textContent.includes("لوحة التشغيل") ||
         (role==="customer" && document.querySelector("#app")?.textContent.includes("خدمات مدينتك")), "role-specific view");
 
