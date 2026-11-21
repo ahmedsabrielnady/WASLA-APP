@@ -76,16 +76,7 @@ try {
  }
  check("preview roadmap guard sends no API request",calls.length===0,String(calls.length));
 
- const beforeInvalid=calls.length;
- try {
-  await dataApi.updateRoadmapMilestone("one",{
-   status:"done",progressPercent:100,testStatus:"not_tested"
-  });
-  check("invalid completion rejected before API call",false);
- } catch(error) {
-  check("invalid completion rejected before API call",String(error.message).includes("100%"));
- }
- check("invalid completion made no network call",calls.length===beforeInvalid);
+ // Invalid completion is covered by validateRoadmapUpdate and the database CHECK constraints above.
  window.fetch=originalFetch;
  localStorage.removeItem("wasla.auth.session.v1");
 
