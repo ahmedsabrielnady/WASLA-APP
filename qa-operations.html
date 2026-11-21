@@ -7,12 +7,21 @@
 <div id="preview-admin"></div><div id="preview-staff"></div><div id="preview-customer"></div>
 <pre id="result" style="direction:ltr;text-align:left;white-space:pre-wrap;background:#fff;color:#111;padding:16px;border:1px solid #ddd"></pre>
 </main>
+<script>
+window.addEventListener("error", (event) => {
+  const result = document.querySelector("#result");
+  if (result && !result.textContent.trim()) {
+    result.textContent = JSON.stringify({result:"FAIL",stage:"browser-runtime",error:event.message||"Unknown browser error"},null,2);
+  }
+});
+window.addEventListener("unhandledrejection", (event) => {
+  const result = document.querySelector("#result");
+  if (result && !result.textContent.trim()) {
+    result.textContent = JSON.stringify({result:"FAIL",stage:"unhandled-rejection",error:String(event.reason)},null,2);
+  }
+});
+</script>
 <script type="module">
-import { renderOperationsView } from "./src/operations.js";
-import { renderRoadmapPage, renderRoadmapHome } from "./src/roadmap.js";
-import { calculateRoadmapMetrics, validateRoadmapUpdate } from "./src/domain.js";
-import { dataApi } from "./src/supabase.js";
-
 const checks=[];
 const sampleOrders=[{
  id:"10000000-0000-4000-8000-000000000001",
@@ -34,6 +43,12 @@ function mount(selector,profile){
  return el;
 }
 try {
+ const [{ renderOperationsView }, { renderRoadmapPage, renderRoadmapHome }, { calculateRoadmapMetrics, validateRoadmapUpdate }, { dataApi }] = await Promise.all([
+  import("./src/operations.js"),
+  import("./src/roadmap.js"),
+  import("./src/domain.js"),
+  import("./src/supabase.js")
+ ]);
  const admin=mount("#preview-admin",{role:"admin",full_name:"Founder QA"});
  const staff=mount("#preview-staff",{role:"staff",full_name:"Staff QA"});
  const customer=mount("#preview-customer",{role:"customer",full_name:"Customer QA"});
@@ -141,7 +156,7 @@ try {
  check("planned item cannot have partial progress",!validateRoadmapUpdate("planned",25,"not_tested").valid);
 
  // Exercise the actual Supabase client request builder with a mocked fetch.
- const originalFetch = window.fetch;
+ const roadmapOriginalFetch = window.fetch;
  const mockRequests=[];
  localStorage.setItem("wasla.auth.session.v1",JSON.stringify({
   access_token:"mock-roadmap-admin-token",
@@ -185,7 +200,7 @@ try {
   check("public preview blocks roadmap updates",String(error.message).includes("نسخة معاينة"));
  }
  check("public preview roadmap block sent no request",mockRequests.length===requestsBeforePublic);
- window.fetch=originalFetch;
+ window.fetch=roadmapOriginalFetch;
  window.__WASLA_QA_MOCK__=false;
  localStorage.removeItem("wasla.auth.session.v1");
 
