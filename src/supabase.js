@@ -205,6 +205,53 @@ export const dataApi = {
     return Array.isArray(rows) ? rows[0] ?? null : null;
   },
 
+  async getRoadmap() {
+    const session = await getValidSession();
+    const query = new URLSearchParams({
+      select: "id,area,title,description,weight,status,progress_percent,test_status,sort_order,public_visible,updated_at",
+      public_visible: "eq.true",
+      order: "sort_order.asc"
+    });
+    return request(`/rest/v1/roadmap_milestones?${query}`, {
+      token: session?.access_token ?? null
+    });
+  },
+
+  async getRoadmapAudit(limit = 10) {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل دخول المؤسس لعرض سجل التغييرات.");
+
+    const query = new URLSearchParams({
+      select: "id,milestone_id,milestone_title_snapshot,actor_id,old_status,new_status,old_progress_percent,new_progress_percent,old_test_status,new_test_status,created_at",
+      order: "created_at.desc",
+      limit: String(Math.max(1, Math.min(25, Number(limit) || 10)))
+    });
+    return request(`/rest/v1/roadmap_milestone_audit?${query}`, {
+      token: session.access_token
+    });
+  },
+
+  async updateRoadmapMilestone(id, { status, progressPercent, testStatus }) {
+    assertLiveWritesAllowed("تحديث خطة الإنجاز");
+    const validation = validateRoadmapUpdate(status, progressPercent, testStatus);
+    if (!validation.valid) throw new Error(validation.message);
+
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل دخول المؤسس أولًا.");
+
+    const query = new URLSearchParams({ id: `eq.${String(id)}` });
+    return request(`/rest/v1/roadmap_milestones?${query}`, {
+      method: "PATCH",
+      token: session.access_token,
+      headers: { Prefer: "return=minimal" },
+      body: {
+        status,
+        progress_percent: Number(progressPercent),
+        test_status: testStatus
+      }
+    });
+  },
+
   async getServices() {
     const query = new URLSearchParams({
       select: "id,sector,name,price_egp,active",
