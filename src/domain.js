@@ -86,3 +86,92 @@ export function escapeHTML(value) {
     "'": "&#39;"
   })[character]);
 }
+
+
+export function calculateRoadmapMetrics(items) {
+  const rows = Array.isArray(items) ? items : [];
+  const valid = rows.filter((item) => {
+    const weight = Number(item?.weight);
+    const progress = Number(item?.progress_percent);
+    return Number.isFinite(weight) && weight > 0
+      && Number.isFinite(progress) && progress >= 0 && progress <= 100;
+  });
+
+  const totalWeight = valid.reduce((sum, item) => sum + Number(item.weight), 0);
+  if (totalWeight === 0) {
+    return {
+      milestoneCount: valid.length,
+      totalWeight: 0,
+      weightedProgress: 0,
+      testedProgress: 0,
+      verifiedCompletion: 0,
+      doneCount: 0,
+      blockedCount: 0,
+      plannedCount: 0,
+      inProgressCount: 0
+    };
+  }
+
+  const weightedPoints = valid.reduce(
+    (sum, item) => sum + Number(item.weight) * Number(item.progress_percent),
+    0
+  );
+  const testedWeight = valid.reduce(
+    (sum, item) => sum + (["passed", "failed"].includes(item.test_status) ? Number(item.weight) : 0),
+    0
+  );
+  const passedWeight = valid.reduce(
+    (sum, item) => sum + (item.test_status === "passed" ? Number(item.weight) : 0),
+    0
+  );
+  const verifiedWeight = valid.reduce(
+    (sum, item) => sum + (
+      item.status === "done"
+      && item.test_status === "passed"
+      && Number(item.progress_percent) === 100
+        ? Number(item.weight)
+        : 0
+    ),
+    0
+  );
+
+  return {
+    milestoneCount: valid.length,
+    totalWeight,
+    weightedProgress: Math.round(weightedPoints / totalWeight),
+    testedProgress: Math.round(testedWeight / totalWeight * 100),
+    passedTestProgress: Math.round(passedWeight / totalWeight * 100),
+    verifiedCompletion: Math.round(verifiedWeight / totalWeight * 100),
+    doneCount: valid.filter((item) => item.status === "done" && item.test_status === "passed").length,
+    blockedCount: valid.filter((item) => item.status === "blocked").length,
+    plannedCount: valid.filter((item) => item.status === "planned").length,
+    inProgressCount: valid.filter((item) => item.status === "in_progress").length
+  };
+}
+
+export function validateRoadmapUpdate(status, progressPercent, testStatus) {
+  const progress = Number(progressPercent);
+  const allowedStatuses = new Set(["planned", "in_progress", "blocked", "done"]);
+  const allowedTests = new Set(["not_tested", "passed", "failed"]);
+
+  if (!allowedStatuses.has(status)) {
+    return { valid: false, message: "حالة التنفيذ غير معروفة." };
+  }
+  if (!Number.isInteger(progress) || progress < 0 || progress > 100) {
+    return { valid: false, message: "نسبة البند يجب أن تكون رقمًا صحيحًا من 0 إلى 100." };
+  }
+  if (!allowedTests.has(testStatus)) {
+    return { valid: false, message: "حالة الاختبار غير معروفة." };
+  }
+  if (status === "planned" && progress !== 0) {
+    return { valid: false, message: "البند المخطط لم يبدأ يجب أن تكون نسبته صفرًا." };
+  }
+  if (status === "done" && (progress !== 100 || testStatus !== "passed")) {
+    return { valid: false, message: "لا يمكن اعتماد بند مكتمل قبل وصوله إلى 100% واجتياز اختباره." };
+  }
+  if (progress === 100 && (status !== "done" || testStatus !== "passed")) {
+    return { valid: false, message: "الوصول إلى 100% يتطلب حالة مكتمل ونتيجة اختبار ناجح." };
+  }
+
+  return { valid: true, message: "" };
+}
