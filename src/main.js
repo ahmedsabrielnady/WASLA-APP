@@ -1,0 +1,848 @@
+import { CONFIG } from "./config.js";
+import { SECTORS, canRequestService, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
+import { authApi, dataApi } from "./supabase.js";
+import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
+import { renderOperationsView } from "./operations.js";
+
+const root = document.querySelector("#app");
+const state = {
+  services: [],
+  offers: [],
+  user: null,
+  profile: null,
+  session: null,
+  view: ["operations", "roadmap"].includes(new URLSearchParams(location.search).get("view"))
+    ? new URLSearchParams(location.search).get("view")
+    : "home",
+  modal: null,
+  authMode: "login",
+  pendingService: null,
+  pendingLocation: null,
+  pendingAddress: "",
+  search: "",
+  myOrders: [],
+  operationsOrders: [],
+  busy: false,
+  loadError: "",
+  roadmapItems: [],
+  roadmapAudit: [],
+  roadmapError: "",
+  roadmapSavingId: ""
+};
+
+function icon(text) {
+  return `<span class="icon" aria-hidden="true">${text}</span>`;
+}
+
+function showToast(message, kind = "info") {
+  const toast = document.querySelector("#toast");
+  if (!toast) return;
+  toast.textContent = message;
+  toast.dataset.kind = kind;
+  toast.classList.add("show");
+  window.clearTimeout(showToast.timer);
+  showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 3600);
+}
+
+function offerTicker() {
+  const hasPublishedOffers = state.offers.length > 0;
+  const messages = hasPublishedOffers
+    ? state.offers.map((offer) => offer.text)
+    : ["وصلة تجمع خدماتك المحلية في مكان واحد", "خدمات شبين القناطر أقرب وأسهل مع وصلة"];
+
+  const text = messages.map((message) => escapeHTML(message)).join("　　✦　　");
+  const note = hasPublishedOffers
+    ? "الإعلانات نصوص منشورة من لوحة المنصة؛ لا يُحتسب خصم تلقائي قبل تفعيل محرك العروض."
+    : "لا توجد عروض منشورة حاليًا؛ الرسائل المعروضة تعريفية فقط.";
+  return `
+    <div class="ticker" aria-label="إعلانات المنصة">
+      <div class="ticker-track"><span>${text}</span><span aria-hidden="true">${text}</span></div>
+    </div>
+    <p class="ticker-note">${note}</p>
+  `;
+}
+
+function header() {
+  const displayName = state.profile?.full_name || state.user?.email || "حسابي";
+  const authenticated = Boolean(state.user);
+  const isStaff = ["staff", "admin"].includes(state.profile?.role);
+
+  return `
+    <header class="topbar">
+      <a class="brand" href="./" data-action="home" aria-label="وصلة - الرئيسية">
+        <span class="brand-mark">و</span>
+        <span><strong>وصلة</strong><small>WASLA · شبين القناطر</small></span>
+      </a>
+      <nav class="top-actions" aria-label="القائمة الرئيسية">
+        <button class="nav-link" data-action="roadmap">خطة الإنجاز</button>
+        <button class="nav-link" data-action="orders" ${authenticated ? "" : "disabled"}>طلباتي</button>
+        ${isStaff ? '<button class="nav-link" data-action="operations">التشغيل</button>' : ""}
+        ${authenticated
+          ? `<button class="account-chip" data-action="account" title="الحساب">${icon("👤")}<span>${escapeHTML(displayName)}</span></button><button class="btn btn-outline btn-small" data-action="logout">خروج</button>`
+          : '<button class="btn btn-primary btn-small" data-action="auth">دخول / حساب جديد</button>'}
+      </nav>
+    </header>
+  `;
+}
+
+function sectorCards() {
+  return SECTORS.map((sector) => {
+    const count = state.services.filter((item) => item.sector === sector.code).length;
+    let badge = "قريبًا";
+    let detail = sector.description;
+
+    if (sector.mode === "order") {
+      badge = count ? `${count} خدمات متاحة للطلب` : "الخدمات قيد الإضافة";
+    } else if (sector.mode === "review") {
+      badge = "قيد استكمال التشغيل";
+      detail = sector.code === "clinic"
+        ? "لن نعرض مواعيد قبل اعتماد جداول العيادات"
+        : "تفعيل التوصيل والتتبع بعد تجهيز دورة الشحنات";
+    }
+
+    return `
+      <button class="sector-card ${sector.mode === "soon" ? "is-soon" : ""}" data-action="sector" data-sector="${sector.code}">
+        <span class="sector-icon">${sector.icon}</span>
+        <strong>${escapeHTML(sector.title)}</strong>
+        <span class="sector-description">${escapeHTML(detail)}</span>
+        <span class="sector-badge">${escapeHTML(badge)}</span>
+      </button>
+    `;
+  }).join("");
+}
+
+function serviceCards() {
+  const search = state.search.trim().toLocaleLowerCase("ar");
+  const filtered = state.services.filter((item) => {
+    const matchesSearch = !search
+      || String(item.name).toLocaleLowerCase("ar").includes(search)
+      || sectorLabel(item.sector).toLocaleLowerCase("ar").includes(search);
+    return matchesSearch;
+  });
+
+  if (state.loadError) {
+    return `<div class="empty-state"><strong>تعذر تحميل الخدمات</strong><p>${escapeHTML(state.loadError)}</p><button class="btn btn-outline" data-action="reload">إعادة المحاولة</button></div>`;
+  }
+
+  if (!filtered.length) {
+    return '<div class="empty-state"><strong>لا توجد خدمات مطابقة</strong><p>غيّر كلمة البحث أو ارجع لاحقًا لمشاهدة الخدمات الجديدة.</p></div>';
+  }
+
+  return filtered.map((item) => {
+    const canOrder = canRequestService(item);
+    const iconBySector = SECTORS.find((sector) => sector.code === item.sector)?.icon ?? "✦";
+    const action = canOrder ? "request-service" : (item.sector === "clinic" ? "clinic-info" : "coming-soon");
+    const buttonText = canOrder ? "اطلب الخدمة" : (item.sector === "clinic" ? "الحجز قيد التجهيز" : "قريبًا");
+    const price = formatEGP(item.price_egp);
+
+    return `
+      <article class="service-card" data-sector-card="${escapeHTML(item.sector)}">
+        <div class="service-icon">${iconBySector}</div>
+        <div class="service-content">
+          <span class="eyebrow">${escapeHTML(sectorLabel(item.sector))}</span>
+          <h3>${escapeHTML(item.name)}</h3>
+          <div class="service-bottom">
+            <strong class="price">${escapeHTML(price)}</strong>
+            <button class="btn ${canOrder ? "btn-primary" : "btn-muted"} btn-small"
+              data-action="${action}" data-item-id="${Number(item.id)}" ${canOrder ? "" : "aria-disabled=\"true\""}>
+              ${buttonText}
+            </button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+function homeView() {
+  return `
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="hero-kicker">وصلة · رفيقك في رحلته</span>
+        <h1>خدمات مدينتك،<br><em>في مكان واحد.</em></h1>
+        <p>ابدأ بالخدمة التي تحتاجها. نعرض الخدمات الفعلية المسجلة، ونوضح ما لم يكتمل تشغيله بعد.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#services">استكشف الخدمات <span>←</span></a>
+          <button class="btn btn-glass" data-action="orders">تابع طلباتك</button>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="hero-logo">و</div>
+        <span class="float-icon float-one">🩺</span><span class="float-icon float-two">🚗</span><span class="float-icon float-three">🧰</span>
+      </div>
+      <div class="hero-location">📍 شبين القناطر · القليوبية</div>
+    </section>
+
+    ${offerTicker()}
+    ${renderRoadmapHome(state.roadmapItems, state.roadmapError)}
+
+    <section class="section-block">
+      <div class="section-heading">
+        <div><span class="eyebrow">كل احتياجاتك</span><h2>قطاعات وصلة</h2></div>
+        <span class="section-aside">الخدمات تتفعل تدريجيًا</span>
+      </div>
+      <div class="sector-grid">${sectorCards()}</div>
+    </section>
+
+    <section class="section-block" id="services">
+      <div class="section-heading">
+        <div><span class="eyebrow">من قاعدة البيانات</span><h2>الخدمات المتاحة حاليًا</h2></div>
+        <span class="live-indicator"><i></i> بيانات مباشرة</span>
+      </div>
+      <label class="search-box">
+        <span aria-hidden="true">⌕</span>
+        <input data-search type="search" value="${escapeHTML(state.search)}" placeholder="ابحث عن خدمة..." autocomplete="off">
+      </label>
+      <div class="service-grid">${serviceCards()}</div>
+    </section>
+
+    <section class="trust-strip">
+      <div><strong>بيانات واضحة</strong><span>لا نعرض مقدم خدمة تجريبيًا كأنه معتمد فعليًا.</span></div>
+      <div><strong>تتبع الطلب</strong><span>سجل الطلبات متاح بعد تسجيل الدخول.</span></div>
+      <div><strong>صلاحيات محمية</strong><span>التحقق من الصلاحيات يتم في قاعدة البيانات.</span></div>
+    </section>
+  `;
+}
+
+function orderCard(order) {
+  const price = order.price_egp === null ? "السعر لم يحدد" : formatEGP(order.price_egp);
+  return `
+    <article class="order-card">
+      <div class="order-card-top"><strong>${escapeHTML(order.ref || "طلب وصلة")}</strong><span class="status-pill">${escapeHTML(statusLabel(order.status))}</span></div>
+      <div class="order-name">${escapeHTML(sectorLabel(order.sector))}</div>
+      <div class="order-meta"><span>${escapeHTML(formatDate(order.created_at))}</span><strong>${escapeHTML(price)}</strong></div>
+      ${Number(order.deposit_egp) > 0 ? `<p class="deposit-note">عربون مسجل: ${escapeHTML(formatEGP(order.deposit_egp))} · ${order.deposit_paid ? "مدفوع" : "غير مسدد"}</p>` : ""}
+      ${Number.isFinite(Number(order.lat)) && Number.isFinite(Number(order.lng)) ? '<p class="location-note">📍 تم تسجيل إحداثيات موقع التنفيذ</p>' : ""}
+    </article>
+  `;
+}
+
+function ordersView() {
+  if (!state.user) {
+    return '<section class="page-panel"><h1>طلباتي</h1><p>سجل الدخول لمشاهدة طلباتك.</p><button class="btn btn-primary" data-action="auth">تسجيل الدخول</button></section>';
+  }
+
+  return `
+    <section class="page-panel">
+      <div class="section-heading"><div><span class="eyebrow">حساب العميل</span><h1>طلباتي</h1></div><button class="btn btn-outline btn-small" data-action="reload-orders">تحديث</button></div>
+      ${state.myOrders.length
+        ? `<div class="orders-list">${state.myOrders.map(orderCard).join("")}</div>`
+        : '<div class="empty-state"><strong>لا توجد طلبات بعد</strong><p>عندما ترسل أول طلب ستظهر حالته هنا.</p><button class="btn btn-primary" data-action="home">اكتشف الخدمات</button></div>'}
+    </section>
+  `;
+}
+
+function operationsView() {
+  return renderOperationsView({
+    profile: state.profile,
+    orders: state.operationsOrders,
+    providers: state.operationsProviders,
+    preview: CONFIG.isPublicPreview,
+    saving: state.operationsSaving
+  });
+}
+
+function roadmapView() {
+  return renderRoadmapPage({
+    items: state.roadmapItems,
+    profile: state.profile,
+    preview: CONFIG.isPublicPreview,
+    error: state.roadmapError,
+    audit: state.roadmapAudit,
+    savingId: state.roadmapSavingId
+  });
+}
+
+function authModal() {
+  const register = state.authMode === "register";
+  return `
+    <div class="modal-backdrop" data-action="backdrop">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+        <button class="modal-close" data-action="close-modal" aria-label="إغلاق">×</button>
+        <span class="eyebrow">حساب وصلة</span>
+        <h2 id="auth-title">${register ? "إنشاء حساب جديد" : "مرحبًا بعودتك"}</h2>
+        <p class="modal-subtitle">${register ? "أنشئ حسابًا لتسجيل طلباتك ومتابعتها." : "سجل الدخول لعرض الطلبات وإرسال خدمة."}</p>
+        <form data-form="auth" novalidate>
+          ${register ? `
+            <label>الاسم بالكامل<input name="full_name" required minlength="2" maxlength="60" autocomplete="name" placeholder="الاسم بالكامل"></label>
+            <label>رقم الموبايل<input name="phone" required inputmode="numeric" maxlength="11" autocomplete="tel" placeholder="01xxxxxxxxx"></label>
+          ` : ""}
+          <label>البريد الإلكتروني<input name="email" type="email" required autocomplete="email" placeholder="name@example.com"></label>
+          <label>كلمة المرور<input name="password" type="password" required minlength="8" autocomplete="${register ? "new-password" : "current-password"}" placeholder="8 أحرف على الأقل"></label>
+          ${register ? `
+            <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على شروط الاستخدام.</span></label>
+            <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على سياسة الخصوصية.</span></label>
+          ` : ""}
+          <button class="btn btn-primary btn-block" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "جارٍ التنفيذ..." : (register ? "إنشاء الحساب" : "تسجيل الدخول")}</button>
+        </form>
+${CONFIG.isPublicPreview
+          ? '<p class="form-footnote preview-auth-note">إنشاء الحسابات متوقف في نسخة المعاينة لحماية قاعدة البيانات الحية.</p>'
+          : `<button class="switch-auth" data-action="switch-auth">${register ? "لديك حساب بالفعل؟ تسجيل الدخول" : "ليس لديك حساب؟ إنشاء حساب جديد"}</button>`}
+      </section>
+    </div>
+  `;
+}
+
+function orderModal() {
+  const item = state.pendingService;
+  if (!item) return "";
+  return `
+    <div class="modal-backdrop" data-action="backdrop">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="order-title">
+        <button class="modal-close" data-action="close-modal" aria-label="إغلاق">×</button>
+        <span class="eyebrow">${escapeHTML(sectorLabel(item.sector))}</span>
+        <h2 id="order-title">طلب خدمة: ${escapeHTML(item.name)}</h2>
+        <p class="modal-subtitle">السعر المعروض من قاعدة البيانات: <strong>${escapeHTML(formatEGP(item.price_egp))}</strong></p>
+        <form data-form="order" novalidate>
+          <button class="btn btn-outline btn-block location-button" type="button" data-action="get-location" ${state.busy ? "disabled" : ""}>📍 استخدم موقعي الحالي</button>
+          <p class="location-help">${state.pendingLocation
+            ? `تم تحديد موقعك بدقة تقريبية ${Math.round(state.pendingLocation.accuracy)} متر. يمكنك تعديل العنوان.`
+            : "يمكنك استخدام GPS لتسجيل موقع تنفيذ الخدمة دون كتابة عنوان تفصيلي."}</p>
+          <label>عنوان تنفيذ الخدمة<input name="address" required minlength="4" maxlength="255" autocomplete="street-address" value="${escapeHTML(state.pendingAddress || (state.pendingLocation ? "موقعي الحالي" : ""))}" placeholder="الشارع والمنطقة ورقم العقار"></label>
+          <label>ملاحظات إضافية<textarea name="notes" maxlength="500" rows="3" placeholder="تفاصيل تساعد مقدم الخدمة"></textarea></label>
+          <div class="consent-panel">
+            <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على شروط الاستخدام.</span></label>
+            <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على سياسة الخصوصية.</span></label>
+          </div>
+          <p class="form-footnote">إرسال الطلب لا يعني تنفيذ الدفع الإلكتروني. أي عربون أو تكلفة إضافية يتم توضيحها قبل التنفيذ.</p>
+          ${CONFIG.isPublicPreview ? '<p class="form-footnote preview-auth-note">هذه نسخة معاينة متصلة بقاعدة بيانات حية؛ إرسال الطلبات الفعلية متوقف هنا.</p>' : ""}
+          <button class="btn btn-primary btn-block" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>${CONFIG.isPublicPreview ? "الإرسال متوقف في المعاينة" : (state.busy ? "جارٍ إرسال الطلب..." : "تأكيد إرسال الطلب")}</button>
+        </form>
+      </section>
+    </div>
+  `;
+}
+
+function modalView() {
+  if (state.modal === "auth") return authModal();
+  if (state.modal === "order") return orderModal();
+  return "";
+}
+
+function render() {
+  const view = state.view === "orders" ? ordersView()
+    : state.view === "operations" ? operationsView()
+    : state.view === "roadmap" ? roadmapView()
+    : homeView();
+
+  root.innerHTML = `
+    ${header()}
+    ${CONFIG.isPublicPreview ? '<div class="preview-banner" role="note">نسخة معاينة — يمكنك تصفح الخدمات وتسجيل الدخول للقراءة، لكن إنشاء الحسابات والطلبات وحفظ الموافقات متوقف لحماية قاعدة البيانات الحية.</div>' : ""}
+    <main class="app-main">${view}</main>
+    <footer class="site-footer">
+      <div class="footer-brand"><span class="brand-mark small">و</span><strong>وصلة WASLA</strong></div>
+      <p>وصلة مش فاصلة، وصلة شغالة.</p>
+      <small>نسخة تشغيل أولية · شبين القناطر · ${new Date().getFullYear()}</small>
+    </footer>
+    ${modalView()}
+  `;
+}
+
+async function loadCatalog() {
+  state.loadError = "";
+
+  const [servicesResult, offersResult] = await Promise.allSettled([
+    dataApi.getServices(),
+    dataApi.getOffers()
+  ]);
+
+  if (servicesResult.status === "fulfilled") {
+    state.services = Array.isArray(servicesResult.value) ? servicesResult.value : [];
+  } else {
+    state.services = [];
+    state.loadError = servicesResult.reason?.message || "تعذر تحميل الخدمات.";
+  }
+
+  if (offersResult.status === "fulfilled") {
+    state.offers = Array.isArray(offersResult.value) ? offersResult.value : [];
+  } else {
+    // Offers are supplemental; an offers failure must not hide the service catalogue.
+    state.offers = [];
+  }
+}
+
+async function loadRoadmap() {
+  state.roadmapError = "";
+  try {
+    const rows = await dataApi.getRoadmap();
+    state.roadmapItems = Array.isArray(rows) ? rows : [];
+  } catch (error) {
+    state.roadmapItems = [];
+    state.roadmapError = error.message || "تعذر تحميل خطة الإنجاز.";
+  }
+}
+
+async function loadRoadmapAudit() {
+  if (state.profile?.role !== "admin" || CONFIG.isPublicPreview) {
+    state.roadmapAudit = [];
+    return;
+  }
+  try {
+    state.roadmapAudit = await dataApi.getRoadmapAudit(10);
+  } catch (error) {
+    state.roadmapAudit = [];
+    showToast(error.message || "تعذر تحميل سجل تغييرات الخطة.", "error");
+  }
+}
+
+async function refreshRoadmap() {
+  await loadRoadmap();
+  await loadRoadmapAudit();
+  state.view = "roadmap";
+  render();
+}
+
+async function submitRoadmapMilestone(form) {
+  if (state.profile?.role !== "admin") {
+    throw new Error("تعديل خطة الإنجاز متاح لحساب المؤسس فقط.");
+  }
+  if (CONFIG.isPublicPreview) {
+    throw new Error("تعديل الخطة متوقف في نسخة المعاينة.");
+  }
+
+  const id = String(form.dataset.milestoneId || "");
+  const values = Object.fromEntries(new FormData(form).entries());
+  const validation = validateRoadmapUpdate(
+    values.status,
+    Number(values.progress_percent),
+    values.test_status
+  );
+  if (!validation.valid) throw new Error(validation.message);
+
+  state.roadmapSavingId = id;
+  render();
+  try {
+    await dataApi.updateRoadmapMilestone(id, {
+      status: values.status,
+      progressPercent: Number(values.progress_percent),
+      testStatus: values.test_status
+    });
+    await loadRoadmap();
+    await loadRoadmapAudit();
+    showToast("تم تحديث البند وإعادة حساب نسبة الإنجاز.", "success");
+  } finally {
+    state.roadmapSavingId = "";
+    render();
+  }
+}
+
+async function loadAccount() {
+  try {
+    state.session = await authApi.getSession();
+    if (!state.session) return;
+    state.user = await authApi.getUser();
+    if (!state.user?.id) return;
+    state.profile = await dataApi.getProfile(state.user.id);
+    await dataApi.completePendingConsent();
+  } catch (error) {
+    state.user = null;
+    state.profile = null;
+    state.session = null;
+    if (String(error.message).includes("الاتصال")) showToast(error.message, "error");
+  }
+}
+
+function openAuth(mode = "login") {
+  state.authMode = mode;
+  state.modal = "auth";
+  render();
+  root.querySelector('input[name="email"]')?.focus();
+}
+
+function openOrder(item) {
+  if (!state.user) {
+    state.pendingService = item;
+    openAuth("login");
+    return;
+  }
+  state.pendingService = item;
+  state.pendingLocation = null;
+  state.pendingAddress = "";
+  state.modal = "order";
+  render();
+  root.querySelector('input[name="address"]')?.focus();
+}
+
+async function refreshMyOrders() {
+  if (!state.user?.id) {
+    openAuth("login");
+    return;
+  }
+  try {
+    state.myOrders = await dataApi.getMyOrders(state.user.id);
+    state.view = "orders";
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+  render();
+}
+
+async function refreshOperations() {
+  if (!["staff", "admin"].includes(state.profile?.role)) {
+    showToast("هذه الصفحة غير متاحة لهذا الحساب.", "error");
+    return;
+  }
+  try {
+    const [orders, providers] = await Promise.all([
+      dataApi.getOperationsOrders(),
+      dataApi.getOperationsProviders()
+    ]);
+    state.operationsOrders = Array.isArray(orders) ? orders : [];
+    state.operationsProviders = Array.isArray(providers) ? providers : [];
+    state.view = "operations";
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+  render();
+}
+
+async function afterLogin() {
+  state.session = await authApi.getSession();
+  state.user = await authApi.getUser();
+  state.profile = await dataApi.getProfile(state.user.id);
+  await dataApi.completePendingConsent();
+  if (state.profile?.role === "admin") await loadRoadmapAudit();
+
+  state.modal = null;
+  if (state.pendingService) {
+    state.modal = "order";
+  } else {
+    state.view = "home";
+  }
+  render();
+}
+
+async function submitAuth(form) {
+  const values = Object.fromEntries(new FormData(form).entries());
+  const email = String(values.email ?? "").trim();
+  const password = String(values.password ?? "");
+
+  if (!email || !password) throw new Error("أدخل البريد الإلكتروني وكلمة المرور.");
+
+  state.busy = true;
+  render();
+
+  if (state.authMode === "login") {
+    await authApi.signIn(email, password);
+    await afterLogin();
+    showToast("تم تسجيل الدخول.", "success");
+    return;
+  }
+
+  const fullName = String(values.full_name ?? "").trim();
+  const phone = String(values.phone ?? "").trim();
+
+  if (fullName.length < 2 || fullName.length > 60) {
+    throw new Error("اكتب الاسم من حرفين إلى 60 حرفًا.");
+  }
+  if (!isEgyptianPhone(phone)) {
+    throw new Error("رقم الموبايل يجب أن يتكون من 11 رقمًا ويبدأ بـ 01.");
+  }
+  if (values.terms !== "on" || values.privacy !== "on") {
+    throw new Error("يجب الموافقة على الشروط وسياسة الخصوصية.");
+  }
+
+  dataApi.markConsentPending();
+  const result = await authApi.signUp({ email, password, fullName, phone });
+
+  if (result?.access_token) {
+    await afterLogin();
+    showToast("تم إنشاء الحساب وتسجيل الموافقات.", "success");
+  } else {
+    state.modal = null;
+    render();
+    showToast("تم إنشاء الحساب. أكد بريدك الإلكتروني ثم سجل الدخول لحفظ الموافقات وإكمال التسجيل.", "success");
+  }
+}
+
+async function captureDeviceLocation() {
+  if (!navigator.geolocation) {
+    throw new Error("المتصفح لا يدعم تحديد الموقع.");
+  }
+
+  const position = await new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      resolve,
+      (error) => {
+        const messages = {
+          1: "لم تسمح بالوصول إلى الموقع. يمكنك كتابة العنوان يدويًا.",
+          2: "تعذر تحديد موقعك الحالي. حاول مرة أخرى أو اكتب العنوان.",
+          3: "انتهت مهلة تحديد الموقع. حاول مرة أخرى."
+        };
+        reject(new Error(messages[error.code] || "تعذر تحديد الموقع."));
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 120000 }
+    );
+  });
+
+  const { latitude, longitude, accuracy } = position.coords;
+  if (!isValidCoordinates(latitude, longitude)) {
+    throw new Error("إحداثيات الموقع التي أرجعها الجهاز غير صالحة.");
+  }
+
+  state.pendingLocation = {
+    lat: latitude,
+    lng: longitude,
+    accuracy: Number.isFinite(accuracy) ? accuracy : 0
+  };
+  if (!state.pendingAddress.trim()) state.pendingAddress = "موقعي الحالي";
+  render();
+  showToast("تم تحديد موقعك. راجع العنوان قبل إرسال الطلب.", "success");
+}
+
+async function submitOrder(form) {
+  if (CONFIG.isPublicPreview) {
+    throw new Error("إرسال الطلبات الفعلية متوقف في نسخة المعاينة؛ يمكنك تصفح الخدمات واختبار خطوات النموذج فقط.");
+  }
+  const values = Object.fromEntries(new FormData(form).entries());
+  state.pendingAddress = String(values.address ?? "");
+  if (!state.pendingService) throw new Error("اختر الخدمة من جديد.");
+  if (!isValidAddress(values.address)) {
+    throw new Error("أدخل عنوانًا واضحًا لا يقل عن 4 أحرف.");
+  }
+  if (String(values.notes ?? "").length > 500) {
+    throw new Error("الملاحظات يجب ألا تتجاوز 500 حرف.");
+  }
+  if (values.terms !== "on" || values.privacy !== "on") {
+    throw new Error("يجب الموافقة على الشروط وسياسة الخصوصية.");
+  }
+
+  state.busy = true;
+  render();
+
+  await dataApi.acceptRequiredConsents();
+  const result = await dataApi.createServiceOrder(state.pendingService, {
+    address: values.address,
+    notes: values.notes
+  });
+  const record = Array.isArray(result) ? result[0] : result;
+  let locationSaved = true;
+
+  if (state.pendingLocation && record?.out_order_id) {
+    try {
+      await dataApi.setOrderLocation(record.out_order_id, {
+        lat: state.pendingLocation.lat,
+        lng: state.pendingLocation.lng,
+        address: values.address
+      });
+    } catch {
+      // The order already exists; do not ask the customer to submit it again.
+      locationSaved = false;
+    }
+  }
+
+  state.modal = null;
+  state.pendingService = null;
+  state.pendingLocation = null;
+  state.pendingAddress = "";
+  let ordersReloaded = true;
+  try {
+    state.myOrders = await dataApi.getMyOrders(state.user.id);
+  } catch {
+    ordersReloaded = false;
+    state.myOrders = [];
+  }
+
+  state.view = "orders";
+  render();
+
+  const ref = record?.out_ref ? `رقم ${record.out_ref}` : "طلبك";
+  showToast(
+    !ordersReloaded
+      ? `تم استلام ${ref}، لكن تعذر تحديث قائمة الطلبات. افتح طلباتي واضغط تحديث.`
+      : (locationSaved
+          ? `تم استلام ${ref}`
+          : `تم استلام ${ref}، لكن تعذر حفظ إحداثيات GPS. لم يتم تكرار الطلب.`),
+    ordersReloaded && locationSaved ? "success" : "error"
+  );
+}
+
+root.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-action]");
+  if (!button) return;
+
+  const action = button.dataset.action;
+  if (action === "backdrop" && event.target !== button) return;
+
+  try {
+    if (action === "auth") openAuth("login");
+    else if (action === "get-location") {
+      const currentAddress = root.querySelector('input[name="address"]')?.value ?? state.pendingAddress;
+      state.pendingAddress = currentAddress;
+      await captureDeviceLocation();
+    }
+    else if (action === "close-modal" || action === "backdrop") {
+      state.modal = null;
+      render();
+    } else if (action === "switch-auth") {
+      state.authMode = state.authMode === "login" ? "register" : "login";
+      render();
+    } else if (action === "logout") {
+      await authApi.signOut();
+      state.user = state.profile = state.session = null;
+      state.myOrders = [];
+      state.roadmapAudit = [];
+      state.view = "home";
+      render();
+      showToast("تم تسجيل الخروج.", "success");
+    } else if (action === "roadmap" || action === "reload-roadmap") {
+      await refreshRoadmap();
+    } else if (action === "orders" || action === "reload-orders") {
+      await refreshMyOrders();
+    } else if (action === "operations" || action === "reload-operations") {
+      await refreshOperations();
+    } else if (action === "ops-set-status") {
+      if (CONFIG.isPublicPreview) throw new Error("التعديل متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بتغيير حالة الطلب.");
+      const orderId = button.dataset.orderId;
+      const nextStatus = button.dataset.status;
+      const labels = { confirmed:"تأكيد الطلب", in_progress:"بدء التنفيذ", done:"إنهاء الطلب", cancelled:"إلغاء الطلب" };
+      if (!window.confirm(`هل تريد ${labels[nextStatus] || "تغيير الحالة"}؟`)) return;
+      state.operationsSaving = true;
+      render();
+      try {
+        await dataApi.updateOrderStatus(orderId, nextStatus, "تم التحديث من لوحة التشغيل");
+        showToast("تم تحديث حالة الطلب.", "success");
+        await refreshOperations();
+      } finally {
+        state.operationsSaving = false;
+        render();
+      }
+    } else if (action === "approve-provider") {
+      if (CONFIG.isPublicPreview) throw new Error("الاعتماد متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح باعتماد مقدم الخدمة.");
+      if (!window.confirm("هل راجعت بيانات مقدم الخدمة وتريد اعتماده؟")) return;
+      state.operationsSaving = true;
+      render();
+      try {
+        await dataApi.approveProvider(button.dataset.providerId);
+        showToast("تم اعتماد مقدم الخدمة.", "success");
+        await refreshOperations();
+      } finally {
+        state.operationsSaving = false;
+        render();
+      }
+    } else if (action === "home") {
+      state.view = "home";
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (action === "request-service") {
+      const item = state.services.find((service) => Number(service.id) === Number(button.dataset.itemId));
+      if (item && canRequestService(item)) openOrder(item);
+    } else if (action === "clinic-info") {
+      showToast("حجز العيادات سيتاح بعد اعتماد جداول العمل الحقيقية.", "info");
+    } else if (action === "coming-soon") {
+      showToast("هذا القطاع لم يكتمل تشغيله بعد.", "info");
+    } else if (action === "sector") {
+      const sector = SECTORS.find((entry) => entry.code === button.dataset.sector);
+      if (sector?.mode === "soon") {
+        showToast("هذا القطاع قيد التجهيز وسيظهر عند توفر مقدمي خدمة فعليين.", "info");
+      } else {
+        document.querySelector("#services")?.scrollIntoView({ behavior: "smooth" });
+      }
+    } else if (action === "reload") {
+      await loadCatalog();
+      render();
+    } else if (action === "account") {
+      showToast(`الدور الحالي: ${state.profile?.role || "غير معروف"}`, "info");
+    }
+  } catch (error) {
+    state.busy = false;
+    render();
+    showToast(error.message || "حدث خطأ غير متوقع.", "error");
+  }
+});
+
+root.addEventListener("submit", async (event) => {
+  const form = event.target.closest("form[data-form]");
+  if (!form) return;
+  event.preventDefault();
+
+  try {
+    if (form.dataset.form === "auth") await submitAuth(form);
+    if (form.dataset.form === "order") await submitOrder(form);
+    if (form.dataset.form === "roadmap-milestone") await submitRoadmapMilestone(form);
+    if (form.dataset.form === "operations-quote") {
+      if (CONFIG.isPublicPreview) throw new Error("تعديل الأسعار متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بإرسال عرض سعر.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      state.operationsSaving = true;
+      render();
+      try {
+        await dataApi.quoteOrder(form.dataset.orderId, values.price);
+        showToast("تم حفظ عرض السعر وتحديث حالة الطلب حسب قواعد التشغيل.", "success");
+        await refreshOperations();
+      } finally {
+        state.operationsSaving = false;
+        render();
+      }
+    }
+    if (form.dataset.form === "operations-assign") {
+      if (CONFIG.isPublicPreview) throw new Error("التعيين متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بتعيين مقدم الخدمة.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      state.operationsSaving = true;
+      render();
+      try {
+        await dataApi.assignOrder(form.dataset.orderId, values.provider_id);
+        showToast("تم تعيين مقدم الخدمة.", "success");
+        await refreshOperations();
+      } finally {
+        state.operationsSaving = false;
+        render();
+      }
+    }
+  } catch (error) {
+    state.busy = false;
+    render();
+    showToast(error.message || "تعذر إكمال العملية.", "error");
+  } finally {
+    state.busy = false;
+  }
+});
+
+root.addEventListener("input", (event) => {
+  if (event.target.matches('input[name="address"]')) {
+    state.pendingAddress = event.target.value;
+    return;
+  }
+  if (!event.target.matches("[data-search]")) return;
+  const cursor = event.target.selectionStart;
+  state.search = event.target.value;
+  render();
+  const next = root.querySelector("[data-search]");
+  next?.focus();
+  if (cursor !== null) next?.setSelectionRange(cursor, cursor);
+});
+
+async function init() {
+  render();
+  await Promise.all([loadCatalog(), loadAccount(), loadRoadmap()]);
+  if (state.profile?.role === "admin") await loadRoadmapAudit();
+
+  if (state.view === "operations" && ["staff", "admin"].includes(state.profile?.role)) {
+    try {
+      const [orders, providers] = await Promise.all([
+        dataApi.getOperationsOrders(),
+        dataApi.getOperationsProviders()
+      ]);
+      state.operationsOrders = Array.isArray(orders) ? orders : [];
+      state.operationsProviders = Array.isArray(providers) ? providers : [];
+    } catch (error) {
+      showToast(error.message, "error");
+    }
+  } else if (state.view === "operations") {
+    state.view = "home";
+  }
+
+  render();
+
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register("./sw.js").catch(() => {
+      // Offline install is optional; the online app remains usable.
+    });
+  }
+}
+
+init();
