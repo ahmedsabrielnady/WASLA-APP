@@ -53,6 +53,7 @@ try {
  const changed=calculateRoadmapMetrics([{...testItems[0],progress_percent:80},testItems[1]]);
  check("updating item progress recalculates weighted percent",changed.weightedProgress===88,{actual:changed.weightedProgress});
 
+ window.__WASLA_QA_MOCK__=true;
  const originalFetch=window.fetch;
  const calls=[];
  localStorage.setItem("wasla.auth.session.v1",JSON.stringify({
