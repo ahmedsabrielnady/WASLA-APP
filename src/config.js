@@ -9,5 +9,9 @@ export const CONFIG = Object.freeze({
   supabasePublishableKey: "sb_publishable_Aej6zAcIojeoTI7GUxcXbA_lSKKqUmh",
   appName: "WASLA",
   appCity: "شبين القناطر",
-  appRegion: "القليوبية"
+  appRegion: "القليوبية",
+  isPublicPreview: (
+    window.location.hostname.startsWith("deploy-preview-")
+    || window.location.hostname.includes("-git-app-phase-1-")
+  )
 });
