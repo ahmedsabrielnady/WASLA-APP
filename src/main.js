@@ -232,27 +232,166 @@ function ordersView() {
   `;
 }
 
+function providerKindLabel(kind) {
+  return ({
+    doctor: "طبيب",
+    technician: "فني",
+    teacher: "معلم",
+    courier: "مندوب",
+    merchant: "تاجر"
+  })[kind] || "مقدم خدمة";
+}
+
+function compatibleProviderKinds(sector) {
+  return ({
+    nursing: ["doctor", "technician"],
+    maintenance: ["technician"],
+    car: ["technician"],
+    education: ["teacher"],
+    delivery: ["courier"],
+    food: ["merchant", "courier"]
+  })[sector] || [];
+}
+
+function operationProviderName(providerId) {
+  const provider = state.operationsProviders.find((item) => item.id === providerId);
+  if (!provider) return "غير معيّن";
+  return provider.is_test
+    ? `${provider.display_name} — تجريبي / لا يُستخدم للتعيين`
+    : provider.display_name;
+}
+
+function operationOrderCard(order) {
+  const canWrite = !CONFIG.isPublicPreview && !state.operationsSaving;
+  const transitionOptions = ({
+    new: [["confirmed", "تأكيد الطلب"], ["cancelled", "إلغاء"]],
+    confirmed: [["in_progress", "بدء التنفيذ"], ["cancelled", "إلغاء"]],
+    in_progress: [["done", "إنهاء الطلب"], ["cancelled", "إلغاء"]]
+  })[order.status] || [];
+
+  const statusButtons = transitionOptions.map(([to, label]) =>
+    `<button class="btn ${to === "cancelled" ? "btn-danger-outline" : "btn-primary"} btn-small"
+      data-action="ops-set-status"
+      data-order-id="${escapeHTML(order.id)}"
+      data-status="${to}"
+      ${canWrite ? "" : "disabled"}>${label}</button>`
+  ).join("");
+
+  const providerKinds = compatibleProviderKinds(order.sector);
+  const eligibleProviders = state.operationsProviders.filter((provider) =>
+    provider.approved && provider.active && !provider.is_test && providerKinds.includes(provider.kind)
+  );
+
+  const assignment = providerKinds.length
+    ? (eligibleProviders.length
+      ? `
+        <form class="ops-action-form" data-form="operations-assign" data-order-id="${escapeHTML(order.id)}">
+          <label>مقدم الخدمة
+            <select name="provider_id" required>
+              <option value="">اختر مقدمًا معتمدًا</option>
+              ${eligibleProviders.map((provider) => `
+                <option value="${escapeHTML(provider.id)}" ${provider.id === order.provider_id ? "selected" : ""}>
+                  ${escapeHTML(provider.display_name)} — ${escapeHTML(providerKindLabel(provider.kind))}
+                </option>
+              `).join("")}
+            </select>
+          </label>
+          <button class="btn btn-outline btn-small" type="submit" ${canWrite ? "" : "disabled"}>تعيين</button>
+        </form>`
+      : '<p class="ops-muted">لا يوجد مقدم خدمة معتمد ومتوافق مع هذا القطاع حاليًا.</p>')
+    : (order.sector === "clinic"
+      ? '<p class="ops-muted">الحجوزات الطبية لها مسار مستقل؛ لا يتم تعيينها من أداة الطلبات العامة.</p>'
+      : "");
+
+  const quote = order.status === "new"
+    ? `
+      <form class="ops-action-form" data-form="operations-quote" data-order-id="${escapeHTML(order.id)}">
+        <label>عرض السعر بالجنيه
+          <input name="price" type="number" min="0" max="10000000" step="1"
+            value="${order.price_egp === null ? "" : Number(order.price_egp)}" required>
+        </label>
+        <button class="btn btn-outline btn-small" type="submit" ${canWrite ? "" : "disabled"}>إرسال عرض السعر</button>
+      </form>`
+    : "";
+
+  const address = order.sector === "clinic" ? "داخل العيادة" : (order.address || "لم يسجل عنوان");
+  const assignedProvider = order.provider_id ? operationProviderName(order.provider_id) : "غير معيّن";
+  return `
+    <article class="ops-order-card">
+      <div class="ops-order-head">
+        <div><strong>${escapeHTML(order.ref || "طلب")}</strong><p>${escapeHTML(sectorLabel(order.sector))}</p></div>
+        <span class="status-pill">${escapeHTML(statusLabel(order.status))}</span>
+      </div>
+      <div class="ops-order-meta">
+        <span>أُنشئ: ${escapeHTML(formatDate(order.created_at))}</span>
+        <span>السعر: ${order.price_egp === null ? "غير محدد" : escapeHTML(formatEGP(order.price_egp))}</span>
+        <span>العربون: ${Number(order.deposit_egp) > 0 ? escapeHTML(formatEGP(order.deposit_egp)) : "لا يوجد"}</span>
+        ${order.scheduled_at ? `<span>الموعد: ${escapeHTML(formatDate(order.scheduled_at))}</span>` : ""}
+        <span>العنوان: ${escapeHTML(address)}</span>
+        <span>مقدم الخدمة: ${escapeHTML(assignedProvider)}</span>
+      </div>
+      ${CONFIG.isPublicPreview ? '<p class="roadmap-lock-note">وضع المعاينة للقراءة فقط؛ لن يتم إرسال تغييرات إلى قاعدة الإنتاج.</p>' : ""}
+      <div class="ops-action-area">
+        ${statusButtons}
+        ${quote}
+        ${assignment}
+      </div>
+    </article>
+  `;
+}
+
+function pendingProviderCard(provider) {
+  const canWrite = !CONFIG.isPublicPreview && !state.operationsSaving;
+  return `
+    <article class="ops-provider-card">
+      <div><strong>${escapeHTML(provider.display_name)}</strong>
+        <span>${escapeHTML(providerKindLabel(provider.kind))}</span>
+        <small>${escapeHTML(provider.specialty || provider.area || "بيانات مهنية لم تكتمل")}</small>
+      </div>
+      <button class="btn btn-primary btn-small" data-action="approve-provider"
+        data-provider-id="${escapeHTML(provider.id)}" ${canWrite ? "" : "disabled"}>اعتماد مقدم الخدمة</button>
+    </article>
+  `;
+}
+
 function operationsView() {
   if (!["staff", "admin"].includes(state.profile?.role)) {
-    return '<section class="page-panel"><h1>لوحة التشغيل</h1><div class="empty-state"><strong>غير مصرح</strong><p>هذه الصفحة مخصصة للحسابات الإدارية المعتمدة.</p></div></section>';
+    return '<section class="page-panel"><h1>لوحة التشغيل</h1><div class="empty-state"><strong>غير مصرح</strong><p>هذه الصفحة مخصصة للموظفين والإدارة المعتمدة.</p></div></section>';
   }
 
   const orders = state.operationsOrders;
   const activeCount = orders.filter((order) => !["done", "cancelled"].includes(order.status)).length;
   const completedCount = orders.filter((order) => order.status === "done").length;
+  const pendingProviders = state.operationsProviders.filter((provider) =>
+    !provider.approved && provider.active && !provider.is_test
+  );
 
   return `
-    <section class="page-panel">
-      <div class="section-heading"><div><span class="eyebrow">للموظفين المخولين فقط</span><h1>لوحة التشغيل</h1></div><button class="btn btn-outline btn-small" data-action="reload-operations">تحديث</button></div>
+    <section class="page-panel operations-page">
+      <div class="section-heading">
+        <div><span class="eyebrow">${state.profile?.role === "admin" ? "إدارة المؤسس" : "إدارة الموظف"}</span><h1>لوحة التشغيل</h1></div>
+        <button class="btn btn-outline btn-small" data-action="reload-operations">تحديث</button>
+      </div>
+      <p class="notice">تُنفذ تغييرات الطلبات والاعتماد عبر دوال قاعدة البيانات، وتُسجل الأحداث. الموظف والمؤسس لديهما الصلاحيات المحددة لهما في PostgreSQL، ولا تمنح الواجهة صلاحية إضافية.</p>
       <div class="stats-grid">
         <div class="stat-card"><span>الطلبات المعروضة</span><strong>${orders.length}</strong></div>
         <div class="stat-card"><span>قيد التنفيذ</span><strong>${activeCount}</strong></div>
         <div class="stat-card"><span>مكتملة</span><strong>${completedCount}</strong></div>
+        <div class="stat-card"><span>مقدمو خدمة ينتظرون الاعتماد</span><strong>${pendingProviders.length}</strong></div>
       </div>
-      <p class="notice">عرض تشغيلي للقراءة فقط. تغيير الحالات والصلاحيات المالية سيضاف بعد اختبارات أوسع لدوال التشغيل.</p>
-      ${orders.length
-        ? `<div class="orders-list">${orders.map(orderCard).join("")}</div>`
-        : '<div class="empty-state"><strong>لا توجد طلبات</strong><p>ستظهر الطلبات هنا عند وصولها.</p></div>'}
+      ${CONFIG.isPublicPreview ? '<p class="roadmap-lock-note">هذه نسخة معاينة للقراءة فقط. أدوات تغيير الحالات والأسعار والتعيين والاعتماد متوقفة لحماية قاعدة الإنتاج.</p>' : ""}
+      <section class="ops-section">
+        <div class="section-heading"><div><span class="eyebrow">مراجعة مقدمي الخدمة</span><h2>طلبات الانضمام</h2></div></div>
+        ${pendingProviders.length
+          ? `<div class="ops-provider-list">${pendingProviders.map(pendingProviderCard).join("")}</div>`
+          : '<p class="ops-muted">لا توجد طلبات انضمام تنتظر الاعتماد.</p>'}
+      </section>
+      <section class="ops-section">
+        <div class="section-heading"><div><span class="eyebrow">إدارة الطلبات</span><h2>الطلبات الواردة</h2></div></div>
+        ${orders.length
+          ? `<div class="ops-order-list">${orders.map(operationOrderCard).join("")}</div>`
+          : '<div class="empty-state"><strong>لا توجد طلبات</strong><p>ستظهر الطلبات هنا عند وصولها.</p></div>'}
+      </section>
     </section>
   `;
 }
@@ -498,7 +637,12 @@ async function refreshOperations() {
     return;
   }
   try {
-    state.operationsOrders = await dataApi.getOperationsOrders();
+    const [orders, providers] = await Promise.all([
+      dataApi.getOperationsOrders(),
+      dataApi.getOperationsProviders()
+    ]);
+    state.operationsOrders = Array.isArray(orders) ? orders : [];
+    state.operationsProviders = Array.isArray(providers) ? providers : [];
     state.view = "operations";
   } catch (error) {
     showToast(error.message, "error");
@@ -701,6 +845,37 @@ root.addEventListener("click", async (event) => {
       await refreshMyOrders();
     } else if (action === "operations" || action === "reload-operations") {
       await refreshOperations();
+    } else if (action === "ops-set-status") {
+      if (CONFIG.isPublicPreview) throw new Error("التعديل متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بتغيير حالة الطلب.");
+      const orderId = button.dataset.orderId;
+      const nextStatus = button.dataset.status;
+      const labels = { confirmed:"تأكيد الطلب", in_progress:"بدء التنفيذ", done:"إنهاء الطلب", cancelled:"إلغاء الطلب" };
+      if (!window.confirm(`هل تريد ${labels[nextStatus] || "تغيير الحالة"}؟`)) return;
+      state.operationsSaving = true;
+      render();
+      try {
+        await dataApi.updateOrderStatus(orderId, nextStatus, "تم التحديث من لوحة التشغيل");
+        showToast("تم تحديث حالة الطلب.", "success");
+        await refreshOperations();
+      } finally {
+        state.operationsSaving = false;
+        render();
+      }
+    } else if (action === "approve-provider") {
+      if (CONFIG.isPublicPreview) throw new Error("الاعتماد متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح باعتماد مقدم الخدمة.");
+      if (!window.confirm("هل راجعت بيانات مقدم الخدمة وتريد اعتماده؟")) return;
+      state.operationsSaving = true;
+      render();
+      try {
+        await dataApi.approveProvider(button.dataset.providerId);
+        showToast("تم اعتماد مقدم الخدمة.", "success");
+        await refreshOperations();
+      } finally {
+        state.operationsSaving = false;
+        render();
+      }
     } else if (action === "home") {
       state.view = "home";
       render();
@@ -741,6 +916,36 @@ root.addEventListener("submit", async (event) => {
     if (form.dataset.form === "auth") await submitAuth(form);
     if (form.dataset.form === "order") await submitOrder(form);
     if (form.dataset.form === "roadmap-milestone") await submitRoadmapMilestone(form);
+    if (form.dataset.form === "operations-quote") {
+      if (CONFIG.isPublicPreview) throw new Error("تعديل الأسعار متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بإرسال عرض سعر.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      state.operationsSaving = true;
+      render();
+      try {
+        await dataApi.quoteOrder(form.dataset.orderId, values.price);
+        showToast("تم حفظ عرض السعر وتحديث حالة الطلب حسب قواعد التشغيل.", "success");
+        await refreshOperations();
+      } finally {
+        state.operationsSaving = false;
+        render();
+      }
+    }
+    if (form.dataset.form === "operations-assign") {
+      if (CONFIG.isPublicPreview) throw new Error("التعيين متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بتعيين مقدم الخدمة.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      state.operationsSaving = true;
+      render();
+      try {
+        await dataApi.assignOrder(form.dataset.orderId, values.provider_id);
+        showToast("تم تعيين مقدم الخدمة.", "success");
+        await refreshOperations();
+      } finally {
+        state.operationsSaving = false;
+        render();
+      }
+    }
   } catch (error) {
     state.busy = false;
     render();
