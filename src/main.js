@@ -203,6 +203,7 @@ function orderCard(order) {
       <div class="order-name">${escapeHTML(sectorLabel(order.sector))}</div>
       <div class="order-meta"><span>${escapeHTML(formatDate(order.created_at))}</span><strong>${escapeHTML(price)}</strong></div>
       ${Number(order.deposit_egp) > 0 ? `<p class="deposit-note">عربون مسجل: ${escapeHTML(formatEGP(order.deposit_egp))} · ${order.deposit_paid ? "مدفوع" : "غير مسدد"}</p>` : ""}
+      ${Number.isFinite(Number(order.lat)) && Number.isFinite(Number(order.lng)) ? '<p class="location-note">📍 تم تسجيل إحداثيات موقع التنفيذ</p>' : ""}
     </article>
   `;
 }
@@ -550,16 +551,25 @@ async function submitOrder(form) {
   state.pendingService = null;
   state.pendingLocation = null;
   state.pendingAddress = "";
-  state.myOrders = await dataApi.getMyOrders(state.user.id);
+  let ordersReloaded = true;
+  try {
+    state.myOrders = await dataApi.getMyOrders(state.user.id);
+  } catch {
+    ordersReloaded = false;
+    state.myOrders = [];
+  }
+
   state.view = "orders";
   render();
 
   const ref = record?.out_ref ? `رقم ${record.out_ref}` : "طلبك";
   showToast(
-    locationSaved
-      ? `تم استلام ${ref}`
-      : `تم استلام ${ref}، لكن تعذر حفظ إحداثيات GPS. لم يتم تكرار الطلب.`,
-    locationSaved ? "success" : "error"
+    !ordersReloaded
+      ? `تم استلام ${ref}، لكن تعذر تحديث قائمة الطلبات. افتح طلباتي واضغط تحديث.`
+      : (locationSaved
+          ? `تم استلام ${ref}`
+          : `تم استلام ${ref}، لكن تعذر حفظ إحداثيات GPS. لم يتم تكرار الطلب.`),
+    ordersReloaded && locationSaved ? "success" : "error"
   );
 }
 
