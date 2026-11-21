@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./styles.css">
+  <title>WASLA Preview Safety & UI QA</title>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="toast" class="toast"></div>
+  <pre id="qa-result" style="direction:ltr;text-align:left;white-space:pre-wrap;background:#fff;color:#111;padding:16px;margin:12px;border:1px solid #ddd"></pre>
+  <script type="module">
+    window.__WASLA_QA_MOCK__ = true;
+
+    const output = document.querySelector("#qa-result");
+    const checks = [];
+    const requests = [];
+
+    const userId = "11111111-1111-4111-8111-111111111111";
+    localStorage.setItem("wasla.auth.session.v1", JSON.stringify({
+      access_token: "mock-customer-token",
+      refresh_token: "mock-customer-refresh",
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+      token_type: "bearer"
+    }));
+
+    const services = [
+      { id: 4, sector: "maintenance", name: "كشف سباك", price_egp: 50, active: true },
+      { id: 8, sector: "car", name: "غسيل السيارة في مكانك", price_egp: 150, active: true },
+      { id: 1, sector: "nursing", name: "تغيير على جرح", price_egp: 150, active: true }
+    ];
+    const offers = [{ id: 1, text: "عرض تجريبي", sort_order: 1 }];
+    const order = {
+      id: "22222222-2222-4222-8222-222222222222",
+      ref: "OR-QA123456",
+      sector: "maintenance",
+      status: "new",
+      price_egp: 50,
+      deposit_egp: 0,
+      deposit_paid: false,
+      created_at: new Date().toISOString(),
+      scheduled_at: null,
+      lat: 30.3201,
+      lng: 31.2502
+    };
+
+    function jsonResponse(value, status = 200) {
+      return new Response(JSON.stringify(value), {
+        status,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    function noContent() {
+      return new Response(null, { status: 204 });
+    }
+
+    window.fetch = async (input, init = {}) => {
+      const url = String(input);
+      const method = init.method || "GET";
+      requests.push({ url, method, body: init.body || null });
+
+      if (url.includes("/auth/v1/user")) {
+        return jsonResponse({ id: userId, email: "qa-customer@example.test" });
+      }
+      if (url.includes("/rest/v1/profiles?")) {
+        return jsonResponse([{ id: userId, full_name: "عميل اختبار", phone: "01012345678", role: "customer" }]);
+      }
+      if (url.includes("/rest/v1/service_items?")) return jsonResponse(services);
+      if (url.includes("/rest/v1/offers?")) return jsonResponse(offers);
+      if (url.includes("/rest/v1/rpc/accept_consent")) return noContent();
+      if (url.includes("/rest/v1/rpc/place_order")) {
+        const body = JSON.parse(init.body || "{}");
+        checks.push({ check: "service order payload", ok: body.p_item_id === 4 && body.p_sector === "maintenance" && body.p_address === "موقعي الحالي" });
+        return jsonResponse([{
+          out_order_id: order.id,
+          out_ref: order.ref,
+          out_deposit_egp: 0,
+          out_price_egp: 50
+        }]);
+      }
+      if (url.includes("/rest/v1/rpc/set_order_location")) {
+        const body = JSON.parse(init.body || "{}");
+        checks.push({
+          check: "GPS payload",
+          ok: body.p_order === order.id && Math.abs(body.p_lat - 30.3201) < 0.00001 && Math.abs(body.p_lng - 31.2502) < 0.00001
+        });
+        return noContent();
+      }
+      if (url.includes("/rest/v1/orders?")) return jsonResponse([order]);
+      return jsonResponse({ message: "Unmocked request: " + url }, 500);
+    };
+
+    Object.defineProperty(navigator, "geolocation", {
+      configurable: true,
+      value: {
+        getCurrentPosition(success) {
+          success({ coords: { latitude: 30.3201, longitude: 31.2502, accuracy: 25 } });
+        }
+      }
+    });
+
+    const waitFor = async (predicate, label, timeout = 5000) => {
+      const start = Date.now();
+      while (Date.now() - start < timeout) {
+        if (predicate()) return true;
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      throw new Error("Timed out waiting for: " + label);
+    };
+
+    try {
+      const [mainModule, api] = await Promise.all([
+        import("./src/main.js"),
+        import("./src/supabase.js")
+      ]);
+
+      await waitFor(() => document.querySelectorAll(".service-card").length === 3, "service catalogue");
+      checks.push({ check: "public preview warning visible", ok: document.querySelector(".preview-banner")?.textContent.includes("قاعدة البيانات الحية") === true });
+      checks.push({ check: "live account creation hidden", ok: document.querySelector(".switch-auth") === null });
+      checks.push({ check: "service catalogue renders", ok: true, count: document.querySelectorAll(".service-card").length });
+      checks.push({ check: "offers ticker renders", ok: document.querySelector(".ticker")?.textContent.includes("عرض تجريبي") === true });
+
+      const beforeBlocked = requests.length;
+      window.__WASLA_QA_MOCK__ = false;
+      const blocked = [];
+      for (const [label, task] of [
+        ["sign up", () => api.authApi.signUp({ email:"qa@example.test", password:"WASLA-Test-Pass-2026", fullName:"اختبار", phone:"01012345678" })],
+        ["consent writes", () => api.dataApi.acceptRequiredConsents()],
+        ["order creation", () => api.dataApi.createServiceOrder(services[0], { address:"موقعي الحالي", notes:"" })],
+        ["GPS writes", () => api.dataApi.setOrderLocation(order.id, { lat:30.3201, lng:31.2502, address:"موقعي الحالي" })]
+      ]) {
+        try {
+          await task();
+          blocked.push({label,blocked:false});
+        } catch (error) {
+          blocked.push({label,blocked:String(error.message).includes("نسخة معاينة")});
+        }
+      }
+      checks.push({ check: "preview blocks all live write operations", ok: blocked.every(x => x.blocked), details: blocked });
+      checks.push({ check: "blocked preview writes made no API calls", ok: requests.length === beforeBlocked });
+
+      window.__WASLA_QA_MOCK__ = true;
+
+      document.querySelector('[data-action="request-service"][data-item-id="4"]').click();
+      await waitFor(() => document.querySelector('[data-form="order"]'), "service request modal");
+      checks.push({ check: "service request modal opens for signed-in customer", ok: true });
+      checks.push({ check: "order submit is disabled in public preview", ok: document.querySelector('button[type="submit"]')?.disabled === true });
+
+      document.querySelector('[data-action="get-location"]').click();
+      await waitFor(() => document.querySelector('input[name="address"]')?.value === "موقعي الحالي", "GPS address prefill");
+      checks.push({ check: "GPS button captures location and prefills address", ok: true });
+
+      const form = document.querySelector('[data-form="order"]');
+      form.querySelector('input[name="terms"]').checked = true;
+      form.querySelector('input[name="privacy"]').checked = true;
+      form.querySelector('textarea[name="notes"]').value = "اختبار واجهة فقط";
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+
+      await waitFor(() => document.querySelector(".order-card") && document.querySelector(".location-note"), "created mocked order and saved location");
+      checks.push({ check: "order appears in customer history", ok: document.querySelector(".order-card")?.textContent.includes(order.ref) === true });
+      checks.push({ check: "saved GPS indicator appears", ok: document.querySelector(".location-note")?.textContent.includes("إحداثيات") === true });
+      checks.push({ check: "location RPC called once", ok: requests.filter(x => x.url.includes("/rpc/set_order_location")).length === 1 });
+      checks.push({ check: "order RPC called once", ok: requests.filter(x => x.url.includes("/rpc/place_order")).length === 1 });
+
+      output.textContent = JSON.stringify({
+        result: checks.every(x => x.ok) ? "PASS" : "FAIL",
+        passed: checks.filter(x => x.ok).length,
+        total: checks.length,
+        checks,
+        requestCount: requests.length,
+        note: "All backend responses in this harness are mocked. Public preview live-write guards are tested. No real account, consent, GPS record, or order was written."
+      }, null, 2);
+    } catch (error) {
+      output.textContent = JSON.stringify({
+        result: "FAIL",
+        error: String(error),
+        passed: checks.filter(x => x.ok).length,
+        total: checks.length,
+        checks,
+        requestCount: requests.length,
+        note: "No production backend writes are performed by this harness."
+      }, null, 2);
+    }
+  </script>
+</body>
+</html>
