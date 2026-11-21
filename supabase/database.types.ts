@@ -1,10 +1,9 @@
 /**
  * Generated from the connected Supabase project "wasla".
  * Project ref: yfgvimcqbtthnrbzbhft
- * Generated: 2026-11-20
+ * Generated: 2026-11-21
  *
- * Regenerate after every schema change. This file contains schema types only;
- * it does not contain API keys or server-side secrets.
+ * Contains schema types only; it does not contain private API keys.
  */
 export type Json =
   | string
@@ -223,6 +222,8 @@ export type Database = {
           deposit_paid: boolean
           id: string
           item_id: number | null
+          lat: number | null
+          lng: number | null
           notes: string | null
           price_egp: number | null
           product_id: number | null
@@ -243,6 +244,8 @@ export type Database = {
           deposit_paid?: boolean
           id?: string
           item_id?: number | null
+          lat?: number | null
+          lng?: number | null
           notes?: string | null
           price_egp?: number | null
           product_id?: number | null
@@ -263,6 +266,8 @@ export type Database = {
           deposit_paid?: boolean
           id?: string
           item_id?: number | null
+          lat?: number | null
+          lng?: number | null
           notes?: string | null
           price_egp?: number | null
           product_id?: number | null
@@ -417,6 +422,7 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          is_test: boolean
           kind: string
           specialty: string | null
           user_id: string
@@ -428,6 +434,7 @@ export type Database = {
           created_at?: string
           display_name: string
           id?: string
+          is_test?: boolean
           kind: string
           specialty?: string | null
           user_id: string
@@ -439,6 +446,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          is_test?: boolean
           kind?: string
           specialty?: string | null
           user_id?: string
@@ -486,6 +494,10 @@ export type Database = {
         Args: { p_kind: string; p_version?: string }
         Returns: undefined
       }
+      admin_reset_user_password: {
+        Args: { p_new_password: string; p_phone: string }
+        Returns: string
+      }
       approve_provider: { Args: { p_provider: string }; Returns: undefined }
       assign_order: {
         Args: { p_order: string; p_provider: string }
@@ -519,6 +531,18 @@ export type Database = {
         Returns: undefined
       }
       is_staff: { Args: never; Returns: boolean }
+      my_order_tracking: {
+        Args: { p_order: string }
+        Returns: {
+          ahead_count: number
+          events: Json
+          queue_position: number
+          ref: string
+          scheduled_at: string
+          sector: string
+          status: string
+        }[]
+      }
       place_order: {
         Args: {
           p_address: string
@@ -564,6 +588,15 @@ export type Database = {
           p_specialty?: string
         }
         Returns: string
+      }
+      set_order_location: {
+        Args: {
+          p_address?: string
+          p_lat: number
+          p_lng: number
+          p_order: string
+        }
+        Returns: undefined
       }
       set_order_status: {
         Args: { p_note?: string; p_order: string; p_to: string }
