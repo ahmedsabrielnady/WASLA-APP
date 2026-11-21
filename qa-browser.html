@@ -133,7 +133,7 @@
 
       await waitFor(() => document.querySelector(".order-card") && document.querySelector(".location-note"), "created order and saved location");
       checks.push({ check: "order appears in customer history", ok: document.querySelector(".order-card")?.textContent.includes(order.ref) === true });
-      checks.push({ check: "saved GPS indicator appears", ok: document.querySelector(".location-note")?.textContent.includes("GPS") === true });
+      checks.push({ check: "saved GPS indicator appears", ok: document.querySelector(".location-note")?.textContent.includes("إحداثيات") === true });
       checks.push({ check: "location RPC called once", ok: requests.filter(x => x.url.includes("/rpc/set_order_location")).length === 1 });
       checks.push({ check: "order RPC called once", ok: requests.filter(x => x.url.includes("/rpc/place_order")).length === 1 });
 
