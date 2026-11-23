@@ -171,3 +171,15 @@
 - إبقاء SSO مفعّلًا إلى أن تُغلق بوابات الإطلاق ويُختبر النطاق النهائي.
 
 **الخلاصة:** الإصدار البرمجي منشور على Vercel Production، وRLS مفعّل على جداول public التي تم فحصها. لكن المشروع لا يزال في مرحلة تجربة داخلية/مقيدة؛ بوابات الأمان والاختبارات والنسخ الاحتياطي والتشغيل وقاعدة Supabase القديمة لم تُغلق بعد. لا يُعلن الإطلاق العام ولا تُعطّل SSO قبل إغلاقها.
+
+## ملحق تحقق تنفيذي — 24 نوفمبر 2026 (فحص لاحق)
+
+- أحدث commit موثق على `main` وقت الفحص: `a7bf51ec9e08cb73de42798c58cf2686f03d0f59` — `docs: record latest production mismatch and RLS verification`.
+- ملف التحقق `.github/workflows/verify.yml` موجود ويشغّل `npm ci` ثم `npm run verify` على push إلى `main`. أمر `verify` ينفذ `npm run check && npm test`.
+- فحص commit الحالي عبر GitHub status أعاد فشل Vercel بسبب `build-rate-limit` على المشروعات الثلاثة المرتبطة. أداة جلب workflow runs المتاحة هنا تعرض فقط runs المرتبطة بأحداث pull request؛ لذلك عودتها فارغة لا تثبت وحدها عدم وجود push run. لم أعتبر الاختبارات ناجحة دون نتيجة صريحة.
+- أحدث سجل Production ما زال `dpl_3FxMDYLba3a1Tx9CwsYpPUyKEA4V` على `afaeda3cf33ceefe5c8e9ce8efd771c4c888a2ac`. يوجد deployment أحدث بحالة READY هو `dpl_EEgjqhpPAXBtVdeYXtcuzrmbxpgN` لكنه Preview على فرع `security/index-audit-actor-fks` وcommit `689f3617bf05281811bdb8ff768491dda2bb8185`؛ ليس Production ولا يُعامل كإصدار حي.
+- آخر فحص Security Advisor أعاد: 22 دالة SECURITY DEFINER متاحة لـ authenticated، وتحذير Leaked Password Protection معطّل، وملاحظة INFO واحدة لجدول `order_status_transitions` بلا سياسات RLS (وهي مقصودة للوصول عبر RPC المقيد). لا يُعد تحذير عدد الدوال وحده إثباتًا لثغرة؛ يلزم تدقيق وظيفة كل دالة وصلاحياتها قبل أي تغيير.
+- آخر فحص Performance Advisor لم يُظهر تحذيرات unindexed foreign keys بعد إضافة الفهارس الثلاثة. بقيت 10 ملاحظات multiple permissive policies و27 ملاحظة unused index بمستوى معلوماتي/تحسيني؛ لم تُحذف فهارس ولم تُدمج سياسات لأن ذلك يحتاج قياس أثر واختبارات صلاحيات.
+- Health Advisor أعاد صفر ملاحظات.
+- سجل Supabase migration يؤكد وجود `20261123220800 restrict_medical_notes_and_products_to_provider_kind` و`20261123221416 index_audit_actor_foreign_keys`.
+- لم يتم إنشاء Production deployment جديد، ولم يتم تغيير إعدادات الفوترة أو SSO أو بيانات العملاء. سبب الامتناع أن status checks الحالية ما زالت ترجع build-rate-limit؛ إعادة المحاولة الآن ستكرر الفشل المعروف ولا تحقق تقدمًا.
