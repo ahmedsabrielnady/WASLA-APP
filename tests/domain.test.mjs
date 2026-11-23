@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   SECTORS,
   canRequestService,
+  filterOrderableServices,
   escapeHTML,
   formatEGP,
   isEgyptianPhone,
@@ -23,6 +24,18 @@ test("only service sectors with live supported order flow are orderable", () => 
   assert.equal(canRequestService({ sector: "delivery", id: 5 }), false);
   assert.equal(canRequestService({ sector: "food", id: 6 }), false);
   assert.equal(canRequestService(null), false);
+});
+
+test("public order catalogue excludes services from sectors whose order flow is disabled", () => {
+  const services = [
+    { id: 1, sector: "car" },
+    { id: 2, sector: "maintenance" },
+    { id: 3, sector: "clinic" },
+    { id: 4, sector: "nursing" },
+    { id: 5, sector: "delivery" }
+  ];
+  assert.deepEqual(filterOrderableServices(services).map((item) => item.id), [1, 2]);
+  assert.deepEqual(filterOrderableServices(null), []);
 });
 
 test("the eight intended WASLA sectors are present", () => {
