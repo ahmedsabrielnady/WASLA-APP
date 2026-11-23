@@ -49,7 +49,7 @@ function renderLead(lead, canWrite) {
     ["new","contacted","interested","follow_up","converted","not_interested","unreachable"].map(function (status) {
       return '<option value="' + status + '" ' + (lead.status === status ? "selected" : "") + ">" + (LEAD_STATUS_LABELS[status] || status) + "</option>";
     }).join("") +
-    '</select><button class="btn btn-outline btn-small" type="submit">حفظ الحالة</button></form></article>';
+    '</select><button class="btn btn-outline btn-small" type="submit" ' + (canWrite ? "" : "disabled") + '>حفظ الحالة</button></form></article>';
 }
 
 function renderTask(task, canWrite) {
@@ -74,7 +74,7 @@ function renderTicket(ticket, canWrite) {
     Object.keys(TICKET_STATUS_LABELS).map(function (status) {
       return '<option value="' + status + '" ' + (ticket.status === status ? "selected" : "") + ">" + TICKET_STATUS_LABELS[status] + "</option>";
     }).join("") +
-    '</select><button class="btn btn-outline btn-small" type="submit">تحديث</button></form></article>';
+    '</select><button class="btn btn-outline btn-small" type="submit" ' + (canWrite ? "" : "disabled") + '>تحديث</button></form></article>';
 }
 
 function renderCustomer360(data, canWrite) {
