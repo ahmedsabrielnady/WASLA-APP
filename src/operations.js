@@ -271,7 +271,7 @@ export function renderOperationsView(options = {}) {
           ${renderServicePriceManager(services, canWrite)}
         </section>
       ` : ""}
-      ${renderProviderCoverageManager(providers, services, coverage, canWrite)}
+      ${role === "admin" ? renderProviderCoverageManager(providers, services, coverage, canWrite) : ""}
       ${renderProviderInviteManager(latestInviteCode, canWrite)}
       <section class="ops-section">
         <div class="section-heading"><div><span class="eyebrow">مراجعة مقدمي الخدمة</span><h2>طلبات الانضمام</h2></div></div>
