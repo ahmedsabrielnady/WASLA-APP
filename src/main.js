@@ -3,6 +3,7 @@ import { SECTORS, canRequestService, escapeHTML, formatDate, formatEGP, isEgypti
 import { authApi, dataApi } from "./supabase.js";
 import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
 import { renderOperationsView } from "./operations.js";
+import { renderCrmView } from "./crm.js";
 
 const root = document.querySelector("#app");
 const state = {
@@ -11,7 +12,7 @@ const state = {
   user: null,
   profile: null,
   session: null,
-  view: ["operations", "roadmap"].includes(new URLSearchParams(location.search).get("view"))
+  view: ["operations", "roadmap", "crm"].includes(new URLSearchParams(location.search).get("view"))
     ? new URLSearchParams(location.search).get("view")
     : "home",
   modal: null,
@@ -27,7 +28,17 @@ const state = {
   roadmapItems: [],
   roadmapAudit: [],
   roadmapError: "",
-  roadmapSavingId: ""
+  roadmapSavingId: "",
+  pendingOrderIdempotencyKey: "",
+  crmMetrics: null,
+  crmCustomers: [],
+  crmLeads: [],
+  crmTasks: [],
+  crmTickets: [],
+  crmSelectedCustomerId: "",
+  crmCustomer360: null,
+  crmError: "",
+  crmSaving: false
 };
 
 function icon(text) {
@@ -76,7 +87,7 @@ function header() {
       <nav class="top-actions" aria-label="القائمة الرئيسية">
         <button class="nav-link" data-action="roadmap">خطة الإنجاز</button>
         <button class="nav-link" data-action="orders" ${authenticated ? "" : "disabled"}>طلباتي</button>
-        ${isStaff ? '<button class="nav-link" data-action="operations">التشغيل</button>' : ""}
+        ${isStaff ? '<button class="nav-link" data-action="operations">التشغيل</button><button class="nav-link" data-action="crm">CRM</button>' : ""}
         ${authenticated
           ? `<button class="account-chip" data-action="account" title="الحساب">${icon("👤")}<span>${escapeHTML(displayName)}</span></button><button class="btn btn-outline btn-small" data-action="logout">خروج</button>`
           : '<button class="btn btn-primary btn-small" data-action="auth">دخول / حساب جديد</button>'}
@@ -243,6 +254,22 @@ function operationsView() {
   });
 }
 
+function crmView() {
+  return renderCrmView({
+    profile: state.profile,
+    metrics: state.crmMetrics,
+    customers: state.crmCustomers,
+    leads: state.crmLeads,
+    tasks: state.crmTasks,
+    tickets: state.crmTickets,
+    selectedCustomerId: state.crmSelectedCustomerId,
+    customer360: state.crmCustomer360,
+    preview: CONFIG.isPublicPreview,
+    saving: state.crmSaving,
+    error: state.crmError
+  });
+}
+
 function roadmapView() {
   return renderRoadmapPage({
     items: state.roadmapItems,
@@ -323,6 +350,7 @@ function modalView() {
 function render() {
   const view = state.view === "orders" ? ordersView()
     : state.view === "operations" ? operationsView()
+    : state.view === "crm" ? crmView()
     : state.view === "roadmap" ? roadmapView()
     : homeView();
 
@@ -451,6 +479,9 @@ function openAuth(mode = "login") {
 }
 
 function openOrder(item) {
+  state.pendingOrderIdempotencyKey = globalThis.crypto?.randomUUID
+    ? globalThis.crypto.randomUUID()
+    : `wsl-${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
   if (!state.user) {
     state.pendingService = item;
     openAuth("login");
@@ -494,6 +525,43 @@ async function refreshOperations() {
   } catch (error) {
     showToast(error.message, "error");
   }
+  render();
+}
+
+async function refreshCrm() {
+  if (!["staff", "admin"].includes(state.profile?.role)) {
+    showToast("وحدة CRM متاحة لفريق التشغيل والإدارة فقط.", "error");
+    return;
+  }
+  state.crmError = "";
+  try {
+    const [metrics, customers, leads, tasks, tickets] = await Promise.all([
+      dataApi.getCrmMetrics(),
+      dataApi.getCrmCustomers(),
+      dataApi.getCrmLeads(),
+      dataApi.getCrmTasks(),
+      dataApi.getCrmTickets()
+    ]);
+    state.crmMetrics = metrics || {};
+    state.crmCustomers = Array.isArray(customers) ? customers : [];
+    state.crmLeads = Array.isArray(leads) ? leads : [];
+    state.crmTasks = Array.isArray(tasks) ? tasks : [];
+    state.crmTickets = Array.isArray(tickets) ? tickets : [];
+    if (state.crmSelectedCustomerId) {
+      state.crmCustomer360 = await dataApi.getCrmCustomer360(state.crmSelectedCustomerId);
+    }
+    state.view = "crm";
+  } catch (error) {
+    state.crmError = error.message || "تعذر تحميل بيانات CRM.";
+  }
+  render();
+}
+
+async function openCrmCustomer(customerId) {
+  if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح.");
+  state.crmSelectedCustomerId = customerId;
+  state.crmCustomer360 = await dataApi.getCrmCustomer360(customerId);
+  state.view = "crm";
   render();
 }
 
@@ -614,28 +682,18 @@ async function submitOrder(form) {
   await dataApi.acceptRequiredConsents();
   const result = await dataApi.createServiceOrder(state.pendingService, {
     address: values.address,
-    notes: values.notes
+    notes: values.notes,
+    location: state.pendingLocation,
+    idempotencyKey: state.pendingOrderIdempotencyKey
   });
   const record = Array.isArray(result) ? result[0] : result;
-  let locationSaved = true;
-
-  if (state.pendingLocation && record?.out_order_id) {
-    try {
-      await dataApi.setOrderLocation(record.out_order_id, {
-        lat: state.pendingLocation.lat,
-        lng: state.pendingLocation.lng,
-        address: values.address
-      });
-    } catch {
-      // The order already exists; do not ask the customer to submit it again.
-      locationSaved = false;
-    }
-  }
+  state.pendingOrderIdempotencyKey = "";
 
   state.modal = null;
   state.pendingService = null;
   state.pendingLocation = null;
   state.pendingAddress = "";
+  state.pendingOrderIdempotencyKey = "";
   let ordersReloaded = true;
   try {
     state.myOrders = await dataApi.getMyOrders(state.user.id);
@@ -649,12 +707,10 @@ async function submitOrder(form) {
 
   const ref = record?.out_ref ? `رقم ${record.out_ref}` : "طلبك";
   showToast(
-    !ordersReloaded
-      ? `تم استلام ${ref}، لكن تعذر تحديث قائمة الطلبات. افتح طلباتي واضغط تحديث.`
-      : (locationSaved
-          ? `تم استلام ${ref}`
-          : `تم استلام ${ref}، لكن تعذر حفظ إحداثيات GPS. لم يتم تكرار الطلب.`),
-    ordersReloaded && locationSaved ? "success" : "error"
+    ordersReloaded
+      ? `تم استلام ${ref}`
+      : `تم استلام ${ref}، لكن تعذر تحديث قائمة الطلبات. افتح طلباتي واضغط تحديث.`,
+    ordersReloaded ? "success" : "error"
   );
 }
 
@@ -692,6 +748,26 @@ root.addEventListener("click", async (event) => {
       await refreshMyOrders();
     } else if (action === "operations" || action === "reload-operations") {
       await refreshOperations();
+    } else if (action === "crm" || action === "reload-crm") {
+      await refreshCrm();
+    } else if (action === "crm-customer") {
+      await openCrmCustomer(button.dataset.customerId);
+    } else if (action === "crm-back-customers") {
+      state.crmSelectedCustomerId = "";
+      state.crmCustomer360 = null;
+      render();
+    } else if (action === "crm-task-done") {
+      if (CONFIG.isPublicPreview) throw new Error("التعديل متوقف في نسخة المعاينة.");
+      state.crmSaving = true;
+      render();
+      try {
+        await dataApi.completeCrmTask(button.dataset.taskId);
+        await refreshCrm();
+        showToast("تم إغلاق المهمة.", "success");
+      } finally {
+        state.crmSaving = false;
+        render();
+      }
     } else if (action === "ops-set-status") {
       if (CONFIG.isPublicPreview) throw new Error("التعديل متوقف في نسخة المعاينة.");
       if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بتغيير حالة الطلب.");
@@ -763,6 +839,102 @@ root.addEventListener("submit", async (event) => {
     if (form.dataset.form === "auth") await submitAuth(form);
     if (form.dataset.form === "order") await submitOrder(form);
     if (form.dataset.form === "roadmap-milestone") await submitRoadmapMilestone(form);
+    if (form.dataset.form === "crm-lead") {
+      if (CONFIG.isPublicPreview) throw new Error("الإضافة متوقفة في نسخة المعاينة.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      if (String(values.full_name || "").trim().length < 2 || !String(values.phone || "").trim()) {
+        throw new Error("أدخل اسم العميل ورقم هاتفه.");
+      }
+      state.crmSaving = true;
+      render();
+      try {
+        await dataApi.createCrmLead(values);
+        await refreshCrm();
+        showToast("تمت إضافة العميل المحتمل.", "success");
+      } finally {
+        state.crmSaving = false;
+        render();
+      }
+    }
+    if (form.dataset.form === "crm-lead-update") {
+      if (CONFIG.isPublicPreview) throw new Error("التعديل متوقف في نسخة المعاينة.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      state.crmSaving = true;
+      render();
+      try {
+        await dataApi.updateCrmLead(form.dataset.leadId, values.status);
+        await refreshCrm();
+        showToast("تم تحديث حالة العميل المحتمل.", "success");
+      } finally {
+        state.crmSaving = false;
+        render();
+      }
+    }
+    if (form.dataset.form === "crm-task") {
+      if (CONFIG.isPublicPreview) throw new Error("الإضافة متوقفة في نسخة المعاينة.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      if (!values.customer_id) throw new Error("اختر العميل المرتبط بالمهمة.");
+      state.crmSaving = true;
+      render();
+      try {
+        await dataApi.createCrmTask(values);
+        await refreshCrm();
+        showToast("تم إنشاء المهمة.", "success");
+      } finally {
+        state.crmSaving = false;
+        render();
+      }
+    }
+    if (form.dataset.form === "crm-interaction") {
+      if (CONFIG.isPublicPreview) throw new Error("التسجيل متوقف في نسخة المعاينة.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      values.customer_id = form.dataset.customerId;
+      if (!String(values.body || "").trim() && !String(values.subject || "").trim()) {
+        throw new Error("أدخل ملخص التواصل أو تفاصيله.");
+      }
+      state.crmSaving = true;
+      render();
+      try {
+        await dataApi.createCrmInteraction(values);
+        state.crmCustomer360 = await dataApi.getCrmCustomer360(values.customer_id);
+        await refreshCrm();
+        showToast("تم تسجيل التواصل.", "success");
+      } finally {
+        state.crmSaving = false;
+        render();
+      }
+    }
+    if (form.dataset.form === "crm-ticket") {
+      if (CONFIG.isPublicPreview) throw new Error("فتح التذاكر متوقف في نسخة المعاينة.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      if (!values.customer_id || String(values.description || "").trim().length < 5) {
+        throw new Error("اختر العميل واكتب وصفًا واضحًا للتذكرة.");
+      }
+      state.crmSaving = true;
+      render();
+      try {
+        await dataApi.createCrmTicket(values);
+        await refreshCrm();
+        showToast("تم فتح تذكرة الدعم وتسجيل الحدث.", "success");
+      } finally {
+        state.crmSaving = false;
+        render();
+      }
+    }
+    if (form.dataset.form === "crm-ticket-update") {
+      if (CONFIG.isPublicPreview) throw new Error("تحديث التذاكر متوقف في نسخة المعاينة.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      state.crmSaving = true;
+      render();
+      try {
+        await dataApi.updateCrmTicket(form.dataset.ticketId, values.status, "", "تحديث من لوحة CRM");
+        await refreshCrm();
+        showToast("تم تحديث التذكرة.", "success");
+      } finally {
+        state.crmSaving = false;
+        render();
+      }
+    }
     if (form.dataset.form === "operations-quote") {
       if (CONFIG.isPublicPreview) throw new Error("تعديل الأسعار متوقف في نسخة المعاينة.");
       if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بإرسال عرض سعر.");
