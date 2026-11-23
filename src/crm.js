@@ -126,6 +126,7 @@ export function renderCrmView(options) {
 
   const metrics = options.metrics || {};
   const customers = Array.isArray(options.customers) ? options.customers : [];
+  const providers = Array.isArray(options.providers) ? options.providers : [];
   const leads = Array.isArray(options.leads) ? options.leads : [];
   const tasks = Array.isArray(options.tasks) ? options.tasks : [];
   const tickets = Array.isArray(options.tickets) ? options.tickets : [];
@@ -147,7 +148,14 @@ export function renderCrmView(options) {
     '<div class="stat-card"><span>إجمالي الطلبات</span><strong>' + metric(metrics.total_orders) + "</strong></div>" +
     '<div class="stat-card"><span>طلبات مفتوحة</span><strong>' + metric(metrics.open_orders) + "</strong></div>" +
     '<div class="stat-card"><span>تذاكر دعم مفتوحة</span><strong>' + metric(metrics.open_tickets) + "</strong></div>" +
+    '<div class="stat-card"><span>مقدمو خدمة نشطون ومعتمدون</span><strong>' + providers.filter(function (p) { return p.approved && p.active && !p.is_test; }).length + "</strong></div>" +
+    '<div class="stat-card"><span>طلبات اعتماد معلقة</span><strong>' + providers.filter(function (p) { return !p.approved && p.active && !p.is_test; }).length + "</strong></div>" +
     "</div>" +
+    '<section class="crm-panel"><div class="section-heading"><div><span class="eyebrow">Provider CRM</span><h2>مقدمو الخدمة</h2></div><span class="crm-count">' + providers.length + "</span></div>" +
+    '<div class="crm-provider-list">' + (providers.length ? providers.map(function (provider) {
+      const stateLabel = provider.is_test ? "سجل تجريبي — لا يُستخدم للتعيين" : (!provider.active ? "غير نشط" : (provider.approved ? "معتمد ونشط" : "بانتظار الاعتماد"));
+      return '<div class="crm-provider-row"><div><strong>' + e(provider.display_name) + '</strong><small>' + e(provider.specialty || provider.area || provider.kind) + '</small></div><span>' + e(stateLabel) + "</span></div>";
+    }).join("") : '<p class="crm-muted">لا توجد ملفات مقدمي خدمة.</p>') + "</div></section>" +
     '<div class="crm-main-grid">' +
     '<section class="crm-panel"><div class="section-heading"><div><span class="eyebrow">Customer CRM</span><h2>دليل العملاء</h2></div><span class="crm-count">' + customers.length + "</span></div>" +
     '<div class="crm-customer-list">' + (customers.length ? customers.map(function (customer) {
