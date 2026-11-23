@@ -317,6 +317,40 @@ export const dataApi = {
     });
   },
 
+  async getOperationsServices() {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول لعرض قائمة الخدمات.");
+
+    const query = new URLSearchParams({
+      select: "id,sector,name,price_egp,active,public_orderable",
+      order: "sector.asc,name.asc",
+      limit: "200"
+    });
+
+    return request(`/rest/v1/service_items?${query}`, {
+      token: session.access_token
+    });
+  },
+
+  async adminUpdateServicePrice(itemId, price) {
+    assertLiveWritesAllowed("تعديل أسعار الخدمات");
+    const numericId = Number(itemId);
+    if (!Number.isInteger(numericId) || numericId <= 0) {
+      throw new Error("الخدمة غير محددة.");
+    }
+    if (price !== null && (!Number.isInteger(price) || price < 0 || price > 10000000)) {
+      throw new Error("السعر غير صالح.");
+    }
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+
+    return request("/rest/v1/rpc/admin_update_service_item_price", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_item_id: numericId, p_price: price }
+    });
+  },
+
   async getProviderWorkspace() {
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول لعرض مساحة مقدم الخدمة.");
