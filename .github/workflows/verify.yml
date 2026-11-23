@@ -2,10 +2,11 @@ name: WASLA verification
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, app/phase-1-react-foundation]
   push:
     branches:
       - app/phase-1-react-foundation
+      - feature/p0-crm-live-dashboard
 
 permissions:
   contents: read
