@@ -1084,3 +1084,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Brand consistency: accessible focus and utility surfaces */
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline-color: rgba(0, 168, 120, .38);
+}
+.ticker { border-color: #c8eadb; color: #087653; }
+.ticker-track span { color: #087653; }

@@ -1,7 +1,7 @@
 {
-  "name": "وصلة WASLA",
-  "short_name": "وصلة",
-  "description": "خدمات شبين القناطر في مكان واحد",
+  "name": "WASLA | وصلة",
+  "short_name": "WASLA",
+  "description": "كل اللي محتاجه، قريب منك.",
   "lang": "ar-EG",
   "dir": "rtl",
   "start_url": "./",
