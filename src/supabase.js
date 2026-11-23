@@ -544,7 +544,7 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
 
-    return request("/rest/v1/rpc/set_order_status", {
+    return request("/rest/v1/rpc/staff_set_order_status_v2", {
       method: "POST",
       token: session.access_token,
       body: { p_order: orderId, p_to: status, p_note: note }
