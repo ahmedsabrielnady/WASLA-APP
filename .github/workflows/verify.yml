@@ -5,6 +5,7 @@ on:
     branches: [main, app/phase-1-react-foundation]
   push:
     branches:
+      - main
       - app/phase-1-react-foundation
       - feature/p0-crm-live-dashboard
 
@@ -14,6 +15,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
