@@ -30,7 +30,7 @@ export function canRequestService(service) {
 
 /** Keep the public "available now" catalogue limited to services whose order flow is enabled. */
 export function filterOrderableServices(services) {
-  return Array.isArray(services) ? services.filter(canRequestService) : [];
+  return Array.isArray(services) ? services.filter((service) => canRequestService(service) && service.public_orderable === true) : [];
 }
 
 export function isEgyptianPhone(value) {
