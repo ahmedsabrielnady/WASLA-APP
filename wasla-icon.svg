@@ -1,5 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0f9b70"/>
-  <path d="M306 80c-28 0-51 22-51 50v104c0 21-17 38-38 38h-12c-21 0-38 17-38 38s17 38 38 38h12c63 0 114-51 114-114V130c0-28-23-50-51-50z" fill="#fff"/>
-  <path d="M178 130h-12c-45 0-82 37-82 82v164c0 28 23 50 51 50s51-22 51-50V212c0-19 15-34 34-34h12c21 0 38-17 38-38s-17-38-38-38h-54z" fill="#d8fff0" opacity=".95"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="WASLA">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10c58c"/><stop offset=".55" stop-color="#008b68"/><stop offset="1" stop-color="#075b55"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c9ffe9"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#08283b"/>
+  <rect x="22" y="22" width="468" height="468" rx="98" fill="url(#bg)"/>
+  <rect x="39" y="39" width="434" height="434" rx="82" fill="none" stroke="#ffffff" stroke-opacity=".22" stroke-width="3"/>
+  <path d="M105 143h57l53 172 48-125h30l48 125 54-172h57l-85 231h-48l-42-112-42 112h-48z" fill="url(#mark)"/>
+  <circle cx="105" cy="143" r="12" fill="#d7ff78"/>
+  <circle cx="452" cy="143" r="12" fill="#d7ff78"/>
 </svg>
