@@ -317,6 +317,182 @@ export const dataApi = {
     });
   },
 
+  async getCrmMetrics() {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول لعرض CRM.");
+    const rows = await request("/rest/v1/crm_dashboard_metrics?select=*", {
+      token: session.access_token
+    });
+    return Array.isArray(rows) ? rows[0] ?? null : null;
+  },
+
+  async getCrmCustomers() {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول لعرض العملاء.");
+    const query = new URLSearchParams({
+      select: "id,full_name,phone,created_at",
+      role: "eq.customer",
+      order: "created_at.desc",
+      limit: "100"
+    });
+    return request(`/rest/v1/profiles?${query}`, { token: session.access_token });
+  },
+
+  async getCrmLeads() {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول لعرض العملاء المحتملين.");
+    const query = new URLSearchParams({ select: "*", order: "created_at.desc", limit: "100" });
+    return request(`/rest/v1/crm_leads?${query}`, { token: session.access_token });
+  },
+
+  async getCrmTasks() {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول لعرض المهام.");
+    const query = new URLSearchParams({
+      select: "*",
+      status: "not.in.(done,cancelled)",
+      order: "due_at.asc.nullslast,created_at.desc",
+      limit: "100"
+    });
+    return request(`/rest/v1/crm_tasks?${query}`, { token: session.access_token });
+  },
+
+  async getCrmTickets() {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول لعرض التذاكر.");
+    const query = new URLSearchParams({ select: "*", order: "opened_at.desc", limit: "100" });
+    return request(`/rest/v1/crm_tickets?${query}`, { token: session.access_token });
+  },
+
+  async getCrmCustomer360(customerId) {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول لعرض ملف العميل.");
+    return request("/rest/v1/rpc/crm_customer_360", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_customer: customerId }
+    });
+  },
+
+  async createCrmLead(values) {
+    assertLiveWritesAllowed("إضافة العملاء المحتملين");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/crm_leads", {
+      method: "POST",
+      token: session.access_token,
+      headers: { Prefer: "return=representation" },
+      body: {
+        full_name: String(values.full_name || "").trim(),
+        phone: String(values.phone || "").trim(),
+        source: values.source || "manual",
+        sector_interest: String(values.sector_interest || "").trim() || null,
+        priority: Number(values.priority || 2),
+        owner_id: session.user?.id || null,
+        next_follow_up_at: values.next_follow_up_at || null
+      }
+    });
+  },
+
+  async updateCrmLead(leadId, status) {
+    assertLiveWritesAllowed("تحديث العملاء المحتملين");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const query = new URLSearchParams({ id: `eq.${leadId}` });
+    return request(`/rest/v1/crm_leads?${query}`, {
+      method: "PATCH",
+      token: session.access_token,
+      headers: { Prefer: "return=minimal" },
+      body: { status }
+    });
+  },
+
+  async createCrmTask(values) {
+    assertLiveWritesAllowed("إنشاء مهام CRM");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/crm_tasks", {
+      method: "POST",
+      token: session.access_token,
+      headers: { Prefer: "return=representation" },
+      body: {
+        title: String(values.title || "").trim(),
+        customer_id: values.customer_id || null,
+        kind: values.kind || "call_customer",
+        priority: Number(values.priority || 2),
+        assignee_id: session.user?.id || null,
+        due_at: values.due_at ? new Date(values.due_at).toISOString() : null
+      }
+    });
+  },
+
+  async completeCrmTask(taskId, outcome = "") {
+    assertLiveWritesAllowed("إغلاق مهام CRM");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const query = new URLSearchParams({ id: `eq.${taskId}` });
+    return request(`/rest/v1/crm_tasks?${query}`, {
+      method: "PATCH",
+      token: session.access_token,
+      headers: { Prefer: "return=minimal" },
+      body: { status: "done", completed_at: new Date().toISOString(), outcome: outcome || null }
+    });
+  },
+
+  async createCrmInteraction(values) {
+    assertLiveWritesAllowed("تسجيل تواصل CRM");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/crm_interactions", {
+      method: "POST",
+      token: session.access_token,
+      headers: { Prefer: "return=representation" },
+      body: {
+        customer_id: values.customer_id || null,
+        lead_id: values.lead_id || null,
+        kind: values.kind || "note",
+        subject: String(values.subject || "").trim() || null,
+        body: String(values.body || "").trim() || null,
+        actor_id: session.user?.id
+      }
+    });
+  },
+
+  async createCrmTicket(values) {
+    assertLiveWritesAllowed("فتح تذاكر الدعم");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/crm_create_ticket", {
+      method: "POST",
+      token: session.access_token,
+      body: {
+        p_customer: values.customer_id,
+        p_order: values.order_id || null,
+        p_sector: values.sector || null,
+        p_kind: values.kind || "inquiry",
+        p_priority: Number(values.priority || 2),
+        p_description: String(values.description || "").trim()
+      }
+    });
+  },
+
+  async updateCrmTicket(ticketId, status, resolution = "", note = "") {
+    assertLiveWritesAllowed("تحديث تذاكر الدعم");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/crm_update_ticket", {
+      method: "POST",
+      token: session.access_token,
+      body: {
+        p_ticket: ticketId,
+        p_to_status: status,
+        p_assignee: null,
+        p_resolution: resolution || null,
+        p_note: note || null
+      }
+    });
+  },
+
   async updateOrderStatus(orderId, status, note = null) {
     assertLiveWritesAllowed("تغيير حالات الطلبات");
     const session = await getValidSession();
@@ -351,7 +527,7 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
 
-    return request("/rest/v1/rpc/assign_order", {
+    return request("/rest/v1/rpc/assign_order_v2", {
       method: "POST",
       token: session.access_token,
       body: { p_order: orderId, p_provider: providerId }
@@ -418,7 +594,7 @@ export const dataApi = {
     });
   },
 
-  async createServiceOrder(service, { address, notes }) {
+  async createServiceOrder(service, { address, notes, location = null, idempotencyKey = null }) {
     assertLiveWritesAllowed("إرسال الطلبات");
     if (!service?.id || !service?.sector) {
       throw new Error("الخدمة المختارة غير صالحة.");
@@ -427,7 +603,11 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("انتهت جلسة الدخول. سجل الدخول مرة أخرى.");
 
-    return request("/rest/v1/rpc/place_order", {
+    const key = idempotencyKey || (globalThis.crypto?.randomUUID
+      ? globalThis.crypto.randomUUID()
+      : `wsl-${Date.now()}-${Math.random().toString(36).slice(2, 14)}`);
+
+    return request("/rest/v1/rpc/place_order_v2", {
       method: "POST",
       token: session.access_token,
       body: {
@@ -435,7 +615,10 @@ export const dataApi = {
         p_item_id: Number(service.id),
         p_address: String(address).trim(),
         p_notes: String(notes ?? "").trim() || null,
-        p_source: "web"
+        p_source: "web",
+        p_idempotency_key: key,
+        p_lat: location?.lat == null ? null : Number(location.lat),
+        p_lng: location?.lng == null ? null : Number(location.lng)
       }
     });
   }
