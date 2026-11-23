@@ -17,7 +17,7 @@
 - النطاق الأساسي: https://wasla-app-gg2f.vercel.app
 - SSO Protection ما زالت مفعّلة على النطاقات الافتراضية (all except custom domains).
 - لا يوجد نطاق مخصص مرتبط.
-- نجح Vercel check للمشروع المعتمد على commit `60fdb3c`؛ فشل مشروعا Vercel المكرران بسبب build-rate-limit، وتم تعطيل معاينات الفروع عليهما.\n- تم دمج PR #10 لإصلاح تحديث حالات الطلبات من لوحة التشغيل، ونجح GitHub Actions واكتمل Netlify Deploy Preview.\n- آخر commit على main هو `2c7e7a7`، لكنه لم يُنشر بعد على Vercel Production؛ آخر Production deployment ما زال `60fdb3c` بسبب حد النشر. لا تعتمد على الإصلاح في الموقع الحي حتى يُنشر هذا commit.
+- نجح Vercel check للمشروع المعتمد على commit `60fdb3c`؛ فشل مشروعا Vercel المكرران بسبب build-rate-limit، وتم تعطيل معاينات الفروع عليهما.\n- تم دمج PR #10 لإصلاح تحديث حالات الطلبات من لوحة التشغيل، ونجح GitHub Actions واكتمل Netlify Deploy Preview.\n- commit إصلاح RPC المدمج في main هو `2c7e7a7`، وتوجد تحديثات توثيق لاحقة على الفرع. لم يُنشر إصلاح RPC بعد على Vercel Production؛ آخر Production deployment ما زال `60fdb3c` بسبب حد النشر. لا تعتمد على الإصلاح في الموقع الحي حتى يُنشر.
 - نشر Production الحالي لا يعني إطلاقًا عامًا؛ الوصول ما زال محميًا.
 
 ## ما تم إنجازه
