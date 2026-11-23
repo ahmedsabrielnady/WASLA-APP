@@ -19,6 +19,7 @@ const base = {
     collected_revenue_egp: null
   },
   customers: [],
+  providers: [],
   leads: [],
   tasks: [],
   tickets: [],
@@ -60,4 +61,20 @@ test("CRM preview disables lead, task and ticket writes", () => {
   assert.match(html, /data-form="crm-lead"[\s\S]*?disabled/);
   assert.match(html, /data-form="crm-task"[\s\S]*?disabled/);
   assert.match(html, /data-form="crm-ticket"[\s\S]*?disabled/);
+});
+
+test("provider CRM escapes provider-controlled names", () => {
+  const html = renderCrmView({
+    ...base,
+    providers: [{
+      id: "provider-1",
+      display_name: "<svg onload=alert(1)>",
+      specialty: "صيانة",
+      approved: true,
+      active: true,
+      is_test: false
+    }]
+  });
+  assert.match(html, /&lt;svg/);
+  assert.doesNotMatch(html, /<svg onload/);
 });
