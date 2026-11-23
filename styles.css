@@ -888,3 +888,23 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .crm-customer-row { grid-template-columns: 1fr; }
   .crm-customer-row span { text-align: right; }
 }
+
+.crm-provider-list { display: grid; gap: 7px; }
+.crm-provider-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e8efeb;
+  border-radius: 11px;
+  background: #fcfefd;
+}
+.crm-provider-row > div { display: grid; gap: 3px; }
+.crm-provider-row strong { color: var(--navy); font-size: 11px; }
+.crm-provider-row small, .crm-provider-row > span { color: var(--muted); font-size: 9px; }
+.crm-provider-row > span { text-align: left; }
+@media (max-width: 460px) {
+  .crm-provider-row { align-items: flex-start; flex-direction: column; }
+  .crm-provider-row > span { text-align: right; }
+}
