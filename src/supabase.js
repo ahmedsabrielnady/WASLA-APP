@@ -317,6 +317,52 @@ export const dataApi = {
     });
   },
 
+  async getProviderWorkspace() {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول لعرض مساحة مقدم الخدمة.");
+
+    const user = await request("/auth/v1/user", { token: session.access_token });
+    if (!user?.id) throw new Error("تعذر التحقق من حساب مقدم الخدمة.");
+
+    const providerQuery = new URLSearchParams({
+      select: "id,kind,display_name,specialty,area,approved,active,is_test",
+      user_id: `eq.${user.id}`,
+      limit: "1"
+    });
+    const providers = await request(`/rest/v1/providers?${providerQuery}`, {
+      token: session.access_token
+    });
+    const provider = Array.isArray(providers) ? providers[0] ?? null : null;
+    if (!provider || !provider.approved || !provider.active || provider.is_test) {
+      return { provider, orders: [] };
+    }
+
+    const orderQuery = new URLSearchParams({
+      select: "id,ref,sector,status,price_egp,deposit_egp,created_at,updated_at,scheduled_at,address,notes,quantity",
+      provider_id: `eq.${provider.id}`,
+      order: "created_at.desc",
+      limit: "100"
+    });
+    const orders = await request(`/rest/v1/orders?${orderQuery}`, {
+      token: session.access_token
+    });
+    return { provider, orders: Array.isArray(orders) ? orders : [] };
+  },
+
+  async providerSetOrderStatus(orderId, status, note = null) {
+    assertLiveWritesAllowed("تحديث حالة طلب مقدم الخدمة");
+    if (!orderId || !["in_progress", "done"].includes(status)) {
+      throw new Error("تحديث الحالة المطلوبة غير صالح.");
+    }
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/provider_set_order_status_v2", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_order: orderId, p_to: status, p_note: note }
+    });
+  },
+
   async getCrmMetrics() {
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول لعرض CRM.");
