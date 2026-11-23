@@ -4,6 +4,7 @@ import { authApi, dataApi } from "./supabase.js";
 import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
 import { renderOperationsView } from "./operations.js";
 import { renderCrmView } from "./crm.js";
+import { renderProviderView } from "./provider.js";
 
 const root = document.querySelector("#app");
 const state = {
@@ -12,7 +13,7 @@ const state = {
   user: null,
   profile: null,
   session: null,
-  view: ["operations", "roadmap", "crm"].includes(new URLSearchParams(location.search).get("view"))
+  view: ["operations", "roadmap", "crm", "provider"].includes(new URLSearchParams(location.search).get("view"))
     ? new URLSearchParams(location.search).get("view")
     : "home",
   modal: null,
@@ -39,7 +40,11 @@ const state = {
   crmSelectedCustomerId: "",
   crmCustomer360: null,
   crmError: "",
-  crmSaving: false
+  crmSaving: false,
+  providerRecord: null,
+  providerOrders: [],
+  providerError: "",
+  providerSaving: false
 };
 
 function icon(text) {
@@ -78,6 +83,7 @@ function header() {
   const displayName = state.profile?.full_name || state.user?.email || "حسابي";
   const authenticated = Boolean(state.user);
   const isStaff = ["staff", "admin"].includes(state.profile?.role);
+  const isProvider = ["doctor", "technician", "teacher", "courier", "merchant"].includes(state.profile?.role);
 
   return `
     <header class="topbar">
@@ -89,6 +95,7 @@ function header() {
         <button class="nav-link" data-action="roadmap">خطة الإنجاز</button>
         <button class="nav-link" data-action="orders" ${authenticated ? "" : "disabled"}>طلباتي</button>
         ${isStaff ? '<button class="nav-link" data-action="operations">التشغيل</button><button class="nav-link" data-action="crm">CRM</button>' : ""}
+        ${isProvider ? '<button class="nav-link" data-action="provider">طلبات مقدم الخدمة</button>' : ""}
         ${authenticated
           ? `<button class="account-chip" data-action="account" title="الحساب">${icon("👤")}<span>${escapeHTML(displayName)}</span></button><button class="btn btn-outline btn-small" data-action="logout">خروج</button>`
           : '<button class="btn btn-primary btn-small" data-action="auth">دخول / حساب جديد</button>'}
@@ -272,6 +279,18 @@ function crmView() {
   });
 }
 
+
+function providerView() {
+  return renderProviderView({
+    profile: state.profile,
+    provider: state.providerRecord,
+    orders: state.providerOrders,
+    preview: CONFIG.isPublicPreview,
+    saving: state.providerSaving,
+    error: state.providerError
+  });
+}
+
 function roadmapView() {
   return renderRoadmapPage({
     items: state.roadmapItems,
@@ -353,6 +372,7 @@ function render() {
   const view = state.view === "orders" ? ordersView()
     : state.view === "operations" ? operationsView()
     : state.view === "crm" ? crmView()
+    : state.view === "provider" ? providerView()
     : state.view === "roadmap" ? roadmapView()
     : homeView();
 
@@ -530,6 +550,28 @@ async function refreshOperations() {
   render();
 }
 
+
+async function refreshProvider() {
+  const providerRoles = ["doctor", "technician", "teacher", "courier", "merchant"];
+  if (!providerRoles.includes(state.profile?.role)) {
+    showToast("هذه المساحة مخصصة لمقدمي الخدمة فقط.", "error");
+    return;
+  }
+  state.providerError = "";
+  try {
+    const result = await dataApi.getProviderWorkspace();
+    state.providerRecord = result.provider || null;
+    state.providerOrders = Array.isArray(result.orders) ? result.orders : [];
+    state.view = "provider";
+  } catch (error) {
+    state.providerRecord = null;
+    state.providerOrders = [];
+    state.providerError = error.message || "تعذر تحميل طلبات مقدم الخدمة.";
+    state.view = "provider";
+  }
+  render();
+}
+
 async function refreshCrm() {
   if (!["staff", "admin"].includes(state.profile?.role)) {
     showToast("وحدة CRM متاحة لفريق التشغيل والإدارة فقط.", "error");
@@ -579,10 +621,13 @@ async function afterLogin() {
   state.modal = null;
   if (state.pendingService) {
     state.modal = "order";
+    render();
+  } else if (["doctor", "technician", "teacher", "courier", "merchant"].includes(state.profile?.role)) {
+    await refreshProvider();
   } else {
     state.view = "home";
+    render();
   }
-  render();
 }
 
 async function submitAuth(form) {
@@ -754,6 +799,8 @@ root.addEventListener("click", async (event) => {
       await refreshOperations();
     } else if (action === "crm" || action === "reload-crm") {
       await refreshCrm();
+    } else if (action === "provider" || action === "reload-provider") {
+      await refreshProvider();
     } else if (action === "crm-customer") {
       await openCrmCustomer(button.dataset.customerId);
     } else if (action === "crm-back-customers") {
@@ -787,6 +834,23 @@ root.addEventListener("click", async (event) => {
         await refreshOperations();
       } finally {
         state.operationsSaving = false;
+        render();
+      }
+    } else if (action === "provider-set-status") {
+      if (CONFIG.isPublicPreview) throw new Error("تحديث الحالات متوقف في نسخة المعاينة.");
+      if (!["doctor", "technician", "teacher", "courier", "merchant"].includes(state.profile?.role)) throw new Error("غير مصرح بتحديث الطلب.");
+      const orderId = button.dataset.orderId;
+      const nextStatus = button.dataset.status;
+      const label = nextStatus === "done" ? "تأكيد إتمام الخدمة" : "بدء التنفيذ";
+      if (!window.confirm("هل تريد " + label + "؟")) return;
+      state.providerSaving = true;
+      render();
+      try {
+        await dataApi.providerSetOrderStatus(orderId, nextStatus, "تم تحديث الحالة من مساحة مقدم الخدمة");
+        showToast("تم تحديث حالة الطلب.", "success");
+        await refreshProvider();
+      } finally {
+        state.providerSaving = false;
         render();
       }
     } else if (action === "approve-provider") {
@@ -997,6 +1061,10 @@ async function init() {
   await Promise.all([loadCatalog(), loadAccount(), loadRoadmap()]);
   if (state.profile?.role === "admin") await loadRoadmapAudit();
 
+  if (["doctor", "technician", "teacher", "courier", "merchant"].includes(state.profile?.role) && state.view === "home") {
+    state.view = "provider";
+  }
+
   if (state.view === "operations" && ["staff", "admin"].includes(state.profile?.role)) {
     try {
       const [orders, providers] = await Promise.all([
@@ -1013,6 +1081,15 @@ async function init() {
   } else if (state.view === "crm" && ["staff", "admin"].includes(state.profile?.role)) {
     await refreshCrm();
   } else if (state.view === "crm") {
+    state.view = "home";
+  } else if (state.view === "provider" && ["doctor", "technician", "teacher", "courier", "merchant"].includes(state.profile?.role)) {
+    const result = await dataApi.getProviderWorkspace().catch((error) => {
+      state.providerError = error.message || "تعذر تحميل مساحة مقدم الخدمة.";
+      return { provider: null, orders: [] };
+    });
+    state.providerRecord = result.provider || null;
+    state.providerOrders = Array.isArray(result.orders) ? result.orders : [];
+  } else if (state.view === "provider") {
     state.view = "home";
   }
 
