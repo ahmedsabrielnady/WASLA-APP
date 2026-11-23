@@ -390,7 +390,7 @@ function orderModal() {
             <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على شروط الاستخدام.</span></label>
             <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على سياسة الخصوصية.</span></label>
           </div>
-          <p class="form-footnote">إرسال الطلب لا يعني تنفيذ الدفع الإلكتروني. أي عربون أو تكلفة إضافية يتم توضيحها قبل التنفيذ.</p>
+          <p class="form-footnote">إرسال الطلب طلب مبدئي؛ الإدارة تؤكد توافر الفني والموعد والتكلفة معك قبل التنفيذ. لا يتم تحصيل أي مبالغ داخل وصلة حاليًا.</p>
           ${CONFIG.isPublicPreview ? '<p class="form-footnote preview-auth-note">هذه نسخة معاينة متصلة بقاعدة بيانات حية؛ إرسال الطلبات الفعلية متوقف هنا.</p>' : ""}
           <button class="btn btn-primary btn-block" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>${CONFIG.isPublicPreview ? "الإرسال متوقف في المعاينة" : (state.busy ? "جارٍ إرسال الطلب..." : "تأكيد إرسال الطلب")}</button>
         </form>
