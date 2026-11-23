@@ -725,6 +725,31 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .ops-action-form button { flex: 0 0 auto; }
 .ops-muted { font-size: 10px; color: var(--muted); margin: 0; }
+
+.ops-service-price-form { align-items: center; flex-wrap: wrap; }
+.ops-service-price-info { display: grid; gap: 3px; flex: 1 1 180px; }
+.ops-service-price-info strong { color: var(--navy); font-size: 11px; }
+.ops-service-price-info small, .ops-service-price-info .ops-muted { color: var(--muted); font-size: 9px; }
+.invite-code-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px dashed #a9c9ba;
+  border-radius: 12px;
+  background: #f4faf6;
+}
+.invite-code-panel > span { color: var(--muted); font-size: 10px; font-weight: 800; }
+.invite-code-panel strong {
+  color: var(--navy);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 16px;
+  letter-spacing: 1px;
+  direction: ltr;
+}
+.invite-code-panel button { margin-inline-start: auto; }
+
 .ops-provider-card {
   display: flex;
   justify-content: space-between;

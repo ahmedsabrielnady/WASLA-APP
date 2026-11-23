@@ -27,6 +27,8 @@ const state = {
   operationsOrders: [],
   operationsServices: [],
   operationsSaving: false,
+  latestInviteCode: "",
+  providerInviteSaving: false,
   busy: false,
   loadError: "",
   roadmapItems: [],
@@ -100,6 +102,7 @@ function header() {
         <button class="nav-link" data-action="orders" ${authenticated ? "" : "disabled"}>طلباتي</button>
         ${isStaff ? '<button class="nav-link" data-action="operations">التشغيل</button><button class="nav-link" data-action="crm">CRM</button>' : ""}
         ${isProvider ? '<button class="nav-link" data-action="provider">طلبات مقدم الخدمة</button>' : ""}
+        ${authenticated && state.profile?.role === "customer" ? '<button class="nav-link" data-action="provider-invite">لديك دعوة مقدم خدمة؟</button>' : ""}
         ${authenticated
           ? `<button class="account-chip" data-action="account" title="الحساب">${icon("👤")}<span>${escapeHTML(displayName)}</span></button><button class="btn btn-outline btn-small" data-action="logout">خروج</button>`
           : '<button class="btn btn-primary btn-small" data-action="auth">دخول / حساب جديد</button>'}
@@ -269,6 +272,7 @@ function operationsView() {
     orders: state.operationsOrders,
     providers: state.operationsProviders,
     services: state.operationsServices,
+    latestInviteCode: state.latestInviteCode,
     preview: CONFIG.isPublicPreview,
     saving: state.operationsSaving
   });
@@ -344,6 +348,27 @@ ${CONFIG.isPublicPreview
   `;
 }
 
+function providerInviteModal() {
+  return `
+    <div class="modal-backdrop" data-action="backdrop">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="provider-invite-title">
+        <button class="modal-close" data-action="close-modal" aria-label="إغلاق">×</button>
+        <span class="eyebrow">الانضمام إلى وصلة</span>
+        <h2 id="provider-invite-title">تفعيل حساب مقدم خدمة</h2>
+        <p class="modal-subtitle">أدخل كود الدعوة والبيانات المهنية. سيظل الحساب قيد المراجعة حتى اعتماد الإدارة.</p>
+        <form data-form="provider-invite" novalidate>
+          <label>كود الدعوة<input name="code" required minlength="6" maxlength="32" autocomplete="off" placeholder="كود الدعوة"></label>
+          <label>الاسم الذي سيظهر للعملاء<input name="display_name" required minlength="2" maxlength="100" placeholder="الاسم أو اسم النشاط"></label>
+          <label>التخصص أو نوع الخدمة<input name="specialty" required minlength="2" maxlength="120" placeholder="سباكة، كهرباء، باطنة..."></label>
+          <label>منطقة التغطية<input name="area" required minlength="2" maxlength="120" placeholder="شبين القناطر والمناطق القريبة"></label>
+          <button class="btn btn-primary btn-block" type="submit" ${state.providerInviteSaving || CONFIG.isPublicPreview ? "disabled" : ""}>${state.providerInviteSaving ? "جارٍ إرسال الطلب..." : "إرسال طلب الانضمام"}</button>
+        </form>
+        ${CONFIG.isPublicPreview ? '<p class="form-footnote preview-auth-note">تفعيل الحسابات متوقف في نسخة المعاينة.</p>' : ""}
+      </section>
+    </div>
+  `;
+}
+
 function orderModal() {
   const item = state.pendingService;
   if (!item) return "";
@@ -377,6 +402,7 @@ function orderModal() {
 function modalView() {
   if (state.modal === "auth") return authModal();
   if (state.modal === "order") return orderModal();
+  if (state.modal === "provider-invite") return providerInviteModal();
   return "";
 }
 
@@ -808,6 +834,7 @@ root.addEventListener("click", async (event) => {
       state.operationsOrders = [];
       state.operationsProviders = [];
       state.operationsServices = [];
+      state.latestInviteCode = "";
       state.roadmapAudit = [];
       state.view = "home";
       render();
@@ -888,6 +915,14 @@ root.addEventListener("click", async (event) => {
         state.operationsSaving = false;
         render();
       }
+    } else if (action === "provider-invite") {
+      if (!state.user || state.profile?.role !== "customer") throw new Error("تسجيل الانضمام متاح لحسابات العملاء فقط.");
+      state.modal = "provider-invite";
+      render();
+    } else if (action === "copy-invite") {
+      if (!state.latestInviteCode) throw new Error("لا يوجد كود دعوة لنسخه.");
+      await navigator.clipboard.writeText(state.latestInviteCode);
+      showToast("تم نسخ كود الدعوة.", "success");
     } else if (action === "home") {
       state.view = "home";
       render();
@@ -1021,6 +1056,50 @@ root.addEventListener("submit", async (event) => {
         showToast("تم تحديث التذكرة.", "success");
       } finally {
         state.crmSaving = false;
+        render();
+      }
+    }
+    if (form.dataset.form === "provider-invite") {
+      if (CONFIG.isPublicPreview) throw new Error("تفعيل حسابات مقدمي الخدمة متوقف في نسخة المعاينة.");
+      if (!state.user || state.profile?.role !== "customer") throw new Error("سجل الدخول بحساب عميل أولًا.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      if (String(values.code || "").trim().length < 6
+        || String(values.display_name || "").trim().length < 2
+        || String(values.specialty || "").trim().length < 2
+        || String(values.area || "").trim().length < 2) {
+        throw new Error("أكمل كود الدعوة والاسم والتخصص ومنطقة التغطية.");
+      }
+      state.providerInviteSaving = true;
+      render();
+      try {
+        const kind = await dataApi.redeemProviderInvite(values);
+        state.modal = null;
+        await loadAccount();
+        if (["doctor", "technician", "teacher", "courier", "merchant"].includes(kind)) {
+          await refreshProvider();
+          showToast("تم استلام طلب انضمامك. الحساب ينتظر اعتماد الإدارة.", "success");
+        } else {
+          render();
+          showToast("تم تفعيل الدور المصرح به.", "success");
+        }
+      } finally {
+        state.providerInviteSaving = false;
+        render();
+      }
+    }
+    if (form.dataset.form === "operations-invite") {
+      if (CONFIG.isPublicPreview) throw new Error("إنشاء الدعوات متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بإنشاء الدعوات.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      state.operationsSaving = true;
+      render();
+      try {
+        const code = await dataApi.createProviderInvite(values.kind);
+        state.latestInviteCode = String(code || "").replace(/^"|"$/g, "");
+        await refreshOperations();
+        showToast("تم إنشاء كود الدعوة. أرسله لمقدم الخدمة بعد مراجعة بياناته.", "success");
+      } finally {
+        state.operationsSaving = false;
         render();
       }
     }

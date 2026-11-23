@@ -150,11 +150,40 @@ function renderServicePriceManager(services, canWrite) {
   `;
 }
 
+function renderProviderInviteManager(latestInviteCode, canWrite) {
+  return `
+    <section class="ops-section">
+      <div class="section-heading"><div><span class="eyebrow">توسيع شبكة وصلة</span><h2>دعوات مقدمي الخدمة</h2></div></div>
+      <p class="ops-muted">أنشئ دعوة لمقدم خدمة تمت مراجعته مبدئيًا. لا يصبح الحساب معتمدًا أو قابلًا لاستقبال الطلبات إلا بعد مراجعة الإدارة.</p>
+      <form class="ops-action-form" data-form="operations-invite">
+        <label>نوع مقدم الخدمة
+          <select name="kind" required>
+            <option value="technician">فني صيانة</option>
+            <option value="doctor">طبيب</option>
+            <option value="merchant">تاجر / متجر</option>
+            <option value="courier">مندوب توصيل</option>
+            <option value="teacher">مدرس</option>
+          </select>
+        </label>
+        <button class="btn btn-primary btn-small" type="submit" ${canWrite ? "" : "disabled"}>إنشاء كود دعوة</button>
+      </form>
+      ${latestInviteCode ? `
+        <div class="invite-code-panel">
+          <span>كود الدعوة الجديد</span>
+          <strong dir="ltr">${escapeHTML(latestInviteCode)}</strong>
+          <button class="btn btn-outline btn-small" type="button" data-action="copy-invite" ${canWrite ? "" : "disabled"}>نسخ الكود</button>
+        </div>
+      ` : ""}
+    </section>
+  `;
+}
+
 export function renderOperationsView(options = {}) {
   const profile = options.profile || null;
   const orders = Array.isArray(options.orders) ? options.orders : [];
   const providers = Array.isArray(options.providers) ? options.providers : [];
   const services = Array.isArray(options.services) ? options.services : [];
+  const latestInviteCode = String(options.latestInviteCode || "");
   const preview = Boolean(options.preview);
   const saving = Boolean(options.saving);
   const role = profile?.role;
@@ -191,6 +220,7 @@ export function renderOperationsView(options = {}) {
           ${renderServicePriceManager(services, canWrite)}
         </section>
       ` : ""}
+      ${renderProviderInviteManager(latestInviteCode, canWrite)}
       <section class="ops-section">
         <div class="section-heading"><div><span class="eyebrow">مراجعة مقدمي الخدمة</span><h2>طلبات الانضمام</h2></div></div>
         ${pendingProviders.length
