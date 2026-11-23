@@ -123,10 +123,38 @@ function renderPendingProvider(provider, canWrite) {
     </article>`;
 }
 
+function renderServicePriceManager(services, canWrite) {
+  if (!services.length) {
+    return '<p class="ops-muted">تعذر تحميل قائمة الخدمات أو لا توجد عناصر مسجلة.</p>';
+  }
+
+  return `
+    <div class="ops-order-list ops-service-price-list">
+      ${services.map((service) => `
+        <form class="ops-action-form ops-service-price-form" data-form="operations-service-price" data-item-id="${escapeHTML(service.id)}">
+          <div class="ops-service-price-info">
+            <strong>${escapeHTML(service.name)}</strong>
+            <small>${escapeHTML(sectorLabel(service.sector))}</small>
+            <span class="status-pill">${service.public_orderable ? "مسموح بالطلب" : "غير متاح للطلب"}</span>
+            <span class="ops-muted">${service.active ? "نشطة في الكتالوج" : "مخفية من الكتالوج"}</span>
+          </div>
+          <label>السعر بالجنيه
+            <input name="price" type="number" min="0" max="10000000" step="1"
+              value="${service.price_egp === null ? "" : Number(service.price_egp)}"
+              placeholder="بعد المعاينة">
+          </label>
+          <button class="btn btn-outline btn-small" type="submit" ${canWrite ? "" : "disabled"}>حفظ السعر</button>
+        </form>
+      `).join("")}
+    </div>
+  `;
+}
+
 export function renderOperationsView(options = {}) {
   const profile = options.profile || null;
   const orders = Array.isArray(options.orders) ? options.orders : [];
   const providers = Array.isArray(options.providers) ? options.providers : [];
+  const services = Array.isArray(options.services) ? options.services : [];
   const preview = Boolean(options.preview);
   const saving = Boolean(options.saving);
   const role = profile?.role;
@@ -156,6 +184,13 @@ export function renderOperationsView(options = {}) {
         <div class="stat-card"><span>طلبات اعتماد جديدة</span><strong>${pendingProviders.length}</strong></div>
       </div>
       ${preview ? '<p class="roadmap-lock-note">هذه نسخة معاينة للقراءة فقط. أدوات تغيير الحالات والأسعار والتعيين والاعتماد متوقفة لحماية قاعدة الإنتاج.</p>' : ""}
+      ${role === "admin" ? `
+        <section class="ops-section">
+          <div class="section-heading"><div><span class="eyebrow">إدارة الكتالوج</span><h2>أسعار الخدمات</h2></div></div>
+          <p class="ops-muted">يمكن للمؤسس تعديل السعر أو تركه فارغًا للتسعير بعد المعاينة. تعديل السعر لا يفعّل الطلب؛ الإتاحة مرتبطة بتغطية مقدم خدمة معتمد.</p>
+          ${renderServicePriceManager(services, canWrite)}
+        </section>
+      ` : ""}
       <section class="ops-section">
         <div class="section-heading"><div><span class="eyebrow">مراجعة مقدمي الخدمة</span><h2>طلبات الانضمام</h2></div></div>
         ${pendingProviders.length

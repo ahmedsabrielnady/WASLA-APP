@@ -25,6 +25,8 @@ const state = {
   search: "",
   myOrders: [],
   operationsOrders: [],
+  operationsServices: [],
+  operationsSaving: false,
   busy: false,
   loadError: "",
   roadmapItems: [],
@@ -266,6 +268,7 @@ function operationsView() {
     profile: state.profile,
     orders: state.operationsOrders,
     providers: state.operationsProviders,
+    services: state.operationsServices,
     preview: CONFIG.isPublicPreview,
     saving: state.operationsSaving
   });
@@ -550,12 +553,14 @@ async function refreshOperations() {
     return;
   }
   try {
-    const [orders, providers] = await Promise.all([
+    const [orders, providers, services] = await Promise.all([
       dataApi.getOperationsOrders(),
-      dataApi.getOperationsProviders()
+      dataApi.getOperationsProviders(),
+      state.profile?.role === "admin" ? dataApi.getOperationsServices() : Promise.resolve([])
     ]);
     state.operationsOrders = Array.isArray(orders) ? orders : [];
     state.operationsProviders = Array.isArray(providers) ? providers : [];
+    state.operationsServices = Array.isArray(services) ? services : [];
     state.view = "operations";
   } catch (error) {
     showToast(error.message, "error");
@@ -800,6 +805,9 @@ root.addEventListener("click", async (event) => {
       await authApi.signOut();
       state.user = state.profile = state.session = null;
       state.myOrders = [];
+      state.operationsOrders = [];
+      state.operationsProviders = [];
+      state.operationsServices = [];
       state.roadmapAudit = [];
       state.view = "home";
       render();
@@ -1016,6 +1024,26 @@ root.addEventListener("submit", async (event) => {
         render();
       }
     }
+    if (form.dataset.form === "operations-service-price") {
+      if (CONFIG.isPublicPreview) throw new Error("تعديل أسعار الخدمات متوقف في نسخة المعاينة.");
+      if (state.profile?.role !== "admin") throw new Error("تعديل أسعار الخدمات مخصص للمؤسس فقط.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      const rawPrice = String(values.price ?? "").trim();
+      const price = rawPrice === "" ? null : Number(rawPrice);
+      if (price !== null && (!Number.isInteger(price) || price < 0 || price > 10000000)) {
+        throw new Error("أدخل سعرًا صحيحًا أو اترك الحقل فارغًا للتسعير بعد المعاينة.");
+      }
+      state.operationsSaving = true;
+      render();
+      try {
+        await dataApi.adminUpdateServicePrice(form.dataset.itemId, price);
+        await Promise.all([refreshOperations(), loadCatalog()]);
+        showToast("تم تحديث سعر الخدمة وتسجيل التغيير.", "success");
+      } finally {
+        state.operationsSaving = false;
+        render();
+      }
+    }
     if (form.dataset.form === "operations-quote") {
       if (CONFIG.isPublicPreview) throw new Error("تعديل الأسعار متوقف في نسخة المعاينة.");
       if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بإرسال عرض سعر.");
@@ -1080,12 +1108,14 @@ async function init() {
 
   if (state.view === "operations" && ["staff", "admin"].includes(state.profile?.role)) {
     try {
-      const [orders, providers] = await Promise.all([
+      const [orders, providers, services] = await Promise.all([
         dataApi.getOperationsOrders(),
-        dataApi.getOperationsProviders()
+        dataApi.getOperationsProviders(),
+        state.profile?.role === "admin" ? dataApi.getOperationsServices() : Promise.resolve([])
       ]);
       state.operationsOrders = Array.isArray(orders) ? orders : [];
       state.operationsProviders = Array.isArray(providers) ? providers : [];
+      state.operationsServices = Array.isArray(services) ? services : [];
     } catch (error) {
       showToast(error.message, "error");
     }
