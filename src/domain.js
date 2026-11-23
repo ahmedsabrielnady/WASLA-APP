@@ -183,18 +183,14 @@ export function validateRoadmapUpdate(status, progressPercent, testStatus) {
 
 
 /**
- * Block database writes from local and branch-preview deployments.
- * Vercel branch aliases contain "-git-"; Netlify deploy previews start
- * with "deploy-preview-". The stable production aliases do not match either.
+ * Fail closed: only the canonical, SSO-protected Vercel production alias may
+ * write to the live database. GitHub Pages, Netlify production/previews,
+ * deployment-specific Vercel URLs, localhost, and unknown hosts are read-only.
+ * Add a custom domain here only after it is verified and protected.
  */
+const APPROVED_WRITE_HOSTS = new Set(["wasla-app-gg2f.vercel.app"]);
+
 export function isPreviewHost(hostname) {
   const host = String(hostname ?? "").trim().toLowerCase();
-  if (!host) return true;
-  return host === "localhost"
-    || host === "127.0.0.1"
-    || host === "::1"
-    || host === "[::1]"
-    || host.startsWith("deploy-preview-")
-    || host.startsWith("preview-")
-    || host.includes("-git-");
+  return !APPROVED_WRITE_HOSTS.has(host);
 }
