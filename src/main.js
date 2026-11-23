@@ -1,5 +1,5 @@
 import { CONFIG } from "./config.js";
-import { SECTORS, canRequestService, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
+import { SECTORS, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
 import { authApi, dataApi } from "./supabase.js";
 import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
 import { renderOperationsView } from "./operations.js";
@@ -134,7 +134,7 @@ function sectorCards() {
 
 function serviceCards() {
   const search = state.search.trim().toLocaleLowerCase("ar");
-  const filtered = state.services.filter((item) => {
+  const filtered = filterOrderableServices(state.services).filter((item) => {
     const matchesSearch = !search
       || String(item.name).toLocaleLowerCase("ar").includes(search)
       || sectorLabel(item.sector).toLocaleLowerCase("ar").includes(search);
