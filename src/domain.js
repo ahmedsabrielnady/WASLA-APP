@@ -194,3 +194,14 @@ export function isPreviewHost(hostname) {
   const host = String(hostname ?? "").trim().toLowerCase();
   return !APPROVED_WRITE_HOSTS.has(host);
 }
+
+
+/** Run an async UI operation while reliably clearing its busy state. */
+export async function runWithBusyState(state, operation) {
+  state.busy = true;
+  try {
+    return await operation();
+  } finally {
+    state.busy = false;
+  }
+}
