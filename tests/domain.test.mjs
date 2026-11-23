@@ -26,7 +26,7 @@ test("only service sectors with live supported order flow are orderable", () => 
   assert.equal(canRequestService(null), false);
 });
 
-test("public order catalogue excludes services from sectors whose order flow is disabled", () => {
+test("public order catalogue requires an explicit provider-backed orderability flag", () => {
   const services = [
     { id: 1, sector: "car", public_orderable: true },
     { id: 2, sector: "maintenance", public_orderable: true },
