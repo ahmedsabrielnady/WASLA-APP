@@ -26,6 +26,7 @@ const state = {
   myOrders: [],
   operationsOrders: [],
   operationsServices: [],
+  operationsSaving: false,
   busy: false,
   loadError: "",
   roadmapItems: [],
@@ -804,6 +805,9 @@ root.addEventListener("click", async (event) => {
       await authApi.signOut();
       state.user = state.profile = state.session = null;
       state.myOrders = [];
+      state.operationsOrders = [];
+      state.operationsProviders = [];
+      state.operationsServices = [];
       state.roadmapAudit = [];
       state.view = "home";
       render();
