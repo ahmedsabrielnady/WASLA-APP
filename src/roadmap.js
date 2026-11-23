@@ -20,7 +20,11 @@ function progressBar(value, label) {
     percent + '"><span style="width:' + percent + '%"></span></div>';
 }
 
-export function renderRoadmapHome(items, error) {
+export function renderRoadmapHome(items, error, loading = false) {
+  if (loading) {
+    return '<section class="roadmap-home-card" aria-live="polite"><div><span class="eyebrow">متابعة بناء وصلة</span><h2>خطة الإنجاز</h2></div><p class="roadmap-muted">جارٍ تحميل نسب الإنجاز المثبتة من قاعدة البيانات...</p></section>';
+  }
+
   if (error) {
     return '<section class="roadmap-home-card"><div><span class="eyebrow">متابعة بناء وصلة</span>' +
       '<h2>خطة الإنجاز</h2></div><p class="roadmap-muted">' +
