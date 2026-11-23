@@ -26,6 +26,7 @@ const state = {
   myOrders: [],
   operationsOrders: [],
   operationsServices: [],
+  operationsCoverage: [],
   operationsSaving: false,
   latestInviteCode: "",
   providerInviteSaving: false,
@@ -273,6 +274,7 @@ function operationsView() {
     providers: state.operationsProviders,
     services: state.operationsServices,
     latestInviteCode: state.latestInviteCode,
+    coverage: state.operationsCoverage,
     preview: CONFIG.isPublicPreview,
     saving: state.operationsSaving
   });
@@ -579,14 +581,16 @@ async function refreshOperations() {
     return;
   }
   try {
-    const [orders, providers, services] = await Promise.all([
+    const [orders, providers, services, coverage] = await Promise.all([
       dataApi.getOperationsOrders(),
       dataApi.getOperationsProviders(),
-      state.profile?.role === "admin" ? dataApi.getOperationsServices() : Promise.resolve([])
+      state.profile?.role === "admin" ? dataApi.getOperationsServices() : Promise.resolve([]),
+      state.profile?.role === "admin" ? dataApi.getOperationsCoverage() : Promise.resolve([])
     ]);
     state.operationsOrders = Array.isArray(orders) ? orders : [];
     state.operationsProviders = Array.isArray(providers) ? providers : [];
     state.operationsServices = Array.isArray(services) ? services : [];
+    state.operationsCoverage = Array.isArray(coverage) ? coverage : [];
     state.view = "operations";
   } catch (error) {
     showToast(error.message, "error");
@@ -834,6 +838,7 @@ root.addEventListener("click", async (event) => {
       state.operationsOrders = [];
       state.operationsProviders = [];
       state.operationsServices = [];
+      state.operationsCoverage = [];
       state.latestInviteCode = "";
       state.roadmapAudit = [];
       state.view = "home";
