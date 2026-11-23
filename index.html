@@ -6,6 +6,16 @@
   <meta name="theme-color" content="#0f9b70">
   <meta name="description" content="وصلة - خدمات شبين القناطر في مكان واحد">
   <meta name="robots" content="index,follow">
+  <script>
+    (function () {
+      const host = window.location.hostname.toLowerCase();
+      const isLegacyPublicHost = host === "wasla2026.netlify.app"
+        || (host === "ahmedsabrielnady.github.io" && window.location.pathname.startsWith("/WASLA-APP"));
+      if (isLegacyPublicHost) {
+        window.location.replace("https://wasla-app-gg2f.vercel.app/" + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
   <link rel="icon" href="./wasla-icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./wasla-icon.svg">
   <link rel="manifest" href="./manifest.webmanifest">
