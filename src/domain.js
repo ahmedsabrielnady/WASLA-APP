@@ -1,6 +1,6 @@
 export const SECTORS = Object.freeze([
   { code: "clinic", title: "العيادات", icon: "🩺", description: "حجز كشف ومتابعة طبية", mode: "review" },
-  { code: "nursing", title: "التمريض المنزلي", icon: "🧑‍⚕️", description: "رعاية وخدمات تمريض في المنزل", mode: "order" },
+  { code: "nursing", title: "التمريض المنزلي", icon: "🧑‍⚕️", description: "يُتاح بعد استكمال متطلبات الخصوصية والبيانات الصحية", mode: "review" },
   { code: "food", title: "المطاعم", icon: "🍽️", description: "مطاعم وأكلات محلية", mode: "soon" },
   { code: "market", title: "الماركت", icon: "🛒", description: "احتياجات البيت والبقالة", mode: "soon" },
   { code: "maintenance", title: "الصيانة المنزلية", icon: "🧰", description: "سباكة وكهرباء وخدمات منزلية", mode: "order" },
@@ -9,7 +9,7 @@ export const SECTORS = Object.freeze([
   { code: "delivery", title: "التوصيل", icon: "🚚", description: "توصيل الطلبات وتتبعها", mode: "review" }
 ]);
 
-export const ORDERABLE_SECTORS = new Set(["nursing", "maintenance", "car"]);
+export const ORDERABLE_SECTORS = new Set(["maintenance", "car"]);
 
 export const STATUS_LABELS = Object.freeze({
   new: "طلب جديد",
