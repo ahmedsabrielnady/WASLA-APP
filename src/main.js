@@ -95,8 +95,8 @@ function header() {
   return `
     <header class="topbar">
       <a class="brand" href="./" data-action="home" aria-label="وصلة - الرئيسية">
-        <span class="brand-mark">و</span>
-        <span><strong>وصلة</strong><small>WASLA · شبين القناطر</small></span>
+        <span class="brand-mark" aria-hidden="true"><span>W</span></span>
+        <span class="brand-copy"><strong>WASLA</strong><small>وصلة · كل اللي محتاجه، قريب منك.</small></span>
       </a>
       <nav class="top-actions" aria-label="القائمة الرئيسية">
         <button class="nav-link" data-action="roadmap">خطة الإنجاز</button>
@@ -202,7 +202,7 @@ function homeView() {
       </div>
       <div class="hero-art" aria-hidden="true">
         <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
-        <div class="hero-logo">و</div>
+        <div class="hero-logo"><span class="hero-monogram">W</span><span class="hero-wordmark">WASLA</span><span class="hero-arabic">كل اللي محتاجه، قريب منك.</span></div>
         <span class="float-icon float-one">🩺</span><span class="float-icon float-two">🚗</span><span class="float-icon float-three">🧰</span>
       </div>
       <div class="hero-location">📍 شبين القناطر · القليوبية</div>
@@ -421,7 +421,7 @@ function render() {
     ${CONFIG.isPublicPreview ? '<div class="preview-banner" role="note">نسخة معاينة — يمكنك تصفح الخدمات وتسجيل الدخول للقراءة، لكن إنشاء الحسابات والطلبات وحفظ الموافقات متوقف لحماية قاعدة البيانات الحية.</div>' : ""}
     <main class="app-main">${view}</main>
     <footer class="site-footer">
-      <div class="footer-brand"><span class="brand-mark small">و</span><strong>وصلة WASLA</strong></div>
+      <div class="footer-brand"><span class="brand-mark small" aria-hidden="true"><span>W</span></span><strong>WASLA <span>وصلة</span></strong></div>
       <p>وصلة مش فاصلة، وصلة شغالة.</p>
       <small>نسخة تشغيل أولية · شبين القناطر · ${new Date().getFullYear()}</small>
     </footer>
