@@ -46,7 +46,7 @@ function renderLead(lead, canWrite) {
     (lead.next_follow_up_at ? "المتابعة: " + e(formatDate(lead.next_follow_up_at)) : "لا يوجد موعد متابعة") + "</span></div>" +
     '<form class="crm-inline-form" data-form="crm-lead-update" data-lead-id="' + e(lead.id) + '">' +
     '<select name="status" aria-label="حالة العميل المحتمل">' +
-    ["new","contacted","interested","follow_up","converted","not_interested","unreachable"].map(function (status) {
+    ["new","contacted","interested","follow_up","not_interested","unreachable"].map(function (status) {
       return '<option value="' + status + '" ' + (lead.status === status ? "selected" : "") + ">" + (LEAD_STATUS_LABELS[status] || status) + "</option>";
     }).join("") +
     '</select><button class="btn btn-outline btn-small" type="submit" ' + (canWrite ? "" : "disabled") + '>حفظ الحالة</button></form></article>';
