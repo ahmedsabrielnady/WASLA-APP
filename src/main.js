@@ -35,6 +35,7 @@ const state = {
   crmLeads: [],
   crmTasks: [],
   crmTickets: [],
+  crmProviders: [],
   crmSelectedCustomerId: "",
   crmCustomer360: null,
   crmError: "",
@@ -258,6 +259,7 @@ function crmView() {
   return renderCrmView({
     profile: state.profile,
     metrics: state.crmMetrics,
+    providers: state.crmProviders,
     customers: state.crmCustomers,
     leads: state.crmLeads,
     tasks: state.crmTasks,
@@ -535,18 +537,20 @@ async function refreshCrm() {
   }
   state.crmError = "";
   try {
-    const [metrics, customers, leads, tasks, tickets] = await Promise.all([
+    const [metrics, customers, leads, tasks, tickets, providers] = await Promise.all([
       dataApi.getCrmMetrics(),
       dataApi.getCrmCustomers(),
       dataApi.getCrmLeads(),
       dataApi.getCrmTasks(),
-      dataApi.getCrmTickets()
+      dataApi.getCrmTickets(),
+      dataApi.getOperationsProviders()
     ]);
     state.crmMetrics = metrics || {};
     state.crmCustomers = Array.isArray(customers) ? customers : [];
     state.crmLeads = Array.isArray(leads) ? leads : [];
     state.crmTasks = Array.isArray(tasks) ? tasks : [];
     state.crmTickets = Array.isArray(tickets) ? tickets : [];
+    state.crmProviders = Array.isArray(providers) ? providers : [];
     if (state.crmSelectedCustomerId) {
       state.crmCustomer360 = await dataApi.getCrmCustomer360(state.crmSelectedCustomerId);
     }
