@@ -614,6 +614,37 @@ export const dataApi = {
     });
   },
 
+  async createProviderInvite(kind) {
+    assertLiveWritesAllowed("إنشاء دعوات مقدمي الخدمة");
+    const allowed = ["doctor", "merchant", "teacher", "courier", "technician"];
+    if (!allowed.includes(kind)) throw new Error("نوع مقدم الخدمة غير صالح.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+
+    return request("/rest/v1/rpc/create_invite", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_kind: kind }
+    });
+  },
+
+  async redeemProviderInvite(values) {
+    assertLiveWritesAllowed("تفعيل دعوة مقدم الخدمة");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+
+    return request("/rest/v1/rpc/redeem_invite", {
+      method: "POST",
+      token: session.access_token,
+      body: {
+        p_code: String(values.code || "").trim().toUpperCase(),
+        p_display_name: String(values.display_name || "").trim(),
+        p_specialty: String(values.specialty || "").trim(),
+        p_area: String(values.area || "").trim()
+      }
+    });
+  },
+
   async approveProvider(providerId) {
     assertLiveWritesAllowed("اعتماد مقدمي الخدمة");
     if (!providerId) throw new Error("مقدم الخدمة غير محدد.");
