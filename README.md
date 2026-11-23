@@ -16,7 +16,7 @@
 - تسجيل مستخدم بالبريد وكلمة المرور، وإرسال الاسم ورقم الهاتف إلى بيانات المستخدم.
 - تسجيل الدخول والخروج وتحديث الجلسة.
 - حفظ موافقتي الشروط والخصوصية عن طريق RPC.
-- إنشاء طلبات الخدمات المنزلية والسيارات والتمريض فقط، مع تحديد GPS اختياري وحفظ الإحداثيات على نفس الطلب.
+- إنشاء طلبات الصيانة المنزلية وخدمات السيارات فقط في الإطلاق التجريبي، مع تحديد GPS اختياري وحفظ الإحداثيات على نفس الطلب. التمريض والعيادات مؤجلان لحين استكمال متطلبات الخصوصية والبيانات الصحية.
 - عرض طلبات العميل.
 - صفحة تشغيل قراءة فقط للمستخدمين ذوي الدور `staff` أو `admin`.
 - PWA shell cache بإصدار جديد واستراتيجية Network-first للملفات الثابتة، دون تخزين Auth أو بيانات REST.
@@ -105,5 +105,7 @@ python -m http.server 8080
 
 - Live CRM foreign-key indexes were applied through migration `launch_crm_fk_indexes_and_private_transition_table`.
 - The order status-transition table explicitly denies direct access to `anon` and `authenticated`; authorized database RPCs access it internally.
+- The public order RPC now accepts only `maintenance` and `car`; nursing and clinic requests remain disabled until health-data compliance and privacy controls are approved.
+- A provider workspace now lists only the signed-in provider’s assigned orders and permits only the database-approved `confirmed → in_progress → done` flow.
 - Browser writes are blocked on localhost, Netlify deploy-preview URLs, Vercel branch-preview URLs, and generic preview hosts. Only a stable non-preview deployment can write to the live database.
 - This does not replace the remaining release gates: authenticated browser E2E, Auth leaked-password protection, administrator MFA, verified production-domain configuration, and a tested restore procedure.
