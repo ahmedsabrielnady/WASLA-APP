@@ -109,3 +109,10 @@ python -m http.server 8080
 - A provider workspace now lists only the signed-in provider’s assigned orders and permits only the database-approved `confirmed → in_progress → done` flow.
 - Browser writes are blocked on localhost, Netlify deploy-preview URLs, Vercel branch-preview URLs, and generic preview hosts. Only a stable non-preview deployment can write to the live database.
 - This does not replace the remaining release gates: authenticated browser E2E, Auth leaked-password protection, administrator MFA, verified production-domain configuration, and a tested restore procedure.
+
+
+## بوابة الإطلاق العام
+
+- [تقرير جاهزية الإطلاق والبوابات المتبقية](docs/08-public-launch-readiness-ar.md)
+- [أرشيف قصر الطلبات العامة على الصيانة والسيارات](supabase/live-patches/20261123_public_pilot_restrict_orderable_sectors.sql)
+- [اختبارات مساحة مقدم الخدمة](tests/provider.test.mjs)
