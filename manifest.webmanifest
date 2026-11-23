@@ -7,8 +7,8 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f6f9f8",
-  "theme_color": "#0f9b70",
+  "background_color": "#08283b",
+  "theme_color": "#087b61",
   "icons": [
     {
       "src": "./wasla-icon.svg",
