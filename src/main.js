@@ -272,6 +272,7 @@ function operationsView() {
     orders: state.operationsOrders,
     providers: state.operationsProviders,
     services: state.operationsServices,
+    latestInviteCode: state.latestInviteCode,
     preview: CONFIG.isPublicPreview,
     saving: state.operationsSaving
   });
@@ -1083,6 +1084,22 @@ root.addEventListener("submit", async (event) => {
         }
       } finally {
         state.providerInviteSaving = false;
+        render();
+      }
+    }
+    if (form.dataset.form === "operations-invite") {
+      if (CONFIG.isPublicPreview) throw new Error("إنشاء الدعوات متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بإنشاء الدعوات.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      state.operationsSaving = true;
+      render();
+      try {
+        const code = await dataApi.createProviderInvite(values.kind);
+        state.latestInviteCode = String(code || "").replace(/^"|"$/g, "");
+        await refreshOperations();
+        showToast("تم إنشاء كود الدعوة. أرسله لمقدم الخدمة بعد مراجعة بياناته.", "success");
+      } finally {
+        state.operationsSaving = false;
         render();
       }
     }
