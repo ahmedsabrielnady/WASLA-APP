@@ -116,3 +116,5 @@ python -m http.server 8080
 - [تقرير جاهزية الإطلاق والبوابات المتبقية](docs/08-public-launch-readiness-ar.md)
 - [أرشيف قصر الطلبات العامة على الصيانة والسيارات](supabase/live-patches/20261123_public_pilot_restrict_orderable_sectors.sql)
 - [اختبارات مساحة مقدم الخدمة](tests/provider.test.mjs)
+
+- [أرشيف قصر التسعير على الطلبات الجديدة](supabase/live-patches/20261123_quote_order_only_before_confirmation.sql)
