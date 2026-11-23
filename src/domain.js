@@ -175,3 +175,21 @@ export function validateRoadmapUpdate(status, progressPercent, testStatus) {
 
   return { valid: true, message: "" };
 }
+
+
+/**
+ * Block database writes from local and branch-preview deployments.
+ * Vercel branch aliases contain "-git-"; Netlify deploy previews start
+ * with "deploy-preview-". The stable production aliases do not match either.
+ */
+export function isPreviewHost(hostname) {
+  const host = String(hostname ?? "").trim().toLowerCase();
+  if (!host) return true;
+  return host === "localhost"
+    || host === "127.0.0.1"
+    || host === "::1"
+    || host === "[::1]"
+    || host.startsWith("deploy-preview-")
+    || host.startsWith("preview-")
+    || host.includes("-git-");
+}
