@@ -255,7 +255,7 @@ export const dataApi = {
 
   async getServices() {
     const query = new URLSearchParams({
-      select: "id,sector,name,price_egp,active",
+      select: "id,sector,name,price_egp,active,public_orderable",
       active: "eq.true",
       order: "sector.asc,name.asc"
     });

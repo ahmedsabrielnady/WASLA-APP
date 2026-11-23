@@ -108,12 +108,13 @@ function header() {
 
 function sectorCards() {
   return SECTORS.map((sector) => {
-    const count = state.services.filter((item) => item.sector === sector.code).length;
+    const count = filterOrderableServices(state.services).filter((item) => item.sector === sector.code).length;
     let badge = "قريبًا";
     let detail = sector.description;
 
     if (sector.mode === "order") {
-      badge = count ? `${count} خدمات متاحة للطلب` : "الخدمات قيد الإضافة";
+      badge = count ? `${count} خدمات متاحة للطلب` : "قريبًا";
+      if (!count && sector.code === "car") detail = "نفعّل خدمات السيارات بعد اعتماد مقدم خدمة متخصص";
     } else if (sector.mode === "review") {
       badge = "قيد استكمال التشغيل";
       detail = sector.code === "clinic"
@@ -124,7 +125,7 @@ function sectorCards() {
     }
 
     return `
-      <button class="sector-card ${sector.mode === "soon" ? "is-soon" : ""}" data-action="sector" data-sector="${sector.code}">
+      <button class="sector-card ${sector.mode === "soon" || (sector.mode === "order" && !count) ? "is-soon" : ""}" ${sector.mode === "order" && !count ? "disabled" : ""} data-action="sector" data-sector="${sector.code}">
         <span class="sector-icon">${sector.icon}</span>
         <strong>${escapeHTML(sector.title)}</strong>
         <span class="sector-description">${escapeHTML(detail)}</span>
