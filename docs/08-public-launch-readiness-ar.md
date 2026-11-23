@@ -31,7 +31,7 @@
 - دمج PR #12: عرض حالة تحميل للخدمات وخطة الإنجاز بدل عرض صفر مؤقتًا أثناء انتظار البيانات.
 - دمج PR #13: قصر الكتابة إلى قاعدة البيانات على النطاق الأساسي `wasla-app-gg2f.vercel.app` فقط؛ كل النطاقات الأخرى تصبح للقراءة فقط عند نشر الإصدار.
 - دمج PR #14: تحويل نطاق Netlify الأساسي وGitHub Pages إلى نطاق Vercel الأساسي المحمي، مع ترك معاينات PR دون تحويل.
-- تم التحقق من تحويل `wasla2026.netlify.app` فعليًا إلى `wasla-app-gg2f.vercel.app`. تحديث GitHub Pages ما زال قيد النشر وقت الفحص.
+- تم التحقق فعليًا من تحويل `wasla2026.netlify.app` و`ahmedsabrielnady.github.io/WASLA-APP` إلى `wasla-app-gg2f.vercel.app` بعد نجاح نشر GitHub Pages.
 - اختبارات PR #11 وPR #12 وPR #13 وPR #14 اجتازت GitHub Actions. معاينة Netlify لـ PR #12 أظهرت 7 خدمات قابلة للطلب فقط، ونسبة الخطة 36.7%.
 - RPC `staff_set_order_status_v2` اختُبرت بنجاح بحساب staff ورُفضت بحساب customer داخل معاملات متراجعة دون تغيير دائم للبيانات.
 - جميع جداول public الـ19 التي تم فحصها عليها RLS.
@@ -86,7 +86,7 @@
 
 - فحص قاعدة البيانات وجد 29 دالة SECURITY DEFINER في schema public؛ لا يعني ذلك أن كلها قابلة للاستدعاء من العميل. 9 دوال قديمة/داخلية لا تمنح authenticated صلاحية EXECUTE، ولا توجد صلاحية EXECUTE لـ anon على الدوال المفحوصة.
 - الدوال الحساسة التي تسمح بـ authenticated يجب أن تُراجع حسب نوعها. فُحصت تعريفات دوال مثل `admin_reset_user_password`, `approve_provider`, `create_invite`, `crm_create_ticket`, `crm_update_ticket`, `my_order_tracking`, `set_order_location` و`staff_set_order_status_v2`.
-- `admin_reset_user_password` تتحقق من أن دور المستدعي admin قبل تغيير كلمة مرور مستخدم؛ لم يُجر اختبار حي يغيّر بيانات اعتماد حساب حقيقي. يلزم اختبار رفض معزول.
+- `admin_reset_user_password` تتحقق من أن دور المستدعي admin قبل تغيير كلمة مرور مستخدم؛ اختُبر رفضها لحساب customer داخل معاملة متراجعة دون تغيير كلمة مرور. كما اختُبر رفض `approve_provider` لحساب customer.
 - `clinic_available_slots` متاحة لـ authenticated وتعرض أوقاتًا لمقدم طبي معتمد ونشط وغير تجريبي؛ لا تُظهر بيانات مريض أو معلومات اتصال. يجب إبقاء نطاقها العام محدودًا بمواعيد التوافر فقط.
 - Leaked Password Protection معطلة في Supabase Auth وتحتاج تفعيلًا من إعدادات Auth.
 - MFA لحساب الإدارة لم يتم التحقق منه.
