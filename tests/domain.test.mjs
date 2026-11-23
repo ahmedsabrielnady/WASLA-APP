@@ -12,6 +12,7 @@ import {
   calculateRoadmapMetrics,
   validateRoadmapUpdate,
   isPreviewHost,
+  runWithBusyState,
   sectorLabel,
   statusLabel
 } from "../src/domain.js";
@@ -129,4 +130,29 @@ test("only the canonical production host can write to the live database", () => 
   assert.equal(isPreviewHost("wasla-app-gg2f-1faosz77c-ahmedsabrielnady.vercel.app"), true);
   assert.equal(isPreviewHost("wasla-app.vercel.app"), true);
   assert.equal(isPreviewHost("unknown.example.com"), true);
+});
+
+
+test("busy state is cleared after a successful async operation", async () => {
+  const state = { busy: false };
+  const result = await runWithBusyState(state, async () => {
+    assert.equal(state.busy, true);
+    return "completed";
+  });
+
+  assert.equal(result, "completed");
+  assert.equal(state.busy, false);
+});
+
+test("busy state is cleared when an async operation fails", async () => {
+  const state = { busy: false };
+  await assert.rejects(
+    runWithBusyState(state, async () => {
+      assert.equal(state.busy, true);
+      throw new Error("simulated failure");
+    }),
+    /simulated failure/
+  );
+
+  assert.equal(state.busy, false);
 });

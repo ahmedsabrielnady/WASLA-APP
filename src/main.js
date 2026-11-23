@@ -1,5 +1,5 @@
 import { CONFIG } from "./config.js";
-import { SECTORS, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
+import { SECTORS, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, runWithBusyState, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
 import { authApi, dataApi } from "./supabase.js";
 import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
 import { renderOperationsView } from "./operations.js";
@@ -682,43 +682,49 @@ async function submitAuth(form) {
   const values = Object.fromEntries(new FormData(form).entries());
   const email = String(values.email ?? "").trim();
   const password = String(values.password ?? "");
+  const register = state.authMode === "register";
 
   if (!email || !password) throw new Error("أدخل البريد الإلكتروني وكلمة المرور.");
 
-  state.busy = true;
-  render();
+  let fullName = "";
+  let phone = "";
+  if (register) {
+    fullName = String(values.full_name ?? "").trim();
+    phone = String(values.phone ?? "").trim();
 
-  if (state.authMode === "login") {
-    await authApi.signIn(email, password);
-    await afterLogin();
-    showToast("تم تسجيل الدخول.", "success");
-    return;
+    if (fullName.length < 2 || fullName.length > 60) {
+      throw new Error("اكتب الاسم من حرفين إلى 60 حرفًا.");
+    }
+    if (!isEgyptianPhone(phone)) {
+      throw new Error("رقم الموبايل يجب أن يتكون من 11 رقمًا ويبدأ بـ 01.");
+    }
+    if (values.terms !== "on" || values.privacy !== "on") {
+      throw new Error("يجب الموافقة على الشروط وسياسة الخصوصية.");
+    }
   }
 
-  const fullName = String(values.full_name ?? "").trim();
-  const phone = String(values.phone ?? "").trim();
-
-  if (fullName.length < 2 || fullName.length > 60) {
-    throw new Error("اكتب الاسم من حرفين إلى 60 حرفًا.");
-  }
-  if (!isEgyptianPhone(phone)) {
-    throw new Error("رقم الموبايل يجب أن يتكون من 11 رقمًا ويبدأ بـ 01.");
-  }
-  if (values.terms !== "on" || values.privacy !== "on") {
-    throw new Error("يجب الموافقة على الشروط وسياسة الخصوصية.");
-  }
-
-  dataApi.markConsentPending();
-  const result = await authApi.signUp({ email, password, fullName, phone });
-
-  if (result?.access_token) {
-    await afterLogin();
-    showToast("تم إنشاء الحساب وتسجيل الموافقات.", "success");
-  } else {
-    state.modal = null;
+  await runWithBusyState(state, async () => {
     render();
-    showToast("تم إنشاء الحساب. أكد بريدك الإلكتروني ثم سجل الدخول لحفظ الموافقات وإكمال التسجيل.", "success");
-  }
+
+    if (!register) {
+      await authApi.signIn(email, password);
+      await afterLogin();
+      showToast("تم تسجيل الدخول.", "success");
+      return;
+    }
+
+    dataApi.markConsentPending();
+    const result = await authApi.signUp({ email, password, fullName, phone });
+
+    if (result?.access_token) {
+      await afterLogin();
+      showToast("تم إنشاء الحساب وتسجيل الموافقات.", "success");
+    } else {
+      state.modal = null;
+      render();
+      showToast("تم إنشاء الحساب. أكد بريدك الإلكتروني ثم سجل الدخول لحفظ الموافقات وإكمال التسجيل.", "success");
+    }
+  });
 }
 
 async function captureDeviceLocation() {
@@ -773,42 +779,43 @@ async function submitOrder(form) {
     throw new Error("يجب الموافقة على الشروط وسياسة الخصوصية.");
   }
 
-  state.busy = true;
-  render();
+  await runWithBusyState(state, async () => {
+    render();
 
-  await dataApi.acceptRequiredConsents();
-  const result = await dataApi.createServiceOrder(state.pendingService, {
-    address: values.address,
-    notes: values.notes,
-    location: state.pendingLocation,
-    idempotencyKey: state.pendingOrderIdempotencyKey
+    await dataApi.acceptRequiredConsents();
+    const result = await dataApi.createServiceOrder(state.pendingService, {
+      address: values.address,
+      notes: values.notes,
+      location: state.pendingLocation,
+      idempotencyKey: state.pendingOrderIdempotencyKey
+    });
+    const record = Array.isArray(result) ? result[0] : result;
+    state.pendingOrderIdempotencyKey = "";
+
+    state.modal = null;
+    state.pendingService = null;
+    state.pendingLocation = null;
+    state.pendingAddress = "";
+    state.pendingOrderIdempotencyKey = "";
+    let ordersReloaded = true;
+    try {
+      state.myOrders = await dataApi.getMyOrders(state.user.id);
+    } catch {
+      ordersReloaded = false;
+      state.myOrders = [];
+    }
+
+    state.view = "orders";
+    render();
+
+    const ref = record?.out_ref ? `رقم ${record.out_ref}` : "طلبك";
+    showToast(
+      ordersReloaded
+        ? `تم استلام ${ref}`
+        : `تم استلام ${ref}، لكن تعذر تحديث قائمة الطلبات. افتح طلباتي واضغط تحديث.`,
+      ordersReloaded ? "success" : "error"
+    );
   });
-  const record = Array.isArray(result) ? result[0] : result;
-  state.pendingOrderIdempotencyKey = "";
-
-  state.modal = null;
-  state.pendingService = null;
-  state.pendingLocation = null;
-  state.pendingAddress = "";
-  state.pendingOrderIdempotencyKey = "";
-  let ordersReloaded = true;
-  try {
-    state.myOrders = await dataApi.getMyOrders(state.user.id);
-  } catch {
-    ordersReloaded = false;
-    state.myOrders = [];
-  }
-
-  state.view = "orders";
-  render();
-
-  const ref = record?.out_ref ? `رقم ${record.out_ref}` : "طلبك";
-  showToast(
-    ordersReloaded
-      ? `تم استلام ${ref}`
-      : `تم استلام ${ref}، لكن تعذر تحديث قائمة الطلبات. افتح طلباتي واضغط تحديث.`,
-    ordersReloaded ? "success" : "error"
-  );
 }
 
 root.addEventListener("click", async (event) => {
