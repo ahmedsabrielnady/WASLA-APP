@@ -13,6 +13,9 @@
 
 - مشروع Vercel المعتمد: `wasla-app-gg2f`.
 - آخر Production deployment للتطبيق: `dpl_3FxMDYLba3a1Tx9CwsYpPUyKEA4V` — `READY`.
+- آخر commit على `main` بعد إصلاح القراءة العامة: `ef0d1fc4091d9d9eb427a74af678e436128f047f` (PR #20)، ويزيل إرسال Publishable Key في ترويسة Bearer للطلبات المجهولة؛ يرسل Authorization فقط مع JWT جلسة فعلية.
+- تحقق SQL بدور `anon` في 23 نوفمبر: 12 خدمة نشطة، منها خدمتان قابلتان للطلب، و28 بندًا عامًا لخطة الإنجاز. صفحة Production التي فُحصت ما زالت تعرض صفر خدمات و0% لأن الإصلاح لم يصل بعد إلى النشر الحي.
+- محاولة نشر commit `ef0d1fc` إلى Production رُفضت من Vercel بخطأ `402 payment_required` بسبب تجاوز 100 عملية نشر مجانية خلال 24 ساعة؛ إعادة المحاولة قبل انتهاء نافذة 24 ساعة لن تفيد.
 - commit التطبيق المنشور: `afaeda3cf33ceefe5c8e9ce8efd771c4c888a2ac`.
 - رابط الإنتاج: https://wasla-app-gg2f.vercel.app
 - رابط deployment: https://wasla-app-gg2f-1faosz77c-ahmedsabrielnady.vercel.app
