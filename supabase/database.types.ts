@@ -1,10 +1,3 @@
-/**
- * Generated from connected Supabase project "wasla".
- * Project ref: yfgvimcqbtthnrbzbhft
- * Generated: 2026-11-21
- *
- * Schema types only. No service-role or secret keys are included.
- */
 export type Json =
   | string
   | number
@@ -49,6 +42,331 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_interactions: {
+        Row: {
+          actor_id: string
+          body: string | null
+          created_at: string
+          customer_id: string | null
+          id: number
+          kind: string
+          lead_id: string | null
+          occurred_at: string
+          subject: string | null
+        }
+        Insert: {
+          actor_id: string
+          body?: string | null
+          created_at?: string
+          customer_id?: string | null
+          id?: number
+          kind: string
+          lead_id?: string | null
+          occurred_at?: string
+          subject?: string | null
+        }
+        Update: {
+          actor_id?: string
+          body?: string | null
+          created_at?: string
+          customer_id?: string | null
+          id?: number
+          kind?: string
+          lead_id?: string | null
+          occurred_at?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_interactions_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_interactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_interactions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_leads: {
+        Row: {
+          converted_customer_id: string | null
+          created_at: string
+          full_name: string
+          id: string
+          next_follow_up_at: string | null
+          notes: string | null
+          owner_id: string | null
+          phone: string
+          priority: number
+          sector_interest: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          converted_customer_id?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          next_follow_up_at?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          phone: string
+          priority?: number
+          sector_interest?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          converted_customer_id?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          next_follow_up_at?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string
+          priority?: number
+          sector_interest?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_leads_converted_customer_id_fkey"
+            columns: ["converted_customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_leads_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_tasks: {
+        Row: {
+          assignee_id: string | null
+          completed_at: string | null
+          created_at: string
+          customer_id: string | null
+          due_at: string | null
+          id: string
+          kind: string
+          lead_id: string | null
+          notes: string | null
+          outcome: string | null
+          priority: number
+          status: string
+          ticket_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          due_at?: string | null
+          id?: string
+          kind: string
+          lead_id?: string | null
+          notes?: string | null
+          outcome?: string | null
+          priority?: number
+          status?: string
+          ticket_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          due_at?: string | null
+          id?: string
+          kind?: string
+          lead_id?: string | null
+          notes?: string | null
+          outcome?: string | null
+          priority?: number
+          status?: string
+          ticket_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_tasks_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "crm_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_ticket_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          from_status: string | null
+          id: number
+          note: string | null
+          ticket_id: string
+          to_status: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: number
+          note?: string | null
+          ticket_id: string
+          to_status?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: number
+          note?: string | null
+          ticket_id?: string
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_ticket_events_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_ticket_events_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "crm_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_tickets: {
+        Row: {
+          assignee_id: string | null
+          customer_id: string
+          description: string
+          first_response_at: string | null
+          id: string
+          kind: string
+          opened_at: string
+          order_id: string | null
+          priority: number
+          ref: string
+          resolution: string | null
+          resolved_at: string | null
+          satisfaction: number | null
+          sector: string | null
+          status: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          customer_id: string
+          description: string
+          first_response_at?: string | null
+          id?: string
+          kind: string
+          opened_at?: string
+          order_id?: string | null
+          priority?: number
+          ref?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          satisfaction?: number | null
+          sector?: string | null
+          status?: string
+        }
+        Update: {
+          assignee_id?: string | null
+          customer_id?: string
+          description?: string
+          first_response_at?: string | null
+          id?: string
+          kind?: string
+          opened_at?: string
+          order_id?: string | null
+          priority?: number
+          ref?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          satisfaction?: number | null
+          sector?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_tickets_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tickets_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tickets_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -213,6 +531,24 @@ export type Database = {
           },
         ]
       }
+      order_status_transitions: {
+        Row: {
+          actor_scope: string
+          from_status: string
+          to_status: string
+        }
+        Insert: {
+          actor_scope: string
+          from_status: string
+          to_status: string
+        }
+        Update: {
+          actor_scope?: string
+          from_status?: string
+          to_status?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           address: string
@@ -221,6 +557,7 @@ export type Database = {
           deposit_egp: number
           deposit_paid: boolean
           id: string
+          idempotency_key: string | null
           item_id: number | null
           lat: number | null
           lng: number | null
@@ -243,6 +580,7 @@ export type Database = {
           deposit_egp?: number
           deposit_paid?: boolean
           id?: string
+          idempotency_key?: string | null
           item_id?: number | null
           lat?: number | null
           lng?: number | null
@@ -265,6 +603,7 @@ export type Database = {
           deposit_egp?: number
           deposit_paid?: boolean
           id?: string
+          idempotency_key?: string | null
           item_id?: number | null
           lat?: number | null
           lng?: number | null
@@ -589,7 +928,25 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      crm_dashboard_metrics: {
+        Row: {
+          active_30d: number | null
+          cancelled_orders: number | null
+          collected_revenue_egp: number | null
+          completed_orders: number | null
+          never_ordered: number | null
+          new_month: number | null
+          new_orders: number | null
+          new_today: number | null
+          new_week: number | null
+          open_orders: number | null
+          open_tickets: number | null
+          repeat_customers: number | null
+          total_customers: number | null
+          total_orders: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_consent: {
@@ -602,6 +959,10 @@ export type Database = {
       }
       approve_provider: { Args: { p_provider: string }; Returns: undefined }
       assign_order: {
+        Args: { p_order: string; p_provider: string }
+        Returns: undefined
+      }
+      assign_order_v2: {
         Args: { p_order: string; p_provider: string }
         Returns: undefined
       }
@@ -626,13 +987,57 @@ export type Database = {
         }[]
       }
       create_invite: { Args: { p_kind: string }; Returns: string }
+      crm_create_ticket: {
+        Args: {
+          p_customer: string
+          p_description?: string
+          p_kind?: string
+          p_order?: string
+          p_priority?: number
+          p_sector?: string
+        }
+        Returns: {
+          out_ref: string
+          out_ticket_id: string
+        }[]
+      }
+      crm_customer_360: { Args: { p_customer: string }; Returns: Json }
+      crm_update_ticket: {
+        Args: {
+          p_assignee?: string
+          p_note?: string
+          p_resolution?: string
+          p_ticket: string
+          p_to_status: string
+        }
+        Returns: undefined
+      }
       current_provider_id: { Args: never; Returns: string }
       current_role_name: { Args: never; Returns: string }
+      customer_cancel_order_v2: {
+        Args: { p_order: string; p_reason?: string }
+        Returns: undefined
+      }
       doctor_set_appointment_status: {
         Args: { p_note?: string; p_order: string; p_to: string }
         Returns: undefined
       }
       is_staff: { Args: never; Returns: boolean }
+      my_order_suggestions: {
+        Args: never
+        Returns: {
+          avg_gap_days: number
+          item_id: number
+          item_name: string
+          last_address: string
+          last_at: string
+          last_lat: number
+          last_lng: number
+          sector: string
+          suggest: boolean
+          times: number
+        }[]
+      }
       my_order_tracking: {
         Args: { p_order: string }
         Returns: {
@@ -660,6 +1065,24 @@ export type Database = {
           out_ref: string
         }[]
       }
+      place_order_v2: {
+        Args: {
+          p_address: string
+          p_idempotency_key?: string
+          p_item_id: number
+          p_lat?: number
+          p_lng?: number
+          p_notes?: string
+          p_sector: string
+          p_source?: string
+        }
+        Returns: {
+          out_deposit_egp: number
+          out_order_id: string
+          out_price_egp: number
+          out_ref: string
+        }[]
+      }
       place_product_order: {
         Args: {
           p_address: string
@@ -675,6 +1098,10 @@ export type Database = {
         }[]
       }
       provider_set_order_status: {
+        Args: { p_note?: string; p_order: string; p_to: string }
+        Returns: undefined
+      }
+      provider_set_order_status_v2: {
         Args: { p_note?: string; p_order: string; p_to: string }
         Returns: undefined
       }
