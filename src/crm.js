@@ -9,6 +9,7 @@ const TICKET_STATUS_LABELS = Object.freeze({
   resolved: "تم الحل",
   closed: "مغلقة"
 });
+const LEAD_STATUS_LABELS = Object.freeze({ new: "جديد", contacted: "تم التواصل", interested: "مهتم", follow_up: "متابعة", converted: "تحول لعميل", not_interested: "غير مهتم", unreachable: "تعذر الوصول" });
 const TASK_KIND_LABELS = Object.freeze({
   call_customer: "اتصال بعميل",
   follow_order: "متابعة طلب",
@@ -25,6 +26,7 @@ function e(value) {
 }
 
 function metric(value) {
+  if (value === null || value === undefined || value === "") return "—";
   return Number.isFinite(Number(value)) ? new Intl.NumberFormat("ar-EG").format(Number(value)) : "—";
 }
 
@@ -35,22 +37,22 @@ function renderCustomerOptions(customers, selectedId) {
   }).join("");
 }
 
-function renderLead(lead) {
+function renderLead(lead, canWrite) {
   return '<article class="crm-record">' +
     '<div class="crm-record-head"><div><strong>' + e(lead.full_name) + '</strong><small>' + e(lead.phone) + '</small></div>' +
     '<span class="crm-tag crm-priority-' + e(lead.priority) + '">' + e(PRIORITY_LABELS[lead.priority] || "متوسط") + "</span></div>" +
     '<p>' + e(lead.sector_interest || "اهتمام غير محدد") + " · " + e(lead.source || "manual") + "</p>" +
-    '<div class="crm-record-foot"><span>' + e(lead.status) + '</span><span>' +
+    '<div class="crm-record-foot"><span>' + e(LEAD_STATUS_LABELS[lead.status] || lead.status) + '</span><span>' +
     (lead.next_follow_up_at ? "المتابعة: " + e(formatDate(lead.next_follow_up_at)) : "لا يوجد موعد متابعة") + "</span></div>" +
     '<form class="crm-inline-form" data-form="crm-lead-update" data-lead-id="' + e(lead.id) + '">' +
     '<select name="status" aria-label="حالة العميل المحتمل">' +
     ["new","contacted","interested","follow_up","converted","not_interested","unreachable"].map(function (status) {
-      return '<option value="' + status + '" ' + (lead.status === status ? "selected" : "") + ">" + status + "</option>";
+      return '<option value="' + status + '" ' + (lead.status === status ? "selected" : "") + ">" + (LEAD_STATUS_LABELS[status] || status) + "</option>";
     }).join("") +
     '</select><button class="btn btn-outline btn-small" type="submit">حفظ الحالة</button></form></article>';
 }
 
-function renderTask(task) {
+function renderTask(task, canWrite) {
   const completed = task.status === "done" || task.status === "cancelled";
   return '<article class="crm-record">' +
     '<div class="crm-record-head"><strong>' + e(task.title) + '</strong><span class="crm-tag">' +
@@ -61,7 +63,7 @@ function renderTask(task) {
     "</div></article>";
 }
 
-function renderTicket(ticket, staffIds) {
+function renderTicket(ticket, canWrite) {
   return '<article class="crm-record">' +
     '<div class="crm-record-head"><div><strong>' + e(ticket.ref) + '</strong><small>' + e(ticket.kind) + "</small></div>" +
     '<span class="crm-tag crm-priority-' + e(ticket.priority) + '">' + e(PRIORITY_LABELS[ticket.priority] || "متوسط") + "</span></div>" +
@@ -75,7 +77,7 @@ function renderTicket(ticket, staffIds) {
     '</select><button class="btn btn-outline btn-small" type="submit">تحديث</button></form></article>';
 }
 
-function renderCustomer360(data) {
+function renderCustomer360(data, canWrite) {
   if (!data || !data.profile) {
     return '<div class="empty-state"><strong>اختر عميلًا</strong><p>افتح ملف العميل لعرض سجل الطلبات والتذاكر والتواصل والمهام.</p></div>';
   }
@@ -113,7 +115,7 @@ function renderCustomer360(data) {
     '<label>نوع التواصل<select name="kind"><option value="call">مكالمة</option><option value="message">رسالة</option><option value="complaint">شكوى</option><option value="inquiry">استفسار</option><option value="note">ملاحظة</option><option value="follow_up">متابعة</option><option value="meeting">اجتماع</option></select></label>' +
     '<label>عنوان مختصر<input name="subject" maxlength="160" placeholder="سبب التواصل"></label></div>' +
     '<label>تفاصيل التواصل<textarea name="body" rows="2" maxlength="3000" placeholder="ملخص ما تم"></textarea></label>' +
-    '<button class="btn btn-primary btn-small" type="submit">حفظ التواصل</button></form></div>';
+    '<button class="btn btn-primary btn-small" type="submit" ' + (canWrite ? "" : "disabled") + '>حفظ التواصل</button></form></div>';
 }
 
 export function renderCrmView(options) {
@@ -155,7 +157,7 @@ export function renderCrmView(options) {
     }).join("") : '<p class="crm-muted">لا يوجد عملاء لعرضهم.</p>') + "</div></section>" +
     '<section class="crm-panel"><div class="section-heading"><div><span class="eyebrow">Customer 360</span><h2>ملف العميل الموحد</h2></div>' +
     (selectedId ? '<button class="btn btn-outline btn-small" data-action="crm-back-customers">إغلاق الملف</button>' : "") + "</div>" +
-    renderCustomer360(options.customer360) + "</section></div>" +
+    renderCustomer360(options.customer360, canWrite) + "</section></div>" +
     '<div class="crm-main-grid">' +
     '<section class="crm-panel"><div class="section-heading"><div><span class="eyebrow">Lead Management</span><h2>العملاء المحتملون</h2></div><span class="crm-count">' + leads.length + "</span></div>" +
     '<form class="crm-form" data-form="crm-lead"><div class="crm-form-grid">' +
@@ -164,7 +166,7 @@ export function renderCrmView(options) {
     '<label>مصدر العميل<select name="source"><option value="manual">إدخال يدوي</option><option value="referral">ترشيح</option><option value="social">سوشيال ميديا</option><option value="campaign">حملة</option><option value="walkin">زيارة مباشرة</option></select></label>' +
     '<label>القطاع المهتم به<input name="sector_interest" maxlength="80" placeholder="مثال: صيانة"></label></div>' +
     '<button class="btn btn-primary btn-small" type="submit" ' + (canWrite ? "" : "disabled") + '>إضافة عميل محتمل</button></form>' +
-    '<div class="crm-record-list">' + (leads.length ? leads.map(renderLead).join("") : '<p class="crm-muted">لا توجد Leads مسجلة.</p>') + "</div></section>" +
+    '<div class="crm-record-list">' + (leads.length ? leads.map(function (lead) { return renderLead(lead, canWrite); }).join("") : '<p class="crm-muted">لا توجد Leads مسجلة.</p>') + "</div></section>" +
     '<section class="crm-panel"><div class="section-heading"><div><span class="eyebrow">Tasks & Follow-up</span><h2>المهام والمتابعات</h2></div><span class="crm-count">' + tasks.length + "</span></div>" +
     '<form class="crm-form" data-form="crm-task"><label>عنوان المهمة<input name="title" required maxlength="180"></label>' +
     '<div class="crm-form-grid"><label>نوع المهمة<select name="kind">' + Object.keys(TASK_KIND_LABELS).map(function (kind) {
@@ -173,7 +175,7 @@ export function renderCrmView(options) {
     '<label>الأولوية<select name="priority"><option value="1">عاجل</option><option value="2" selected>متوسط</option><option value="3">منخفض</option></select></label>' +
     '<label>موعد الاستحقاق<input name="due_at" type="datetime-local"></label></div>' +
     '<button class="btn btn-primary btn-small" type="submit" ' + (canWrite ? "" : "disabled") + '>إنشاء مهمة</button></form>' +
-    '<div class="crm-record-list">' + (tasks.length ? tasks.map(renderTask).join("") : '<p class="crm-muted">لا توجد مهام مفتوحة.</p>') + "</div></section></div>" +
+    '<div class="crm-record-list">' + (tasks.length ? tasks.map(function (task) { return renderTask(task, canWrite); }).join("") : '<p class="crm-muted">لا توجد مهام مفتوحة.</p>') + "</div></section></div>" +
     '<div class="crm-main-grid">' +
     '<section class="crm-panel"><div class="section-heading"><div><span class="eyebrow">Support CRM</span><h2>الشكاوى والتذاكر</h2></div><span class="crm-count">' + tickets.length + "</span></div>" +
     '<form class="crm-form" data-form="crm-ticket"><div class="crm-form-grid"><label>العميل<select name="customer_id" required>' + renderCustomerOptions(customers, selectedId) + "</select></label>" +
@@ -181,7 +183,7 @@ export function renderCrmView(options) {
     '<label>الأولوية<select name="priority"><option value="1">عاجل</option><option value="2" selected>متوسط</option><option value="3">منخفض</option></select></label></div>' +
     '<label>وصف التذكرة<textarea name="description" rows="2" minlength="5" maxlength="4000" required></textarea></label>' +
     '<button class="btn btn-primary btn-small" type="submit" ' + (canWrite ? "" : "disabled") + '>فتح تذكرة</button></form>' +
-    '<div class="crm-record-list">' + (tickets.length ? tickets.map(function (ticket) { return renderTicket(ticket, []); }).join("") : '<p class="crm-muted">لا توجد تذاكر دعم مسجلة.</p>') + "</div></section>" +
+    '<div class="crm-record-list">' + (tickets.length ? tickets.map(function (ticket) { return renderTicket(ticket, canWrite); }).join("") : '<p class="crm-muted">لا توجد تذاكر دعم مسجلة.</p>') + "</div></section>" +
     '<section class="crm-panel"><div class="section-heading"><div><span class="eyebrow">Performance</span><h2>مؤشرات التشغيل</h2></div></div>' +
     '<div class="crm-summary-list"><div><span>طلبات جديدة</span><strong>' + metric(metrics.new_orders) + "</strong></div>" +
     '<div><span>طلبات مكتملة</span><strong>' + metric(metrics.completed_orders) + "</strong></div>" +
