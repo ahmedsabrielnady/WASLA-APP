@@ -178,12 +178,63 @@ function renderProviderInviteManager(latestInviteCode, canWrite) {
   `;
 }
 
+function renderProviderCoverageManager(providers, services, coverage, canWrite) {
+  const eligibleProviders = providers.filter((provider) =>
+    provider.approved && provider.active && !provider.is_test
+  );
+  const activeServices = services.filter((service) => service.active);
+  const providerById = new Map(providers.map((provider) => [provider.id, provider]));
+  const serviceById = new Map(services.map((service) => [service.id, service]));
+
+  return `
+    <section class="ops-section">
+      <div class="section-heading"><div><span class="eyebrow">ضبط التغطية التشغيلية</span><h2>ربط مقدم الخدمة بالخدمات</h2></div></div>
+      <p class="ops-muted">اربط مقدمًا معتمدًا بخدمة بعد التحقق من تخصصه وقدرته على تنفيذها. التغطية النشطة هي التي تسمح بظهور الخدمة للطلب، والإسناد يتحقق من نفس الربط.</p>
+      ${eligibleProviders.length && activeServices.length ? `
+        <form class="ops-action-form" data-form="operations-provider-coverage">
+          <label>مقدم الخدمة
+            <select name="provider_id" required>
+              <option value="">اختر مقدم الخدمة</option>
+              ${eligibleProviders.map((provider) => `<option value="${escapeHTML(provider.id)}">${escapeHTML(provider.display_name)} — ${escapeHTML(provider.specialty || provider.kind)}</option>`).join("")}
+            </select>
+          </label>
+          <label>الخدمة
+            <select name="service_item_id" required>
+              <option value="">اختر الخدمة</option>
+              ${activeServices.map((service) => `<option value="${escapeHTML(service.id)}">${escapeHTML(sectorLabel(service.sector))} — ${escapeHTML(service.name)}</option>`).join("")}
+            </select>
+          </label>
+          <button class="btn btn-primary btn-small" type="submit" ${canWrite ? "" : "disabled"}>اعتماد التغطية</button>
+        </form>
+      ` : '<p class="ops-muted">لا يوجد حاليًا مقدم خدمة معتمد ونشط يمكن ربطه بالخدمات.</p>'}
+      <div class="ops-order-list">
+        ${coverage.length ? coverage.map((entry) => {
+          const provider = providerById.get(entry.provider_id);
+          const service = serviceById.get(entry.service_item_id);
+          if (!provider || !service) return "";
+          return `
+            <article class="ops-order-card">
+              <div class="ops-order-main">
+                <strong>${escapeHTML(service.name)}</strong>
+                <span>${escapeHTML(provider.display_name)} — ${escapeHTML(provider.specialty || provider.kind)}</span>
+                <span class="status-pill">${entry.active ? (service.public_orderable ? "مغطاة وقابلة للطلب" : "مغطاة — القطاع غير مفتوح") : "تغطية موقوفة"}</span>
+              </div>
+              ${entry.active ? `<button class="btn btn-outline btn-small" type="button" data-action="disable-provider-coverage" data-provider-id="${escapeHTML(entry.provider_id)}" data-service-id="${escapeHTML(entry.service_item_id)}" ${canWrite ? "" : "disabled"}>إيقاف التغطية</button>` : ""}
+            </article>
+          `;
+        }).join("") : '<p class="ops-muted">لا توجد روابط تغطية مسجلة حتى الآن.</p>'}
+      </div>
+    </section>
+  `;
+}
+
 export function renderOperationsView(options = {}) {
   const profile = options.profile || null;
   const orders = Array.isArray(options.orders) ? options.orders : [];
   const providers = Array.isArray(options.providers) ? options.providers : [];
   const services = Array.isArray(options.services) ? options.services : [];
   const latestInviteCode = String(options.latestInviteCode || "");
+  const coverage = Array.isArray(options.coverage) ? options.coverage : [];
   const preview = Boolean(options.preview);
   const saving = Boolean(options.saving);
   const role = profile?.role;
@@ -220,6 +271,7 @@ export function renderOperationsView(options = {}) {
           ${renderServicePriceManager(services, canWrite)}
         </section>
       ` : ""}
+      ${renderProviderCoverageManager(providers, services, coverage, canWrite)}
       ${renderProviderInviteManager(latestInviteCode, canWrite)}
       <section class="ops-section">
         <div class="section-heading"><div><span class="eyebrow">مراجعة مقدمي الخدمة</span><h2>طلبات الانضمام</h2></div></div>
