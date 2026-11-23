@@ -42,7 +42,7 @@
 - دمج PR #22: قصر قراءة/كتابة الملاحظات الطبية على مقدم خدمة من نوع doctor معتمد ونشط وغير تجريبي، وربط إدخال الملاحظة بطلب عيادة/تمريض يخص المريض؛ وقصر إدارة المنتجات على حساب merchant معتمد ونشط وغير تجريبي.
 - دمج PR #23: تحديث GitHub Actions للتحقق من syntax والاختبارات عند كل push إلى main، مع مهلة تشغيل 10 دقائق. لم تظهر نتيجة Actions مؤكدة في بيانات التشغيل المتاحة حتى الآن.
 - دمج PR #24: توحيد اسم WASLA في PWA وبيانات مشاركة الصفحة (Open Graph/Twitter)، وتحسين وصف الصفحة وحلقات التركيز للوحة المفاتيح.
-- دمج PR #25: إضافة فهارس للأعمدة `provider_service_coverage.created_by`, `provider_service_coverage.updated_by`, `service_item_price_audit.changed_by` بعد رصد Advisor لمفاتيح خارجية بلا فهارس. تم تطبيق التغيير على Supabase وتأكيد وجود الفهارس الثلاثة.
+- دمج PR #25: إضافة فهارس للأعمدة `provider_service_coverage.created_by`, `provider_service_coverage.updated_by`, `service_item_price_audit.changed_by` بعد رصد Advisor لمفاتيح خارجية بلا فهارس. تم تطبيق التغيير على Supabase وتأكيد وجود الفهارس الثلاثة. أُعيد فحص Advisor؛ لم تعد ملاحظة unindexed foreign keys تظهر. الفهارس الجديدة غير مستخدمة حتى الآن لأن حجم الاستخدام صغير، ولا تُحذف قبل مرور فترة تشغيل كافية.
 - اجتازت PR #15 اختبارات GitHub Actions، ومعاينة Netlify أظهرت خدمتين فقط قابلتين للطلب: كشف سباك وكهربائي.
 - تم التحقق فعليًا من تحويل `wasla2026.netlify.app` و`ahmedsabrielnady.github.io/WASLA-APP` إلى `wasla-app-gg2f.vercel.app` بعد نجاح نشر GitHub Pages.
 - اختبارات PR #11 وPR #12 وPR #13 وPR #14 اجتازت GitHub Actions. معاينة Netlify لـ PR #12 أظهرت 7 خدمات قابلة للطلب فقط، ونسبة الخطة 36.7%.
@@ -66,6 +66,7 @@
 
 - تم فحص المشروع المعتمد `wasla-app-gg2f` عبر Vercel API.
 - آخر Production deployment ما زال `dpl_3FxMDYLba3a1Tx9CwsYpPUyKEA4V` على commit `afaeda3` بحالة READY؛ لم يصل إليه إصلاح anon reads أو شعار W أو سياسات RLS الجديدة.
+- فحص الصفحة الحية عبر قارئ صفحات عام يوم 24 نوفمبر أكد أن العنوان والوصف ما زالا بالهوية القديمة «وصلة WASLA»، والواجهة تعرض 0 خدمة و0% خارطة إنجاز. في المقابل، استعلام anon مباشر على قاعدة البيانات يعرض خدمتين قابلتين للطلب (سباكة وكهرباء)، و28 بندًا مرئيًا في خارطة الطريق. هذا يؤكد أن إصلاح anonymous Authorization في PR #20 لم يصل إلى Production، وأن سبب عدم ظهور الكتالوج الحي ليس نقص سجلات الخدمات فقط.
 - توجد Preview deployments بحالة READY، منها معاينة PR #20، لكنها `target=null` ومحميّة بـSSO؛ ليست Production ولا يجوز التعامل معها كإطلاق حي أو ترقيتها دون إعادة build واختبار بيئة الإنتاج.
 - project SSO Protection ما زالت مفعّلة على نطاقات Vercel الافتراضية. لا يوجد نطاق مخصص.
 - فحوص status checks للـmain ما زالت تُظهر Vercel build-rate-limit. لا توجد GitHub Actions workflow runs مؤكدة في بيانات الأداة حتى بعد توسيع trigger إلى main؛ لذلك لم أعتبر الاختبارات ناجحة تلقائيًا.
@@ -127,6 +128,7 @@
 - اختبارات rollback بعد الإصلاح: الفني رُفض عند محاولة إدخال ملاحظة طبية؛ الفني رُفض عند محاولة إنشاء منتج؛ الطبيب المعتمد قرأ ملاحظة مرتبطة بطلبه؛ العميل قرأ ملاحظته؛ الفني لم يرَ ملاحظة الطبيب. اختبار كتابة الطبيب نجح. بعد التراجع بقيت الأعداد كما كانت: medical_notes=1، products=0، orders=17.
 - اختبارات عزل RLS إضافية بحساب عميل: رأى 3 طلبات تخصه وملفه فقط، ولم يرَ طلبات أو ملف عميل آخر. اختبار مقدم الخدمة: الفني رأى الطلب المسند إليه فقط ولم يرَ طلب الطبيب، والطبيب رأى طلبه فقط ولم يرَ طلب الفني. كل الاختبارات قرائية أو rollback ولم تغير بيانات دائمة.
 - فحص صلاحيات anon: لا توجد صلاحية SELECT على 18 جدولًا من أصل 21؛ الاستثناءات الثلاثة هي `offers`, `roadmap_milestones`, `service_items`، وكلها محكومة بسياسات RLS مخصصة للصفوف العامة.
+- فحص تعريفات كل دوال SECURITY DEFINER الـ22 المتاحة لـ authenticated: جميعها لها search_path ثابت، ولا توجد صلاحية EXECUTE لـ anon. الدوال التي تنفذ عمليات تغيير بيانات تتحقق من هوية العميل أو دور الموظف/المؤسس أو ملكية مقدم الخدمة بحسب العملية. `clinic_available_slots` تقرأ فقط مواعيد طبيب معتمد ونشط وغير تجريبي، ولا تعيد بيانات مرضى.
 - فُحصت تعريفات ومسارات صلاحيات دوال الإدارة والطلبات وCRM، ومنها `admin_reset_user_password`, `approve_provider`, `create_invite`, `crm_create_ticket`, `crm_update_ticket`, `my_order_tracking`, `set_order_location`, `assign_order_v2`, `place_order_v2`, `provider_set_order_status_v2` و`staff_set_order_status_v2`. لا تزال هناك حاجة لاختبارات أدوار كاملة لكل RPC قبل الإطلاق.
 - `admin_reset_user_password` تتحقق من دور admin قبل تغيير كلمة مرور مستخدم؛ اختُبر رفضها لحساب customer داخل معاملة متراجعة دون تغيير كلمة مرور. كما اختُبر رفض `approve_provider` لحساب customer.
 - `clinic_available_slots` متاحة لـ authenticated وتعرض أوقاتًا لمقدم طبي معتمد ونشط وغير تجريبي؛ لا تُظهر بيانات مريض أو معلومات اتصال. يجب إبقاء نطاقها محدودًا بمواعيد التوافر فقط.
