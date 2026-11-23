@@ -117,11 +117,15 @@ test("roadmap completion requires 100 percent and a passed test", () => {
 });
 
 
-test("local and branch-preview hosts cannot write to the live database", () => {
+test("only the canonical production host can write to the live database", () => {
+  assert.equal(isPreviewHost("wasla-app-gg2f.vercel.app"), false);
   assert.equal(isPreviewHost("localhost"), true);
   assert.equal(isPreviewHost("127.0.0.1"), true);
   assert.equal(isPreviewHost("deploy-preview-8--wasla2026.netlify.app"), true);
+  assert.equal(isPreviewHost("wasla2026.netlify.app"), true);
+  assert.equal(isPreviewHost("ahmedsabrielnady.github.io"), true);
   assert.equal(isPreviewHost("wasla-app-git-feature-p0-crm-live-dashboard-ahmedsabrielnady.vercel.app"), true);
-  assert.equal(isPreviewHost("wasla-app-git-app-phase-1-react-foundation-ahmedsabrielnady.vercel.app"), true);
-  assert.equal(isPreviewHost("wasla-app.vercel.app"), false);
+  assert.equal(isPreviewHost("wasla-app-gg2f-1faosz77c-ahmedsabrielnady.vercel.app"), true);
+  assert.equal(isPreviewHost("wasla-app.vercel.app"), true);
+  assert.equal(isPreviewHost("unknown.example.com"), true);
 });
