@@ -16,7 +16,7 @@ import {
 } from "../src/domain.js";
 
 test("only service sectors with live supported order flow are orderable", () => {
-  assert.equal(canRequestService({ sector: "nursing", id: 1 }), true);
+  assert.equal(canRequestService({ sector: "nursing", id: 1 }), false);
   assert.equal(canRequestService({ sector: "maintenance", id: 2 }), true);
   assert.equal(canRequestService({ sector: "car", id: 3 }), true);
   assert.equal(canRequestService({ sector: "clinic", id: 4 }), false);
