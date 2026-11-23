@@ -28,11 +28,12 @@ test("only service sectors with live supported order flow are orderable", () => 
 
 test("public order catalogue excludes services from sectors whose order flow is disabled", () => {
   const services = [
-    { id: 1, sector: "car" },
-    { id: 2, sector: "maintenance" },
-    { id: 3, sector: "clinic" },
-    { id: 4, sector: "nursing" },
-    { id: 5, sector: "delivery" }
+    { id: 1, sector: "car", public_orderable: true },
+    { id: 2, sector: "maintenance", public_orderable: true },
+    { id: 3, sector: "maintenance", public_orderable: false },
+    { id: 4, sector: "clinic", public_orderable: true },
+    { id: 5, sector: "nursing", public_orderable: true },
+    { id: 6, sector: "delivery", public_orderable: true }
   ];
   assert.deepEqual(filterOrderableServices(services).map((item) => item.id), [1, 2]);
   assert.deepEqual(filterOrderableServices(null), []);
