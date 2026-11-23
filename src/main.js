@@ -26,6 +26,7 @@ const state = {
   myOrders: [],
   operationsOrders: [],
   operationsServices: [],
+  operationsCoverage: [],
   operationsSaving: false,
   latestInviteCode: "",
   providerInviteSaving: false,
@@ -273,6 +274,7 @@ function operationsView() {
     providers: state.operationsProviders,
     services: state.operationsServices,
     latestInviteCode: state.latestInviteCode,
+    coverage: state.operationsCoverage,
     preview: CONFIG.isPublicPreview,
     saving: state.operationsSaving
   });
@@ -579,14 +581,16 @@ async function refreshOperations() {
     return;
   }
   try {
-    const [orders, providers, services] = await Promise.all([
+    const [orders, providers, services, coverage] = await Promise.all([
       dataApi.getOperationsOrders(),
       dataApi.getOperationsProviders(),
-      state.profile?.role === "admin" ? dataApi.getOperationsServices() : Promise.resolve([])
+      state.profile?.role === "admin" ? dataApi.getOperationsServices() : Promise.resolve([]),
+      state.profile?.role === "admin" ? dataApi.getOperationsCoverage() : Promise.resolve([])
     ]);
     state.operationsOrders = Array.isArray(orders) ? orders : [];
     state.operationsProviders = Array.isArray(providers) ? providers : [];
     state.operationsServices = Array.isArray(services) ? services : [];
+    state.operationsCoverage = Array.isArray(coverage) ? coverage : [];
     state.view = "operations";
   } catch (error) {
     showToast(error.message, "error");
@@ -834,6 +838,7 @@ root.addEventListener("click", async (event) => {
       state.operationsOrders = [];
       state.operationsProviders = [];
       state.operationsServices = [];
+      state.operationsCoverage = [];
       state.latestInviteCode = "";
       state.roadmapAudit = [];
       state.view = "home";
@@ -919,6 +924,16 @@ root.addEventListener("click", async (event) => {
       if (!state.user || state.profile?.role !== "customer") throw new Error("تسجيل الانضمام متاح لحسابات العملاء فقط.");
       state.modal = "provider-invite";
       render();
+    } else if (action === "disable-provider-coverage") {
+      if (CONFIG.isPublicPreview) throw new Error("إدارة التغطية متوقفة في نسخة المعاينة.");
+      if (state.profile?.role !== "admin") throw new Error("إدارة التغطية مخصصة للمؤسس فقط.");
+      await dataApi.adminSetProviderServiceCoverage(
+        button.dataset.providerId,
+        button.dataset.serviceId,
+        false
+      );
+      await Promise.all([refreshOperations(), loadCatalog()]);
+      showToast("تم إيقاف التغطية. ستتوقف الخدمة عن استقبال الطلبات إذا لم يوجد بديل.", "success");
     } else if (action === "copy-invite") {
       if (!state.latestInviteCode) throw new Error("لا يوجد كود دعوة لنسخه.");
       await navigator.clipboard.writeText(state.latestInviteCode);
@@ -1087,6 +1102,15 @@ root.addEventListener("submit", async (event) => {
         render();
       }
     }
+    if (form.dataset.form === "operations-provider-coverage") {
+      if (CONFIG.isPublicPreview) throw new Error("إدارة التغطية متوقفة في نسخة المعاينة.");
+      if (state.profile?.role !== "admin") throw new Error("إدارة التغطية مخصصة للمؤسس فقط.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      if (!values.provider_id || !values.service_item_id) throw new Error("اختر مقدم الخدمة والخدمة.");
+      await dataApi.adminSetProviderServiceCoverage(values.provider_id, values.service_item_id, true);
+      await Promise.all([refreshOperations(), loadCatalog()]);
+      showToast("تم ربط مقدم الخدمة بالخدمة بعد التحقق من التخصص.", "success");
+    }
     if (form.dataset.form === "operations-invite") {
       if (CONFIG.isPublicPreview) throw new Error("إنشاء الدعوات متوقف في نسخة المعاينة.");
       if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بإنشاء الدعوات.");
@@ -1187,14 +1211,16 @@ async function init() {
 
   if (state.view === "operations" && ["staff", "admin"].includes(state.profile?.role)) {
     try {
-      const [orders, providers, services] = await Promise.all([
+      const [orders, providers, services, coverage] = await Promise.all([
         dataApi.getOperationsOrders(),
         dataApi.getOperationsProviders(),
-        state.profile?.role === "admin" ? dataApi.getOperationsServices() : Promise.resolve([])
+        state.profile?.role === "admin" ? dataApi.getOperationsServices() : Promise.resolve([]),
+        state.profile?.role === "admin" ? dataApi.getOperationsCoverage() : Promise.resolve([])
       ]);
       state.operationsOrders = Array.isArray(orders) ? orders : [];
       state.operationsProviders = Array.isArray(providers) ? providers : [];
       state.operationsServices = Array.isArray(services) ? services : [];
+      state.operationsCoverage = Array.isArray(coverage) ? coverage : [];
     } catch (error) {
       showToast(error.message, "error");
     }
