@@ -332,6 +332,41 @@ export const dataApi = {
     });
   },
 
+  async getOperationsCoverage() {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول لعرض تغطية مقدمي الخدمة.");
+
+    const query = new URLSearchParams({
+      select: "id,provider_id,service_item_id,active,created_at",
+      order: "created_at.desc",
+      limit: "500"
+    });
+
+    return request(`/rest/v1/provider_service_coverage?${query}`, {
+      token: session.access_token
+    });
+  },
+
+  async adminSetProviderServiceCoverage(providerId, serviceItemId, active = true) {
+    assertLiveWritesAllowed("إدارة تغطية مقدمي الخدمة");
+    const numericServiceId = Number(serviceItemId);
+    if (!providerId || !Number.isInteger(numericServiceId) || numericServiceId <= 0) {
+      throw new Error("حدد مقدم الخدمة والخدمة أولًا.");
+    }
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+
+    return request("/rest/v1/rpc/admin_set_provider_service_coverage", {
+      method: "POST",
+      token: session.access_token,
+      body: {
+        p_provider_id: providerId,
+        p_service_item_id: numericServiceId,
+        p_active: Boolean(active)
+      }
+    });
+  },
+
   async adminUpdateServicePrice(itemId, price) {
     assertLiveWritesAllowed("تعديل أسعار الخدمات");
     const numericId = Number(itemId);
