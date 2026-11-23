@@ -10,12 +10,13 @@ import {
   isValidCoordinates,
   calculateRoadmapMetrics,
   validateRoadmapUpdate,
+  isPreviewHost,
   sectorLabel,
   statusLabel
 } from "../src/domain.js";
 
 test("only service sectors with live supported order flow are orderable", () => {
-  assert.equal(canRequestService({ sector: "nursing", id: 1 }), true);
+  assert.equal(canRequestService({ sector: "nursing", id: 1 }), false);
   assert.equal(canRequestService({ sector: "maintenance", id: 2 }), true);
   assert.equal(canRequestService({ sector: "car", id: 3 }), true);
   assert.equal(canRequestService({ sector: "clinic", id: 4 }), false);
@@ -100,4 +101,14 @@ test("roadmap completion requires 100 percent and a passed test", () => {
   assert.equal(validateRoadmapUpdate("done", 90, "passed").valid, false);
   assert.equal(validateRoadmapUpdate("planned", 10, "not_tested").valid, false);
   assert.equal(validateRoadmapUpdate("blocked", 25, "not_tested").valid, true);
+});
+
+
+test("local and branch-preview hosts cannot write to the live database", () => {
+  assert.equal(isPreviewHost("localhost"), true);
+  assert.equal(isPreviewHost("127.0.0.1"), true);
+  assert.equal(isPreviewHost("deploy-preview-8--wasla2026.netlify.app"), true);
+  assert.equal(isPreviewHost("wasla-app-git-feature-p0-crm-live-dashboard-ahmedsabrielnady.vercel.app"), true);
+  assert.equal(isPreviewHost("wasla-app-git-app-phase-1-react-foundation-ahmedsabrielnady.vercel.app"), true);
+  assert.equal(isPreviewHost("wasla-app.vercel.app"), false);
 });

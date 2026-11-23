@@ -4,14 +4,13 @@
  * The publishable key is designed for browser use. It is NOT a service-role key.
  * Row Level Security and database policies remain the actual authorization layer.
  */
+import { isPreviewHost } from "./domain.js";
+
 export const CONFIG = Object.freeze({
   supabaseUrl: "https://yfgvimcqbtthnrbzbhft.supabase.co",
   supabasePublishableKey: "sb_publishable_Aej6zAcIojeoTI7GUxcXbA_lSKKqUmh",
   appName: "WASLA",
   appCity: "شبين القناطر",
   appRegion: "القليوبية",
-  isPublicPreview: (
-    window.location.hostname.startsWith("deploy-preview-")
-    || window.location.hostname.includes("-git-app-phase-1-")
-  )
+  isPublicPreview: isPreviewHost(window.location.hostname)
 });
