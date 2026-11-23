@@ -1006,6 +1006,10 @@ async function init() {
     }
   } else if (state.view === "operations") {
     state.view = "home";
+  } else if (state.view === "crm" && ["staff", "admin"].includes(state.profile?.role)) {
+    await refreshCrm();
+  } else if (state.view === "crm") {
+    state.view = "home";
   }
 
   render();
