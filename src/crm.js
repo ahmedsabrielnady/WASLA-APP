@@ -59,7 +59,7 @@ function renderTask(task, canWrite) {
     e(PRIORITY_LABELS[task.priority] || "متوسط") + "</span></div>" +
     '<p>' + e(TASK_KIND_LABELS[task.kind] || task.kind) + " · " + e(task.status) + "</p>" +
     '<div class="crm-record-foot"><span>' + (task.due_at ? "الاستحقاق: " + e(formatDate(task.due_at)) : "دون موعد") + "</span>" +
-    (!completed ? '<button class="btn btn-outline btn-small" data-action="crm-task-done" data-task-id="' + e(task.id) + '">إنهاء المهمة</button>' : "<span>مغلقة</span>") +
+    (!completed ? '<button class="btn btn-outline btn-small" data-action="crm-task-done" data-task-id="' + e(task.id) + '" ' + (canWrite ? "" : "disabled") + '>إنهاء المهمة</button>' : "<span>مغلقة</span>") +
     "</div></article>";
 }
 
