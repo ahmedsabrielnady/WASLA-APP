@@ -54,7 +54,7 @@ async function request(path, options = {}) {
 
   const requestHeaders = {
     apikey: CONFIG.supabasePublishableKey,
-    Authorization: `Bearer ${token || CONFIG.supabasePublishableKey}`,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     Accept: "application/json",
     ...headers
   };
