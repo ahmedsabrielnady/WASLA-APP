@@ -10,6 +10,7 @@ const root = document.querySelector("#app");
 const state = {
   services: [],
   offers: [],
+  catalogLoaded: false,
   user: null,
   profile: null,
   session: null,
@@ -27,6 +28,7 @@ const state = {
   busy: false,
   loadError: "",
   roadmapItems: [],
+  roadmapLoaded: false,
   roadmapAudit: [],
   roadmapError: "",
   roadmapSavingId: "",
@@ -133,6 +135,10 @@ function sectorCards() {
 }
 
 function serviceCards() {
+  if (!state.catalogLoaded) {
+    return '<div class="empty-state" role="status"><strong>جارٍ تحميل الخدمات...</strong><p>نحمّل الخدمات المتاحة من قاعدة بيانات وصلة.</p></div>';
+  }
+
   const search = state.search.trim().toLocaleLowerCase("ar");
   const filtered = filterOrderableServices(state.services).filter((item) => {
     const matchesSearch = !search
@@ -196,7 +202,7 @@ function homeView() {
     </section>
 
     ${offerTicker()}
-    ${renderRoadmapHome(state.roadmapItems, state.roadmapError)}
+    ${renderRoadmapHome(state.roadmapItems, state.roadmapError, !state.roadmapLoaded)}
 
     <section class="section-block">
       <div class="section-heading">
@@ -412,9 +418,11 @@ async function loadCatalog() {
     // Offers are supplemental; an offers failure must not hide the service catalogue.
     state.offers = [];
   }
+  state.catalogLoaded = true;
 }
 
 async function loadRoadmap() {
+  state.roadmapLoaded = false;
   state.roadmapError = "";
   try {
     const rows = await dataApi.getRoadmap();
@@ -422,6 +430,8 @@ async function loadRoadmap() {
   } catch (error) {
     state.roadmapItems = [];
     state.roadmapError = error.message || "تعذر تحميل خطة الإنجاز.";
+  } finally {
+    state.roadmapLoaded = true;
   }
 }
 
