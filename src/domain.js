@@ -28,6 +28,11 @@ export function canRequestService(service) {
   return Boolean(service && ORDERABLE_SECTORS.has(service.sector));
 }
 
+/** Keep the public "available now" catalogue limited to services whose order flow is enabled. */
+export function filterOrderableServices(services) {
+  return Array.isArray(services) ? services.filter(canRequestService) : [];
+}
+
 export function isEgyptianPhone(value) {
   return /^01[0-9]{9}$/.test(String(value ?? "").trim());
 }
