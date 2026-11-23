@@ -99,3 +99,11 @@ python -m http.server 8080
 - تمت إضافة P0 idempotency ودوال دورة الطلب، ووحدة CRM أولية للموظفين والإدارة.
 - تفاصيل التنفيذ والاختبارات والحدود الحالية: [تقرير P0 وCRM](docs/07-p0-crm-delivery-ar.md).
 - التغييرات البرمجية في PR #9، وما زالت مسودة ولم تُدمج في main أو تُنشر إنتاجيًا.
+
+
+## Release hardening — 23 November 2026
+
+- Live CRM foreign-key indexes were applied through migration `launch_crm_fk_indexes_and_private_transition_table`.
+- The order status-transition table explicitly denies direct access to `anon` and `authenticated`; authorized database RPCs access it internally.
+- Browser writes are blocked on localhost, Netlify deploy-preview URLs, Vercel branch-preview URLs, and generic preview hosts. Only a stable non-preview deployment can write to the live database.
+- This does not replace the remaining release gates: authenticated browser E2E, Auth leaked-password protection, administrator MFA, verified production-domain configuration, and a tested restore procedure.
