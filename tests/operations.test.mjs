@@ -81,3 +81,67 @@ test("provider invite creation is disabled in previews", () => {
   assert.match(html, /operations-invite/);
   assert.match(html, /disabled/);
 });
+
+
+test("founder can manage provider-to-service coverage, while staff cannot", () => {
+  const providers = [{
+    id: "provider-1",
+    display_name: "محمد الفني",
+    kind: "technician",
+    specialty: "كهرباء وسباكة",
+    approved: true,
+    active: true,
+    is_test: false
+  }];
+  const services = [{
+    id: 4,
+    sector: "maintenance",
+    name: "كشف سباك",
+    active: true,
+    public_orderable: true
+  }];
+  const coverage = [{
+    id: "coverage-1",
+    provider_id: "provider-1",
+    service_item_id: 4,
+    active: true
+  }];
+  const adminHtml = renderOperationsView({
+    profile: { role: "admin" },
+    providers,
+    services,
+    coverage,
+    orders: [],
+    preview: false,
+    saving: false
+  });
+  const staffHtml = renderOperationsView({
+    profile: { role: "staff" },
+    providers,
+    services,
+    coverage,
+    orders: [],
+    preview: false,
+    saving: false
+  });
+
+  assert.match(adminHtml, /ربط مقدم الخدمة بالخدمات/);
+  assert.match(adminHtml, /operations-provider-coverage/);
+  assert.match(adminHtml, /مغطاة وقابلة للطلب/);
+  assert.doesNotMatch(staffHtml, /ربط مقدم الخدمة بالخدمات/);
+  assert.doesNotMatch(staffHtml, /operations-provider-coverage/);
+});
+
+test("provider coverage controls are disabled in previews", () => {
+  const html = renderOperationsView({
+    profile: { role: "admin" },
+    providers: [{ id: "provider-1", display_name: "فني", kind: "technician", approved: true, active: true, is_test: false }],
+    services: [{ id: 4, sector: "maintenance", name: "كشف سباك", active: true, public_orderable: true }],
+    coverage: [],
+    orders: [],
+    preview: true,
+    saving: false
+  });
+  assert.match(html, /operations-provider-coverage/);
+  assert.match(html, /disabled/);
+});
