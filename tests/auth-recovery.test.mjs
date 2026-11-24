@@ -16,6 +16,7 @@ globalThis.window = {
     hostname: "wasla-app-gg2f.vercel.app",
     origin: "https://wasla-app-gg2f.vercel.app",
     pathname: "/",
+    search: "",
     hash: "#access_token=recovery-access&refresh_token=recovery-refresh&type=recovery&expires_in=3600"
   },
   history: {
