@@ -30,6 +30,11 @@ const state = {
   search: "",
   myOrders: [],
   deliveries: null,
+  doctors: null,
+  clinicDoctorId: "",
+  clinicDay: "",
+  clinicSlots: [],
+  products: null,
   deliveryQueue: null,
   trackingOrderId: "",
   trackingLoadingId: "",
@@ -278,6 +283,10 @@ function orderTrackingPanel(order) {
 function orderItemName(order) {
   const item = order.item_id == null ? null : state.services.find((service) => String(service.id) === String(order.item_id));
   const sector = sectorLabel(order.sector);
+  if (order.product_id != null) {
+    const product = (state.products || []).find((entry) => String(entry.id) === String(order.product_id));
+    return `${sector} · ${product?.name || "منتج"} × ${Number(order.quantity) || 1}`;
+  }
   return item?.name ? `${sector} · ${item.name}` : sector;
 }
 
@@ -288,9 +297,10 @@ function orderCard(order) {
       <div class="order-card-top"><strong>${escapeHTML(order.ref || "طلب وصلة")}</strong><span class="status-pill">${escapeHTML(statusLabel(order.status))}</span></div>
       <div class="order-name">${escapeHTML(orderItemName(order))}</div>
       <div class="order-meta"><span>${escapeHTML(formatDate(order.created_at))}</span><strong>${escapeHTML(price)}</strong></div>
+      ${order.scheduled_at ? `<div class="order-meta"><span>الموعد: ${escapeHTML(formatAppointment(order.scheduled_at))}</span></div>` : ""}
       ${order.status === "quoted" ? `<div class="quote-box"><strong>عرض سعر: ${escapeHTML(formatEGP(order.quote_price_egp))}</strong><p>هذا السعر المقترح من فريق وصلة. لن يبدأ التنفيذ ولن يُسجل أي التزام إلا بعد موافقتك. لا يتم تحصيل أي مبلغ داخل وصلة.</p><div class="order-card-actions"><button class="btn btn-primary btn-small" data-action="respond-quote" data-decision="accept" data-order-id="${escapeHTML(order.id)}" data-version="${escapeHTML(order.quote_version)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>أوافق على السعر</button><button class="btn btn-outline btn-small" data-action="respond-quote" data-decision="decline" data-order-id="${escapeHTML(order.id)}" data-version="${escapeHTML(order.quote_version)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>أرفض وألغي الطلب</button></div></div>` : ""}
       ${Number(order.deposit_egp) > 0 ? `<p class="deposit-note">عربون مسجل: ${escapeHTML(formatEGP(order.deposit_egp))} · ${order.deposit_paid ? "مدفوع" : "غير مسدد"}</p>` : ""}
-      ${Number.isFinite(Number(order.lat)) && Number.isFinite(Number(order.lng)) ? '<p class="location-note">📍 تم تسجيل إحداثيات موقع التنفيذ</p>' : ""}
+      ${order.lat != null && order.lng != null && Number.isFinite(Number(order.lat)) && Number.isFinite(Number(order.lng)) ? '<p class="location-note">📍 تم تسجيل إحداثيات موقع التنفيذ</p>' : ""}
       <div class="order-card-actions">
         <button class="btn btn-outline btn-small" data-action="track-order" data-order-id="${escapeHTML(order.id)}" ${state.trackingLoadingId === order.id ? "disabled" : ""}>${state.trackingOrderId === order.id ? "إخفاء التفاصيل" : "متابعة الطلب"}</button>
         ${order.status === "new" ? `<button class="btn btn-outline btn-small" data-action="customer-cancel-order" data-order-id="${escapeHTML(order.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>إلغاء الطلب قبل التأكيد</button>` : ""}
@@ -298,6 +308,86 @@ function orderCard(order) {
       ${orderTrackingPanel(order)}
     </article>
   `;
+}
+
+function formatAppointment(value) {
+  try {
+    return new Intl.DateTimeFormat("ar-EG", { timeZone: "Africa/Cairo", weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit" }).format(new Date(value));
+  } catch { return String(value); }
+}
+
+function cairoDay(offsetDays) {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Cairo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(Date.now() + offsetDays * 86400000));
+  return parts;
+}
+
+/** In-app reminder only (free). No SMS or push is sent. */
+function appointmentAlert() {
+  const now = Date.now();
+  const upcoming = (state.myOrders || [])
+    .filter((o) => o.sector === "clinic" && o.scheduled_at && ["new", "confirmed"].includes(o.status))
+    .map((o) => ({ o, t: new Date(o.scheduled_at).getTime() }))
+    .filter((x) => x.t > now && x.t - now <= 24 * 3600 * 1000)
+    .sort((a, b) => a.t - b.t);
+  if (!upcoming.length) return "";
+  const first = upcoming[0].o;
+  return `<div class="notice appointment-alert" role="status"><strong>تذكير بموعدك:</strong> ${escapeHTML(formatAppointment(first.scheduled_at))} · ${escapeHTML(statusLabel(first.status))}. هذا تنبيه داخل التطبيق فقط.</div>`;
+}
+
+function clinicSection() {
+  if (!Array.isArray(state.doctors) || !state.doctors.length) return "";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const slotOptions = state.clinicSlots.length
+    ? state.clinicSlots.map((slot) => `<option value="${escapeHTML(slot)}">${escapeHTML(formatAppointment(slot))}</option>`).join("")
+    : "";
+  return `
+    <section class="page-panel clinic-panel" id="clinic">
+      <div class="section-heading"><div><span class="eyebrow">العيادات</span><h2>احجز موعد كشف</h2></div></div>
+      <p>اختر الطبيب واليوم ثم الموعد. الطبيب يؤكد الموعد، ولا يتم تحصيل أي مبلغ داخل وصلة. لا تكتب بيانات صحية حساسة في الملاحظات.</p>
+      <form data-form="clinic-book" novalidate>
+        <label>الطبيب<select name="doctor" data-clinic-pick="doctor" required>
+          <option value="">اختر الطبيب</option>
+          ${state.doctors.map((d) => `<option value="${escapeHTML(d.id)}" ${d.id === state.clinicDoctorId ? "selected" : ""}>${escapeHTML(d.display_name)}${d.specialty ? " · " + escapeHTML(d.specialty) : ""}</option>`).join("")}
+        </select></label>
+        <label>اليوم<input type="date" name="day" data-clinic-pick="day" value="${escapeHTML(state.clinicDay)}" min="${cairoDay(0)}" max="${cairoDay(30)}" required></label>
+        <label>الموعد<select name="slot" required>
+          <option value="">${state.clinicDoctorId ? (state.clinicSlots.length ? "اختر الموعد" : "لا توجد مواعيد في هذا اليوم") : "اختر الطبيب أولًا"}</option>
+          ${slotOptions}
+        </select></label>
+        <label>ملاحظات (اختياري)<input name="notes" maxlength="300"></label>
+        <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على <a href="./terms.html" target="_blank" rel="noopener">شروط الاستخدام (مسودة)</a>.</span></label>
+        <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على <a href="./privacy.html" target="_blank" rel="noopener">سياسة الخصوصية (مسودة)</a>.</span></label>
+        <button class="btn btn-primary" type="submit" ${disabled}>احجز الموعد</button>
+      </form>
+    </section>`;
+}
+
+function storeSection() {
+  if (!Array.isArray(state.products) || !state.products.length) return "";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  return `
+    <section class="page-panel store-panel" id="store">
+      <div class="section-heading"><div><span class="eyebrow">الماركت</span><h2>اطلب منتجات</h2></div></div>
+      <p>التوصيل مجاني للعميل. الدفع عند الاستلام ولا يتم تحصيل أي مبلغ داخل وصلة. السعر النهائي يحسبه النظام.</p>
+      <form data-form="store-order" novalidate>
+        <label>المنتج<select name="product" required>
+          <option value="">اختر المنتج</option>
+          ${state.products.map((p) => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.name)} · ${escapeHTML(formatEGP(p.discount_price_egp ?? p.price_egp))} (متوفر ${escapeHTML(p.stock)})</option>`).join("")}
+        </select></label>
+        <label>الكمية<input type="number" name="qty" min="1" max="20" value="1" required></label>
+        <label>عنوان التسليم<input name="address" maxlength="255" required></label>
+        <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على <a href="./terms.html" target="_blank" rel="noopener">شروط الاستخدام (مسودة)</a>.</span></label>
+        <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على <a href="./privacy.html" target="_blank" rel="noopener">سياسة الخصوصية (مسودة)</a>.</span></label>
+        <button class="btn btn-primary" type="submit" ${disabled}>تأكيد الطلب</button>
+      </form>
+    </section>`;
+}
+
+async function loadClinicSlots() {
+  state.clinicSlots = [];
+  if (state.clinicDoctorId && state.clinicDay) {
+    try { state.clinicSlots = await dataApi.getClinicSlots(state.clinicDoctorId, state.clinicDay); } catch { state.clinicSlots = []; }
+  }
 }
 
 function deliverySection() {
@@ -335,10 +425,13 @@ function ordersView() {
   return `
     <section class="page-panel">
       <div class="section-heading"><div><span class="eyebrow">حساب العميل</span><h1>طلباتي</h1></div><button class="btn btn-outline btn-small" data-action="reload-orders">تحديث</button></div>
+      ${appointmentAlert()}
       ${state.myOrders.length
         ? `<div class="orders-list">${state.myOrders.map(orderCard).join("")}</div>`
         : '<div class="empty-state"><strong>لا توجد طلبات بعد</strong><p>عندما ترسل أول طلب ستظهر حالته هنا.</p><button class="btn btn-primary" data-action="home">اكتشف الخدمات</button></div>'}
     </section>
+    ${clinicSection()}
+    ${storeSection()}
     ${deliverySection()}
   `;
 }
@@ -725,6 +818,9 @@ async function refreshMyOrders() {
   try {
     state.myOrders = await dataApi.getMyOrders(state.user.id);
     try { state.deliveries = await dataApi.getMyDeliveries(); } catch { state.deliveries = null; }
+    try { state.doctors = await dataApi.getDoctors(); } catch { state.doctors = null; }
+    try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
+    if (!state.clinicDay) state.clinicDay = cairoDay(1);
     state.view = "orders";
   } catch (error) {
     showToast(error.message, "error");
@@ -1190,12 +1286,16 @@ root.addEventListener("click", async (event) => {
       if (!["doctor", "technician", "teacher", "courier", "merchant"].includes(state.profile?.role)) throw new Error("غير مصرح بتحديث الطلب.");
       const orderId = button.dataset.orderId;
       const nextStatus = button.dataset.status;
-      const label = nextStatus === "done" ? "تأكيد إتمام الخدمة" : "بدء التنفيذ";
+      const label = nextStatus === "done" ? "تأكيد إتمام الخدمة" : nextStatus === "confirmed" ? "تأكيد الموعد" : "بدء التنفيذ";
       if (!window.confirm("هل تريد " + label + "؟")) return;
       state.providerSaving = true;
       render();
       try {
-        await dataApi.providerSetOrderStatus(orderId, nextStatus, "تم تحديث الحالة من مساحة مقدم الخدمة");
+        if (button.dataset.kind === "clinic") {
+          await dataApi.doctorSetAppointmentStatus(orderId, nextStatus, "تم تحديث الموعد من مساحة الطبيب");
+        } else {
+          await dataApi.providerSetOrderStatus(orderId, nextStatus, "تم تحديث الحالة من مساحة مقدم الخدمة");
+        }
         showToast("تم تحديث حالة الطلب.", "success");
         await refreshProvider();
       } finally {
@@ -1282,6 +1382,38 @@ root.addEventListener("submit", async (event) => {
         await dataApi.placeDeliveryRequest(values.pickup, values.dropoff, values.what);
         state.deliveries = await dataApi.getMyDeliveries();
         showToast("تم استلام طلب التوصيل.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "clinic-book") {
+      if (CONFIG.isPublicPreview) throw new Error("الحجز متوقف في نسخة المعاينة.");
+      if (state.profile?.role !== "customer") throw new Error("الحجز متاح لحسابات العملاء فقط.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      if (!values.doctor || !values.slot) throw new Error("اختر الطبيب والموعد.");
+      if (values.terms !== "on" || values.privacy !== "on") throw new Error("يجب الموافقة على الشروط وسياسة الخصوصية.");
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.acceptRequiredConsents();
+        await dataApi.bookClinicSlot(values.doctor, values.slot, values.notes);
+        state.myOrders = await dataApi.getMyOrders(state.user.id);
+        await loadClinicSlots();
+        showToast("تم حجز الموعد. بانتظار تأكيد الطبيب.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "store-order") {
+      if (CONFIG.isPublicPreview) throw new Error("الطلب متوقف في نسخة المعاينة.");
+      if (state.profile?.role !== "customer") throw new Error("الطلب متاح لحسابات العملاء فقط.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      if (!values.product) throw new Error("اختر المنتج.");
+      if (values.terms !== "on" || values.privacy !== "on") throw new Error("يجب الموافقة على الشروط وسياسة الخصوصية.");
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.acceptRequiredConsents();
+        await dataApi.placeProductOrder(values.product, values.qty, values.address, null);
+        state.myOrders = await dataApi.getMyOrders(state.user.id);
+        state.products = await dataApi.getProducts();
+        showToast("تم استلام طلب المنتج.", "success");
       });
       render();
     }
@@ -1523,6 +1655,16 @@ root.addEventListener("submit", async (event) => {
     render();
     showToast(error.message || "تعذر إكمال العملية.", "error");
   }
+});
+
+root.addEventListener("change", async (event) => {
+  const pick = event.target.closest?.("[data-clinic-pick]");
+  if (!pick) return;
+  if (state.busy) return;
+  if (pick.dataset.clinicPick === "doctor") state.clinicDoctorId = pick.value;
+  if (pick.dataset.clinicPick === "day") state.clinicDay = pick.value;
+  await loadClinicSlots();
+  render();
 });
 
 root.addEventListener("input", (event) => {
