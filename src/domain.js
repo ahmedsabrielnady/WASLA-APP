@@ -34,7 +34,7 @@ export function filterOrderableServices(services) {
 }
 
 export function isEgyptianPhone(value) {
-  return /^01[0-9]{9}$/.test(String(value ?? "").trim());
+  return /^01[0125][0-9]{8}$/.test(String(value ?? "").trim());
 }
 
 export function isValidAddress(value) {
