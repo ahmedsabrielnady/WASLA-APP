@@ -144,6 +144,10 @@ async function authRequest(path, body) {
 export const authApi = {
   getSession: getStoredSession,
 
+  async getAuthSettings() {
+    return request("/auth/v1/settings");
+  },
+
   async getUser() {
     const session = await getValidSession();
     if (!session?.access_token) return null;
