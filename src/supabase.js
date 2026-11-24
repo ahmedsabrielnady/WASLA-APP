@@ -170,7 +170,10 @@ export const authApi = {
       password,
       data: {
         full_name: String(fullName).trim(),
-        phone: String(phone).trim()
+        phone: String(phone).trim(),
+        terms_version: POLICY_VERSION,
+        privacy_version: POLICY_VERSION,
+        consent_accepted_at: new Date().toISOString()
       }
     });
 
@@ -782,9 +785,38 @@ export const dataApi = {
     localStorage.setItem(PENDING_CONSENT_KEY, "1");
   },
 
-  async completePendingConsent() {
-    if (localStorage.getItem(PENDING_CONSENT_KEY) !== "1") return;
+  async completePendingConsent(user = null) {
+    const pending = localStorage.getItem(PENDING_CONSENT_KEY) === "1";
+    const metadata = user?.user_metadata ?? {};
+    const acceptedOnSignup = metadata.terms_version === POLICY_VERSION
+      && metadata.privacy_version === POLICY_VERSION
+      && Boolean(metadata.consent_accepted_at);
+    if (!pending && !acceptedOnSignup) return;
     if (CONFIG.isPublicPreview) return;
+
+    const session = await getValidSession();
+    if (!session?.access_token) return;
+
+    if (user?.id) {
+      const query = new URLSearchParams({
+        select: "kind,version",
+        user_id: `eq.${user.id}`,
+        kind: "in.(terms,privacy)"
+      });
+      const rows = await request(`/rest/v1/consents?${query}`, {
+        token: session.access_token
+      });
+      const accepted = new Set(
+        (Array.isArray(rows) ? rows : [])
+          .filter((row) => row.version === POLICY_VERSION)
+          .map((row) => row.kind)
+      );
+      if (accepted.has("terms") && accepted.has("privacy")) {
+        localStorage.removeItem(PENDING_CONSENT_KEY);
+        return;
+      }
+    }
+
     await this.acceptRequiredConsents();
   },
 
