@@ -626,7 +626,7 @@ function openAuth(mode = "login") {
   state.authMode = mode;
   state.modal = "auth";
   render();
-  root.querySelector('input[name="email"]')?.focus();
+  root.querySelector('input[name="identifier"]')?.focus();
 }
 
 function openOrder(item) {
