@@ -74,7 +74,7 @@ function renderOrderCard(order, providers, canWrite) {
     assignment = '<p class="ops-muted">الحجوزات الطبية لها مسار مستقل؛ لا يتم تعيينها من أداة الطلبات العامة.</p>';
   }
 
-  const quote = order.status === "new" ? `
+  const quote = ["new", "quoted"].includes(order.status) ? `
     <form class="ops-action-form" data-form="operations-quote" data-order-id="${escapeHTML(order.id)}">
       <label>عرض السعر بالجنيه
         <input name="price" type="number" min="0" max="10000000" step="1"
