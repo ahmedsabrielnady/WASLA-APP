@@ -425,16 +425,21 @@ export const dataApi = {
       limit: "30"
     });
 
-    // Quote-acceptance columns exist only after the versioned migration
-    // 20261125000000_quote_acceptance.sql. Older schemas fall back to the base columns.
-    try {
-      return await request(`/rest/v1/orders?${build(`${base},quote_price_egp,quote_version`)}`, {
-        token: session.access_token
-      });
-    } catch (error) {
-      if (!/quote_price_egp|quote_version/.test(String(error?.message))) throw error;
-      return request(`/rest/v1/orders?${build(base)}`, { token: session.access_token });
+    // Optional columns exist only after the draft migrations (quote acceptance, product category
+    // snapshot). Older schemas drop them one at a time and keep the base columns.
+    const optional = { quote: true, category: true };
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const select = [base, optional.quote ? "quote_price_egp,quote_version" : "", optional.category ? "product_category" : ""].filter(Boolean).join(",");
+      try {
+        return await request(`/rest/v1/orders?${build(select)}`, { token: session.access_token });
+      } catch (error) {
+        const message = String(error?.message);
+        if (optional.category && /product_category/.test(message)) optional.category = false;
+        else if (optional.quote && /quote_price_egp|quote_version/.test(message)) optional.quote = false;
+        else throw error;
+      }
     }
+    return request(`/rest/v1/orders?${build(base)}`, { token: session.access_token });
   },
 
   async getOperationsOrders() {
