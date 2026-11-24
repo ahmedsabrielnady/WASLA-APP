@@ -252,7 +252,7 @@ function orderTrackingPanel(order) {
     return '<div class="order-tracking-panel">تعذر تحميل تفاصيل المتابعة. حاول مرة أخرى.</div>';
   }
   const events = Array.isArray(tracking.events) ? tracking.events : [];
-  const queue = tracking.sector === "clinic" && Number.isFinite(Number(tracking.queue_position))
+  const queue = tracking.sector === "clinic" && tracking.scheduled_at && Number.isFinite(Number(tracking.queue_position))
     ? `<p class="tracking-queue">ترتيبك في الدور: ${Number(tracking.queue_position)} · أمامك ${Number(tracking.ahead_count) || 0}</p>`
     : "";
   return `
@@ -941,7 +941,7 @@ root.addEventListener("click", async (event) => {
       if (state.trackingOrderId === orderId) {
         state.trackingOrderId = "";
         state.orderTracking = null;
-        state.trackingError = "";
+
         render();
         return;
       }
