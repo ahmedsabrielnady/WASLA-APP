@@ -21,6 +21,7 @@ const state = {
     : "home",
   modal: null,
   authMode: "login",
+  googleAuthEnabled: false,
   pendingService: null,
   pendingLocation: null,
   pendingAddress: "",
@@ -381,7 +382,7 @@ function authModal() {
           <button class="btn btn-primary btn-block" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "جارٍ التنفيذ..." : (register ? "إنشاء الحساب" : "تسجيل الدخول")}</button>
         </form>
         ${!register && !CONFIG.isPublicPreview ? '<button class="switch-auth" data-action="forgot-password">استعادة حساب البريد الإلكتروني</button>' : ""}
-        ${!CONFIG.isPublicPreview ? '<button class="btn btn-outline btn-block" type="button" data-action="google-auth">المتابعة باستخدام Google</button>' : ""}
+        ${!CONFIG.isPublicPreview && state.googleAuthEnabled ? '<button class="btn btn-outline btn-block" type="button" data-action="google-auth">المتابعة باستخدام Google</button>' : ""}
         <p class="form-footnote">لن نرسل رسالة SMS. تسجيل الموبايل يعتمد على كلمة المرور، أما استعادة حساب الموبايل فتحتاج وسيلة استرداد آمنة.</p>
         ${CONFIG.isPublicPreview
           ? '<p class="form-footnote preview-auth-note">إنشاء الحسابات متوقف في نسخة المعاينة لحماية قاعدة البيانات الحية.</p>'
@@ -1410,6 +1411,8 @@ root.addEventListener("input", (event) => {
 
 async function init() {
   let oauthError = "";
+  const authSettings = await authApi.getAuthSettings().catch(() => null);
+  state.googleAuthEnabled = Boolean(authSettings?.external?.google);
   try {
     const oauthResult = await authApi.acceptOAuthFromUrl();
     oauthError = oauthResult?.error || "";
