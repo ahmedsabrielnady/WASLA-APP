@@ -200,7 +200,7 @@ function homeView() {
         <p>ابدأ بالخدمة التي تحتاجها. نعرض الخدمات الفعلية المسجلة، ونوضح ما لم يكتمل تشغيله بعد.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#services">استكشف الخدمات <span>←</span></a>
-          ${state.profile?.role === "customer" ? '<button class="btn btn-glass" data-action="orders">تابع طلباتك</button>' : ""}
+          ${(!state.user || state.profile?.role === "customer") ? '<button class="btn btn-glass" data-action="orders">تابع طلباتك</button>' : ""}
         </div>
       </div>
       <div class="hero-art" aria-hidden="true">
