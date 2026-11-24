@@ -4,7 +4,7 @@ import { fetchTextWithTimeout } from "./network.js";
 
 const SESSION_KEY = "wasla.auth.session.v1";
 const PENDING_CONSENT_KEY = "wasla.pending-consent.v1";
-const POLICY_VERSION = "draft-2026-11-24";
+const POLICY_VERSION = "draft-2026-11-24.2";
 const API_ROOT = CONFIG.supabaseUrl.replace(/\/$/, "");
 
 let refreshInFlight = null;
@@ -644,6 +644,20 @@ export const dataApi = {
         p_resolution: resolution || null,
         p_note: note || null
       }
+    });
+  },
+
+  async customerCancelOrder(orderId, reason = "") {
+    assertLiveWritesAllowed("إلغاء الطلب");
+    if (!orderId) throw new Error("الطلب غير محدد.");
+    const note = String(reason || "").trim();
+    if (note.length > 500) throw new Error("سبب الإلغاء يجب ألا يتجاوز 500 حرف.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/customer_cancel_order_v2", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_order: orderId, p_reason: note || null }
     });
   },
 
