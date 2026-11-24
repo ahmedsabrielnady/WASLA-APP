@@ -200,6 +200,7 @@ export function isPreviewHost(hostname) {
 
 /** Run an async UI operation while reliably clearing its busy state. */
 export async function runWithBusyState(state, operation) {
+  if (state.busy) throw new Error("جارٍ تنفيذ عملية أخرى. انتظر قليلًا.");
   state.busy = true;
   try {
     return await operation();
