@@ -337,8 +337,8 @@ function authModal() {
           <label>البريد الإلكتروني<input name="email" type="email" required autocomplete="email" placeholder="name@example.com"></label>
           <label>كلمة المرور<input name="password" type="password" required minlength="8" autocomplete="${register ? "new-password" : "current-password"}" placeholder="8 أحرف على الأقل"></label>
           ${register ? `
-            <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على شروط الاستخدام.</span></label>
-            <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على سياسة الخصوصية.</span></label>
+            <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على <a href="./terms.html" target="_blank" rel="noopener">شروط الاستخدام (مسودة)</a>.</span></label>
+            <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على <a href="./privacy.html" target="_blank" rel="noopener">سياسة الخصوصية (مسودة)</a>.</span></label>
           ` : ""}
           <button class="btn btn-primary btn-block" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "جارٍ التنفيذ..." : (register ? "إنشاء الحساب" : "تسجيل الدخول")}</button>
         </form>
@@ -424,8 +424,8 @@ function orderModal() {
           <label>عنوان تنفيذ الخدمة<input name="address" required minlength="4" maxlength="255" autocomplete="street-address" value="${escapeHTML(state.pendingAddress || (state.pendingLocation ? "موقعي الحالي" : ""))}" placeholder="الشارع والمنطقة ورقم العقار"></label>
           <label>ملاحظات إضافية<textarea name="notes" maxlength="500" rows="3" placeholder="تفاصيل تساعد مقدم الخدمة"></textarea></label>
           <div class="consent-panel">
-            <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على شروط الاستخدام.</span></label>
-            <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على سياسة الخصوصية.</span></label>
+            <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على <a href="./terms.html" target="_blank" rel="noopener">شروط الاستخدام (مسودة)</a>.</span></label>
+            <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على <a href="./privacy.html" target="_blank" rel="noopener">سياسة الخصوصية (مسودة)</a>.</span></label>
           </div>
           <p class="form-footnote">إرسال الطلب طلب مبدئي؛ الإدارة تؤكد توافر الفني والموعد والتكلفة معك قبل التنفيذ. لا يتم تحصيل أي مبالغ داخل وصلة حاليًا.</p>
           ${CONFIG.isPublicPreview ? '<p class="form-footnote preview-auth-note">هذه نسخة معاينة متصلة بقاعدة بيانات حية؛ إرسال الطلبات الفعلية متوقف هنا.</p>' : ""}
@@ -460,6 +460,7 @@ function render() {
     <footer class="site-footer">
       <div class="footer-brand"><span class="brand-mark small" aria-hidden="true"><span>W</span></span><strong>WASLA <span>وصلة</span></strong></div>
       <p>وصلة مش فاصلة، وصلة شغالة.</p>
+      <nav class="footer-policy-links" aria-label="السياسات"><a href="./terms.html">الشروط</a><a href="./privacy.html">الخصوصية</a><a href="./cancellation.html">الإلغاء والاسترداد</a></nav>
       <small>نسخة تشغيل أولية · شبين القناطر · ${new Date().getFullYear()}</small>
     </footer>
     ${modalView()}
