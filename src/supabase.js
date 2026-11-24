@@ -1,6 +1,6 @@
 import { CONFIG } from "./config.js";
 import { validateRoadmapUpdate } from "./domain.js";
-import { resolveAuthIdentifier } from "./auth-utils.js";
+import { normalizeEgyptianPhone, resolveAuthIdentifier } from "./auth-utils.js";
 import { fetchTextWithTimeout } from "./network.js";
 
 const SESSION_KEY = "wasla.auth.session.v1";
@@ -167,13 +167,16 @@ export const authApi = {
     return result;
   },
 
-  async signUp({ identifier, password, fullName }) {
+  async signUp({ identifier, email, password, fullName, phone }) {
     assertLiveWritesAllowed("إنشاء الحسابات");
-    const resolved = resolveAuthIdentifier(identifier);
+    // Keep the previous email + phone signup contract working for callers and existing tests.
+    const signupIdentifier = identifier ?? email;
+    const resolved = resolveAuthIdentifier(signupIdentifier);
     if (!resolved) throw new Error("أدخل رقم موبايل مصري صحيحًا أو بريدًا إلكترونيًا صحيحًا.");
-    const localPhone = resolved.type === "phone"
-      ? (resolved.value.slice(3).startsWith("0") ? resolved.value.slice(3) : `0${resolved.value.slice(3)}`)
-      : "";
+    const phoneInput = resolved.type === "phone" ? signupIdentifier : phone;
+    const normalizedPhone = phoneInput ? normalizeEgyptianPhone(phoneInput) : null;
+    if (phoneInput && !normalizedPhone) throw new Error("رقم الموبايل يجب أن يكون رقمًا مصريًا صحيحًا.");
+    const localPhone = normalizedPhone ? `0${normalizedPhone.slice(3)}` : "";
     const data = {
       full_name: String(fullName).trim(),
       ...(localPhone ? { phone: localPhone } : {}),
