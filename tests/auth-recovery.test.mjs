@@ -76,3 +76,19 @@ test("updatePassword sends the new password with the recovery bearer token", asy
   assert.equal(captured.options.headers.Authorization, "Bearer recovery-access");
   assert.deepEqual(JSON.parse(captured.options.body), { password: "strong-password" });
 });
+
+test("acceptSignupFromUrl stores confirmation tokens and removes them from the address bar", () => {
+  window.location.hash = "#access_token=signup-access&refresh_token=signup-refresh&type=signup&expires_in=3600";
+  assert.equal(authApi.acceptSignupFromUrl(), true);
+  const session = JSON.parse(localStorage.getItem("wasla.auth.session.v1"));
+  assert.equal(session.access_token, "signup-access");
+  assert.equal(session.refresh_token, "signup-refresh");
+  assert.equal(replacedUrl, "/");
+  assert.equal(window.location.hash, "");
+});
+
+test("acceptSignupFromUrl ignores non-signup callback tokens", () => {
+  window.location.hash = "#access_token=other-access&refresh_token=other-refresh&type=magiclink";
+  assert.equal(authApi.acceptSignupFromUrl(), false);
+  assert.equal(window.location.hash.includes("type=magiclink"), true);
+});

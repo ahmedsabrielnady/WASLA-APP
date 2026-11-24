@@ -7,6 +7,8 @@ import { renderCrmView } from "./crm.js";
 import { renderProviderView } from "./provider.js";
 
 const root = document.querySelector("#app");
+const PENDING_ORDER_SERVICE_KEY = "wasla.pending-order-service.v1";
+
 const state = {
   services: [],
   offers: [],
@@ -628,9 +630,12 @@ function openOrder(item) {
   state.pendingOrderIdempotencyKey = globalThis.crypto?.randomUUID
     ? globalThis.crypto.randomUUID()
     : `wsl-${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
+  state.pendingLocation = null;
+  state.pendingAddress = "";
+  state.pendingService = item;
+  localStorage.setItem(PENDING_ORDER_SERVICE_KEY, String(item.id));
   if (!state.user) {
-    state.pendingService = item;
-    openAuth("login");
+    openAuth("register");
     return;
   }
   state.pendingService = item;
@@ -759,6 +764,7 @@ async function afterLogin() {
     state.modal = "order";
     render();
   } else if (state.pendingService) {
+    localStorage.removeItem(PENDING_ORDER_SERVICE_KEY);
     state.pendingService = null;
     state.pendingLocation = null;
     state.pendingAddress = "";
@@ -822,7 +828,7 @@ async function submitAuth(form) {
     } else {
       state.modal = null;
       render();
-      showToast("تم إنشاء الحساب. أكد بريدك الإلكتروني ثم سجل الدخول لحفظ الموافقات وإكمال التسجيل.", "success");
+      showToast("تم إنشاء الحساب. افتح رسالة تأكيد البريد؛ اختيار الخدمة محفوظ على هذا الجهاز، وبعد التأكيد ستكمل طلبك.", "success");
     }
   });
 }
@@ -893,6 +899,7 @@ async function submitOrder(form) {
     state.pendingOrderIdempotencyKey = "";
 
     state.modal = null;
+    localStorage.removeItem(PENDING_ORDER_SERVICE_KEY);
     state.pendingService = null;
     state.pendingLocation = null;
     state.pendingAddress = "";
@@ -937,6 +944,13 @@ root.addEventListener("click", async (event) => {
     }
     else if (action === "close-modal" || action === "backdrop") {
       state.modal = null;
+      if (state.pendingService) {
+        localStorage.removeItem(PENDING_ORDER_SERVICE_KEY);
+        state.pendingService = null;
+        state.pendingLocation = null;
+        state.pendingAddress = "";
+        state.pendingOrderIdempotencyKey = "";
+      }
       render();
     } else if (action === "switch-auth") {
       state.authMode = state.authMode === "login" ? "register" : "login";
@@ -1388,10 +1402,33 @@ root.addEventListener("input", (event) => {
 });
 
 async function init() {
+  const signupConfirmed = authApi.acceptSignupFromUrl();
   const recoveryLink = authApi.acceptRecoveryFromUrl();
   if (recoveryLink) state.modal = "password-recovery";
   render();
   await Promise.all([loadCatalog(), loadAccount(), loadRoadmap()]);
+
+  const pendingServiceId = recoveryLink ? null : localStorage.getItem(PENDING_ORDER_SERVICE_KEY);
+  if (pendingServiceId) {
+    const pendingService = filterOrderableServices(state.services)
+      .find((service) => String(service.id) === pendingServiceId);
+    if (!pendingService) {
+      localStorage.removeItem(PENDING_ORDER_SERVICE_KEY);
+    } else if (state.profile?.role === "customer") {
+      state.pendingService = pendingService;
+      state.modal = "order";
+    } else if (!state.user) {
+      state.pendingService = pendingService;
+      state.authMode = "register";
+      state.modal = "auth";
+    } else {
+      localStorage.removeItem(PENDING_ORDER_SERVICE_KEY);
+    }
+  }
+
+  if (signupConfirmed) {
+    showToast("تم تأكيد بريدك الإلكتروني. أكمل بيانات الطلب.", "success");
+  }
   if (state.profile?.role === "admin") await loadRoadmapAudit();
 
   if (["doctor", "technician", "teacher", "courier", "merchant"].includes(state.profile?.role) && state.view === "home") {
