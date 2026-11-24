@@ -21,6 +21,7 @@ const state = {
     : "home",
   modal: null,
   authMode: "login",
+  googleAuthEnabled: false,
   pendingService: null,
   pendingLocation: null,
   pendingAddress: "",
@@ -364,13 +365,15 @@ function authModal() {
         <button class="modal-close" data-action="close-modal" aria-label="إغلاق">×</button>
         <span class="eyebrow">حساب وصلة</span>
         <h2 id="auth-title">${register ? "إنشاء حساب جديد" : "مرحبًا بعودتك"}</h2>
-        <p class="modal-subtitle">${register ? "أنشئ حسابًا لتسجيل طلباتك ومتابعتها." : "سجل الدخول لعرض الطلبات وإرسال خدمة."}</p>
+        <p class="modal-subtitle">${register ? "استخدم رقم موبايلك أو بريدك الإلكتروني لإنشاء الحساب." : "ادخل برقم الموبايل أو البريد الإلكتروني وكلمة المرور."}</p>
         <form data-form="auth" novalidate>
           ${register ? `
             <label>الاسم بالكامل<input name="full_name" required minlength="2" maxlength="60" autocomplete="name" placeholder="الاسم بالكامل"></label>
-            <label>رقم الموبايل<input name="phone" required inputmode="numeric" maxlength="11" autocomplete="tel" placeholder="01xxxxxxxxx"></label>
           ` : ""}
-          <label>البريد الإلكتروني<input name="email" type="email" required autocomplete="email" placeholder="name@example.com"></label>
+          <label>رقم الموبايل أو البريد الإلكتروني
+            <input name="identifier" type="text" required autocomplete="username" inputmode="text"
+              placeholder="01xxxxxxxxx أو name@gmail.com">
+          </label>
           <label>كلمة المرور<input name="password" type="password" required minlength="8" autocomplete="${register ? "new-password" : "current-password"}" placeholder="8 أحرف على الأقل"></label>
           ${register ? `
             <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على <a href="./terms.html" target="_blank" rel="noopener">شروط الاستخدام (مسودة)</a>.</span></label>
@@ -378,8 +381,10 @@ function authModal() {
           ` : ""}
           <button class="btn btn-primary btn-block" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "جارٍ التنفيذ..." : (register ? "إنشاء الحساب" : "تسجيل الدخول")}</button>
         </form>
-        ${!register && !CONFIG.isPublicPreview ? '<button class="switch-auth" data-action="forgot-password">نسيت كلمة المرور؟</button>' : ""}
-${CONFIG.isPublicPreview
+        ${!register && !CONFIG.isPublicPreview ? '<button class="switch-auth" data-action="forgot-password">استعادة حساب البريد الإلكتروني</button>' : ""}
+        ${!CONFIG.isPublicPreview && state.googleAuthEnabled ? '<button class="btn btn-outline btn-block" type="button" data-action="google-auth">المتابعة باستخدام Google</button>' : ""}
+        <p class="form-footnote">لن نرسل رسالة SMS. تسجيل الموبايل يعتمد على كلمة المرور، أما استعادة حساب الموبايل فتحتاج وسيلة استرداد آمنة.</p>
+        ${CONFIG.isPublicPreview
           ? '<p class="form-footnote preview-auth-note">إنشاء الحسابات متوقف في نسخة المعاينة لحماية قاعدة البيانات الحية.</p>'
           : `<button class="switch-auth" data-action="switch-auth">${register ? "لديك حساب بالفعل؟ تسجيل الدخول" : "ليس لديك حساب؟ إنشاء حساب جديد"}</button>`}
       </section>
@@ -786,23 +791,17 @@ async function afterLogin() {
 
 async function submitAuth(form) {
   const values = Object.fromEntries(new FormData(form).entries());
-  const email = String(values.email ?? "").trim();
+  const identifier = String(values.identifier ?? "").trim();
   const password = String(values.password ?? "");
   const register = state.authMode === "register";
 
-  if (!email || !password) throw new Error("أدخل البريد الإلكتروني وكلمة المرور.");
+  if (!identifier || !password) throw new Error("أدخل رقم الموبايل أو البريد الإلكتروني وكلمة المرور.");
 
   let fullName = "";
-  let phone = "";
   if (register) {
     fullName = String(values.full_name ?? "").trim();
-    phone = String(values.phone ?? "").trim();
-
     if (fullName.length < 2 || fullName.length > 60) {
       throw new Error("اكتب الاسم من حرفين إلى 60 حرفًا.");
-    }
-    if (!isEgyptianPhone(phone)) {
-      throw new Error("رقم الموبايل يجب أن يتكون من 11 رقمًا ويبدأ بـ 01.");
     }
     if (values.terms !== "on" || values.privacy !== "on") {
       throw new Error("يجب الموافقة على الشروط وسياسة الخصوصية.");
@@ -813,14 +812,14 @@ async function submitAuth(form) {
     render();
 
     if (!register) {
-      await authApi.signIn(email, password);
+      await authApi.signIn(identifier, password);
       await afterLogin();
       showToast("تم تسجيل الدخول.", "success");
       return;
     }
 
     dataApi.markConsentPending();
-    const result = await authApi.signUp({ email, password, fullName, phone });
+    const result = await authApi.signUp({ identifier, password, fullName });
 
     if (result?.access_token) {
       await afterLogin();
@@ -828,7 +827,13 @@ async function submitAuth(form) {
     } else {
       state.modal = null;
       render();
-      showToast("تم إنشاء الحساب. افتح رسالة تأكيد البريد؛ اختيار الخدمة محفوظ على هذا الجهاز، وبعد التأكيد ستكمل طلبك.", "success");
+      const phoneSignup = result?.identifier_type === "phone";
+      showToast(
+        phoneSignup
+          ? "تم إنشاء الحساب، لكن Supabase ما زال يطلب تأكيد الموبايل. يجب إيقاف Confirm Phone حتى يعمل الدخول دون SMS."
+          : "تم إنشاء الحساب. افتح رسالة تأكيد البريد؛ اختيار الخدمة محفوظ على هذا الجهاز، وبعد التأكيد ستكمل طلبك.",
+        phoneSignup ? "error" : "success"
+      );
     }
   });
 }
@@ -955,6 +960,9 @@ root.addEventListener("click", async (event) => {
     } else if (action === "switch-auth") {
       state.authMode = state.authMode === "login" ? "register" : "login";
       render();
+    } else if (action === "google-auth") {
+      if (CONFIG.isPublicPreview) throw new Error("تسجيل Google متوقف في نسخة المعاينة.");
+      await authApi.signInWithGoogle();
     } else if (action === "forgot-password") {
       state.modal = "password-reset";
       render();
@@ -1402,11 +1410,25 @@ root.addEventListener("input", (event) => {
 });
 
 async function init() {
+  let oauthError = "";
+  const authSettingsPromise = authApi.getAuthSettings().catch(() => null);
+  try {
+    const oauthResult = await authApi.acceptOAuthFromUrl();
+    oauthError = oauthResult?.error || "";
+  } catch (error) {
+    oauthError = error.message || "تعذر إكمال تسجيل Google.";
+  }
   const signupConfirmed = authApi.acceptSignupFromUrl();
   const recoveryLink = authApi.acceptRecoveryFromUrl();
   if (recoveryLink) state.modal = "password-recovery";
   render();
-  await Promise.all([loadCatalog(), loadAccount(), loadRoadmap()]);
+  const [authSettings] = await Promise.all([
+    authSettingsPromise,
+    loadCatalog(),
+    loadAccount(),
+    loadRoadmap()
+  ]);
+  state.googleAuthEnabled = Boolean(authSettings?.external?.google);
 
   const pendingServiceId = recoveryLink ? null : localStorage.getItem(PENDING_ORDER_SERVICE_KEY);
   if (pendingServiceId) {
@@ -1426,6 +1448,7 @@ async function init() {
     }
   }
 
+  if (oauthError) showToast(oauthError, "error");
   if (signupConfirmed) {
     showToast("تم تأكيد بريدك الإلكتروني. أكمل بيانات الطلب.", "success");
   }

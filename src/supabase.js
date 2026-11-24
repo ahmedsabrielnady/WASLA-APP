@@ -1,9 +1,11 @@
 import { CONFIG } from "./config.js";
 import { validateRoadmapUpdate } from "./domain.js";
+import { normalizeEgyptianPhone, resolveAuthIdentifier } from "./auth-utils.js";
 import { fetchTextWithTimeout } from "./network.js";
 
 const SESSION_KEY = "wasla.auth.session.v1";
 const PENDING_CONSENT_KEY = "wasla.pending-consent.v1";
+const OAUTH_VERIFIER_KEY = "wasla.auth.google-pkce-verifier.v1";
 const POLICY_VERSION = "draft-2026-11-24.2";
 const API_ROOT = CONFIG.supabaseUrl.replace(/\/$/, "");
 
@@ -142,6 +144,10 @@ async function authRequest(path, body) {
 export const authApi = {
   getSession: getStoredSession,
 
+  async getAuthSettings() {
+    return request("/auth/v1/settings");
+  },
+
   async getUser() {
     const session = await getValidSession();
     if (!session?.access_token) return null;
@@ -154,33 +160,98 @@ export const authApi = {
     }
   },
 
-  async signIn(email, password) {
+  async signIn(identifier, password) {
+    const resolved = resolveAuthIdentifier(identifier);
+    if (!resolved) throw new Error("أدخل رقم موبايل مصري صحيحًا أو بريدًا إلكترونيًا صحيحًا.");
     const result = await authRequest("/auth/v1/token?grant_type=password", {
-      email: String(email).trim(),
+      [resolved.type]: resolved.value,
       password
     });
     saveSession(result);
     return result;
   },
 
-  async signUp({ email, password, fullName, phone }) {
+  async signUp({ identifier, email, password, fullName, phone }) {
     assertLiveWritesAllowed("إنشاء الحسابات");
+    // Keep the previous email + phone signup contract working for callers and existing tests.
+    const signupIdentifier = identifier ?? email;
+    const resolved = resolveAuthIdentifier(signupIdentifier);
+    if (!resolved) throw new Error("أدخل رقم موبايل مصري صحيحًا أو بريدًا إلكترونيًا صحيحًا.");
+    const phoneInput = resolved.type === "phone" ? signupIdentifier : phone;
+    const normalizedPhone = phoneInput ? normalizeEgyptianPhone(phoneInput) : null;
+    if (phoneInput && !normalizedPhone) throw new Error("رقم الموبايل يجب أن يكون رقمًا مصريًا صحيحًا.");
+    const localPhone = normalizedPhone ? `0${normalizedPhone.slice(3)}` : "";
+    const data = {
+      full_name: String(fullName).trim(),
+      ...(localPhone ? { phone: localPhone } : {}),
+      terms_version: POLICY_VERSION,
+      privacy_version: POLICY_VERSION,
+      consent_accepted_at: new Date().toISOString()
+    };
     const result = await authRequest("/auth/v1/signup", {
-      email: String(email).trim(),
+      [resolved.type]: resolved.value,
       password,
-      data: {
-        full_name: String(fullName).trim(),
-        phone: String(phone).trim(),
-        terms_version: POLICY_VERSION,
-        privacy_version: POLICY_VERSION,
-        consent_accepted_at: new Date().toISOString()
-      }
+      data
     });
 
     if (result?.access_token && result?.refresh_token) {
       saveSession(result);
     }
-    return result;
+    return { ...result, identifier_type: resolved.type };
+  },
+
+  async signInWithGoogle() {
+    if (!globalThis.crypto?.subtle || !globalThis.crypto?.getRandomValues) {
+      throw new Error("المتصفح لا يدعم تسجيل Google الآمن. حدّث المتصفح.");
+    }
+    const bytes = new Uint8Array(32);
+    globalThis.crypto.getRandomValues(bytes);
+    const verifier = btoa(String.fromCharCode(...bytes))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+    const digest = await globalThis.crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(verifier)
+    );
+    const challenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+    sessionStorage.setItem(OAUTH_VERIFIER_KEY, verifier);
+    const redirectTo = window.location.origin + window.location.pathname + window.location.search;
+    const query = new URLSearchParams({
+      provider: "google",
+      redirect_to: redirectTo,
+      code_challenge: challenge,
+      code_challenge_method: "s256"
+    });
+    window.location.assign(`${API_ROOT}/auth/v1/authorize?${query}`);
+  },
+
+  async acceptOAuthFromUrl() {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get("code");
+    if (!code) {
+      const error = url.searchParams.get("error_description") || url.searchParams.get("error");
+      if (error) {
+        url.searchParams.delete("error");
+        url.searchParams.delete("error_description");
+        url.searchParams.delete("error_code");
+        window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+        return { error };
+      }
+      return { ok: false };
+    }
+
+    const verifier = sessionStorage.getItem(OAUTH_VERIFIER_KEY);
+    sessionStorage.removeItem(OAUTH_VERIFIER_KEY);
+    if (!verifier) throw new Error("انتهت محاولة تسجيل Google. ابدأ تسجيل الدخول من جديد.");
+    const result = await authRequest("/auth/v1/token?grant_type=pkce", {
+      auth_code: code,
+      code_verifier: verifier
+    });
+    saveSession(result);
+    url.searchParams.delete("code");
+    url.searchParams.delete("state");
+    window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+    return { ok: true };
   },
 
   acceptSignupFromUrl() {
