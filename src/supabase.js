@@ -417,7 +417,7 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول لعرض طلباتك.");
 
-    const base = "id,ref,sector,status,price_egp,deposit_egp,deposit_paid,created_at,scheduled_at,lat,lng,item_id";
+    const base = "id,ref,sector,status,price_egp,deposit_egp,deposit_paid,created_at,scheduled_at,lat,lng,item_id,product_id,quantity";
     const build = (select) => new URLSearchParams({
       select,
       customer_id: `eq.${userId}`,
@@ -783,6 +783,82 @@ export const dataApi = {
     } catch (error) {
       // Table absent (schema not migrated): hide the delivery section instead of failing the page.
       if (/delivery_requests/.test(String(error?.message))) return null;
+      throw error;
+    }
+  },
+
+  async getDoctors() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const query = new URLSearchParams({
+      select: "id,display_name,specialty,area",
+      kind: "eq.doctor", approved: "eq.true", active: "eq.true", is_test: "eq.false",
+      order: "display_name.asc", limit: "20"
+    });
+    return request(`/rest/v1/providers?${query}`, { token: session.access_token });
+  },
+
+  async getClinicSlots(providerId, day) {
+    if (!providerId || !/^\d{4}-\d{2}-\d{2}$/.test(String(day || ""))) return [];
+    const session = await getValidSession();
+    if (!session?.access_token) return [];
+    const rows = await request("/rest/v1/rpc/clinic_available_slots", {
+      method: "POST", token: session.access_token, body: { p_provider: providerId, p_day: day }
+    });
+    return Array.isArray(rows) ? rows.map((r) => r.slot) : [];
+  },
+
+  async bookClinicSlot(providerId, slot, notes) {
+    assertLiveWritesAllowed("حجز موعد العيادة");
+    if (!providerId || !slot) throw new Error("اختر الطبيب والموعد.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    try {
+      return await request("/rest/v1/rpc/book_clinic_slot", {
+        method: "POST", token: session.access_token,
+        body: { p_provider: providerId, p_at: slot, p_notes: String(notes || "").trim().slice(0, 300) || null, p_source: "web" }
+      });
+    } catch (error) {
+      if (/permission denied/i.test(String(error?.message))) throw new Error("حجز العيادات غير مفعل حاليًا.");
+      throw error;
+    }
+  },
+
+  async doctorSetAppointmentStatus(orderId, status, note = null) {
+    assertLiveWritesAllowed("تحديث حالة الموعد");
+    if (!orderId || !["confirmed", "in_progress", "done", "cancelled"].includes(status)) throw new Error("تحديث الحالة غير صالح.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/doctor_set_appointment_status", {
+      method: "POST", token: session.access_token, body: { p_order: orderId, p_to: status, p_note: note }
+    });
+  },
+
+  async getProducts() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const query = new URLSearchParams({
+      select: "id,name,price_egp,discount_price_egp,stock", active: "eq.true", stock: "gt.0", order: "id.asc", limit: "50"
+    });
+    return request(`/rest/v1/products?${query}`, { token: session.access_token });
+  },
+
+  async placeProductOrder(productId, qty, address, notes) {
+    assertLiveWritesAllowed("طلب منتج");
+    const q = Number(qty);
+    if (!productId) throw new Error("اختر المنتج.");
+    if (!Number.isInteger(q) || q < 1 || q > 20) throw new Error("الكمية من 1 إلى 20.");
+    const a = String(address || "").trim();
+    if (a.length < 4) throw new Error("اكتب عنوان التسليم بوضوح.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    try {
+      return await request("/rest/v1/rpc/place_product_order", {
+        method: "POST", token: session.access_token,
+        body: { p_product: Number(productId), p_qty: q, p_address: a, p_notes: String(notes || "").trim().slice(0, 300) || null, p_source: "web" }
+      });
+    } catch (error) {
+      if (/permission denied/i.test(String(error?.message))) throw new Error("طلب المنتجات غير مفعل حاليًا.");
       throw error;
     }
   },
