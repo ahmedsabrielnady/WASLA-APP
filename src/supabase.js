@@ -914,10 +914,15 @@ export const dataApi = {
   async getProducts() {
     const session = await getValidSession();
     if (!session?.access_token) return null;
-    const query = new URLSearchParams({
-      select: "id,name,price_egp,discount_price_egp,stock", active: "eq.true", stock: "gt.0", order: "id.asc", limit: "50"
-    });
-    return request(`/rest/v1/products?${query}`, { token: session.access_token });
+    const build = (select) => new URLSearchParams({ select, active: "eq.true", stock: "gt.0", order: "id.asc", limit: "50" });
+    try {
+      return await request(`/rest/v1/products?${build("id,name,price_egp,discount_price_egp,stock,category")}`, { token: session.access_token });
+    } catch (error) {
+      // Before the category draft is applied every product is a market product.
+      if (!/category/.test(String(error?.message))) throw error;
+      const rows = await request(`/rest/v1/products?${build("id,name,price_egp,discount_price_egp,stock")}`, { token: session.access_token });
+      return Array.isArray(rows) ? rows.map((row) => ({ ...row, category: "market" })) : rows;
+    }
   },
 
   async placeProductOrder(productId, qty, address, notes) {
