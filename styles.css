@@ -1109,3 +1109,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 .quote-box { border: 1px solid #d9a441; background: #fff8e6; border-radius: 10px; padding: 10px; margin: 8px 0; }
 .quote-box p { margin: 6px 0; font-size: 0.9rem; }
+
+.delivery-panel { margin-top: 14px; }
+.delivery-panel form { display: grid; gap: 10px; margin: 10px 0; }
+.delivery-panel label { display: grid; gap: 4px; font-weight: 800; }
+.delivery-panel input { width: 100%; box-sizing: border-box; min-height: 44px; padding: 8px 10px; border: 1px solid #c9d6cf; border-radius: 10px; font: inherit; }
