@@ -5,7 +5,7 @@ export function normalizeEgyptianPhone(value) {
     : digits.startsWith("20")
       ? `0${digits.slice(2)}`
       : digits;
-  if (!/^01[0-9]{9}$/.test(local)) return null;
+  if (!/^01[0125][0-9]{8}$/.test(local)) return null;
   return `+20${local.slice(1)}`;
 }
 
