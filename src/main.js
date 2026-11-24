@@ -921,6 +921,9 @@ root.addEventListener("click", async (event) => {
       await authApi.signOut();
       state.user = state.profile = state.session = null;
       state.myOrders = [];
+      state.trackingOrderId = "";
+      state.trackingLoadingId = "";
+      state.orderTracking = null;
       state.operationsOrders = [];
       state.operationsProviders = [];
       state.operationsServices = [];
@@ -964,6 +967,10 @@ root.addEventListener("click", async (event) => {
       await runWithBusyState(state, async () => {
         render();
         await dataApi.customerCancelOrder(orderId, "إلغاء بطلب العميل من صفحة طلباتي");
+        if (state.trackingOrderId === orderId) {
+          state.trackingOrderId = "";
+          state.orderTracking = null;
+        }
         let refreshed = true;
         try {
           state.myOrders = await dataApi.getMyOrders(state.user.id);
