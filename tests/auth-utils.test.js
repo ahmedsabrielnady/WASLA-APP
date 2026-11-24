@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { isEgyptianPhone, normalizeEgyptianPhone, resolveAuthIdentifier } from "../src/auth-utils.js";
+import { isEgyptianPhone, isPhonePasswordAuthReady, normalizeEgyptianPhone, resolveAuthIdentifier } from "../src/auth-utils.js";
 
 test("normalizes Egyptian mobile numbers to E.164", () => {
   assert.equal(normalizeEgyptianPhone("01012345678"), "+201012345678");
@@ -19,4 +19,11 @@ test("classifies phone and email login identifiers", () => {
   assert.deepEqual(resolveAuthIdentifier("01012345678"), { type: "phone", value: "+201012345678" });
   assert.deepEqual(resolveAuthIdentifier("ahmed@example.com"), { type: "email", value: "ahmed@example.com" });
   assert.equal(resolveAuthIdentifier("not-valid"), null);
+});
+
+test("phone password auth requires enabled provider and phone autoconfirm", () => {
+  assert.equal(isPhonePasswordAuthReady({ external: { phone: true }, phone_autoconfirm: true }), true);
+  assert.equal(isPhonePasswordAuthReady({ external: { phone: true }, phone_autoconfirm: false }), false);
+  assert.equal(isPhonePasswordAuthReady({ external: { phone: false }, phone_autoconfirm: true }), false);
+  assert.equal(isPhonePasswordAuthReady(null), false);
 });
