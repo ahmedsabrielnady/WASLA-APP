@@ -342,9 +342,44 @@ function authModal() {
           ` : ""}
           <button class="btn btn-primary btn-block" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "جارٍ التنفيذ..." : (register ? "إنشاء الحساب" : "تسجيل الدخول")}</button>
         </form>
+        ${!register && !CONFIG.isPublicPreview ? '<button class="switch-auth" data-action="forgot-password">نسيت كلمة المرور؟</button>' : ""}
 ${CONFIG.isPublicPreview
           ? '<p class="form-footnote preview-auth-note">إنشاء الحسابات متوقف في نسخة المعاينة لحماية قاعدة البيانات الحية.</p>'
           : `<button class="switch-auth" data-action="switch-auth">${register ? "لديك حساب بالفعل؟ تسجيل الدخول" : "ليس لديك حساب؟ إنشاء حساب جديد"}</button>`}
+      </section>
+    </div>
+  `;
+}
+
+function passwordResetModal() {
+  return `
+    <div class="modal-backdrop" data-action="backdrop">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="reset-title">
+        <button class="modal-close" data-action="close-modal" aria-label="إغلاق">×</button>
+        <span class="eyebrow">استعادة الحساب</span>
+        <h2 id="reset-title">نسيت كلمة المرور؟</h2>
+        <p class="modal-subtitle">سنرسل رابطًا آمنًا لإعادة تعيين كلمة المرور إلى بريدك الإلكتروني.</p>
+        <form data-form="password-reset" novalidate>
+          <label>البريد الإلكتروني<input name="email" type="email" required autocomplete="email" placeholder="name@example.com"></label>
+          <button class="btn btn-primary btn-block" type="submit">إرسال رابط الاستعادة</button>
+        </form>
+      </section>
+    </div>
+  `;
+}
+
+function passwordRecoveryModal() {
+  return `
+    <div class="modal-backdrop">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="recovery-title">
+        <span class="eyebrow">تأمين الحساب</span>
+        <h2 id="recovery-title">تعيين كلمة مرور جديدة</h2>
+        <p class="modal-subtitle">اختر كلمة مرور قوية لا تقل عن 8 أحرف.</p>
+        <form data-form="password-recovery" novalidate>
+          <label>كلمة المرور الجديدة<input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+          <label>تأكيد كلمة المرور<input name="confirm_password" type="password" required minlength="8" autocomplete="new-password"></label>
+          <button class="btn btn-primary btn-block" type="submit">حفظ كلمة المرور</button>
+        </form>
       </section>
     </div>
   `;
@@ -403,6 +438,8 @@ function orderModal() {
 
 function modalView() {
   if (state.modal === "auth") return authModal();
+  if (state.modal === "password-reset") return passwordResetModal();
+  if (state.modal === "password-recovery") return passwordRecoveryModal();
   if (state.modal === "order") return orderModal();
   if (state.modal === "provider-invite") return providerInviteModal();
   return "";
@@ -838,6 +875,10 @@ root.addEventListener("click", async (event) => {
     } else if (action === "switch-auth") {
       state.authMode = state.authMode === "login" ? "register" : "login";
       render();
+    } else if (action === "forgot-password") {
+      state.modal = "password-reset";
+      render();
+      root.querySelector('input[name="email"]')?.focus();
     } else if (action === "logout") {
       await authApi.signOut();
       state.user = state.profile = state.session = null;
@@ -983,6 +1024,27 @@ root.addEventListener("submit", async (event) => {
 
   try {
     if (form.dataset.form === "auth") await submitAuth(form);
+    if (form.dataset.form === "password-reset") {
+      const email = String(new FormData(form).get("email") || "").trim();
+      if (!email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) throw new Error("أدخل بريدًا إلكترونيًا صحيحًا.");
+      await authApi.requestPasswordReset(email);
+      state.modal = null;
+      render();
+      showToast("إذا كان البريد مسجلًا، ستصلك رسالة تحتوي على رابط الاستعادة.", "success");
+    }
+    if (form.dataset.form === "password-recovery") {
+      const values = Object.fromEntries(new FormData(form).entries());
+      const password = String(values.password || "");
+      if (password.length < 8) throw new Error("كلمة المرور يجب ألا تقل عن 8 أحرف.");
+      if (password !== String(values.confirm_password || "")) throw new Error("تأكيد كلمة المرور غير مطابق.");
+      await authApi.updatePassword(password);
+      await authApi.signOut();
+      state.user = state.profile = state.session = null;
+      state.modal = "auth";
+      state.authMode = "login";
+      render();
+      showToast("تم تحديث كلمة المرور. سجل الدخول بكلمتك الجديدة.", "success");
+    }
     if (form.dataset.form === "order") await submitOrder(form);
     if (form.dataset.form === "roadmap-milestone") await submitRoadmapMilestone(form);
     if (form.dataset.form === "crm-lead") {
@@ -1208,6 +1270,8 @@ root.addEventListener("input", (event) => {
 });
 
 async function init() {
+  const recoveryLink = authApi.acceptRecoveryFromUrl();
+  if (recoveryLink) state.modal = "password-recovery";
   render();
   await Promise.all([loadCatalog(), loadAccount(), loadRoadmap()]);
   if (state.profile?.role === "admin") await loadRoadmapAudit();
