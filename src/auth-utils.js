@@ -26,6 +26,20 @@ export function resolveAuthIdentifier(value) {
   return null;
 }
 
-export function isPhonePasswordAuthReady(settings) {
-  return Boolean(settings?.external?.phone && settings?.phone_autoconfirm === true);
+/**
+ * Phone/password accounts use a deterministic email alias with Supabase's
+ * normal email/password auth. This avoids the SMS phone provider entirely.
+ * New alias signups can complete only when Supabase auto-confirms email;
+ * otherwise confirmation would be sent to a synthetic address.
+ */
+export function toWaslaAuthEmail(value) {
+  const resolved = resolveAuthIdentifier(value);
+  if (!resolved) return null;
+  if (resolved.type === "email") return resolved.value;
+  const localPhone = `0${resolved.value.slice(3)}`;
+  return `${localPhone}@wasla.app`;
+}
+
+export function isPhoneAliasSignupReady(settings) {
+  return Boolean(settings?.external?.email && settings?.mailer_autoconfirm === true);
 }
