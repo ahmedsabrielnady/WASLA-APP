@@ -1,5 +1,6 @@
 import { CONFIG } from "./config.js";
 import { validateRoadmapUpdate } from "./domain.js";
+import { fetchTextWithTimeout } from "./network.js";
 
 const SESSION_KEY = "wasla.auth.session.v1";
 const PENDING_CONSENT_KEY = "wasla.pending-consent.v1";
@@ -64,18 +65,22 @@ async function request(path, options = {}) {
   }
 
   let response;
+  let raw;
   try {
-    response = await fetch(`${API_ROOT}${path}`, {
+    const result = await fetchTextWithTimeout(`${API_ROOT}${path}`, {
       method,
       headers: requestHeaders,
       body: body === undefined ? undefined : JSON.stringify(body),
       cache
     });
-  } catch {
+    response = result.response;
+    raw = result.text;
+  } catch (error) {
+    if (error?.code === "WASLA_REQUEST_TIMEOUT") {
+      throw new Error("استغرق الاتصال بالخدمة وقتًا أطول من المتوقع. أعد المحاولة.");
+    }
     throw new Error("تعذر الاتصال بالخدمة. تحقق من الإنترنت ثم أعد المحاولة.");
   }
-
-  const raw = await response.text();
   let data = null;
   if (raw) {
     try {
