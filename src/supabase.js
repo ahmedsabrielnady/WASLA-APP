@@ -812,6 +812,45 @@ export const dataApi = {
     });
   },
 
+  async getDeliveryQueue() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const query = new URLSearchParams({
+      select: "id,ref,pickup_address,dropoff_address,what_to_deliver,status,courier_id,created_at",
+      order: "created_at.desc",
+      limit: "50"
+    });
+    try {
+      return await request(`/rest/v1/delivery_requests?${query}`, { token: session.access_token });
+    } catch (error) {
+      if (/delivery_requests/.test(String(error?.message))) return null;
+      throw error;
+    }
+  },
+
+  async assignDelivery(requestId, courierId) {
+    assertLiveWritesAllowed("تعيين مندوب التوصيل");
+    if (!requestId || !courierId) throw new Error("اختر الطلب والمندوب.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/assign_delivery", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_request: requestId, p_courier: courierId }
+    });
+  },
+
+  async courierSetDeliveryStatus(requestId, status) {
+    assertLiveWritesAllowed("تحديث حالة التوصيل");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/courier_set_delivery_status", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_request: requestId, p_to: status }
+    });
+  },
+
   async customerCancelOrder(orderId, reason = "") {
     assertLiveWritesAllowed("إلغاء الطلب");
     if (!orderId) throw new Error("الطلب غير محدد.");
