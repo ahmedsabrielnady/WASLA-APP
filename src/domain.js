@@ -22,6 +22,7 @@ export const STATUS_LABELS = Object.freeze({
   accepted: "مقبول",
   preparing: "قيد التجهيز",
   assigned: "تم تعيين مقدم الخدمة",
+  picked_up: "تم الاستلام من المرسل",
   delivered: "تم التسليم"
 });
 
