@@ -159,3 +159,26 @@ test("busy state is cleared when an async operation fails", async () => {
 
   assert.equal(state.busy, false);
 });
+
+test("a second operation while one is in flight is rejected and does not clear busy", async () => {
+  const state = { busy: false };
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  let calls = 0;
+  const first = runWithBusyState(state, async () => { calls += 1; await gate; });
+  await assert.rejects(
+    runWithBusyState(state, async () => { calls += 1; }),
+    /جارٍ تنفيذ/
+  );
+  assert.equal(calls, 1);
+  assert.equal(state.busy, true);
+  release();
+  await first;
+  assert.equal(state.busy, false);
+});
+
+test("main.js never clears busy outside runWithBusyState", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const src = await readFile(new URL("../src/main.js", import.meta.url), "utf8");
+  assert.equal(/state\.busy\s*=\s*(false|true)/.test(src), false);
+});
