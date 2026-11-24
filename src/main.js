@@ -1,4 +1,5 @@
 import { CONFIG } from "./config.js";
+import { isPhonePasswordAuthReady, resolveAuthIdentifier } from "./auth-utils.js";
 import { SECTORS, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, runWithBusyState, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
 import { authApi, dataApi } from "./supabase.js";
 import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
@@ -22,6 +23,7 @@ const state = {
   modal: null,
   authMode: "login",
   googleAuthEnabled: false,
+  phoneAuthReady: false,
   pendingService: null,
   pendingLocation: null,
   pendingAddress: "",
@@ -383,7 +385,7 @@ function authModal() {
         </form>
         ${!register && !CONFIG.isPublicPreview ? '<button class="switch-auth" data-action="forgot-password">استعادة حساب البريد الإلكتروني</button>' : ""}
         ${!CONFIG.isPublicPreview && state.googleAuthEnabled ? '<button class="btn btn-outline btn-block" type="button" data-action="google-auth">المتابعة باستخدام Google</button>' : ""}
-        <p class="form-footnote">لن نرسل رسالة SMS. تسجيل الموبايل يعتمد على كلمة المرور، أما استعادة حساب الموبايل فتحتاج وسيلة استرداد آمنة.</p>
+        <p class="form-footnote">${state.phoneAuthReady ? "تسجيل الموبايل بكلمة مرور دون SMS. استعادة حساب الموبايل تحتاج وسيلة استرداد آمنة." : "دخول الموبايل غير مفعّل حاليًا؛ يمكنك استخدام البريد الإلكتروني حتى تكتمل إعدادات Supabase دون SMS."}</p>
         ${CONFIG.isPublicPreview
           ? '<p class="form-footnote preview-auth-note">إنشاء الحسابات متوقف في نسخة المعاينة لحماية قاعدة البيانات الحية.</p>'
           : `<button class="switch-auth" data-action="switch-auth">${register ? "لديك حساب بالفعل؟ تسجيل الدخول" : "ليس لديك حساب؟ إنشاء حساب جديد"}</button>`}
@@ -796,6 +798,11 @@ async function submitAuth(form) {
   const register = state.authMode === "register";
 
   if (!identifier || !password) throw new Error("أدخل رقم الموبايل أو البريد الإلكتروني وكلمة المرور.");
+  const resolvedIdentifier = resolveAuthIdentifier(identifier);
+  if (!resolvedIdentifier) throw new Error("أدخل رقم موبايل مصري صحيحًا أو بريدًا إلكترونيًا صحيحًا.");
+  if (resolvedIdentifier.type === "phone" && !state.phoneAuthReady) {
+    throw new Error("تسجيل الموبايل غير مفعّل بعد. يمكن الدخول بالبريد الإلكتروني، ولن نرسل SMS.");
+  }
 
   let fullName = "";
   if (register) {
@@ -1429,6 +1436,7 @@ async function init() {
     loadRoadmap()
   ]);
   state.googleAuthEnabled = Boolean(authSettings?.external?.google);
+  state.phoneAuthReady = isPhonePasswordAuthReady(authSettings);
 
   const pendingServiceId = recoveryLink ? null : localStorage.getItem(PENDING_ORDER_SERVICE_KEY);
   if (pendingServiceId) {
