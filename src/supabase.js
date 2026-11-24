@@ -417,16 +417,24 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول لعرض طلباتك.");
 
-    const query = new URLSearchParams({
-      select: "id,ref,sector,status,price_egp,deposit_egp,deposit_paid,created_at,scheduled_at,lat,lng",
+    const base = "id,ref,sector,status,price_egp,deposit_egp,deposit_paid,created_at,scheduled_at,lat,lng,item_id";
+    const build = (select) => new URLSearchParams({
+      select,
       customer_id: `eq.${userId}`,
       order: "created_at.desc",
       limit: "30"
     });
 
-    return request(`/rest/v1/orders?${query}`, {
-      token: session.access_token
-    });
+    // Quote-acceptance columns exist only after the versioned migration
+    // 20261125000000_quote_acceptance.sql. Older schemas fall back to the base columns.
+    try {
+      return await request(`/rest/v1/orders?${build(`${base},quote_price_egp,quote_version`)}`, {
+        token: session.access_token
+      });
+    } catch (error) {
+      if (!/quote_price_egp|quote_version/.test(String(error?.message))) throw error;
+      return request(`/rest/v1/orders?${build(base)}`, { token: session.access_token });
+    }
   },
 
   async getOperationsOrders() {
@@ -750,6 +758,18 @@ export const dataApi = {
     });
   },
 
+  async respondToQuote(orderId, version, accept) {
+    assertLiveWritesAllowed(accept ? "الموافقة على عرض السعر" : "رفض عرض السعر");
+    if (!orderId || !Number.isInteger(Number(version))) throw new Error("عرض السعر غير محدد.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request(`/rest/v1/rpc/${accept ? "accept_quote" : "decline_quote"}`, {
+      method: "POST",
+      token: session.access_token,
+      body: { p_order: orderId, p_version: Number(version) }
+    });
+  },
+
   async customerCancelOrder(orderId, reason = "") {
     assertLiveWritesAllowed("إلغاء الطلب");
     if (!orderId) throw new Error("الطلب غير محدد.");
@@ -785,11 +805,21 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
 
-    return request("/rest/v1/rpc/quote_order", {
-      method: "POST",
-      token: session.access_token,
-      body: { p_order: orderId, p_price: numericPrice }
-    });
+    // Quotes must wait for the customer's acceptance. If the versioned RPC is missing
+    // (database not migrated), refuse instead of falling back to the legacy confirm-immediately RPC.
+    try {
+      const version = await request("/rest/v1/rpc/quote_order_v3", {
+        method: "POST",
+        token: session.access_token,
+        body: { p_order: orderId, p_price: numericPrice }
+      });
+      return { version };
+    } catch (error) {
+      if (/quote_order_v3/.test(String(error?.message)) && /find the function|schema cache/i.test(String(error?.message))) {
+        throw new Error("إرسال عروض الأسعار يحتاج تحديث قاعدة البيانات أولًا (ترحيل موافقة العميل على السعر). لم يتم إرسال أي عرض.");
+      }
+      throw error;
+    }
   },
 
   async assignOrder(orderId, providerId) {
