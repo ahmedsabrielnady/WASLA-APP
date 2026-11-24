@@ -48,8 +48,6 @@ returns uuid language plpgsql security definer set search_path = '' as $$
 declare v_uid uuid := (select auth.uid()); v_s public.tutor_sessions%rowtype; v_taken int; v_id uuid;
 begin
   if v_uid is null then raise exception 'يلزم تسجيل الدخول' using errcode='42501'; end if;
-  if (select role from public.profiles where id=v_uid) is distinct from 'customer' then
-    raise exception 'التسجيل متاح لحسابات العملاء فقط' using errcode='42501'; end if;
   if not ( exists(select 1 from public.consents where user_id=v_uid and kind='terms')
        and exists(select 1 from public.consents where user_id=v_uid and kind='privacy') ) then
     raise exception 'لازم توافق على الشروط وسياسة الخصوصية الأول' using errcode='42501'; end if;
