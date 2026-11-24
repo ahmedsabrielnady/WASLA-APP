@@ -13,6 +13,7 @@ export const ORDERABLE_SECTORS = new Set(["maintenance", "car"]);
 
 export const STATUS_LABELS = Object.freeze({
   new: "طلب جديد",
+  quoted: "بانتظار موافقتك على السعر",
   confirmed: "تم التأكيد",
   in_progress: "جارٍ التنفيذ",
   done: "مكتمل",
