@@ -12,6 +12,8 @@ test("normalizes Egyptian mobile numbers to E.164", () => {
 test("rejects invalid Egyptian mobile numbers", () => {
   assert.equal(isEgyptianPhone("0101234567"), false);
   assert.equal(isEgyptianPhone("02012345678"), false);
+  assert.equal(isEgyptianPhone("01312345678"), false);
+  assert.equal(normalizeEgyptianPhone("01412345678"), null);
   assert.equal(normalizeEgyptianPhone("not-a-number"), null);
 });
 
