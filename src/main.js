@@ -248,6 +248,7 @@ function orderCard(order) {
       <div class="order-meta"><span>${escapeHTML(formatDate(order.created_at))}</span><strong>${escapeHTML(price)}</strong></div>
       ${Number(order.deposit_egp) > 0 ? `<p class="deposit-note">عربون مسجل: ${escapeHTML(formatEGP(order.deposit_egp))} · ${order.deposit_paid ? "مدفوع" : "غير مسدد"}</p>` : ""}
       ${Number.isFinite(Number(order.lat)) && Number.isFinite(Number(order.lng)) ? '<p class="location-note">📍 تم تسجيل إحداثيات موقع التنفيذ</p>' : ""}
+      ${order.status === "new" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="customer-cancel-order" data-order-id="${escapeHTML(order.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>إلغاء الطلب قبل التأكيد</button></div>` : ""}
     </article>
   `;
 }
@@ -897,6 +898,20 @@ root.addEventListener("click", async (event) => {
       await refreshRoadmap();
     } else if (action === "orders" || action === "reload-orders") {
       await refreshMyOrders();
+    } else if (action === "customer-cancel-order") {
+      if (!state.user?.id) throw new Error("سجل الدخول لإلغاء الطلب.");
+      if (CONFIG.isPublicPreview) throw new Error("إلغاء الطلبات متوقف في نسخة المعاينة.");
+      const orderId = button.dataset.orderId;
+      if (!orderId) throw new Error("الطلب غير محدد.");
+      if (!window.confirm("هل تريد إلغاء الطلب؟ يمكن الإلغاء قبل تأكيده فقط.")) return;
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.customerCancelOrder(orderId, "إلغاء بطلب العميل من صفحة طلباتي");
+        state.myOrders = await dataApi.getMyOrders(state.user.id);
+        state.view = "orders";
+        showToast("تم إلغاء الطلب قبل تأكيده.", "success");
+      });
+      render();
     } else if (action === "operations" || action === "reload-operations") {
       await refreshOperations();
     } else if (action === "crm" || action === "reload-crm") {
