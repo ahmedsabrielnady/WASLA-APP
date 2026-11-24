@@ -172,12 +172,31 @@ test("merchant-kind draft: product orders need an approved active non-test merch
   const sql = await readFile(new URL("../supabase/drafts/20261125000400_product_order_merchant_checks.sql", import.meta.url), "utf8");
   assert.match(sql, /m\.kind = 'merchant' and m\.approved and m\.active and not m\.is_test/);
   assert.match(sql, /category not in \('market','food'\)/);
-  assert.match(sql, /is distinct from 'customer'/);
+  assert.doesNotMatch(sql, /is distinct from 'customer'/);
+  assert.match(sql, /add column if not exists product_category/);
+  assert.match(sql, /product_category, quantity/);
+  assert.match(sql, /v_p\.category, p_qty/);
   assert.match(sql, /m\.user_id = v_uid/);
   await assert.rejects(readFile(new URL("../supabase/migrations/20261125000400_product_order_merchant_checks.sql", import.meta.url)));
 });
 
 test("food orders are labelled as restaurant orders in the order list", async () => {
   const js = await readFile(new URL("../src/main.js", import.meta.url), "utf8");
-  assert.match(js, /product\?\.category === "food" \? "المطعم" : sector/);
+  assert.match(js, /order\.product_category \|\| product\?\.category\) === "food" \? "المطعم" : sector/);
+});
+
+test("getMyOrders drops product_category and quote columns one by one on older schemas", async () => {
+  seed();
+  const selects = [];
+  globalThis.fetch = async (url) => {
+    const select = new URL(String(url)).searchParams.get("select");
+    selects.push(select);
+    if (/product_category/.test(select)) return { ok: false, status: 400, text: async () => JSON.stringify({ message: "column orders.product_category does not exist" }) };
+    if (/quote_version/.test(select)) return { ok: false, status: 400, text: async () => JSON.stringify({ message: "column orders.quote_version does not exist" }) };
+    return { ok: true, status: 200, text: async () => JSON.stringify([{ id: "o1" }]) };
+  };
+  const rows = await dataApi.getMyOrders("u1");
+  assert.equal(rows.length, 1);
+  assert.equal(selects.length, 3);
+  assert.doesNotMatch(selects[2], /product_category|quote_/);
 });
