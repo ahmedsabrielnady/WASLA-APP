@@ -600,7 +600,11 @@ async function loadAccount() {
     state.user = await authApi.getUser();
     if (!state.user?.id) return;
     state.profile = await dataApi.getProfile(state.user.id);
-    await dataApi.completePendingConsent();
+    try {
+      await dataApi.completePendingConsent(state.user);
+    } catch (error) {
+      showToast("تم تسجيل الدخول، لكن تعذر مزامنة موافقات السياسات. ستُعاد المحاولة لاحقًا.", "error");
+    }
   } catch (error) {
     state.user = null;
     state.profile = null;
@@ -735,7 +739,11 @@ async function afterLogin() {
   state.session = await authApi.getSession();
   state.user = await authApi.getUser();
   state.profile = await dataApi.getProfile(state.user.id);
-  await dataApi.completePendingConsent();
+  try {
+    await dataApi.completePendingConsent(state.user);
+  } catch (error) {
+    showToast("تم تسجيل الدخول، لكن تعذر مزامنة موافقات السياسات. ستُعاد المحاولة لاحقًا.", "error");
+  }
   if (state.profile?.role === "admin") await loadRoadmapAudit();
 
   state.modal = null;
