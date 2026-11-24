@@ -907,9 +907,19 @@ root.addEventListener("click", async (event) => {
       await runWithBusyState(state, async () => {
         render();
         await dataApi.customerCancelOrder(orderId, "إلغاء بطلب العميل من صفحة طلباتي");
-        state.myOrders = await dataApi.getMyOrders(state.user.id);
+        let refreshed = true;
+        try {
+          state.myOrders = await dataApi.getMyOrders(state.user.id);
+        } catch {
+          refreshed = false;
+        }
         state.view = "orders";
-        showToast("تم إلغاء الطلب قبل تأكيده.", "success");
+        showToast(
+          refreshed
+            ? "تم إلغاء الطلب قبل تأكيده."
+            : "تم الإلغاء، لكن تعذر تحديث القائمة. اضغط تحديث لعرض الحالة الجديدة.",
+          refreshed ? "success" : "error"
+        );
       });
       render();
     } else if (action === "operations" || action === "reload-operations") {
