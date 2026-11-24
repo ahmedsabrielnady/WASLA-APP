@@ -770,6 +770,48 @@ export const dataApi = {
     });
   },
 
+  async getMyDeliveries() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const query = new URLSearchParams({
+      select: "id,ref,pickup_address,dropoff_address,what_to_deliver,status,created_at",
+      order: "created_at.desc",
+      limit: "20"
+    });
+    try {
+      return await request(`/rest/v1/delivery_requests?${query}`, { token: session.access_token });
+    } catch (error) {
+      // Table absent (schema not migrated): hide the delivery section instead of failing the page.
+      if (/delivery_requests/.test(String(error?.message))) return null;
+      throw error;
+    }
+  },
+
+  async placeDeliveryRequest(pickup, dropoff, what) {
+    assertLiveWritesAllowed("طلب التوصيل");
+    const p = String(pickup || "").trim(), q = String(dropoff || "").trim(), w = String(what || "").trim();
+    if (p.length < 4 || q.length < 4) throw new Error("اكتب عنوان الاستلام وعنوان التسليم بوضوح.");
+    if (w.length < 2) throw new Error("اكتب ما سيتم توصيله.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/place_delivery_request", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_pickup: p, p_dropoff: q, p_what: w }
+    });
+  },
+
+  async cancelDelivery(requestId) {
+    assertLiveWritesAllowed("إلغاء طلب التوصيل");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/customer_cancel_delivery", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_request: requestId }
+    });
+  },
+
   async customerCancelOrder(orderId, reason = "") {
     assertLiveWritesAllowed("إلغاء الطلب");
     if (!orderId) throw new Error("الطلب غير محدد.");
