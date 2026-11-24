@@ -29,6 +29,7 @@ const state = {
   pendingAddress: "",
   search: "",
   myOrders: [],
+  deliveries: null,
   trackingOrderId: "",
   trackingLoadingId: "",
   orderTracking: null,
@@ -298,6 +299,31 @@ function orderCard(order) {
   `;
 }
 
+function deliverySection() {
+  if (!Array.isArray(state.deliveries)) return "";
+  const cards = state.deliveries.map((item) => `
+    <article class="order-card">
+      <div class="order-card-top"><strong>${escapeHTML(item.ref)}</strong><span class="status-pill">${escapeHTML(statusLabel(item.status))}</span></div>
+      <div class="order-name">${escapeHTML(item.what_to_deliver)}</div>
+      <div class="order-meta"><span>من: ${escapeHTML(item.pickup_address)}</span></div>
+      <div class="order-meta"><span>إلى: ${escapeHTML(item.dropoff_address)}</span></div>
+      <div class="order-meta"><span>${escapeHTML(formatDate(item.created_at))}</span><strong>مجاني للعميل</strong></div>
+      ${item.status === "new" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="customer-cancel-delivery" data-request-id="${escapeHTML(item.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>إلغاء الطلب قبل التعيين</button></div>` : ""}
+    </article>`).join("");
+  return `
+    <section class="page-panel delivery-panel">
+      <div class="section-heading"><div><span class="eyebrow">توصيل</span><h2>اطلب توصيل</h2></div></div>
+      <p>التوصيل مجاني للعميل. لا يتم تحصيل أي مبلغ داخل وصلة، والتنفيذ حسب توفر مندوب.</p>
+      <form data-form="delivery-request" novalidate>
+        <label>عنوان الاستلام<input name="pickup" maxlength="255" required></label>
+        <label>عنوان التسليم<input name="dropoff" maxlength="255" required></label>
+        <label>ما الذي سيتم توصيله؟<input name="what" maxlength="300" required></label>
+        <button class="btn btn-primary" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>إرسال طلب التوصيل</button>
+      </form>
+      ${cards ? `<div class="orders-list">${cards}</div>` : '<p class="tracking-empty">لا توجد طلبات توصيل بعد.</p>'}
+    </section>`;
+}
+
 function ordersView() {
   if (!state.user) {
     return '<section class="page-panel"><h1>طلباتي</h1><p>سجل الدخول لمشاهدة طلباتك.</p><button class="btn btn-primary" data-action="auth">تسجيل الدخول</button></section>';
@@ -310,6 +336,7 @@ function ordersView() {
         ? `<div class="orders-list">${state.myOrders.map(orderCard).join("")}</div>`
         : '<div class="empty-state"><strong>لا توجد طلبات بعد</strong><p>عندما ترسل أول طلب ستظهر حالته هنا.</p><button class="btn btn-primary" data-action="home">اكتشف الخدمات</button></div>'}
     </section>
+    ${deliverySection()}
   `;
 }
 
@@ -671,6 +698,7 @@ async function refreshMyOrders() {
   }
   try {
     state.myOrders = await dataApi.getMyOrders(state.user.id);
+    try { state.deliveries = await dataApi.getMyDeliveries(); } catch { state.deliveries = null; }
     state.view = "orders";
   } catch (error) {
     showToast(error.message, "error");
@@ -1036,6 +1064,16 @@ root.addEventListener("click", async (event) => {
         showToast(accept ? "تمت الموافقة وتأكيد الطلب." : "تم رفض السعر وإلغاء الطلب.", "success");
       });
       render();
+    } else if (action === "customer-cancel-delivery") {
+      if (!state.user?.id) throw new Error("سجل الدخول لإلغاء الطلب.");
+      if (!window.confirm("هل تريد إلغاء طلب التوصيل؟ يمكن الإلغاء قبل التعيين فقط.")) return;
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.cancelDelivery(button.dataset.requestId);
+        state.deliveries = await dataApi.getMyDeliveries();
+        showToast("تم إلغاء طلب التوصيل.", "success");
+      });
+      render();
     } else if (action === "customer-cancel-order") {
       if (!state.user?.id) throw new Error("سجل الدخول لإلغاء الطلب.");
       if (CONFIG.isPublicPreview) throw new Error("إلغاء الطلبات متوقف في نسخة المعاينة.");
@@ -1192,6 +1230,18 @@ root.addEventListener("submit", async (event) => {
 
   try {
     if (form.dataset.form === "auth") await submitAuth(form);
+    if (form.dataset.form === "delivery-request") {
+      if (CONFIG.isPublicPreview) throw new Error("طلبات التوصيل متوقفة في نسخة المعاينة.");
+      if (state.profile?.role !== "customer") throw new Error("طلب التوصيل متاح لحسابات العملاء فقط.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.placeDeliveryRequest(values.pickup, values.dropoff, values.what);
+        state.deliveries = await dataApi.getMyDeliveries();
+        showToast("تم استلام طلب التوصيل.", "success");
+      });
+      render();
+    }
     if (form.dataset.form === "password-reset") {
       const email = String(new FormData(form).get("email") || "").trim();
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("أدخل بريدًا إلكترونيًا صحيحًا.");
