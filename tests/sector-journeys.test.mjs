@@ -92,7 +92,8 @@ test("provider view offers doctor actions for clinic orders only", () => {
 test("UI hides clinic and store sections unless the database returns data, and guards role and consent", async () => {
   const js = await readFile(new URL("../src/main.js", import.meta.url), "utf8");
   assert.match(js, /if \(!Array\.isArray\(state\.doctors\) \|\| !state\.doctors\.length\) return ""/);
-  assert.match(js, /if \(!Array\.isArray\(state\.products\) \|\| !state\.products\.length\) return ""/);
+  assert.match(js, /\(p\.category \|\| "market"\) === category/);
+  assert.match(js, /if \(!items\.length\) return ""/);
   assert.match(js, /الحجز متاح لحسابات العملاء فقط/);
   assert.match(js, /الطلب متاح لحسابات العملاء فقط/);
   assert.match(js, /dataApi\.acceptRequiredConsents\(\);\s*await dataApi\.bookClinicSlot/);
@@ -142,4 +143,27 @@ test("education draft SQL keeps seats, role, consent and ownership guards and st
   assert.match(sql, /kind='privacy'/);
   assert.match(sql, /p\.user_id=\(select auth\.uid\(\)\) and p\.kind='teacher'/);
   assert.match(sql, /revoke all on function[\s\S]*from public, anon/);
+});
+
+test("products: category column missing falls back to market; present category is kept", async () => {
+  seed();
+  let n = 0;
+  globalThis.fetch = async (url) => {
+    n += 1;
+    const u = String(url);
+    if (n === 1) return { ok: false, status: 400, text: async () => JSON.stringify({ message: "column products.category does not exist" }) };
+    return { ok: true, status: 200, text: async () => JSON.stringify([{ id: 1, name: "أرز", price_egp: 40, stock: 3 }]) };
+  };
+  const rows = await dataApi.getProducts();
+  assert.equal(rows[0].category, "market");
+  stub(200, [{ id: 2, name: "وجبة", price_egp: 35, stock: 3, category: "food" }]);
+  assert.equal((await dataApi.getProducts())[0].category, "food");
+  stub(500, { message: "boom" });
+  await assert.rejects(dataApi.getProducts(), /boom/);
+});
+
+test("food draft SQL restricts category values and stays out of migrations", async () => {
+  const sql = await readFile(new URL("../supabase/drafts/20261125000300_products_category.sql", import.meta.url), "utf8");
+  assert.match(sql, /check \(category in \('market','food'\)\)/);
+  assert.match(sql, /default 'market'/);
 });
