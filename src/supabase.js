@@ -787,6 +787,83 @@ export const dataApi = {
     }
   },
 
+  async getSessions(teacherId = null) {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const query = new URLSearchParams({
+      select: "id,title,subject,starts_at,duration_min,mode,seats,price_egp,status,teacher_id,teacher:providers(display_name)",
+      order: "starts_at.asc", limit: "50"
+    });
+    if (teacherId) query.set("teacher_id", `eq.${teacherId}`); else query.set("status", "eq.open");
+    try {
+      return await request(`/rest/v1/tutor_sessions?${query}`, { token: session.access_token });
+    } catch (error) {
+      if (/tutor_sessions/.test(String(error?.message))) return null;
+      throw error;
+    }
+  },
+
+  async getMyEnrollments() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const query = new URLSearchParams({
+      select: "id,session_id,status,created_at,session:tutor_sessions(title,subject,starts_at,mode)",
+      status: "eq.booked", order: "created_at.desc", limit: "30"
+    });
+    try {
+      return await request(`/rest/v1/session_enrollments?${query}`, { token: session.access_token });
+    } catch (error) {
+      if (/session_enrollments|tutor_sessions/.test(String(error?.message))) return null;
+      throw error;
+    }
+  },
+
+  async enrollInSession(sessionId) {
+    assertLiveWritesAllowed("التسجيل في حصة");
+    if (!sessionId) throw new Error("اختر الحصة.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    try {
+      return await request("/rest/v1/rpc/enroll_in_session", { method: "POST", token: session.access_token, body: { p_session: sessionId } });
+    } catch (error) {
+      if (/permission denied/i.test(String(error?.message))) throw new Error("التسجيل في الحصص غير مفعل حاليًا.");
+      throw error;
+    }
+  },
+
+  async cancelEnrollment(enrollmentId) {
+    assertLiveWritesAllowed("إلغاء التسجيل");
+    if (!enrollmentId) throw new Error("اختر التسجيل.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/cancel_enrollment", { method: "POST", token: session.access_token, body: { p_enrollment: enrollmentId } });
+  },
+
+  async teacherCreateSession(values) {
+    assertLiveWritesAllowed("إنشاء حصة");
+    const title = String(values?.title || "").trim(), subject = String(values?.subject || "").trim();
+    const seats = Number(values?.seats), price = Number(values?.price), minutes = Number(values?.minutes || 60);
+    if (title.length < 3 || subject.length < 2) throw new Error("اكتب عنوان الحصة والمادة.");
+    if (!values?.starts || Number.isNaN(new Date(values.starts).getTime())) throw new Error("اختر موعد الحصة.");
+    if (!Number.isInteger(seats) || seats < 1 || seats > 30) throw new Error("عدد المقاعد من 1 إلى 30.");
+    if (!Number.isInteger(price) || price < 0 || price > 5000) throw new Error("السعر من 0 إلى 5000.");
+    if (!["online", "in_person"].includes(values?.mode)) throw new Error("اختر نوع الحصة.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/teacher_create_session", {
+      method: "POST", token: session.access_token,
+      body: { p_title: title, p_subject: subject, p_starts: new Date(values.starts).toISOString(), p_minutes: minutes, p_mode: values.mode, p_seats: seats, p_price: price }
+    });
+  },
+
+  async teacherCancelSession(sessionId) {
+    assertLiveWritesAllowed("إلغاء حصة");
+    if (!sessionId) throw new Error("اختر الحصة.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/teacher_cancel_session", { method: "POST", token: session.access_token, body: { p_session: sessionId } });
+  },
+
   async getDoctors() {
     const session = await getValidSession();
     if (!session?.access_token) return null;
