@@ -167,3 +167,17 @@ test("food draft SQL restricts category values and stays out of migrations", asy
   assert.match(sql, /check \(category in \('market','food'\)\)/);
   assert.match(sql, /default 'market'/);
 });
+
+test("merchant-kind draft: product orders need an approved active non-test merchant, a valid category and a customer account", async () => {
+  const sql = await readFile(new URL("../supabase/drafts/20261125000400_product_order_merchant_checks.sql", import.meta.url), "utf8");
+  assert.match(sql, /m\.kind = 'merchant' and m\.approved and m\.active and not m\.is_test/);
+  assert.match(sql, /category not in \('market','food'\)/);
+  assert.match(sql, /is distinct from 'customer'/);
+  assert.match(sql, /m\.user_id = v_uid/);
+  await assert.rejects(readFile(new URL("../supabase/migrations/20261125000400_product_order_merchant_checks.sql", import.meta.url)));
+});
+
+test("food orders are labelled as restaurant orders in the order list", async () => {
+  const js = await readFile(new URL("../src/main.js", import.meta.url), "utf8");
+  assert.match(js, /product\?\.category === "food" \? "المطعم" : sector/);
+});
