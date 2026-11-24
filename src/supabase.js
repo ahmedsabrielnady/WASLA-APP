@@ -179,6 +179,39 @@ export const authApi = {
     return result;
   },
 
+  acceptRecoveryFromUrl() {
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    if (hash.get("type") !== "recovery" || !hash.get("access_token") || !hash.get("refresh_token")) return false;
+    saveSession({
+      access_token: hash.get("access_token"),
+      refresh_token: hash.get("refresh_token"),
+      token_type: hash.get("token_type") || "bearer",
+      expires_in: Number(hash.get("expires_in") || 3600)
+    });
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    return true;
+  },
+
+  async requestPasswordReset(email) {
+    assertLiveWritesAllowed("استعادة الحسابات");
+    const redirectTo = window.location.origin + window.location.pathname;
+    return request(`/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
+      method: "POST",
+      body: { email: String(email).trim() }
+    });
+  },
+
+  async updatePassword(password) {
+    assertLiveWritesAllowed("تغيير كلمات المرور");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("رابط الاستعادة غير صالح أو انتهت صلاحيته. اطلب رابطًا جديدًا.");
+    return request("/auth/v1/user", {
+      method: "PUT",
+      token: session.access_token,
+      body: { password }
+    });
+  },
+
   async signOut() {
     const session = await getValidSession();
     try {
