@@ -57,6 +57,8 @@ begin
   if not found or v_s.status<>'open' or v_s.starts_at <= now() then raise exception 'الحصة دي مش متاحة' using errcode='22023'; end if;
   if not exists(select 1 from public.providers p where p.id=v_s.teacher_id and p.kind='teacher' and p.approved and p.active and not p.is_test) then
     raise exception 'الحصة دي مش متاحة' using errcode='22023'; end if;
+  if exists(select 1 from public.providers p where p.id=v_s.teacher_id and p.user_id=v_uid) then
+    raise exception 'لا يمكن التسجيل في حصتك' using errcode='42501'; end if;
   if exists(select 1 from public.session_enrollments where session_id=p_session and student_id=v_uid and status='booked') then
     raise exception 'انت مسجل في الحصة دي بالفعل' using errcode='22023'; end if;
   select count(*) into v_taken from public.session_enrollments where session_id=p_session and status='booked';
