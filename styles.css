@@ -1114,3 +1114,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .delivery-panel form { display: grid; gap: 10px; margin: 10px 0; }
 .delivery-panel label { display: grid; gap: 4px; font-weight: 800; }
 .delivery-panel input { width: 100%; box-sizing: border-box; min-height: 44px; padding: 8px 10px; border: 1px solid #c9d6cf; border-radius: 10px; font: inherit; }
+
+/* Delivery, clinic and store forms: stacked labels with full-width controls */
+.delivery-panel form, .clinic-panel form, .store-panel form { display: grid; gap: 12px; max-width: 520px; }
+.delivery-panel form > label:not(.check-row), .clinic-panel form > label:not(.check-row), .store-panel form > label:not(.check-row) { display: grid; gap: 6px; color: #3c515b; font-size: 13px; font-weight: 800; }
+.delivery-panel form input:not([type=checkbox]), .clinic-panel form input:not([type=checkbox]), .store-panel form input:not([type=checkbox]),
+.clinic-panel form select, .store-panel form select { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid #c9d6d2; border-radius: 12px; background: #fff; font: inherit; }
+.appointment-alert { border-inline-start: 4px solid var(--green); }
