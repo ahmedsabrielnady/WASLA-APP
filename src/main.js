@@ -630,6 +630,8 @@ function openOrder(item) {
   state.pendingOrderIdempotencyKey = globalThis.crypto?.randomUUID
     ? globalThis.crypto.randomUUID()
     : `wsl-${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
+  state.pendingLocation = null;
+  state.pendingAddress = "";
   state.pendingService = item;
   localStorage.setItem(PENDING_ORDER_SERVICE_KEY, String(item.id));
   if (!state.user) {
@@ -1406,7 +1408,7 @@ async function init() {
   render();
   await Promise.all([loadCatalog(), loadAccount(), loadRoadmap()]);
 
-  const pendingServiceId = localStorage.getItem(PENDING_ORDER_SERVICE_KEY);
+  const pendingServiceId = recoveryLink ? null : localStorage.getItem(PENDING_ORDER_SERVICE_KEY);
   if (pendingServiceId) {
     const pendingService = filterOrderableServices(state.services)
       .find((service) => String(service.id) === pendingServiceId);
