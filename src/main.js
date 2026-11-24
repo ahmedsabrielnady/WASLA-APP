@@ -348,13 +348,13 @@ function deliveryQueueCards(role) {
     const couriers = (state.operationsProviders || []).filter((p) => p.kind === "courier" && p.approved && p.active && !p.is_test);
     let action = "";
     if (role === "staff" && item.status === "new") {
-      action = `<form data-form="delivery-assign" data-request-id="${escapeHTML(item.id)}"><label>المندوب<select name="courier_id" required><option value="">اختر مندوبًا</option>${couriers.map((p) => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.display_name)}</option>`).join("")}</select></label><button class="btn btn-primary btn-small" type="submit" ${CONFIG.isPublicPreview ? "disabled" : ""}>تعيين</button></form>${couriers.length ? "" : '<p class="tracking-empty">لا يوجد مندوب معتمد ونشط.</p>'}`;
+      action = `<form data-form="delivery-assign" data-request-id="${escapeHTML(item.id)}"><label>المندوب<select name="courier_id" required><option value="">اختر مندوبًا</option>${couriers.map((p) => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.display_name)}</option>`).join("")}</select></label><button class="btn btn-primary btn-small" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>تعيين</button></form>${couriers.length ? "" : '<p class="tracking-empty">لا يوجد مندوب معتمد ونشط.</p>'}`;
     }
     if (role === "courier" && item.status === "assigned") {
-      action = `<button class="btn btn-primary btn-small" data-action="courier-delivery" data-to="picked_up" data-request-id="${escapeHTML(item.id)}" ${CONFIG.isPublicPreview ? "disabled" : ""}>تم الاستلام من المرسل</button>`;
+      action = `<button class="btn btn-primary btn-small" data-action="courier-delivery" data-to="picked_up" data-request-id="${escapeHTML(item.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>تم الاستلام من المرسل</button>`;
     }
     if (role === "courier" && item.status === "picked_up") {
-      action = `<button class="btn btn-primary btn-small" data-action="courier-delivery" data-to="delivered" data-request-id="${escapeHTML(item.id)}" ${CONFIG.isPublicPreview ? "disabled" : ""}>تم التسليم</button>`;
+      action = `<button class="btn btn-primary btn-small" data-action="courier-delivery" data-to="delivered" data-request-id="${escapeHTML(item.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>تم التسليم</button>`;
     }
     return `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(item.ref)}</strong><span class="status-pill">${escapeHTML(statusLabel(item.status))}</span></div><div class="order-name">${escapeHTML(item.what_to_deliver)}</div><div class="order-meta"><span>من: ${escapeHTML(item.pickup_address)}</span></div><div class="order-meta"><span>إلى: ${escapeHTML(item.dropoff_address)}</span></div>${action}</article>`;
   }).join("");
@@ -1259,7 +1259,6 @@ root.addEventListener("click", async (event) => {
       showToast(`الدور الحالي: ${state.profile?.role || "غير معروف"}`, "info");
     }
   } catch (error) {
-    state.busy = false;
     render();
     showToast(error.message || "حدث خطأ غير متوقع.", "error");
   }
@@ -1271,7 +1270,7 @@ root.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   try {
-    if (form.dataset.form === "auth") await submitAuth(form);
+    if (form.dataset.form === "auth") { await submitAuth(form); render(); }
     if (form.dataset.form === "delivery-request") {
       if (CONFIG.isPublicPreview) throw new Error("طلبات التوصيل متوقفة في نسخة المعاينة.");
       if (state.profile?.role !== "customer") throw new Error("طلب التوصيل متاح لحسابات العملاء فقط.");
@@ -1521,11 +1520,8 @@ root.addEventListener("submit", async (event) => {
       }
     }
   } catch (error) {
-    state.busy = false;
     render();
     showToast(error.message || "تعذر إكمال العملية.", "error");
-  } finally {
-    state.busy = false;
   }
 });
 
