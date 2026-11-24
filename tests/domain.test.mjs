@@ -50,9 +50,12 @@ test("the eight intended WASLA sectors are present", () => {
 test("Egyptian mobile number validation matches the database format", () => {
   assert.equal(isEgyptianPhone("01012345678"), true);
   assert.equal(isEgyptianPhone("01112345678"), true);
+  assert.equal(isEgyptianPhone("01212345678"), true);
+  assert.equal(isEgyptianPhone("01512345678"), true);
   assert.equal(isEgyptianPhone("0101234567"), false);
   assert.equal(isEgyptianPhone("+201012345678"), false);
   assert.equal(isEgyptianPhone("01A12345678"), false);
+  assert.equal(isEgyptianPhone("01312345678"), false);
 });
 
 test("address validation uses the current orders table constraints", () => {
