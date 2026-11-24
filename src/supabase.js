@@ -183,6 +183,19 @@ export const authApi = {
     return result;
   },
 
+  acceptSignupFromUrl() {
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    if (hash.get("type") !== "signup" || !hash.get("access_token") || !hash.get("refresh_token")) return false;
+    saveSession({
+      access_token: hash.get("access_token"),
+      refresh_token: hash.get("refresh_token"),
+      token_type: hash.get("token_type") || "bearer",
+      expires_in: Number(hash.get("expires_in") || 3600)
+    });
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    return true;
+  },
+
   acceptRecoveryFromUrl() {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
     if (hash.get("type") !== "recovery" || !hash.get("access_token") || !hash.get("refresh_token")) return false;
