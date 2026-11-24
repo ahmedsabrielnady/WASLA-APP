@@ -103,7 +103,7 @@ function header() {
       </a>
       <nav class="top-actions" aria-label="القائمة الرئيسية">
         <button class="nav-link" data-action="roadmap">خطة الإنجاز</button>
-        <button class="nav-link" data-action="orders" ${authenticated ? "" : "disabled"}>طلباتي</button>
+        ${authenticated && state.profile?.role === "customer" ? '<button class="nav-link" data-action="orders">طلباتي</button>' : ""}
         ${isStaff ? '<button class="nav-link" data-action="operations">التشغيل</button><button class="nav-link" data-action="crm">CRM</button>' : ""}
         ${isProvider ? '<button class="nav-link" data-action="provider">طلبات مقدم الخدمة</button>' : ""}
         ${authenticated && state.profile?.role === "customer" ? '<button class="nav-link" data-action="provider-invite">لديك دعوة مقدم خدمة؟</button>' : ""}
@@ -200,7 +200,7 @@ function homeView() {
         <p>ابدأ بالخدمة التي تحتاجها. نعرض الخدمات الفعلية المسجلة، ونوضح ما لم يكتمل تشغيله بعد.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#services">استكشف الخدمات <span>←</span></a>
-          <button class="btn btn-glass" data-action="orders">تابع طلباتك</button>
+          ${state.profile?.role === "customer" ? '<button class="btn btn-glass" data-action="orders">تابع طلباتك</button>' : ""}
         </div>
       </div>
       <div class="hero-art" aria-hidden="true">
@@ -621,6 +621,10 @@ function openAuth(mode = "login") {
 }
 
 function openOrder(item) {
+  if (state.user && state.profile?.role !== "customer") {
+    showToast("إرسال الطلبات متاح لحسابات العملاء فقط.", "error");
+    return;
+  }
   state.pendingOrderIdempotencyKey = globalThis.crypto?.randomUUID
     ? globalThis.crypto.randomUUID()
     : `wsl-${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
@@ -640,6 +644,10 @@ function openOrder(item) {
 async function refreshMyOrders() {
   if (!state.user?.id) {
     openAuth("login");
+    return;
+  }
+  if (state.profile?.role !== "customer") {
+    showToast("سجل الطلبات متاح لحسابات العملاء فقط.", "error");
     return;
   }
   try {
@@ -747,9 +755,21 @@ async function afterLogin() {
   if (state.profile?.role === "admin") await loadRoadmapAudit();
 
   state.modal = null;
-  if (state.pendingService) {
+  if (state.pendingService && state.profile?.role === "customer") {
     state.modal = "order";
     render();
+  } else if (state.pendingService) {
+    state.pendingService = null;
+    state.pendingLocation = null;
+    state.pendingAddress = "";
+    state.pendingOrderIdempotencyKey = "";
+    showToast("تم تسجيل الدخول، لكن إرسال الطلبات متاح لحسابات العملاء فقط.", "error");
+    if (["doctor", "technician", "teacher", "courier", "merchant"].includes(state.profile?.role)) {
+      await refreshProvider();
+    } else {
+      state.view = "home";
+      render();
+    }
   } else if (["doctor", "technician", "teacher", "courier", "merchant"].includes(state.profile?.role)) {
     await refreshProvider();
   } else {
