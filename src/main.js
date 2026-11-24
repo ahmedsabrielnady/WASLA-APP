@@ -421,17 +421,18 @@ function teacherSection() {
     </section>`;
 }
 
-function storeSection() {
-  if (!Array.isArray(state.products) || !state.products.length) return "";
+function storePanel(category, eyebrow, title, intro) {
+  const items = (state.products || []).filter((p) => (p.category || "market") === category);
+  if (!items.length) return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
   return `
-    <section class="page-panel store-panel" id="store">
-      <div class="section-heading"><div><span class="eyebrow">الماركت</span><h2>اطلب منتجات</h2></div></div>
-      <p>التوصيل مجاني للعميل. الدفع عند الاستلام ولا يتم تحصيل أي مبلغ داخل وصلة. السعر النهائي يحسبه النظام.</p>
+    <section class="page-panel store-panel" id="${category === "food" ? "food" : "store"}">
+      <div class="section-heading"><div><span class="eyebrow">${eyebrow}</span><h2>${title}</h2></div></div>
+      <p>${intro} التوصيل مجاني للعميل. الدفع عند الاستلام ولا يتم تحصيل أي مبلغ داخل وصلة. السعر النهائي يحسبه النظام.</p>
       <form data-form="store-order" novalidate>
-        <label>المنتج<select name="product" required>
-          <option value="">اختر المنتج</option>
-          ${state.products.map((p) => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.name)} · ${escapeHTML(formatEGP(p.discount_price_egp ?? p.price_egp))} (متوفر ${escapeHTML(p.stock)})</option>`).join("")}
+        <label>${category === "food" ? "الوجبة" : "المنتج"}<select name="product" required>
+          <option value="">${category === "food" ? "اختر الوجبة" : "اختر المنتج"}</option>
+          ${items.map((p) => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.name)} · ${escapeHTML(formatEGP(p.discount_price_egp ?? p.price_egp))} (متوفر ${escapeHTML(p.stock)})</option>`).join("")}
         </select></label>
         <label>الكمية<input type="number" name="qty" min="1" max="20" value="1" required></label>
         <label>عنوان التسليم<input name="address" maxlength="255" required></label>
@@ -440,6 +441,11 @@ function storeSection() {
         <button class="btn btn-primary" type="submit" ${disabled}>تأكيد الطلب</button>
       </form>
     </section>`;
+}
+
+function storeSection() {
+  return storePanel("market", "الماركت", "اطلب من الماركت", "منتجات البقالة واحتياجات البيت.")
+    + storePanel("food", "المطاعم", "اطلب وجبة", "وجبات من مطاعم شبين القناطر.");
 }
 
 async function loadClinicSlots() {
