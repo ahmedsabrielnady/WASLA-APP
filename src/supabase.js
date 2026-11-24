@@ -4,6 +4,7 @@ import { fetchTextWithTimeout } from "./network.js";
 
 const SESSION_KEY = "wasla.auth.session.v1";
 const PENDING_CONSENT_KEY = "wasla.pending-consent.v1";
+const POLICY_VERSION = "draft-2026-11-24";
 const API_ROOT = CONFIG.supabaseUrl.replace(/\/$/, "");
 
 let refreshInFlight = null;
@@ -739,13 +740,13 @@ export const dataApi = {
     await request("/rest/v1/rpc/accept_consent", {
       method: "POST",
       token: session.access_token,
-      body: { p_kind: "terms", p_version: "1.0" }
+      body: { p_kind: "terms", p_version: POLICY_VERSION }
     });
 
     await request("/rest/v1/rpc/accept_consent", {
       method: "POST",
       token: session.access_token,
-      body: { p_kind: "privacy", p_version: "1.0" }
+      body: { p_kind: "privacy", p_version: POLICY_VERSION }
     });
 
     localStorage.removeItem(PENDING_CONSENT_KEY);
