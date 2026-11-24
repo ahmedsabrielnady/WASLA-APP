@@ -14,10 +14,12 @@ test("registration and order consent controls link to the corresponding policy d
   assert.ok((main.match(/href="\.\/terms\.html"/g) || []).length >= 2);
   assert.ok((main.match(/href="\.\/privacy\.html"/g) || []).length >= 2);
   assert.match(main, /href="\.\/cancellation\.html"/);
+  assert.match(main, /data-action="customer-cancel-order"/);
+  assert.match(main, /order\.status === "new"/);
 });
 
 test("consent records the exact draft policy version shown on the policy pages", () => {
-  assert.match(supabase, /const POLICY_VERSION = "draft-2026-11-24"/);
+  assert.match(supabase, /const POLICY_VERSION = "draft-2026-11-24.2"/);
   assert.match(supabase, /p_version: POLICY_VERSION/);
   for (const page of [terms, privacy, cancellation]) {
     assert.match(page, /draft-2026-11-24/);
@@ -28,4 +30,6 @@ test("consent records the exact draft policy version shown on the policy pages",
 test("privacy draft does not invent a retention period or a support contact", () => {
   assert.match(privacy, /مدة الاحتفاظ النهائية/);
   assert.match(privacy, /لم تُدرج بعد بيانات مسؤول الخصوصية/);
+  assert.match(cancellation, /إلغاء الطلب ذاتيًا/);
+  assert.match(cancellation, /قبل تأكيده/);
 });
