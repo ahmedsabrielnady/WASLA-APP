@@ -31,6 +31,9 @@ const state = {
   myOrders: [],
   deliveries: null,
   doctors: null,
+  sessions: null,
+  enrollments: null,
+  teacherSessions: null,
   clinicDoctorId: "",
   clinicDay: "",
   clinicSlots: [],
@@ -362,6 +365,62 @@ function clinicSection() {
     </section>`;
 }
 
+function sessionModeLabel(mode) { return mode === "online" ? "أونلاين" : "حضوري"; }
+
+function educationSection() {
+  if (!Array.isArray(state.sessions) || (!state.sessions.length && !(state.enrollments || []).length)) return "";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const enrolledIds = new Set((state.enrollments || []).map((e) => e.session_id));
+  const open = state.sessions.map((item) => `
+    <article class="order-card">
+      <div class="order-card-top"><strong>${escapeHTML(item.title)}</strong><span class="status-pill">${escapeHTML(sessionModeLabel(item.mode))}</span></div>
+      <div class="order-name">${escapeHTML(item.subject)} · ${escapeHTML(item.teacher?.display_name || "مدرس")}</div>
+      <div class="order-meta"><span>${escapeHTML(formatAppointment(item.starts_at))} · ${escapeHTML(item.duration_min)} دقيقة</span><strong>${escapeHTML(formatEGP(item.price_egp))}</strong></div>
+      <p class="deposit-note">يُدفع للمدرس مباشرة. لا يتم تحصيل أي مبلغ داخل وصلة.</p>
+      <div class="order-card-actions">${enrolledIds.has(item.id)
+        ? '<span class="status-pill">أنت مسجل</span>'
+        : `<button class="btn btn-primary btn-small" data-action="enroll-session" data-session-id="${escapeHTML(item.id)}" ${disabled}>سجل في الحصة</button>`}</div>
+    </article>`).join("");
+  const mine = (state.enrollments || []).map((e) => `
+    <article class="order-card">
+      <div class="order-card-top"><strong>${escapeHTML(e.session?.title || "حصة")}</strong><span class="status-pill">مسجل</span></div>
+      <div class="order-meta"><span>${escapeHTML(e.session?.starts_at ? formatAppointment(e.session.starts_at) : "")}</span></div>
+      <div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="cancel-enrollment" data-enrollment-id="${escapeHTML(e.id)}" ${disabled}>إلغاء التسجيل</button></div>
+    </article>`).join("");
+  return `
+    <section class="page-panel education-panel" id="education">
+      <div class="section-heading"><div><span class="eyebrow">التعليم</span><h2>حصص ودروس</h2></div></div>
+      <p>التسجيل يتطلب موافقتك على الشروط والخصوصية. الإلغاء متاح قبل الحصة بساعتين على الأقل.</p>
+      ${mine ? `<h3>تسجيلاتي</h3><div class="orders-list">${mine}</div>` : ""}
+      ${open ? `<h3>حصص متاحة</h3><div class="orders-list">${open}</div>` : '<p class="tracking-empty">لا توجد حصص متاحة الآن.</p>'}
+    </section>`;
+}
+
+function teacherSection() {
+  if (state.profile?.role !== "teacher" || !Array.isArray(state.teacherSessions)) return "";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const cards = state.teacherSessions.map((item) => `
+    <article class="order-card">
+      <div class="order-card-top"><strong>${escapeHTML(item.title)}</strong><span class="status-pill">${item.status === "open" ? "مفتوحة" : "ملغاة"}</span></div>
+      <div class="order-meta"><span>${escapeHTML(formatAppointment(item.starts_at))} · ${escapeHTML(sessionModeLabel(item.mode))} · ${escapeHTML(item.seats)} مقاعد</span><strong>${escapeHTML(formatEGP(item.price_egp))}</strong></div>
+      ${item.status === "open" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="teacher-cancel-session" data-session-id="${escapeHTML(item.id)}" ${disabled}>إلغاء الحصة</button></div>` : ""}
+    </article>`).join("");
+  return `
+    <section class="page-panel education-panel" id="teacher-sessions">
+      <div class="section-heading"><div><span class="eyebrow">مساحة المدرس</span><h2>حصصي</h2></div></div>
+      <form data-form="teacher-session" novalidate>
+        <label>عنوان الحصة<input name="title" maxlength="120" required></label>
+        <label>المادة<input name="subject" maxlength="60" required></label>
+        <label>الموعد<input type="datetime-local" name="starts" required></label>
+        <label>النوع<select name="mode"><option value="online">أونلاين</option><option value="in_person">حضوري</option></select></label>
+        <label>عدد المقاعد<input type="number" name="seats" min="1" max="30" value="5" required></label>
+        <label>السعر بالجنيه (يُدفع مباشرة للمدرس)<input type="number" name="price" min="0" max="5000" value="0" required></label>
+        <button class="btn btn-primary" type="submit" ${disabled}>أضف الحصة</button>
+      </form>
+      ${cards ? `<div class="orders-list">${cards}</div>` : '<p class="tracking-empty">لا توجد حصص بعد.</p>'}
+    </section>`;
+}
+
 function storeSection() {
   if (!Array.isArray(state.products) || !state.products.length) return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
@@ -432,6 +491,7 @@ function ordersView() {
     </section>
     ${clinicSection()}
     ${storeSection()}
+    ${educationSection()}
     ${deliverySection()}
   `;
 }
@@ -498,7 +558,7 @@ function providerView() {
     preview: CONFIG.isPublicPreview,
     saving: state.providerSaving,
     error: state.providerError
-  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "");
+  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + teacherSection();
 }
 
 function roadmapView() {
@@ -820,6 +880,7 @@ async function refreshMyOrders() {
     try { state.deliveries = await dataApi.getMyDeliveries(); } catch { state.deliveries = null; }
     try { state.doctors = await dataApi.getDoctors(); } catch { state.doctors = null; }
     try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
+    try { state.sessions = await dataApi.getSessions(); state.enrollments = await dataApi.getMyEnrollments(); } catch { state.sessions = null; state.enrollments = null; }
     if (!state.clinicDay) state.clinicDay = cairoDay(1);
     state.view = "orders";
   } catch (error) {
@@ -867,6 +928,10 @@ async function refreshProvider() {
     state.deliveryQueue = null;
     if (state.profile?.role === "courier") {
       try { state.deliveryQueue = await dataApi.getDeliveryQueue(); } catch { state.deliveryQueue = null; }
+    }
+    state.teacherSessions = null;
+    if (state.profile?.role === "teacher" && state.providerRecord?.id) {
+      try { state.teacherSessions = await dataApi.getSessions(state.providerRecord.id); } catch { state.teacherSessions = null; }
     }
     state.view = "provider";
   } catch (error) {
@@ -1191,6 +1256,37 @@ root.addEventListener("click", async (event) => {
         showToast(accept ? "تمت الموافقة وتأكيد الطلب." : "تم رفض السعر وإلغاء الطلب.", "success");
       });
       render();
+    } else if (action === "enroll-session") {
+      if (state.profile?.role !== "customer") throw new Error("التسجيل متاح لحسابات العملاء فقط.");
+      if (!window.confirm("تأكيد التسجيل في الحصة؟ بالتسجيل توافق على الشروط وسياسة الخصوصية.")) return;
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.acceptRequiredConsents();
+        await dataApi.enrollInSession(button.dataset.sessionId);
+        state.sessions = await dataApi.getSessions();
+        state.enrollments = await dataApi.getMyEnrollments();
+        showToast("تم تسجيلك في الحصة.", "success");
+      });
+      render();
+    } else if (action === "cancel-enrollment") {
+      if (state.profile?.role !== "customer") throw new Error("هذه العملية للعملاء فقط.");
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.cancelEnrollment(button.dataset.enrollmentId);
+        state.enrollments = await dataApi.getMyEnrollments();
+        showToast("تم إلغاء التسجيل.", "success");
+      });
+      render();
+    } else if (action === "teacher-cancel-session") {
+      if (state.profile?.role !== "teacher") throw new Error("هذه العملية للمدرس فقط.");
+      if (!window.confirm("إلغاء الحصة سيلغي تسجيل كل الطلاب. متابعة؟")) return;
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.teacherCancelSession(button.dataset.sessionId);
+        state.teacherSessions = await dataApi.getSessions(state.providerRecord.id);
+        showToast("تم إلغاء الحصة.", "success");
+      });
+      render();
     } else if (action === "courier-delivery") {
       if (state.profile?.role !== "courier") throw new Error("هذه العملية للمندوب فقط.");
       const to = button.dataset.to;
@@ -1398,6 +1494,18 @@ root.addEventListener("submit", async (event) => {
         state.myOrders = await dataApi.getMyOrders(state.user.id);
         await loadClinicSlots();
         showToast("تم حجز الموعد. بانتظار تأكيد الطبيب.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "teacher-session") {
+      if (CONFIG.isPublicPreview) throw new Error("الإضافة متوقفة في نسخة المعاينة.");
+      if (state.profile?.role !== "teacher") throw new Error("هذه العملية للمدرس فقط.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.teacherCreateSession({ ...values, minutes: 60 });
+        state.teacherSessions = await dataApi.getSessions(state.providerRecord.id);
+        showToast("تمت إضافة الحصة.", "success");
       });
       render();
     }
