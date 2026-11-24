@@ -273,13 +273,20 @@ function orderTrackingPanel(order) {
   `;
 }
 
+function orderItemName(order) {
+  const item = order.item_id == null ? null : state.services.find((service) => String(service.id) === String(order.item_id));
+  const sector = sectorLabel(order.sector);
+  return item?.name ? `${sector} · ${item.name}` : sector;
+}
+
 function orderCard(order) {
-  const price = order.price_egp === null ? "السعر لم يحدد" : formatEGP(order.price_egp);
+  const price = order.price_egp === null ? (order.status === "quoted" ? "بانتظار موافقتك" : "السعر لم يحدد") : formatEGP(order.price_egp);
   return `
     <article class="order-card">
       <div class="order-card-top"><strong>${escapeHTML(order.ref || "طلب وصلة")}</strong><span class="status-pill">${escapeHTML(statusLabel(order.status))}</span></div>
-      <div class="order-name">${escapeHTML(sectorLabel(order.sector))}</div>
+      <div class="order-name">${escapeHTML(orderItemName(order))}</div>
       <div class="order-meta"><span>${escapeHTML(formatDate(order.created_at))}</span><strong>${escapeHTML(price)}</strong></div>
+      ${order.status === "quoted" ? `<div class="quote-box"><strong>عرض سعر: ${escapeHTML(formatEGP(order.quote_price_egp))}</strong><p>هذا السعر المقترح من فريق وصلة. لن يبدأ التنفيذ ولن يُسجل أي التزام إلا بعد موافقتك. لا يتم تحصيل أي مبلغ داخل وصلة.</p><div class="order-card-actions"><button class="btn btn-primary btn-small" data-action="respond-quote" data-decision="accept" data-order-id="${escapeHTML(order.id)}" data-version="${escapeHTML(order.quote_version)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>أوافق على السعر</button><button class="btn btn-outline btn-small" data-action="respond-quote" data-decision="decline" data-order-id="${escapeHTML(order.id)}" data-version="${escapeHTML(order.quote_version)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>أرفض وألغي الطلب</button></div></div>` : ""}
       ${Number(order.deposit_egp) > 0 ? `<p class="deposit-note">عربون مسجل: ${escapeHTML(formatEGP(order.deposit_egp))} · ${order.deposit_paid ? "مدفوع" : "غير مسدد"}</p>` : ""}
       ${Number.isFinite(Number(order.lat)) && Number.isFinite(Number(order.lng)) ? '<p class="location-note">📍 تم تسجيل إحداثيات موقع التنفيذ</p>' : ""}
       <div class="order-card-actions">
@@ -1015,6 +1022,20 @@ root.addEventListener("click", async (event) => {
         state.trackingLoadingId = "";
         render();
       }
+    } else if (action === "respond-quote") {
+      if (!state.user?.id) throw new Error("سجل الدخول للرد على عرض السعر.");
+      if (CONFIG.isPublicPreview) throw new Error("الرد على عروض الأسعار متوقف في نسخة المعاينة.");
+      const accept = button.dataset.decision === "accept";
+      const orderId = button.dataset.orderId;
+      if (!window.confirm(accept ? "هل توافق على السعر المعروض؟ سيتم تأكيد الطلب بهذا السعر." : "هل ترفض السعر؟ سيتم إلغاء الطلب.")) return;
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.respondToQuote(orderId, button.dataset.version, accept);
+        state.myOrders = await dataApi.getMyOrders(state.user.id);
+        state.view = "orders";
+        showToast(accept ? "تمت الموافقة وتأكيد الطلب." : "تم رفض السعر وإلغاء الطلب.", "success");
+      });
+      render();
     } else if (action === "customer-cancel-order") {
       if (!state.user?.id) throw new Error("سجل الدخول لإلغاء الطلب.");
       if (CONFIG.isPublicPreview) throw new Error("إلغاء الطلبات متوقف في نسخة المعاينة.");
@@ -1371,7 +1392,7 @@ root.addEventListener("submit", async (event) => {
       render();
       try {
         await dataApi.quoteOrder(form.dataset.orderId, values.price);
-        showToast("تم حفظ عرض السعر وتحديث حالة الطلب حسب قواعد التشغيل.", "success");
+        showToast("تم إرسال عرض السعر للعميل. لن يتأكد الطلب إلا بعد موافقته.", "success");
         await refreshOperations();
       } finally {
         state.operationsSaving = false;
