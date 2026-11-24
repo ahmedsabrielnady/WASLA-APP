@@ -172,7 +172,7 @@ export const authApi = {
     const resolved = resolveAuthIdentifier(identifier);
     if (!resolved) throw new Error("أدخل رقم موبايل مصري صحيحًا أو بريدًا إلكترونيًا صحيحًا.");
     const localPhone = resolved.type === "phone"
-      ? String(identifier).replace(/\\D/g, "").replace(/^(0020|20)/, "")
+      ? (resolved.value.slice(3).startsWith("0") ? resolved.value.slice(3) : `0${resolved.value.slice(3)}`)
       : "";
     const data = {
       full_name: String(fullName).trim(),
