@@ -81,6 +81,7 @@ export function statusLabel(value) {
 }
 
 export function sectorLabel(value) {
+  if (value === "store") return "المتجر";
   return SECTORS.find((sector) => sector.code === value)?.title ?? "خدمة وصلة";
 }
 
