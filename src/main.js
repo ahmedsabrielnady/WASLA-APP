@@ -30,6 +30,7 @@ const state = {
   search: "",
   myOrders: [],
   deliveries: null,
+  deliveryQueue: null,
   trackingOrderId: "",
   trackingLoadingId: "",
   orderTracking: null,
@@ -318,6 +319,8 @@ function deliverySection() {
         <label>عنوان الاستلام<input name="pickup" maxlength="255" required></label>
         <label>عنوان التسليم<input name="dropoff" maxlength="255" required></label>
         <label>ما الذي سيتم توصيله؟<input name="what" maxlength="300" required></label>
+        <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على <a href="./terms.html" target="_blank" rel="noopener">شروط الاستخدام (مسودة)</a>.</span></label>
+        <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على <a href="./privacy.html" target="_blank" rel="noopener">سياسة الخصوصية (مسودة)</a>.</span></label>
         <button class="btn btn-primary" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>إرسال طلب التوصيل</button>
       </form>
       ${cards ? `<div class="orders-list">${cards}</div>` : '<p class="tracking-empty">لا توجد طلبات توصيل بعد.</p>'}
@@ -340,6 +343,29 @@ function ordersView() {
   `;
 }
 
+function deliveryQueueCards(role) {
+  return state.deliveryQueue.map((item) => {
+    const couriers = (state.operationsProviders || []).filter((p) => p.kind === "courier" && p.approved && p.active && !p.is_test);
+    let action = "";
+    if (role === "staff" && item.status === "new") {
+      action = `<form data-form="delivery-assign" data-request-id="${escapeHTML(item.id)}"><label>المندوب<select name="courier_id" required><option value="">اختر مندوبًا</option>${couriers.map((p) => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.display_name)}</option>`).join("")}</select></label><button class="btn btn-primary btn-small" type="submit" ${CONFIG.isPublicPreview ? "disabled" : ""}>تعيين</button></form>${couriers.length ? "" : '<p class="tracking-empty">لا يوجد مندوب معتمد ونشط.</p>'}`;
+    }
+    if (role === "courier" && item.status === "assigned") {
+      action = `<button class="btn btn-primary btn-small" data-action="courier-delivery" data-to="picked_up" data-request-id="${escapeHTML(item.id)}" ${CONFIG.isPublicPreview ? "disabled" : ""}>تم الاستلام من المرسل</button>`;
+    }
+    if (role === "courier" && item.status === "picked_up") {
+      action = `<button class="btn btn-primary btn-small" data-action="courier-delivery" data-to="delivered" data-request-id="${escapeHTML(item.id)}" ${CONFIG.isPublicPreview ? "disabled" : ""}>تم التسليم</button>`;
+    }
+    return `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(item.ref)}</strong><span class="status-pill">${escapeHTML(statusLabel(item.status))}</span></div><div class="order-name">${escapeHTML(item.what_to_deliver)}</div><div class="order-meta"><span>من: ${escapeHTML(item.pickup_address)}</span></div><div class="order-meta"><span>إلى: ${escapeHTML(item.dropoff_address)}</span></div>${action}</article>`;
+  }).join("");
+}
+
+function deliveryQueueSection(role) {
+  if (!Array.isArray(state.deliveryQueue)) return "";
+  const cards = deliveryQueueCards(role);
+  return `<section class="page-panel delivery-panel"><div class="section-heading"><div><span class="eyebrow">توصيل</span><h2>${role === "staff" ? "طلبات التوصيل" : "توصيلاتي"}</h2></div></div>${cards || '<p class="tracking-empty">لا توجد طلبات توصيل.</p>'}</section>`;
+}
+
 function operationsView() {
   return renderOperationsView({
     profile: state.profile,
@@ -350,7 +376,7 @@ function operationsView() {
     coverage: state.operationsCoverage,
     preview: CONFIG.isPublicPreview,
     saving: state.operationsSaving
-  });
+  }) + deliveryQueueSection("staff");
 }
 
 function crmView() {
@@ -379,7 +405,7 @@ function providerView() {
     preview: CONFIG.isPublicPreview,
     saving: state.providerSaving,
     error: state.providerError
-  });
+  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "");
 }
 
 function roadmapView() {
@@ -722,6 +748,7 @@ async function refreshOperations() {
     state.operationsProviders = Array.isArray(providers) ? providers : [];
     state.operationsServices = Array.isArray(services) ? services : [];
     state.operationsCoverage = Array.isArray(coverage) ? coverage : [];
+    try { state.deliveryQueue = await dataApi.getDeliveryQueue(); } catch { state.deliveryQueue = null; }
     state.view = "operations";
   } catch (error) {
     showToast(error.message, "error");
@@ -741,6 +768,10 @@ async function refreshProvider() {
     const result = await dataApi.getProviderWorkspace();
     state.providerRecord = result.provider || null;
     state.providerOrders = Array.isArray(result.orders) ? result.orders : [];
+    state.deliveryQueue = null;
+    if (state.profile?.role === "courier") {
+      try { state.deliveryQueue = await dataApi.getDeliveryQueue(); } catch { state.deliveryQueue = null; }
+    }
     state.view = "provider";
   } catch (error) {
     state.providerRecord = null;
@@ -1064,6 +1095,17 @@ root.addEventListener("click", async (event) => {
         showToast(accept ? "تمت الموافقة وتأكيد الطلب." : "تم رفض السعر وإلغاء الطلب.", "success");
       });
       render();
+    } else if (action === "courier-delivery") {
+      if (state.profile?.role !== "courier") throw new Error("هذه العملية للمندوب فقط.");
+      const to = button.dataset.to;
+      if (!["picked_up", "delivered"].includes(to)) throw new Error("الحالة غير مسموحة.");
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.courierSetDeliveryStatus(button.dataset.requestId, to);
+        state.deliveryQueue = await dataApi.getDeliveryQueue();
+        showToast("تم تحديث حالة التوصيل.", "success");
+      });
+      render();
     } else if (action === "customer-cancel-delivery") {
       if (!state.user?.id) throw new Error("سجل الدخول لإلغاء الطلب.");
       if (!window.confirm("هل تريد إلغاء طلب التوصيل؟ يمكن الإلغاء قبل التعيين فقط.")) return;
@@ -1234,8 +1276,10 @@ root.addEventListener("submit", async (event) => {
       if (CONFIG.isPublicPreview) throw new Error("طلبات التوصيل متوقفة في نسخة المعاينة.");
       if (state.profile?.role !== "customer") throw new Error("طلب التوصيل متاح لحسابات العملاء فقط.");
       const values = Object.fromEntries(new FormData(form).entries());
+      if (values.terms !== "on" || values.privacy !== "on") throw new Error("يجب الموافقة على الشروط وسياسة الخصوصية.");
       await runWithBusyState(state, async () => {
         render();
+        await dataApi.acceptRequiredConsents();
         await dataApi.placeDeliveryRequest(values.pickup, values.dropoff, values.what);
         state.deliveries = await dataApi.getMyDeliveries();
         showToast("تم استلام طلب التوصيل.", "success");
@@ -1448,6 +1492,18 @@ root.addEventListener("submit", async (event) => {
         state.operationsSaving = false;
         render();
       }
+    }
+    if (form.dataset.form === "delivery-assign") {
+      if (CONFIG.isPublicPreview) throw new Error("التعيين متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بتعيين المندوب.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.assignDelivery(form.dataset.requestId, values.courier_id);
+        state.deliveryQueue = await dataApi.getDeliveryQueue();
+        showToast("تم تعيين المندوب.", "success");
+      });
+      render();
     }
     if (form.dataset.form === "operations-assign") {
       if (CONFIG.isPublicPreview) throw new Error("التعيين متوقف في نسخة المعاينة.");
