@@ -98,3 +98,48 @@ test("UI hides clinic and store sections unless the database returns data, and g
   assert.match(js, /dataApi\.acceptRequiredConsents\(\);\s*await dataApi\.bookClinicSlot/);
   assert.match(js, /تنبيه داخل التطبيق فقط/);
 });
+
+test("education: session create validates input locally", async () => {
+  seed(); const calls = stub(200, "id");
+  const ok = { title: "رياضيات", subject: "رياضيات", starts: "2026-12-01T10:00", seats: 5, price: 50, mode: "online" };
+  await assert.rejects(dataApi.teacherCreateSession({ ...ok, title: "ab" }), /عنوان/);
+  await assert.rejects(dataApi.teacherCreateSession({ ...ok, starts: "" }), /موعد/);
+  await assert.rejects(dataApi.teacherCreateSession({ ...ok, seats: 0 }), /المقاعد/);
+  await assert.rejects(dataApi.teacherCreateSession({ ...ok, seats: 31 }), /المقاعد/);
+  await assert.rejects(dataApi.teacherCreateSession({ ...ok, price: -1 }), /السعر/);
+  await assert.rejects(dataApi.teacherCreateSession({ ...ok, mode: "x" }), /نوع/);
+  assert.equal(calls.length, 0);
+  await dataApi.teacherCreateSession(ok);
+  assert.match(calls[0].url, /rpc\/teacher_create_session/);
+});
+
+test("education: enroll and cancel surface refusals; missing tables hide the section", async () => {
+  seed(); stub(400, { message: "الحصة مكتملة العدد", code: "22023" });
+  await assert.rejects(dataApi.enrollInSession("s1"), /مكتملة/);
+  stub(403, { message: "permission denied for function enroll_in_session", code: "42501" });
+  await assert.rejects(dataApi.enrollInSession("s1"), /غير مفعل/);
+  await assert.rejects(dataApi.enrollInSession(""), /اختر/);
+  stub(404, { message: "Could not find the table 'public.tutor_sessions' in the schema cache" });
+  assert.equal(await dataApi.getSessions(), null);
+  stub(404, { message: "Could not find the table 'public.session_enrollments' in the schema cache" });
+  assert.equal(await dataApi.getMyEnrollments(), null);
+});
+
+test("education UI is hidden without data and guarded by role", async () => {
+  const js = await readFile(new URL("../src/main.js", import.meta.url), "utf8");
+  assert.match(js, /if \(!Array\.isArray\(state\.sessions\)/);
+  assert.match(js, /state\.profile\?\.role !== "teacher" \|\| !Array\.isArray\(state\.teacherSessions\)/);
+  assert.match(js, /التسجيل متاح لحسابات العملاء فقط/);
+  assert.match(js, /هذه العملية للمدرس فقط/);
+});
+
+test("education draft SQL keeps seats, role, consent and ownership guards and stays out of migrations", async () => {
+  const sql = await readFile(new URL("../supabase/drafts/20261125000200_education_sessions.sql", import.meta.url), "utf8");
+  assert.match(sql, /from public\.tutor_sessions where id=p_session for update/);
+  assert.match(sql, /v_taken >= v_s\.seats/);
+  assert.match(sql, /session_enrollments_one_active/);
+  assert.match(sql, /kind='terms'/);
+  assert.match(sql, /kind='privacy'/);
+  assert.match(sql, /p\.user_id=\(select auth\.uid\(\)\) and p\.kind='teacher'/);
+  assert.match(sql, /revoke all on function[\s\S]*from public, anon/);
+});
