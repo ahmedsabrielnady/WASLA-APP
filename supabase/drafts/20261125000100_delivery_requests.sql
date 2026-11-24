@@ -30,6 +30,9 @@ begin
   if v_uid is null then raise exception 'يلزم تسجيل الدخول' using errcode='42501'; end if;
   if (select role from public.profiles where id = v_uid) is distinct from 'customer' then
     raise exception 'الطلب متاح لحسابات العملاء فقط' using errcode='42501'; end if;
+  if not ( exists(select 1 from public.consents where user_id=v_uid and kind='terms')
+       and exists(select 1 from public.consents where user_id=v_uid and kind='privacy') ) then
+    raise exception 'لازم توافق على الشروط وسياسة الخصوصية الأول' using errcode='42501'; end if;
   select count(*) into v_open from public.delivery_requests
    where customer_id = v_uid and status in ('new','assigned','picked_up');
   if v_open >= 3 then raise exception 'عندك طلبات توصيل مفتوحة كتير، استنى لما تخلص' using errcode='53400'; end if;
