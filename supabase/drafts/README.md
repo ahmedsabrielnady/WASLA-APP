@@ -10,6 +10,7 @@ Status of each draft (all tested only on the isolated `wasla-test` project):
 | `20261125000100_delivery_requests.sql` | free delivery requests | Owner decisions in docs/10 (who pays the courier, minimum order, area, cancellation); courier and staff screens; consent and access tests |
 | `20261125000200_education_sessions.sql` | tutor sessions and enrollments | Owner approves pricing and cancellation terms; teacher onboarding; run `education_rpc_test.py`; clinic booking and store ordering also need EXECUTE granted on `book_clinic_slot`, `doctor_set_appointment_status`, `place_product_order` (revoked in production today), a separate owner decision |
 | `20261125000300_products_category.sql` | `products.category` ('market' or 'food') so the UI shows a market panel and a restaurant panel | Owner decides whether restaurants are onboarded; UI falls back to market if the column is missing; same `place_product_order` EXECUTE decision as above |
+| `20261125000400_product_order_merchant_checks.sql` | hardens `place_product_order`: merchant must be kind merchant, approved, active, not test; valid category; customer-role accounts only; no ordering your own product | Requires the 0300 draft; run `product_order_merchant_kind_test.py` and `product_order_state_gate_test.py`; decide whether `place_order_v2`/`book_clinic_slot` also need a database-level customer-role check (the UI already enforces it) |
 
 Activation steps (deliberate, one at a time):
 1. Run the draft on a disposable test project and the matching RPC test script.
