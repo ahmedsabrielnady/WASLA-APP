@@ -25,3 +25,7 @@ export function resolveAuthIdentifier(value) {
   if (isEmailIdentifier(raw)) return { type: "email", value: raw };
   return null;
 }
+
+export function isPhonePasswordAuthReady(settings) {
+  return Boolean(settings?.external?.phone && settings?.phone_autoconfirm === true);
+}
