@@ -200,13 +200,13 @@ export const authApi = {
     const bytes = new Uint8Array(32);
     globalThis.crypto.getRandomValues(bytes);
     const verifier = btoa(String.fromCharCode(...bytes))
-      .replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=/g, "");
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
     const digest = await globalThis.crypto.subtle.digest(
       "SHA-256",
       new TextEncoder().encode(verifier)
     );
     const challenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
-      .replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=/g, "");
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
     sessionStorage.setItem(OAUTH_VERIFIER_KEY, verifier);
     const redirectTo = window.location.origin + window.location.pathname + window.location.search;
     const query = new URLSearchParams({
@@ -228,7 +228,7 @@ export const authApi = {
         url.searchParams.delete("error_description");
         url.searchParams.delete("error_code");
         window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
-        return { error: decodeURIComponent(error.replace(/\\+/g, " ")) };
+        return { error };
       }
       return { ok: false };
     }
