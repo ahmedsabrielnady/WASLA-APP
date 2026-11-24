@@ -177,6 +177,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .order-meta { color: var(--muted); font-size: 10px; }
 .order-meta strong { color: var(--green-dark); font-size: 12px; }
 .deposit-note { color: #8a6a20; background: #fff8e6; border-radius: 9px; padding: 6px 9px; font-size: 10px; margin: 10px 0 0; }
+.order-card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.order-tracking-panel { margin-top: 12px; padding: 13px; border: 1px solid var(--line); border-radius: 12px; background: #f8fbf9; }
+.tracking-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--navy); font-size: 12px; }
+.tracking-summary span { color: var(--green-dark); font-weight: 900; }
+.tracking-schedule, .tracking-queue, .tracking-empty { color: var(--muted); font-size: 11px; margin: 8px 0; }
+.tracking-heading { display: block; margin-top: 12px; color: var(--navy); font-size: 11px; }
+.order-tracking-list { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 7px; }
+.order-tracking-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 7px; border-top: 1px solid var(--line); font-size: 11px; color: var(--ink); }
+.order-tracking-list time { color: var(--muted); font-size: 10px; }
 .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin: 20px 0; }
 .stat-card { background: white; border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 5px; }
 .stat-card span { font-size: 11px; color: var(--muted); }

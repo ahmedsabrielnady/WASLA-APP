@@ -24,6 +24,9 @@ const state = {
   pendingAddress: "",
   search: "",
   myOrders: [],
+  trackingOrderId: "",
+  trackingLoadingId: "",
+  orderTracking: null,
   operationsOrders: [],
   operationsServices: [],
   operationsCoverage: [],
@@ -239,6 +242,32 @@ function homeView() {
   `;
 }
 
+function orderTrackingPanel(order) {
+  if (state.trackingOrderId !== order.id) return "";
+  if (state.trackingLoadingId === order.id) {
+    return '<div class="order-tracking-panel" role="status">جارٍ تحميل سجل الطلب...</div>';
+  }
+  const tracking = state.orderTracking;
+  if (!tracking) {
+    return '<div class="order-tracking-panel">تعذر تحميل تفاصيل المتابعة. حاول مرة أخرى.</div>';
+  }
+  const events = Array.isArray(tracking.events) ? tracking.events : [];
+  const queue = tracking.sector === "clinic" && tracking.scheduled_at && Number.isFinite(Number(tracking.queue_position))
+    ? `<p class="tracking-queue">ترتيبك في الدور: ${Number(tracking.queue_position)} · أمامك ${Number(tracking.ahead_count) || 0}</p>`
+    : "";
+  return `
+    <section class="order-tracking-panel" aria-label="تفاصيل متابعة الطلب">
+      <div class="tracking-summary"><strong>الحالة الحالية</strong><span>${escapeHTML(statusLabel(tracking.status))}</span></div>
+      ${tracking.scheduled_at ? `<p class="tracking-schedule">الموعد: ${escapeHTML(formatDate(tracking.scheduled_at))}</p>` : ""}
+      ${queue}
+      <strong class="tracking-heading">سجل التحديثات</strong>
+      ${events.length
+        ? `<ol class="order-tracking-list">${events.map((entry) => `<li><span>${escapeHTML(statusLabel(entry.status))}</span><time>${escapeHTML(formatDate(entry.at))}</time></li>`).join("")}</ol>`
+        : '<p class="tracking-empty">لم تُسجل تحديثات إضافية بعد.</p>'}
+    </section>
+  `;
+}
+
 function orderCard(order) {
   const price = order.price_egp === null ? "السعر لم يحدد" : formatEGP(order.price_egp);
   return `
@@ -248,7 +277,11 @@ function orderCard(order) {
       <div class="order-meta"><span>${escapeHTML(formatDate(order.created_at))}</span><strong>${escapeHTML(price)}</strong></div>
       ${Number(order.deposit_egp) > 0 ? `<p class="deposit-note">عربون مسجل: ${escapeHTML(formatEGP(order.deposit_egp))} · ${order.deposit_paid ? "مدفوع" : "غير مسدد"}</p>` : ""}
       ${Number.isFinite(Number(order.lat)) && Number.isFinite(Number(order.lng)) ? '<p class="location-note">📍 تم تسجيل إحداثيات موقع التنفيذ</p>' : ""}
-      ${order.status === "new" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="customer-cancel-order" data-order-id="${escapeHTML(order.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>إلغاء الطلب قبل التأكيد</button></div>` : ""}
+      <div class="order-card-actions">
+        <button class="btn btn-outline btn-small" data-action="track-order" data-order-id="${escapeHTML(order.id)}" ${state.trackingLoadingId === order.id ? "disabled" : ""}>${state.trackingOrderId === order.id ? "إخفاء التفاصيل" : "متابعة الطلب"}</button>
+        ${order.status === "new" ? `<button class="btn btn-outline btn-small" data-action="customer-cancel-order" data-order-id="${escapeHTML(order.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>إلغاء الطلب قبل التأكيد</button>` : ""}
+      </div>
+      ${orderTrackingPanel(order)}
     </article>
   `;
 }
@@ -842,6 +875,9 @@ async function submitOrder(form) {
     } catch {
       ordersReloaded = false;
       state.myOrders = [];
+      state.trackingOrderId = "";
+      state.trackingLoadingId = "";
+      state.orderTracking = null;
     }
 
     state.view = "orders";
@@ -885,6 +921,9 @@ root.addEventListener("click", async (event) => {
       await authApi.signOut();
       state.user = state.profile = state.session = null;
       state.myOrders = [];
+      state.trackingOrderId = "";
+      state.trackingLoadingId = "";
+      state.orderTracking = null;
       state.operationsOrders = [];
       state.operationsProviders = [];
       state.operationsServices = [];
@@ -898,6 +937,27 @@ root.addEventListener("click", async (event) => {
       await refreshRoadmap();
     } else if (action === "orders" || action === "reload-orders") {
       await refreshMyOrders();
+    } else if (action === "track-order") {
+      if (!state.user?.id) throw new Error("سجل الدخول لمتابعة الطلب.");
+      const orderId = button.dataset.orderId;
+      if (!orderId) throw new Error("الطلب غير محدد.");
+      if (state.trackingOrderId === orderId) {
+        state.trackingOrderId = "";
+        state.orderTracking = null;
+
+        render();
+        return;
+      }
+      state.trackingOrderId = orderId;
+      state.trackingLoadingId = orderId;
+      state.orderTracking = null;
+      render();
+      try {
+        state.orderTracking = await dataApi.getMyOrderTracking(orderId);
+      } finally {
+        state.trackingLoadingId = "";
+        render();
+      }
     } else if (action === "customer-cancel-order") {
       if (!state.user?.id) throw new Error("سجل الدخول لإلغاء الطلب.");
       if (CONFIG.isPublicPreview) throw new Error("إلغاء الطلبات متوقف في نسخة المعاينة.");
@@ -907,6 +967,10 @@ root.addEventListener("click", async (event) => {
       await runWithBusyState(state, async () => {
         render();
         await dataApi.customerCancelOrder(orderId, "إلغاء بطلب العميل من صفحة طلباتي");
+        if (state.trackingOrderId === orderId) {
+          state.trackingOrderId = "";
+          state.orderTracking = null;
+        }
         let refreshed = true;
         try {
           state.myOrders = await dataApi.getMyOrders(state.user.id);

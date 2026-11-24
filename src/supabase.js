@@ -310,6 +310,18 @@ export const dataApi = {
     return request(`/rest/v1/offers?${query}`);
   },
 
+  async getMyOrderTracking(orderId) {
+    if (!orderId) throw new Error("الطلب غير محدد.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول لمتابعة طلباتك.");
+    const rows = await request("/rest/v1/rpc/my_order_tracking", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_order: orderId }
+    });
+    return Array.isArray(rows) ? (rows[0] ?? null) : (rows ?? null);
+  },
+
   async getMyOrders(userId) {
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول لعرض طلباتك.");
