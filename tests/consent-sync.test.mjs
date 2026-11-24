@@ -101,7 +101,7 @@ test("offline consent synchronization preserves the pending marker for retry", a
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => { throw new Error("network offline"); };
   try {
-    await assert.rejects(dataApi.completePendingConsent({ id: "customer-1" }), /network offline/);
+    await assert.rejects(dataApi.completePendingConsent({ id: "customer-1" }), /تعذر الاتصال بالخدمة/);
     assert.equal(localStorage.getItem("wasla.pending-consent.v1"), "1");
   } finally {
     globalThis.fetch = originalFetch;
