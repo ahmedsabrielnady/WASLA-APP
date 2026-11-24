@@ -288,7 +288,8 @@ function orderItemName(order) {
   const sector = sectorLabel(order.sector);
   if (order.product_id != null) {
     const product = (state.products || []).find((entry) => String(entry.id) === String(order.product_id));
-    return `${sector} · ${product?.name || "منتج"} × ${Number(order.quantity) || 1}`;
+    const label = product?.category === "food" ? "المطعم" : sector;
+    return `${label} · ${product?.name || "منتج"} × ${Number(order.quantity) || 1}`;
   }
   return item?.name ? `${sector} · ${item.name}` : sector;
 }
