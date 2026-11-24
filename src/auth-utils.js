@@ -1,5 +1,5 @@
 export function normalizeEgyptianPhone(value) {
-  const digits = String(value ?? "").replace(/\\D/g, "");
+  const digits = String(value ?? "").replace(/\D/g, "");
   const local = digits.startsWith("0020")
     ? digits.slice(4)
     : digits.startsWith("20")
