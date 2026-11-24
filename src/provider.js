@@ -40,13 +40,16 @@ export function renderProviderView(options = {}) {
   const assigned = orders.filter((order) => !["done", "cancelled"].includes(order.status)).length;
   const completed = orders.filter((order) => order.status === "done").length;
   const cards = orders.map((order) => {
-    const action = order.status === "confirmed"
+    const isClinic = order.sector === "clinic";
+    const action = isClinic
+      ? ({ new: ["confirmed", "تأكيد الموعد"], confirmed: ["in_progress", "بدء الكشف"], in_progress: ["done", "إنهاء الكشف"] })[order.status] || null
+      : order.status === "confirmed"
       ? ["in_progress", "بدء التنفيذ"]
       : order.status === "in_progress"
         ? ["done", "تأكيد إتمام الخدمة"]
         : null;
     const actionMarkup = action
-      ? '<button class="btn btn-primary btn-small" data-action="provider-set-status" data-order-id="' + e(order.id) + '" data-status="' + action[0] + '"' + (preview || saving ? " disabled" : "") + '>' + action[1] + '</button>'
+      ? '<button class="btn btn-primary btn-small" data-action="provider-set-status" data-kind="' + (isClinic ? "clinic" : "order") + '" data-order-id="' + e(order.id) + '" data-status="' + action[0] + '"' + (preview || saving ? " disabled" : "") + '>' + action[1] + '</button>'
       : "";
 
     return '<article class="provider-order-card">' +
