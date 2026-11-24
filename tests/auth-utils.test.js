@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { isEgyptianPhone, isPhonePasswordAuthReady, normalizeEgyptianPhone, resolveAuthIdentifier } from "../src/auth-utils.js";
+import { isEgyptianPhone, isPhoneAliasSignupReady, normalizeEgyptianPhone, resolveAuthIdentifier, toWaslaAuthEmail } from "../src/auth-utils.js";
 
 test("normalizes Egyptian mobile numbers to E.164", () => {
   assert.equal(normalizeEgyptianPhone("01012345678"), "+201012345678");
@@ -21,9 +21,17 @@ test("classifies phone and email login identifiers", () => {
   assert.equal(resolveAuthIdentifier("not-valid"), null);
 });
 
-test("phone password auth requires enabled provider and phone autoconfirm", () => {
-  assert.equal(isPhonePasswordAuthReady({ external: { phone: true }, phone_autoconfirm: true }), true);
-  assert.equal(isPhonePasswordAuthReady({ external: { phone: true }, phone_autoconfirm: false }), false);
-  assert.equal(isPhonePasswordAuthReady({ external: { phone: false }, phone_autoconfirm: true }), false);
-  assert.equal(isPhonePasswordAuthReady(null), false);
+test("maps Egyptian phone numbers to stable WASLA email aliases", () => {
+  assert.equal(toWaslaAuthEmail("01012345678"), "01012345678@wasla.app");
+  assert.equal(toWaslaAuthEmail("+201012345678"), "01012345678@wasla.app");
+  assert.equal(toWaslaAuthEmail("00201012345678"), "01012345678@wasla.app");
+  assert.equal(toWaslaAuthEmail("ahmed@example.com"), "ahmed@example.com");
+  assert.equal(toWaslaAuthEmail("invalid"), null);
+});
+
+test("phone alias signup requires email auto-confirm and enabled email auth", () => {
+  assert.equal(isPhoneAliasSignupReady({ external: { email: true }, mailer_autoconfirm: true }), true);
+  assert.equal(isPhoneAliasSignupReady({ external: { email: true }, mailer_autoconfirm: false }), false);
+  assert.equal(isPhoneAliasSignupReady({ external: { email: false }, mailer_autoconfirm: true }), false);
+  assert.equal(isPhoneAliasSignupReady(null), false);
 });
