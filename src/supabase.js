@@ -1,6 +1,6 @@
 import { CONFIG } from "./config.js";
 import { validateRoadmapUpdate } from "./domain.js";
-import { normalizeEgyptianPhone, resolveAuthIdentifier } from "./auth-utils.js";
+import { normalizeEgyptianPhone, resolveAuthIdentifier, toWaslaAuthEmail } from "./auth-utils.js";
 import { fetchTextWithTimeout } from "./network.js";
 
 const SESSION_KEY = "wasla.auth.session.v1";
@@ -163,8 +163,10 @@ export const authApi = {
   async signIn(identifier, password) {
     const resolved = resolveAuthIdentifier(identifier);
     if (!resolved) throw new Error("أدخل رقم موبايل مصري صحيحًا أو بريدًا إلكترونيًا صحيحًا.");
+    const email = toWaslaAuthEmail(identifier);
+    if (!email) throw new Error("بيانات الدخول غير صحيحة.");
     const result = await authRequest("/auth/v1/token?grant_type=password", {
-      [resolved.type]: resolved.value,
+      email,
       password
     });
     saveSession(result);
@@ -188,8 +190,10 @@ export const authApi = {
       privacy_version: POLICY_VERSION,
       consent_accepted_at: new Date().toISOString()
     };
+    const authEmail = toWaslaAuthEmail(signupIdentifier);
+    if (!authEmail) throw new Error("بيانات التسجيل غير صحيحة.");
     const result = await authRequest("/auth/v1/signup", {
-      [resolved.type]: resolved.value,
+      email: authEmail,
       password,
       data
     });
