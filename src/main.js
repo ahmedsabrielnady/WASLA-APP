@@ -1411,8 +1411,7 @@ root.addEventListener("input", (event) => {
 
 async function init() {
   let oauthError = "";
-  const authSettings = await authApi.getAuthSettings().catch(() => null);
-  state.googleAuthEnabled = Boolean(authSettings?.external?.google);
+  const authSettingsPromise = authApi.getAuthSettings().catch(() => null);
   try {
     const oauthResult = await authApi.acceptOAuthFromUrl();
     oauthError = oauthResult?.error || "";
@@ -1423,7 +1422,13 @@ async function init() {
   const recoveryLink = authApi.acceptRecoveryFromUrl();
   if (recoveryLink) state.modal = "password-recovery";
   render();
-  await Promise.all([loadCatalog(), loadAccount(), loadRoadmap()]);
+  const [authSettings] = await Promise.all([
+    authSettingsPromise,
+    loadCatalog(),
+    loadAccount(),
+    loadRoadmap()
+  ]);
+  state.googleAuthEnabled = Boolean(authSettings?.external?.google);
 
   const pendingServiceId = recoveryLink ? null : localStorage.getItem(PENDING_ORDER_SERVICE_KEY);
   if (pendingServiceId) {
