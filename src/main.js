@@ -1026,7 +1026,7 @@ root.addEventListener("submit", async (event) => {
     if (form.dataset.form === "auth") await submitAuth(form);
     if (form.dataset.form === "password-reset") {
       const email = String(new FormData(form).get("email") || "").trim();
-      if (!email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) throw new Error("أدخل بريدًا إلكترونيًا صحيحًا.");
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("أدخل بريدًا إلكترونيًا صحيحًا.");
       await authApi.requestPasswordReset(email);
       state.modal = null;
       render();
@@ -1038,7 +1038,7 @@ root.addEventListener("submit", async (event) => {
       if (password.length < 8) throw new Error("كلمة المرور يجب ألا تقل عن 8 أحرف.");
       if (password !== String(values.confirm_password || "")) throw new Error("تأكيد كلمة المرور غير مطابق.");
       await authApi.updatePassword(password);
-      await authApi.signOut();
+      try { await authApi.signOut(); } catch { /* Password change already succeeded; local session is cleared in signOut's finally block. */ }
       state.user = state.profile = state.session = null;
       state.modal = "auth";
       state.authMode = "login";
