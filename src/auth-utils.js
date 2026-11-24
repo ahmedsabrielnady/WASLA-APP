@@ -1,9 +1,9 @@
 export function normalizeEgyptianPhone(value) {
   const digits = String(value ?? "").replace(/\D/g, "");
   const local = digits.startsWith("0020")
-    ? digits.slice(4)
+    ? `0${digits.slice(4)}`
     : digits.startsWith("20")
-      ? digits.slice(2)
+      ? `0${digits.slice(2)}`
       : digits;
   if (!/^01[0-9]{9}$/.test(local)) return null;
   return `+20${local.slice(1)}`;
@@ -15,7 +15,7 @@ export function isEgyptianPhone(value) {
 
 export function isEmailIdentifier(value) {
   const email = String(value ?? "").trim();
-  return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 export function resolveAuthIdentifier(value) {
