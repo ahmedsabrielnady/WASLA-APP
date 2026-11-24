@@ -227,7 +227,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .sector-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
 }
 @media (max-width: 600px) {
-  .topbar { height: 67px; padding: 0 13px; }
+  .topbar { height: auto; min-height: 67px; padding: 6px 13px; flex-wrap: wrap; }
+  .top-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .nav-link, .account-chip { white-space: nowrap; }
   .brand-mark { width: 39px; height: 39px; font-size: 26px; }
   .brand strong { font-size: 18px; }
   .brand small { font-size: 9px; }
