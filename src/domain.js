@@ -247,7 +247,7 @@ export const SECTOR_ANCHORS = Object.freeze({
   food: ["food"],
   market: ["store"],
   education: ["education", "course-catalogue"],
-  delivery: ["store", "food"]
+  delivery: ["delivery-request", "store", "food"]
 });
 export function sectorEntryPlan({ code, signedIn, isCustomer, present = new Set() }) {
   const sector = SECTORS.find((entry) => entry.code === code);
