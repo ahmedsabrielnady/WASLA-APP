@@ -1121,3 +1121,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .delivery-panel form input:not([type=checkbox]), .clinic-panel form input:not([type=checkbox]), .store-panel form input:not([type=checkbox]),
 .clinic-panel form select, .store-panel form select { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid #c9d6d2; border-radius: 12px; background: #fff; font: inherit; }
 .appointment-alert { border-inline-start: 4px solid var(--green); }
+
+/* Health panels: prescription form and lab prices */
+.health-panel form { display: grid; gap: 12px; max-width: 520px; }
+.health-panel form > label:not(.check-row) { display: grid; gap: 6px; color: #3c515b; font-size: 13px; font-weight: 800; }
+.health-panel form input:not([type=checkbox]), .health-panel form textarea { width: 100%; box-sizing: border-box; min-height: 44px; padding: 8px 12px; border: 1px solid #c9d6d2; border-radius: 12px; background: #fff; font: inherit; }
+.health-panel fieldset { border: 1px solid #c9d6d2; border-radius: 12px; padding: 10px 12px; display: grid; gap: 8px; margin: 0; }
+.health-panel legend { font-size: 13px; font-weight: 800; color: #3c515b; padding: 0 6px; }
+.health-panel .check-row { font-size: 13px; line-height: 1.6; align-items: center; }
+.health-panel .check-row input { width: auto; min-height: 0; margin: 0; }
