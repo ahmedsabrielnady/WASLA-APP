@@ -35,4 +35,4 @@ Activation steps (deliberate, one at a time):
 4. Apply to production only on the owner's explicit go-ahead, then deploy the UI.
 
 The UI already fails closed without the quote migration (see `tests/quote-order-fail-closed.test.mjs`) and hides the delivery section without its table.
-| `20261125002000_notifications.sql` | `notifications` (RLS own rows, no direct writes), triggers on `orders` (status or scheduled_at change) and `order_change_requests` (resolved), `mark_notifications_read`. Rows hold only a kind and the order id, no health detail. In-app only: no external push or SMS. Tested by `notifications_test.py` on the test project only. |
+| `20261125002000_notifications.sql` | `notifications` (RLS own rows, no direct writes), triggers on `orders` (status or scheduled_at change) and `order_change_requests` (declined only; applied is already covered by the order change itself), `mark_notifications_read`. Rows hold only a kind and the order id, no health detail. In-app only: no external push or SMS. Tested by `notifications_test.py` on the test project only. |
