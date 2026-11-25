@@ -393,6 +393,23 @@ export const dataApi = {
     return Array.isArray(rows) ? rows[0] ?? null : null;
   },
 
+  async adoptGoogleName(userId, fullName) {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const query = new URLSearchParams({
+      id: `eq.${userId}`,
+      or: "(full_name.is.null,full_name.eq.,full_name.eq.مستخدم)",
+      select: "id,full_name"
+    });
+    const rows = await request(`/rest/v1/profiles?${query}`, {
+      method: "PATCH",
+      token: session.access_token,
+      headers: { Prefer: "return=representation" },
+      body: { full_name: String(fullName).trim() }
+    });
+    return Array.isArray(rows) ? rows[0] ?? null : null;
+  },
+
   async getRoadmap() {
     const session = await getValidSession();
     const query = new URLSearchParams({
