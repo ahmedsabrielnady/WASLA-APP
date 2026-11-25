@@ -23,3 +23,12 @@ test("new-kind page texts carry no health, price or name detail", () => {
   const block = main.slice(main.indexOf("delivery_status:"), main.indexOf("};", main.indexOf("delivery_status:")));
   assert.doesNotMatch(block, /روشتة|دواء|جنيه|سعر|صيدلية|تحليل/);
 });
+
+test("a material quote revision notifies again, a note-only edit does not", () => {
+  const rev = readFileSync(new URL("../supabase/drafts/20261125002400_notification_quote_revised.sql", import.meta.url), "utf8");
+  assert.match(rev, /new\.price_egp is distinct from old\.price_egp/);
+  assert.match(rev, /new\.delivery_available is distinct from old\.delivery_available/);
+  assert.match(rev, /new\.eta_minutes is distinct from old\.eta_minutes/);
+  assert.doesNotMatch(rev, /new\.note is distinct/);
+  assert.match(main, /prescription_quote_revised: "/);
+});
