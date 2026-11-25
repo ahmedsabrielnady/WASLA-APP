@@ -727,7 +727,7 @@ function healthTimelineSection() {
   for (const n of (state.medicalNotes?.notes) || []) items.push({ at: n.created_at, label: "ملاحظة من الطبيب", detail: n.note });
   for (const r of state.prescriptions || []) items.push({ at: r.created_at, label: "طلب أدوية", detail: prescriptionStatusLabel(r.status) });
   for (const r of state.labRequests || []) items.push({ at: r.created_at, label: r.test?.kind === "radiology" ? "طلب أشعة" : "طلب تحليل", detail: LAB_STATUS_LABELS[r.status] || "" });
-  for (const r of state.labRequests || []) if (r.status === "result_ready" && r.result_text && r.updated_at) items.push({ at: r.updated_at, label: "نتيجة من المعمل", detail: r.test?.name || "" });
+  for (const r of state.labRequests || []) if (r.status === "result_ready" && (r.result_text || r.result_file_path) && r.updated_at) items.push({ at: r.updated_at, label: "نتيجة من المعمل", detail: r.test?.name || "" });
   const rows = items.filter((i) => i.at).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 15);
   if (!rows.length) return "";
   return `
@@ -747,6 +747,7 @@ function labRequestsSection() {
       <div class="order-meta"><span>${escapeHTML(r.provider?.display_name || "")} · ${escapeHTML(formatDate(r.created_at))}</span><strong>${escapeHTML(formatEGP(r.price_egp))}</strong></div>
       <p class="deposit-note">السعر وقت الطلب. الدفع للمعمل مباشرة.</p>
       ${r.result_text ? `<div class="deposit-note"><strong>النتيجة من ${escapeHTML(r.provider?.display_name || "المعمل")}:</strong><p>${escapeHTML(r.result_text)}</p><p>النتيجة كتبها المعمل. وصلة لا تفسّر النتائج ولا تقدم تشخيصًا. استشر طبيبك.</p></div>` : ""}
+      ${r.result_file_path ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="open-lab-file" data-path="${escapeHTML(r.result_file_path)}" ${disabled}>عرض ملف النتيجة (كتبه المعمل)</button></div>` : ""}
       ${r.status === "requested" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="cancel-lab-request" data-request-id="${escapeHTML(r.id)}" ${disabled}>إلغاء الطلب</button></div>` : ""}
     </article>`).join("");
   return `
@@ -765,7 +766,8 @@ function labIncomingSection() {
       <div class="order-meta"><span>${escapeHTML(formatDate(r.created_at))}</span><strong>${escapeHTML(formatEGP(r.price_egp))}</strong></div>
       ${r.status === "requested" ? `<div class="order-card-actions"><button class="btn btn-primary btn-small" data-action="lab-sample-done" data-request-id="${escapeHTML(r.id)}" ${disabled}>تم أخذ العينة</button></div>` : ""}
       ${r.status === "sample_done" ? `<form data-form="lab-result" data-request-id="${escapeHTML(r.id)}" novalidate>
-        <label>نتيجة المعمل (نص قصير، بيانات تجريبية فقط)<textarea name="result" rows="3" minlength="3" maxlength="2000" required></textarea></label>
+        <label>نتيجة المعمل (نص قصير، بيانات تجريبية فقط)<textarea name="result" rows="3" maxlength="2000"></textarea></label>
+        <label>أو ملف النتيجة (PDF أو JPG أو PNG حتى 5 ميجا، بيانات تجريبية فقط)<input type="file" name="file" accept="application/pdf,image/jpeg,image/png"></label>
         <button class="btn btn-primary" type="submit" ${disabled}>انشر النتيجة للعميل</button>
       </form>` : ""}
       ${r.status === "result_ready" ? '<p class="deposit-note">تم نشر النتيجة للعميل.</p>' : ""}
@@ -1857,6 +1859,10 @@ root.addEventListener("click", async (event) => {
         showToast("تم التحديث.", "success");
       });
       render();
+    } else if (action === "open-lab-file") {
+      const url = await dataApi.getLabResultFileUrl(button.dataset.path);
+      window.open(url, "_blank", "noopener");
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } else if (action === "open-rx-file") {
       const url = await dataApi.getPrescriptionFileUrl(button.dataset.path);
       window.open(url, "_blank", "noopener");
@@ -2247,7 +2253,9 @@ root.addEventListener("submit", async (event) => {
       const data = new FormData(form);
       await runWithBusyState(state, async () => {
         render();
-        await dataApi.labPublishResult(form.dataset.requestId, data.get("result"));
+        const resultFile = data.get("file");
+        if (resultFile && resultFile.size) await dataApi.labPublishResultFile(form.dataset.requestId, resultFile, data.get("result"));
+        else await dataApi.labPublishResult(form.dataset.requestId, data.get("result"));
         state.labRequests = await dataApi.getMyLabRequests();
         showToast("تم نشر النتيجة.", "success");
       });
