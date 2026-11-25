@@ -433,7 +433,65 @@ function medicalNotesSection() {
     </section>`;
 }
 
+async function loadCourses() {
+  state.courses = null; state.teacherCourses = null; state.tutorProfile = null;
+  try { state.courses = await dataApi.getCourses(); } catch { state.courses = null; }
+  const teacher = state.providerRecord;
+  if (state.profile?.role === "teacher" && teacher?.id) {
+    try { state.teacherCourses = await dataApi.getCourses(teacher.id); state.tutorProfile = await dataApi.getMyTutorProfile(teacher.id); } catch { state.teacherCourses = null; }
+  }
+}
+
+function courseCard(item, extra = "") {
+  return `
+    <article class="order-card">
+      <div class="order-card-top"><strong>${escapeHTML(item.title)}</strong><span class="status-pill">${escapeHTML(sessionModeLabel(item.mode))}</span></div>
+      <div class="order-name">${escapeHTML(item.subject)}${item.teacher?.display_name ? ` · ${escapeHTML(item.teacher.display_name)}` : ""}</div>
+      ${item.description ? `<p class="deposit-note">${escapeHTML(item.description)}</p>` : ""}
+      <div class="order-meta"><span>${escapeHTML(item.lessons)} حصة</span><strong>${item.price_egp ? escapeHTML(formatEGP(item.price_egp)) : "مجانية"}</strong></div>
+      ${extra}
+    </article>`;
+}
+
+function courseCatalogueSection() {
+  if (!Array.isArray(state.courses) || !state.courses.length || state.profile?.role === "teacher") return "";
+  return `
+    <section class="page-panel health-panel education-panel" id="course-catalogue">
+      <div class="section-heading"><div><span class="eyebrow">التعليم</span><h2>الدورات المتاحة</h2></div></div>
+      <p class="deposit-note">الاتفاق والدفع مع المدرس مباشرة. لا يتم تحصيل أي مبلغ داخل وصلة.</p>
+      <div class="orders-list">${state.courses.map((c) => courseCard(c)).join("")}</div>
+    </section>`;
+}
+
+function teacherCatalogueSection() {
+  if (state.profile?.role !== "teacher" || !Array.isArray(state.teacherCourses)) return "";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const p = state.tutorProfile || {};
+  const cards = state.teacherCourses.map((c) => courseCard(c, `<div class="order-card-actions"><span class="status-pill">${c.active ? "ظاهرة للطلاب" : "مخفية"}</span><button class="btn btn-outline btn-small" data-action="toggle-course" data-course-id="${escapeHTML(c.id)}" data-active="${c.active ? "no" : "yes"}" ${disabled}>${c.active ? "إخفاء" : "إظهار"}</button></div>`)).join("");
+  return `
+    <section class="page-panel health-panel education-panel" id="teacher-catalogue">
+      <div class="section-heading"><div><span class="eyebrow">مساحة المدرس</span><h2>ملفي ودوراتي</h2></div></div>
+      <form data-form="teacher-profile" novalidate>
+        <label>العنوان التعريفي<input name="headline" maxlength="100" value="${escapeHTML(p.headline || "")}" required></label>
+        <label>نبذة (اختياري)<textarea name="bio" rows="3" maxlength="1000">${escapeHTML(p.bio || "")}</textarea></label>
+        <label>المواد (افصل بفاصلة)<input name="subjects" maxlength="200" value="${escapeHTML((p.subjects || []).join("، "))}"></label>
+        <button class="btn btn-outline btn-small" type="submit" ${disabled}>حفظ الملف</button>
+      </form>
+      <form data-form="teacher-course" novalidate>
+        <label>عنوان الدورة<input name="title" maxlength="120" required></label>
+        <label>المادة<input name="subject" maxlength="60" required></label>
+        <label>وصف (اختياري)<textarea name="description" rows="3" maxlength="1000"></textarea></label>
+        <label>عدد الحصص<input type="number" name="lessons" min="1" max="200" required></label>
+        <label>النوع<select name="mode"><option value="online">أونلاين</option><option value="in_person">حضوري</option></select></label>
+        <label>السعر بالجنيه (اختياري، يُدفع للمدرس مباشرة)<input type="number" name="price" min="0" max="20000"></label>
+        <button class="btn btn-primary btn-small" type="submit" ${disabled}>أضف الدورة</button>
+      </form>
+      ${cards ? `<div class="orders-list">${cards}</div>` : '<p class="tracking-empty">لا توجد دورات بعد.</p>'}
+    </section>`;
+}
+
 async function loadHealthWork() {
+  await loadCourses();
   await loadMedicalNotes();
   const provider = state.providerRecord;
   state.healthWork = null;
@@ -641,6 +699,7 @@ function ordersView() {
     ${clinicSection()}
     ${storeSection()}
     ${educationSection()}
+    ${courseCatalogueSection()}
     ${labPriceSection()}
     ${prescriptionSection()}
     ${medicalNotesSection()}
@@ -710,7 +769,7 @@ function providerView() {
     preview: CONFIG.isPublicPreview,
     saving: state.providerSaving,
     error: state.providerError
-  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + teacherSection() + healthProviderSection() + medicalNotesSection();
+  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + teacherSection() + teacherCatalogueSection() + healthProviderSection() + medicalNotesSection();
 }
 
 function roadmapView() {
@@ -1034,6 +1093,7 @@ async function refreshMyOrders() {
     try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
     try { state.sessions = await dataApi.getSessions(); state.enrollments = await dataApi.getMyEnrollments(); } catch { state.sessions = null; state.enrollments = null; }
     await loadMedicalNotes();
+    await loadCourses();
     try { state.labTests = await dataApi.getLabTests(); state.prescriptions = await dataApi.getMyPrescriptions(); state.pharmacies = state.prescriptions ? await dataApi.getPharmacies() : null; const leftover = await dataApi.retryPendingFileCleanups(); if (leftover) showToast("ملف مرفوع من طلب فاشل لم يُحذف بعد. سنعيد المحاولة عند فتح التطبيق.", "error"); } catch { state.labTests = null; state.prescriptions = null; state.pharmacies = null; }
     if (!state.clinicDay) state.clinicDay = cairoDay(1);
     state.view = "orders";
@@ -1423,6 +1483,14 @@ root.addEventListener("click", async (event) => {
         showToast("تم تسجيلك في الحصة.", "success");
       });
       render();
+    } else if (action === "toggle-course") {
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.teacherSetCourseActive(button.dataset.courseId, button.dataset.active === "yes");
+        await loadCourses();
+        showToast("تم التحديث.", "success");
+      });
+      render();
     } else if (action === "toggle-lab-test") {
       await runWithBusyState(state, async () => {
         render();
@@ -1670,6 +1738,28 @@ root.addEventListener("submit", async (event) => {
         state.myOrders = await dataApi.getMyOrders(state.user.id);
         await loadClinicSlots();
         showToast("تم حجز الموعد. بانتظار تأكيد الطبيب.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "teacher-profile") {
+      if (CONFIG.isPublicPreview) throw new Error("الحفظ متوقف في نسخة المعاينة.");
+      const data = new FormData(form);
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.teacherSaveProfile({ headline: data.get("headline"), bio: data.get("bio"), subjects: data.get("subjects") });
+        await loadCourses();
+        showToast("تم حفظ الملف.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "teacher-course") {
+      if (CONFIG.isPublicPreview) throw new Error("الإضافة متوقفة في نسخة المعاينة.");
+      const data = new FormData(form);
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.teacherCreateCourse({ title: data.get("title"), subject: data.get("subject"), description: data.get("description"), lessons: data.get("lessons"), mode: data.get("mode"), price: data.get("price") });
+        await loadCourses();
+        showToast("تمت إضافة الدورة.", "success");
       });
       render();
     }
