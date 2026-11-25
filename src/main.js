@@ -720,6 +720,23 @@ function healthProviderSection() {
 
 const LAB_STATUS_LABELS = { requested: "تم الطلب", sample_done: "تم أخذ العينة", result_ready: "النتيجة جاهزة", cancelled: "ملغي" };
 
+function healthTimelineSection() {
+  if (state.profile?.role !== "customer") return "";
+  const items = [];
+  for (const o of state.myOrders || []) if (o.sector === "clinic" || o.sector === "nursing") items.push({ at: o.created_at, label: o.sector === "nursing" ? "طلب تمريض" : "حجز عيادة", detail: o.ref || "" });
+  for (const n of (state.medicalNotes?.notes) || []) items.push({ at: n.created_at, label: "ملاحظة من الطبيب", detail: n.note });
+  for (const r of state.prescriptions || []) items.push({ at: r.created_at, label: "طلب أدوية", detail: prescriptionStatusLabel(r.status) });
+  for (const r of state.labRequests || []) items.push({ at: r.created_at, label: r.test?.kind === "radiology" ? "طلب أشعة" : "طلب تحليل", detail: LAB_STATUS_LABELS[r.status] || "" });
+  const rows = items.filter((i) => i.at).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 15);
+  if (!rows.length) return "";
+  return `
+    <section class="page-panel health-panel" id="health-timeline">
+      <div class="section-heading"><div><span class="eyebrow">الصحة</span><h2>ملفي الصحي</h2></div></div>
+      <p class="deposit-note">آخر ${escapeHTML(rows.length)} أحداث. بيانات تجريبية في نسخة الاختبار. النتائج والملاحظات كتبها مقدم الخدمة، ووصلة لا تفسّرها.</p>
+      <div class="orders-list">${rows.map((i) => `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(i.label)}</strong><span class="status-pill">${escapeHTML(formatDate(i.at))}</span></div><div class="order-meta"><span>${escapeHTML(i.detail)}</span></div></article>`).join("")}</div>
+    </section>`;
+}
+
 function labRequestsSection() {
   if (!Array.isArray(state.labRequests) || !state.labRequests.length || state.profile?.role !== "customer") return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
@@ -948,6 +965,7 @@ function ordersView() {
     ${courseCatalogueSection()}
     ${labPriceSection()}
     ${labRequestsSection()}
+    ${healthTimelineSection()}
     ${nursingSection()}
     ${prescriptionSection()}
     ${medicalNotesSection()}
