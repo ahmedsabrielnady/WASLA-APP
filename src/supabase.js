@@ -822,7 +822,7 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) return null;
     const query = new URLSearchParams({
-      select: "id,title,subject,description,lessons,mode,price_egp,active,teacher_id,teacher:providers(display_name)",
+      select: "id,title,subject,description,lessons,mode,price_egp,seats,active,teacher_id,teacher:providers(display_name)",
       order: "created_at.desc", limit: "50"
     });
     if (teacherId) query.set("teacher_id", `eq.${teacherId}`); else query.set("active", "eq.true");
@@ -864,9 +864,48 @@ export const dataApi = {
     if (!Number.isInteger(lessons) || lessons < 1 || lessons > 200) throw new Error("عدد الحصص من 1 إلى 200.");
     if (!Number.isInteger(price) || price < 0 || price > 20000) throw new Error("السعر من 0 إلى 20000.");
     if (!["online", "in_person"].includes(values?.mode)) throw new Error("اختر نوع الدورة.");
+    const seats = values?.seats === "" || values?.seats == null ? 20 : Number(values.seats);
+    if (!Number.isInteger(seats) || seats < 1 || seats > 200) throw new Error("عدد المقاعد من 1 إلى 200.");
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
-    return request("/rest/v1/rpc/teacher_create_course", { method: "POST", token: session.access_token, body: { p_title: title, p_subject: subject, p_description: description, p_lessons: lessons, p_mode: values.mode, p_price: price } });
+    return request("/rest/v1/rpc/teacher_create_course", { method: "POST", token: session.access_token, body: { p_title: title, p_subject: subject, p_description: description, p_lessons: lessons, p_mode: values.mode, p_price: price, p_seats: seats } });
+  },
+
+  async getCourseEnrollments() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    try {
+      return await request(`/rest/v1/course_enrollments?${new URLSearchParams({ select: "id,course_id,status,created_at", order: "created_at.desc", limit: "200" })}`, { token: session.access_token });
+    } catch (error) {
+      if (/course_enrollments|schema cache|relation/i.test(String(error?.message))) return null;
+      throw error;
+    }
+  },
+
+  async enrollInCourse(courseId) {
+    assertLiveWritesAllowed("التسجيل في دورة");
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(courseId || ""))) throw new Error("اختر الدورة.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    try {
+      return await request("/rest/v1/rpc/enroll_in_course", { method: "POST", token: session.access_token, body: { p_course: courseId } });
+    } catch (error) {
+      const text = String(error?.message || "");
+      if (/course full/i.test(text)) throw new Error("الدورة مكتملة العدد.");
+      if (/already enrolled/i.test(text)) throw new Error("أنت مسجل في الدورة دي بالفعل.");
+      if (/course unavailable/i.test(text)) throw new Error("الدورة دي مش متاحة.");
+      if (/own course/i.test(text)) throw new Error("لا يمكن التسجيل في دورتك.");
+      if (/permission denied|schema cache|does not exist/i.test(text)) throw new Error("التسجيل في الدورات غير مفعل حاليًا.");
+      throw error;
+    }
+  },
+
+  async cancelCourseEnrollment(enrollmentId) {
+    assertLiveWritesAllowed("إلغاء التسجيل في دورة");
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(enrollmentId || ""))) throw new Error("تسجيل غير معروف.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/cancel_course_enrollment", { method: "POST", token: session.access_token, body: { p_enrollment: enrollmentId } });
   },
 
   async teacherSetCourseActive(courseId, active) {
