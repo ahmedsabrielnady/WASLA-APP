@@ -77,3 +77,8 @@ test("auth modal hides signup and email-registration copy when signup is closed"
 test("header login button does not offer a new account when signup is closed", () => {
   assert.match(main, /CONFIG\.isPublicPreview \|\| CONFIG\.isTestBackend \? "تسجيل الدخول" : "دخول \/ حساب جديد"/);
 });
+
+test("brand link keeps a 44px touch target", () => {
+  const css = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
+  assert.match(css, /\.brand \{ display: inline-flex; align-items: center; gap: 11px; min-height: 44px; \}/);
+});
