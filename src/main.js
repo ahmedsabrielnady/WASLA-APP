@@ -627,7 +627,7 @@ function teacherCatalogueSection() {
   if (state.profile?.role !== "teacher" || !Array.isArray(state.teacherCourses)) return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
   const p = state.tutorProfile || {};
-  const cards = state.teacherCourses.map((c) => courseCard(c, `<div class="order-card-actions"><span class="status-pill">${c.active ? "ظاهرة للطلاب" : "مخفية"}</span><span class="status-pill">${(state.courseEnrollments || []).filter((e) => e.course_id === c.id && e.status === "booked").length} من ${escapeHTML(c.seats)} مسجلين</span><button class="btn btn-outline btn-small" data-action="toggle-course" data-course-id="${escapeHTML(c.id)}" data-active="${c.active ? "no" : "yes"}" ${disabled}>${c.active ? "إخفاء" : "إظهار"}</button></div>`)).join("");
+  const cards = pagedRows("teacherCourses", state.teacherCourses, (c) => courseCard(c, `<div class="order-card-actions"><span class="status-pill">${c.active ? "ظاهرة للطلاب" : "مخفية"}</span><span class="status-pill">${(state.courseEnrollments || []).filter((e) => e.course_id === c.id && e.status === "booked").length} من ${escapeHTML(c.seats)} مسجلين</span><button class="btn btn-outline btn-small" data-action="toggle-course" data-course-id="${escapeHTML(c.id)}" data-active="${c.active ? "no" : "yes"}" ${disabled}>${c.active ? "إخفاء" : "إظهار"}</button></div>`));
   return `
     <section class="page-panel health-panel education-panel" id="teacher-catalogue">
       <div class="section-heading"><div><span class="eyebrow">مساحة المدرس</span><h2>ملفي ودوراتي</h2></div></div>
@@ -865,7 +865,7 @@ function teacherSection() {
   if (state.profile?.role !== "teacher" || !Array.isArray(state.teacherSessions)) return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
   const courseOptions = (Array.isArray(state.teacherCourses) ? state.teacherCourses : []).filter((c) => c.active).map((c) => `<option value="${escapeHTML(c.id)}">${escapeHTML(c.title)}</option>`).join("");
-  const cards = state.teacherSessions.map((item) => `
+  const cards = pagedRows("teacherSessions", state.teacherSessions, (item) => `
     <article class="order-card">
       <div class="order-card-top"><strong>${escapeHTML(item.title)}</strong><span class="status-pill">${item.status === "open" ? "مفتوحة" : "ملغاة"}</span></div>
       ${item.course?.title ? `<div class="order-name">ضمن الدورة: ${escapeHTML(item.course.title)}</div>` : ""}
@@ -875,7 +875,7 @@ function teacherSection() {
         <button class="btn btn-outline btn-small" type="submit" ${disabled}>حفظ الرابط</button>
       </form>` : ""}
       ${item.status === "open" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="teacher-cancel-session" data-session-id="${escapeHTML(item.id)}" ${disabled}>إلغاء الحصة</button></div>` : ""}
-    </article>`).join("");
+    </article>`);
   return `
     <section class="page-panel education-panel health-panel" id="teacher-sessions">
       <div class="section-heading"><div><span class="eyebrow">مساحة المدرس</span><h2>حصصي</h2></div></div>
