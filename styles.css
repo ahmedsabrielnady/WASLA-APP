@@ -1152,3 +1152,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .notifications-box { margin: 12px 0 18px; }
 .notification-target { outline: 3px solid #0a8f63; outline-offset: 2px; }
 .notifications-box .status-pill { white-space: nowrap; }
+
+.session-link-form { display: grid; gap: 8px; margin-top: 10px; }
+.session-link-form input { width: 100%; direction: ltr; text-align: left; }
+.session-link { font-weight: 700; word-break: break-all; }
