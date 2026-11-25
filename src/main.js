@@ -30,6 +30,8 @@ const state = {
   search: "",
   myOrders: [],
   nursingTimeRetry: null,
+  changeRequests: [],
+  opsChangeRequests: [],
   deliveries: null,
   doctors: null,
   sessions: null,
@@ -308,6 +310,7 @@ function orderCard(order) {
       ${order.status === "quoted" ? `<div class="quote-box"><strong>عرض سعر: ${escapeHTML(formatEGP(order.quote_price_egp))}</strong><p>هذا السعر المقترح من فريق وصلة. لن يبدأ التنفيذ ولن يُسجل أي التزام إلا بعد موافقتك. لا يتم تحصيل أي مبلغ داخل وصلة.</p><div class="order-card-actions"><button class="btn btn-primary btn-small" data-action="respond-quote" data-decision="accept" data-order-id="${escapeHTML(order.id)}" data-version="${escapeHTML(order.quote_version)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>أوافق على السعر</button><button class="btn btn-outline btn-small" data-action="respond-quote" data-decision="decline" data-order-id="${escapeHTML(order.id)}" data-version="${escapeHTML(order.quote_version)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>أرفض وألغي الطلب</button></div></div>` : ""}
       ${Number(order.deposit_egp) > 0 ? `<p class="deposit-note">عربون مسجل: ${escapeHTML(formatEGP(order.deposit_egp))} · ${order.deposit_paid ? "مدفوع" : "غير مسدد"}</p>` : ""}
       ${order.lat != null && order.lng != null && Number.isFinite(Number(order.lat)) && Number.isFinite(Number(order.lng)) ? '<p class="location-note">📍 تم تسجيل إحداثيات موقع التنفيذ</p>' : ""}
+      ${changeRequestPanel(order)}
       <div class="order-card-actions">
         <button class="btn btn-outline btn-small" data-action="track-order" data-order-id="${escapeHTML(order.id)}" ${state.trackingLoadingId === order.id ? "disabled" : ""}>${state.trackingOrderId === order.id ? "إخفاء التفاصيل" : "متابعة الطلب"}</button>
         ${order.status === "new" ? `<button class="btn btn-outline btn-small" data-action="customer-cancel-order" data-order-id="${escapeHTML(order.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>إلغاء الطلب قبل التأكيد</button>` : ""}
@@ -315,6 +318,28 @@ function orderCard(order) {
       ${orderTrackingPanel(order)}
     </article>
   `;
+}
+
+const CHANGE_STATUS_LABEL = { open: "طلبك مفتوح، لسه ماتراجعش", applied: "تم التنفيذ", declined: "تمت المراجعة بدون تغيير" };
+const CHANGE_KIND_LABEL = { change_time: "تغيير الموعد", cancel: "إلغاء الزيارة" };
+
+function changeRequestPanel(order) {
+  if (order.sector !== "nursing" || !["confirmed", "in_progress"].includes(order.status)) return "";
+  const mine = (state.changeRequests || []).filter((r) => r.order_id === order.id);
+  const open = mine.filter((r) => r.status === "open");
+  const lines = mine.slice(0, 4).map((r) => `<p class="deposit-note change-${escapeHTML(r.status)}"><strong>${escapeHTML(CHANGE_KIND_LABEL[r.kind] || r.kind)}:</strong> ${escapeHTML(CHANGE_STATUS_LABEL[r.status] || r.status)}${r.status === "declined" ? " (الطلب زي ما هو)" : ""}</p>`).join("");
+  const kinds = [["cancel", "طلب إلغاء الزيارة"]];
+  if (order.status === "confirmed") kinds.unshift(["change_time", "طلب تغيير الموعد"]);
+  const available = kinds.filter(([k]) => !open.some((r) => r.kind === k));
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const form = available.length ? `
+    <form class="change-request-form" data-form="order-change-request" data-order-id="${escapeHTML(order.id)}" novalidate>
+      <label>نوع الطلب<select name="kind">${available.map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select></label>
+      <label>ملاحظة (اختياري)<input name="note" maxlength="300"></label>
+      <p class="deposit-note">ده طلب بس. الطلب مش بيتغير أو يتلغي إلا لما فريق وصلة يراجعه ويأكد معاك.</p>
+      <button class="btn btn-outline btn-small" type="submit" ${disabled}>إرسال الطلب</button>
+    </form>` : "";
+  return `<div class="change-requests">${lines}${form}</div>`;
 }
 
 function formatAppointment(value) {
@@ -823,6 +848,7 @@ function operationsView() {
     services: state.operationsServices,
     latestInviteCode: state.latestInviteCode,
     coverage: state.operationsCoverage,
+    changeRequests: state.opsChangeRequests,
     preview: CONFIG.isPublicPreview,
     saving: state.operationsSaving
   }) + deliveryQueueSection("staff");
@@ -1173,6 +1199,7 @@ async function refreshMyOrders() {
   }
   try {
     state.myOrders = await dataApi.getMyOrders(state.user.id);
+    state.changeRequests = await dataApi.getMyChangeRequests();
     try { state.deliveries = await dataApi.getMyDeliveries(); } catch { state.deliveries = null; }
     try { state.doctors = await dataApi.getDoctors(); } catch { state.doctors = null; }
     try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
@@ -1206,6 +1233,7 @@ async function refreshOperations() {
     state.operationsServices = Array.isArray(services) ? services : [];
     state.operationsCoverage = Array.isArray(coverage) ? coverage : [];
     try { state.deliveryQueue = await dataApi.getDeliveryQueue(); } catch { state.deliveryQueue = null; }
+    state.opsChangeRequests = await dataApi.getMyChangeRequests();
     state.view = "operations";
   } catch (error) {
     showToast(error.message, "error");
@@ -1723,6 +1751,19 @@ root.addEventListener("click", async (event) => {
         state.crmSaving = false;
         render();
       }
+    } else if (action === "ops-resolve-change") {
+      if (CONFIG.isPublicPreview) throw new Error("التعديل متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح.");
+      state.operationsSaving = true;
+      render();
+      try {
+        await dataApi.resolveOrderChange({ requestId: button.dataset.requestId, status: button.dataset.status });
+        showToast(button.dataset.status === "applied" ? "تم تسجيل التنفيذ." : "تم تسجيل المراجعة بدون تغيير.", "success");
+        await refreshOperations();
+      } finally {
+        state.operationsSaving = false;
+        render();
+      }
     } else if (action === "ops-set-status") {
       if (CONFIG.isPublicPreview) throw new Error("التعديل متوقف في نسخة المعاينة.");
       if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بتغيير حالة الطلب.");
@@ -1931,6 +1972,17 @@ root.addEventListener("submit", async (event) => {
         await dataApi.updateProduct(form.dataset.productId, { name: data.get("name"), price: data.get("price"), category: data.get("category") });
         await loadHealthWork();
         showToast("تم حفظ بيانات المنتج.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "order-change-request") {
+      if (CONFIG.isPublicPreview) throw new Error("الطلب متوقف في نسخة المعاينة.");
+      const data = new FormData(form);
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.requestOrderChange({ orderId: form.dataset.orderId, kind: data.get("kind"), note: data.get("note") });
+        state.changeRequests = await dataApi.getMyChangeRequests();
+        showToast("تم إرسال طلبك. فريق وصلة هيراجعه ويتواصل معاك. الطلب لسه زي ما هو.", "success");
       });
       render();
     }
