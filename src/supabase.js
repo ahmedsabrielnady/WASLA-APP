@@ -47,6 +47,19 @@ function clearSession() {
   localStorage.removeItem(SESSION_KEY);
 }
 
+async function removeUploadedPrescriptionFile(token, path) {
+  const url = `${API_ROOT}/storage/v1/object/prescriptions/${path}`;
+  const headers = { apikey: CONFIG.supabasePublishableKey, Authorization: `Bearer ${token}` };
+  try {
+    const removed = await fetch(url, { method: "DELETE", headers });
+    if (!removed.ok && removed.status !== 404) return false;
+    const check = await fetch(url.replace("/object/", "/object/authenticated/"), { headers });
+    return !check.ok; // verified gone only when the file can no longer be read
+  } catch {
+    return false;
+  }
+}
+
 async function request(path, options = {}) {
   const {
     method = "GET",
@@ -896,16 +909,21 @@ export const dataApi = {
     if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
     const token = session.access_token;
     const id = await request("/rest/v1/rpc/submit_prescription_request", { method: "POST", token, body: { p_note: note } });
+    let uploadedPath = null;
     try {
       if (file) {
         const path = `${id}/rx-${Date.now()}.${types[file.type]}`;
+        uploadedPath = path; // set before the request: a timeout may still have stored the file
         const upload = await fetch(`${API_ROOT}/storage/v1/object/prescriptions/${path}`, { method: "POST", headers: { apikey: CONFIG.supabasePublishableKey, Authorization: `Bearer ${token}`, "Content-Type": file.type }, body: file });
         if (!upload.ok) throw new Error("تعذر رفع الملف.");
         await request("/rest/v1/rpc/attach_prescription_file", { method: "POST", token, body: { p_request: id, p_path: path } });
       }
       await request("/rest/v1/rpc/rx_set_audience", { method: "POST", token, body: { p_request: id, p_pharmacies: pharmacies, p_consent: true } });
     } catch (error) {
+      // Compensate: delete the uploaded file through the Storage API and verify it is gone, then close the request.
+      const cleaned = uploadedPath ? await removeUploadedPrescriptionFile(token, uploadedPath) : true;
       try { await request("/rest/v1/rpc/customer_close_prescription_request", { method: "POST", token, body: { p_request: id } }); } catch { /* best effort */ }
+      if (!cleaned) throw new Error("تعذر إرسال الطلب وتعذر حذف الملف المرفوع الآن. أُغلق الطلب، وسيُحذف الملف تلقائيًا عند انتهاء مدة الاحتفاظ.");
       throw error;
     }
     return id;
