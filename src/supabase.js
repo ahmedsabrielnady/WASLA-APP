@@ -1071,6 +1071,34 @@ export const dataApi = {
     return request("/rest/v1/rpc/cancel_enrollment", { method: "POST", token: session.access_token, body: { p_enrollment: enrollmentId } });
   },
 
+  async getMyLabRequests() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const query = new URLSearchParams({ select: "id,status,price_egp,result_text,created_at,updated_at,test:lab_tests(name,kind),provider:providers(display_name)", order: "created_at.desc", limit: "50" });
+    try {
+      return await request(`/rest/v1/lab_requests?${query}`, { token: session.access_token });
+    } catch (error) {
+      if (/lab_requests|schema cache|relation/i.test(String(error?.message))) return null;
+      throw error;
+    }
+  },
+
+  async labRpc(name, body, label) {
+    assertLiveWritesAllowed(label);
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request(`/rest/v1/rpc/${name}`, { method: "POST", token: session.access_token, body });
+  },
+
+  requestLabTest(testId) { return this.labRpc("request_lab_test", { p_test: testId }, "طلب تحليل"); },
+  cancelLabRequest(requestId) { return this.labRpc("patient_cancel_lab_request", { p_request: requestId }, "إلغاء طلب تحليل"); },
+  labMarkSampleDone(requestId) { return this.labRpc("lab_set_request_status", { p_request: requestId, p_to: "sample_done" }, "تحديث حالة طلب"); },
+  labPublishResult(requestId, text) {
+    const value = String(text || "").trim();
+    if (value.length < 3 || value.length > 2000) throw new Error("النتيجة من 3 إلى 2000 حرف.");
+    return this.labRpc("lab_publish_result", { p_request: requestId, p_text: value }, "نشر نتيجة");
+  },
+
   async getLabTests() {
     const session = await getValidSession();
     if (!session?.access_token) return null;
