@@ -488,14 +488,26 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول لعرض مقدمي الخدمة.");
 
-    const query = new URLSearchParams({
-      select: "id,kind,display_name,specialty,area,approved,active,is_test,created_at",
-      order: "created_at.desc",
-      limit: "100"
-    });
+    const build = (select) => new URLSearchParams({ select, order: "created_at.desc", limit: "100" });
+    const base = "id,kind,display_name,specialty,area,approved,active,is_test,created_at";
+    try {
+      return await request(`/rest/v1/providers?${build(base + ",nursing_credential_verified")}`, { token: session.access_token });
+    } catch (error) {
+      // Before the nursing credential draft is applied nobody is credentialed.
+      if (!/nursing_credential_verified/.test(String(error?.message))) throw error;
+      const rows = await request(`/rest/v1/providers?${build(base)}`, { token: session.access_token });
+      return Array.isArray(rows) ? rows.map((row) => ({ ...row, nursing_credential_verified: false })) : rows;
+    }
+  },
 
-    return request(`/rest/v1/providers?${query}`, {
-      token: session.access_token
+  async setNursingCredential(providerId, verified) {
+    assertLiveWritesAllowed("اعتماد التمريض");
+    if (!providerId) throw new Error("اختر مقدم الخدمة.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/staff_set_nursing_credential", {
+      method: "POST", token: session.access_token,
+      body: { p_provider: providerId, p_verified: verified === true }
     });
   },
 
