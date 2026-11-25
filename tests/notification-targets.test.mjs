@@ -32,5 +32,5 @@ test("a notice whose source data is unavailable keeps an opaque non-clinical ref
 
 test("the registrations list shows only booked enrollments with a readable session", () => {
   assert.match(main, /const liveEnrollments = \(state\.enrollments \|\| \[\]\)\.filter\(\(e\) => e\.status === "booked" && e\.session\?\.title\)/);
-  assert.match(main, /const mine = liveEnrollments\.map/);
+  assert.match(main, /const mine = pagedRows\("enrollments", liveEnrollments/);
 });
