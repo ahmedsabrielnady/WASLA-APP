@@ -425,7 +425,7 @@ function educationSection() {
     <article class="order-card">
       <div class="order-card-top"><strong>${escapeHTML(e.session?.title || "حصة")}</strong><span class="status-pill">مسجل</span></div>
       <div class="order-meta"><span>${escapeHTML(e.session?.starts_at ? formatAppointment(e.session.starts_at) : "")}</span></div>
-      ${e.status === "booked" && safeMeetingUrl(state.sessionLinks?.[e.session_id]) ? `<p class="deposit-note">رابط الحصة من المدرس (خارج وصلة): <a class="session-link" href="${escapeHTML(safeMeetingUrl(state.sessionLinks[e.session_id]))}" target="_blank" rel="noopener noreferrer">فتح رابط الحصة</a></p>` : ""}
+      ${e.status === "booked" && safeMeetingUrl(state.sessionLinks?.[e.session_id]) ? `<p class="deposit-note">الرابط من المدرس ويفتح خدمة خارج وصلة.</p><div class="order-card-actions"><a class="btn btn-primary btn-small session-link" href="${escapeHTML(safeMeetingUrl(state.sessionLinks[e.session_id]))}" target="_blank" rel="noopener noreferrer">فتح رابط الحصة</a></div>` : ""}
       <div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="cancel-enrollment" data-enrollment-id="${escapeHTML(e.id)}" ${disabled}>إلغاء التسجيل</button></div>
     </article>`).join("");
   return `
@@ -2110,7 +2110,7 @@ root.addEventListener("submit", async (event) => {
       if (CONFIG.isPublicPreview) throw new Error("الحفظ متوقف في نسخة المعاينة.");
       if (state.profile?.role !== "teacher") throw new Error("هذه العملية للمدرس فقط.");
       const url = safeMeetingUrl(new FormData(form).get("url"));
-      if (!url) throw new Error("الرابط لازم يبدأ بـ https:// وبدون مسافات.");
+      if (!url) throw new Error("الرابط لازم يبدأ بـ \u2066https://\u2069 وبدون مسافات.");
       await runWithBusyState(state, async () => {
         render();
         await dataApi.teacherSetSessionLink(form.dataset.sessionId, url);
