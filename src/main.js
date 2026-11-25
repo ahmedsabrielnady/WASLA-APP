@@ -436,6 +436,8 @@ function medicalNotesSection() {
 async function loadCourses() {
   state.courses = null; state.teacherCourses = null; state.tutorProfile = null;
   try { state.courses = await dataApi.getCourses(); } catch { state.courses = null; }
+  state.courseEnrollments = null;
+  try { state.courseEnrollments = await dataApi.getCourseEnrollments(); } catch { state.courseEnrollments = null; }
   const teacher = state.providerRecord;
   if (state.profile?.role === "teacher" && teacher?.id) {
     try { state.teacherCourses = await dataApi.getCourses(teacher.id); state.tutorProfile = await dataApi.getMyTutorProfile(teacher.id); } catch { state.teacherCourses = null; }
@@ -453,13 +455,24 @@ function courseCard(item, extra = "") {
     </article>`;
 }
 
+function courseEnrollButton(course) {
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const mine = (state.courseEnrollments || []).find((e) => e.course_id === course.id && e.status === "booked");
+  const seats = `<span class="status-pill">${escapeHTML(course.seats)} مقعد</span>`;
+  if (mine) return `<div class="order-card-actions">${seats}<button class="btn btn-outline btn-small" data-action="cancel-course-enrollment" data-enrollment-id="${escapeHTML(mine.id)}" ${disabled}>إلغاء التسجيل</button></div>`;
+  return `<div class="order-card-actions">${seats}<button class="btn btn-primary btn-small" data-action="enroll-course" data-course-id="${escapeHTML(course.id)}" ${disabled}>سجل في الدورة</button></div>`;
+}
+
 function courseCatalogueSection() {
   if (!Array.isArray(state.courses) || !state.courses.length || state.profile?.role === "teacher") return "";
+  const booked = (state.courseEnrollments || []).filter((e) => e.status === "booked").length;
+  const mineCourses = booked ? `<p class="deposit-note">أنت مسجل في ${escapeHTML(booked)} دورة.</p>` : "";
   return `
     <section class="page-panel health-panel education-panel" id="course-catalogue">
       <div class="section-heading"><div><span class="eyebrow">التعليم</span><h2>الدورات المتاحة</h2></div></div>
       <p class="deposit-note">الاتفاق والدفع مع المدرس مباشرة. لا يتم تحصيل أي مبلغ داخل وصلة.</p>
-      <div class="orders-list">${state.courses.map((c) => courseCard(c)).join("")}</div>
+      ${mineCourses}
+      <div class="orders-list">${state.courses.map((c) => courseCard(c, courseEnrollButton(c))).join("")}</div>
     </section>`;
 }
 
@@ -467,7 +480,7 @@ function teacherCatalogueSection() {
   if (state.profile?.role !== "teacher" || !Array.isArray(state.teacherCourses)) return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
   const p = state.tutorProfile || {};
-  const cards = state.teacherCourses.map((c) => courseCard(c, `<div class="order-card-actions"><span class="status-pill">${c.active ? "ظاهرة للطلاب" : "مخفية"}</span><button class="btn btn-outline btn-small" data-action="toggle-course" data-course-id="${escapeHTML(c.id)}" data-active="${c.active ? "no" : "yes"}" ${disabled}>${c.active ? "إخفاء" : "إظهار"}</button></div>`)).join("");
+  const cards = state.teacherCourses.map((c) => courseCard(c, `<div class="order-card-actions"><span class="status-pill">${c.active ? "ظاهرة للطلاب" : "مخفية"}</span><span class="status-pill">${(state.courseEnrollments || []).filter((e) => e.course_id === c.id && e.status === "booked").length} من ${escapeHTML(c.seats)} مسجلين</span><button class="btn btn-outline btn-small" data-action="toggle-course" data-course-id="${escapeHTML(c.id)}" data-active="${c.active ? "no" : "yes"}" ${disabled}>${c.active ? "إخفاء" : "إظهار"}</button></div>`)).join("");
   return `
     <section class="page-panel health-panel education-panel" id="teacher-catalogue">
       <div class="section-heading"><div><span class="eyebrow">مساحة المدرس</span><h2>ملفي ودوراتي</h2></div></div>
@@ -484,6 +497,7 @@ function teacherCatalogueSection() {
         <label>عدد الحصص<input type="number" name="lessons" min="1" max="200" required></label>
         <label>النوع<select name="mode"><option value="online">أونلاين</option><option value="in_person">حضوري</option></select></label>
         <label>السعر بالجنيه (اختياري، يُدفع للمدرس مباشرة)<input type="number" name="price" min="0" max="20000"></label>
+        <label>عدد المقاعد<input type="number" name="seats" min="1" max="200" value="20"></label>
         <button class="btn btn-primary btn-small" type="submit" ${disabled}>أضف الدورة</button>
       </form>
       ${cards ? `<div class="orders-list">${cards}</div>` : '<p class="tracking-empty">لا توجد دورات بعد.</p>'}
@@ -1483,6 +1497,26 @@ root.addEventListener("click", async (event) => {
         showToast("تم تسجيلك في الحصة.", "success");
       });
       render();
+    } else if (action === "enroll-course") {
+      if (state.profile?.role !== "customer") throw new Error("التسجيل متاح لحسابات العملاء فقط.");
+      if (!window.confirm("تأكيد التسجيل في الدورة؟ بالتسجيل توافق على الشروط وسياسة الخصوصية. الدفع للمدرس مباشرة.")) return;
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.acceptRequiredConsents();
+        await dataApi.enrollInCourse(button.dataset.courseId);
+        await loadCourses();
+        showToast("تم تسجيلك في الدورة.", "success");
+      });
+      render();
+    } else if (action === "cancel-course-enrollment") {
+      if (!window.confirm("إلغاء التسجيل في الدورة؟")) return;
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.cancelCourseEnrollment(button.dataset.enrollmentId);
+        await loadCourses();
+        showToast("تم إلغاء التسجيل.", "success");
+      });
+      render();
     } else if (action === "toggle-course") {
       await runWithBusyState(state, async () => {
         render();
@@ -1757,7 +1791,7 @@ root.addEventListener("submit", async (event) => {
       const data = new FormData(form);
       await runWithBusyState(state, async () => {
         render();
-        await dataApi.teacherCreateCourse({ title: data.get("title"), subject: data.get("subject"), description: data.get("description"), lessons: data.get("lessons"), mode: data.get("mode"), price: data.get("price") });
+        await dataApi.teacherCreateCourse({ title: data.get("title"), subject: data.get("subject"), description: data.get("description"), lessons: data.get("lessons"), mode: data.get("mode"), price: data.get("price"), seats: data.get("seats") });
         await loadCourses();
         showToast("تمت إضافة الدورة.", "success");
       });
