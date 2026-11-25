@@ -378,8 +378,8 @@ function educationSection() {
       <div class="order-card-top"><strong>${escapeHTML(item.title)}</strong><span class="status-pill">${escapeHTML(sessionModeLabel(item.mode))}</span></div>
       <div class="order-name">${escapeHTML(item.subject)} · ${escapeHTML(item.teacher?.display_name || "مدرس")}</div>
       ${item.course_id ? `<p class="deposit-note">ضمن الدورة: ${escapeHTML(item.course?.title || "")}. الحجز لمن سجل في الدورة فقط.</p>` : ""}
-      <div class="order-meta"><span>${escapeHTML(formatAppointment(item.starts_at))} · ${escapeHTML(item.duration_min)} دقيقة</span><strong>${escapeHTML(formatEGP(item.price_egp))}</strong></div>
-      <p class="deposit-note">يُدفع للمدرس مباشرة. لا يتم تحصيل أي مبلغ داخل وصلة.</p>
+      <div class="order-meta"><span>${escapeHTML(formatAppointment(item.starts_at))} · ${escapeHTML(item.duration_min)} دقيقة</span>${item.course_id ? "" : `<strong>${escapeHTML(formatEGP(item.price_egp))}</strong>`}</div>
+      ${item.course_id ? "" : '<p class="deposit-note">يُدفع للمدرس مباشرة. لا يتم تحصيل أي مبلغ داخل وصلة.</p>'}
       <div class="order-card-actions">${enrolledIds.has(item.id)
         ? '<span class="status-pill">أنت مسجل</span>'
         : `<button class="btn btn-primary btn-small" data-action="enroll-session" data-session-id="${escapeHTML(item.id)}" ${disabled}>سجل في الحصة</button>`}</div>
