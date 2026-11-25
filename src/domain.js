@@ -260,3 +260,8 @@ export function sectorEntryPlan({ code, signedIn, isCustomer, present = new Set(
   if (!found) return { kind: "unavailable" };
   return { kind: "scroll", anchor: found, exact: found === anchors[0], delivery: code === "delivery" };
 }
+
+// Offer text comes from the platform database. Pictographs render as empty boxes without an emoji font, so the ticker shows the text only.
+export function stripPictographs(value) {
+  return String(value ?? "").replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]/gu, "").replace(/\s{2,}/g, " ").trim();
+}
