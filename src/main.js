@@ -440,6 +440,7 @@ function educationSection() {
 
 async function loadMedicalNotes() {
   state.medicalNotes = null;
+  state.doctorFile = null;
   try { state.medicalNotes = await dataApi.getMedicalNotes(); } catch { state.medicalNotes = null; }
 }
 
@@ -501,6 +502,23 @@ function notificationsSection() {
     </div>`;
 }
 
+function doctorPatientFilesHTML(targets, disabled) {
+  const seen = new Map();
+  for (const o of targets) if (o.customer_id && !seen.has(o.customer_id)) seen.set(o.customer_id, o);
+  const buttons = [...seen.entries()].map(([id, o]) => `<button class="btn btn-outline btn-small" data-action="open-patient-file" data-patient-id="${escapeHTML(id)}" ${disabled}>فتح ملف المريض #${escapeHTML(String(id).slice(0, 4).toUpperCase())} (آخر حالة ${escapeHTML(o.ref || "")})</button>`).join("");
+  const f = state.doctorFile;
+  const file = f ? `
+    <div class="order-card" id="patient-file">
+      <div class="order-card-top"><strong>ملف المريض #${escapeHTML(String(f.patientId).slice(0, 4).toUpperCase())}</strong><button class="btn btn-outline btn-small" data-action="close-patient-file">إغلاق</button></div>
+      <p class="deposit-note">فتح الملف بيتسجل في سجل الوصول. تظهر لك حالاتك وملاحظاتك أنت فقط.</p>
+      <h3>الحالات</h3>
+      ${(f.data.orders || []).map((o) => `<div class="order-meta"><span>${escapeHTML(o.ref || "")} · ${escapeHTML(formatDate(o.created_at))}</span></div>`).join("") || '<p class="tracking-empty">لا توجد حالات.</p>'}
+      <h3>الملاحظات</h3>
+      ${(f.data.notes || []).map((n) => `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(n.note)}</strong></div><div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span></div></article>`).join("") || '<p class="tracking-empty">لا توجد ملاحظات.</p>'}
+    </div>` : "";
+  return `${buttons ? `<div class="order-card-actions">${buttons}</div>` : ""}${file}`;
+}
+
 function medicalNotesSection() {
   const data = state.medicalNotes;
   if (!data) return "";
@@ -520,7 +538,7 @@ function medicalNotesSection() {
         <label>الملاحظة<textarea name="note" rows="3" maxlength="2000" required></textarea></label>
         <button class="btn btn-primary btn-small" type="submit" ${disabled}>حفظ الملاحظة</button>
       </form>` : '<p class="tracking-empty">لا توجد حالات مؤكدة لإضافة ملاحظات عليها.</p>'}
-      ${list ? `<div class="orders-list">${list}</div>` : ""}
+      ${doctorPatientFilesHTML(data.targets || [], disabled)}
     </section>`;
   }
   if (!list) return "";
@@ -1665,6 +1683,7 @@ root.addEventListener("click", async (event) => {
       state.operationsServices = [];
       state.operationsCoverage = [];
       state.latestInviteCode = "";
+      state.doctorFile = null;
       state.roadmapAudit = [];
       state.view = "home";
       render();
@@ -1798,6 +1817,18 @@ root.addEventListener("click", async (event) => {
         state.labRequests = await dataApi.getMyLabRequests();
         showToast("تم التحديث.", "success");
       });
+      render();
+    } else if (action === "open-patient-file") {
+      await runWithBusyState(state, async () => {
+        render();
+        const data = await dataApi.doctorOpenPatientFile(button.dataset.patientId);
+        state.doctorFile = { patientId: button.dataset.patientId, data };
+      });
+      render();
+      const card = document.getElementById("patient-file");
+      if (card) { card.style.scrollMarginTop = "110px"; card.scrollIntoView({ behavior: "smooth", block: "start" }); }
+    } else if (action === "close-patient-file") {
+      state.doctorFile = null;
       render();
     } else if (action === "toggle-lab-test") {
       await runWithBusyState(state, async () => {
@@ -2103,7 +2134,8 @@ root.addEventListener("submit", async (event) => {
         render();
         await dataApi.doctorAddNote({ orderId: data.get("order"), note: data.get("note") });
         await loadMedicalNotes();
-        showToast("تم حفظ الملاحظة.", "success");
+        state.doctorFile = null;
+        showToast("تم حفظ الملاحظة. افتح ملف المريض لتشوفها.", "success");
       });
       render();
     }
