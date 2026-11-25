@@ -26,3 +26,8 @@ test("deliveries, open sessions and enrolments are paged through one more-list a
   for (const key of ["deliveries", "sessions", "enrollments"]) assert.match(src, new RegExp(`pagedRows\\("${key}"`));
   assert.match(src, /action === "more-list"/);
 });
+
+test("course catalogue, lab prices and the patient's own notes are paged too", () => {
+  const src = readFileSync(new URL("../src/main.js", import.meta.url), "utf8");
+  for (const key of ["courses", "labTests", "notes"]) assert.match(src, new RegExp(`pagedRows\\("${key}"`));
+});
