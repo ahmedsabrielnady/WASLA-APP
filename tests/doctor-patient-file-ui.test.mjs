@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { patientFileDeniedMessage } from "../src/domain.js";
+import { patientFileDeniedMessage, pageSlice, FILE_PAGE_SIZE } from "../src/domain.js";
 
 const main = readFileSync(new URL("../src/main.js", import.meta.url), "utf8");
 const api = readFileSync(new URL("../src/supabase.js", import.meta.url), "utf8");
@@ -24,4 +24,18 @@ test("a refused patient file shows an Arabic message and other errors pass throu
   assert.equal(patientFileDeniedMessage("يلزم تسجيل الدخول"), "يلزم تسجيل الدخول");
   assert.equal(patientFileDeniedMessage(""), "تعذر فتح الملف.");
   assert.match(api, /throw new Error\(patientFileDeniedMessage\(error\?\.message\)\)/);
+});
+
+test("long patient file lists are paged and the remainder is reachable", () => {
+  const rows = Array.from({ length: 45 }, (_, i) => ({ id: i }));
+  assert.equal(FILE_PAGE_SIZE, 20);
+  let p = pageSlice(rows, FILE_PAGE_SIZE);
+  assert.deepEqual([p.items.length, p.remaining], [20, 25]);
+  p = pageSlice(rows, FILE_PAGE_SIZE * 3);
+  assert.deepEqual([p.items.length, p.remaining], [45, 0]);
+  assert.deepEqual(pageSlice(undefined), { items: [], remaining: 0 });
+  assert.deepEqual(pageSlice([], 20), { items: [], remaining: 0 });
+  assert.match(main, /data-action="more-patient-file"/);
+  assert.match(main, /action === "more-patient-file"/);
+  assert.match(main, /limit: FILE_PAGE_SIZE/);
 });
