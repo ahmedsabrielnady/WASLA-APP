@@ -1079,6 +1079,45 @@ export const dataApi = {
     return null;
   },
 
+  async getMyProducts(providerId) {
+    const session = await getValidSession();
+    if (!session?.access_token || !providerId) return null;
+    const query = new URLSearchParams({ select: "id,name,price_egp,stock,active,category", merchant_id: `eq.${providerId}`, order: "id.desc", limit: "100" });
+    return request(`/rest/v1/products?${query}`, { token: session.access_token });
+  },
+
+  async saveProduct(values) {
+    assertLiveWritesAllowed("إضافة منتج");
+    const name = String(values?.name || "").trim(), price = Number(values?.price), stock = Number(values?.stock);
+    if (name.length < 2 || name.length > 120) throw new Error("اكتب اسم المنتج (من 2 إلى 120 حرفًا).");
+    if (!["market", "food", "supplies"].includes(values.category)) throw new Error("اختر تصنيف المنتج.");
+    if (!Number.isInteger(price) || price < 1 || price > 100000) throw new Error("السعر من 1 إلى 100000 جنيه.");
+    if (!Number.isInteger(stock) || stock < 0 || stock > 10000) throw new Error("المخزون من 0 إلى 10000.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const rows = await request("/rest/v1/rpc/merchant_add_product", { method: "POST", token: session.access_token, body: { p_name: name, p_category: values.category, p_price: price, p_stock: stock } });
+    if (!Array.isArray(rows) || rows.length !== 1) throw new Error("لم يتم حفظ المنتج.");
+    return rows[0];
+  },
+
+  async updateProduct(productId, changes) {
+    assertLiveWritesAllowed("تعديل منتج");
+    if (!Number.isInteger(Number(productId))) throw new Error("اختر المنتج.");
+    const body = {};
+    if (changes && "active" in changes) body.active = changes.active === true;
+    if (changes && "stock" in changes) {
+      const stock = Number(changes.stock);
+      if (!Number.isInteger(stock) || stock < 0 || stock > 10000) throw new Error("المخزون من 0 إلى 10000.");
+      body.stock = stock;
+    }
+    if (!Object.keys(body).length) throw new Error("لا يوجد تغيير.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const rows = await request(`/rest/v1/products?${new URLSearchParams({ id: `eq.${Number(productId)}` })}`, { method: "PATCH", token: session.access_token, headers: { Prefer: "return=representation" }, body });
+    if (!Array.isArray(rows) || rows.length !== 1) throw new Error("لم يتم تعديل المنتج. قد لا يكون ملكك.");
+    return rows[0];
+  },
+
   async pharmacyQuote(values) {
     assertLiveWritesAllowed("الرد على روشتة");
     const price = Number(values?.price), eta = values?.eta === "" || values?.eta == null ? null : Number(values.eta);
