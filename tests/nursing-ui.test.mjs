@@ -139,3 +139,13 @@ test("change requests: requested vs executed are separate labels in customer and
   assert.ok(panel.length > 200 && staffPanel.length > 200);
   assert.doesNotMatch(panel + staffPanel, /رسوم|غرامة|استرداد|ج\.م/);
 });
+
+test("notifications: generic text only, no health detail, read through RPC", () => {
+  const api = readFileSync(new URL("../src/supabase.js", import.meta.url), "utf8");
+  const block = main.slice(main.indexOf("const NOTIFICATION_TEXT"), main.indexOf("function medicalNotesSection"));
+  assert.ok(block.length > 300);
+  assert.doesNotMatch(block, /تمريض|ممرض|تحليل|روشتة|وصفة|دواء|تشخيص|ج\.م/);
+  assert.match(api, /notifications\?/);
+  assert.match(api, /rpc\/mark_notifications_read/);
+  assert.doesNotMatch(api.slice(api.indexOf("async getMyNotifications"), api.indexOf("async getMyChangeRequests")), /method: "(POST|PATCH|DELETE)"[\s\S]{0,80}notifications\?/);
+});
