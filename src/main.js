@@ -302,7 +302,7 @@ function orderItemName(order) {
 function orderCard(order) {
   const price = order.price_egp === null ? (order.status === "quoted" ? "بانتظار موافقتك" : "السعر لم يحدد") : formatEGP(order.price_egp);
   return `
-    <article class="order-card">
+    <article class="order-card" id="order-${escapeHTML(order.id)}">
       <div class="order-card-top"><strong>${escapeHTML(order.ref || "طلب وصلة")}</strong><span class="status-pill">${escapeHTML(statusLabel(order.status))}</span></div>
       <div class="order-name">${escapeHTML(orderItemName(order))}</div>
       <div class="order-meta"><span>${escapeHTML(formatDate(order.created_at))}</span><strong>${escapeHTML(price)}</strong></div>
@@ -439,16 +439,22 @@ const NOTIFICATION_TEXT = {
   change_request_declined: "تمت مراجعة طلبك بدون تغيير."
 };
 
+function notificationItem(n) {
+  const order = (state.myOrders || []).find((o) => o.id === n.ref_id);
+  const ref = order ? escapeHTML(order.ref || "") : "";
+  return `<article class="order-card${n.read_at ? "" : " notification-unread"}"><div class="order-card-top"><strong>${escapeHTML(NOTIFICATION_TEXT[n.kind])}</strong>${ref ? `<span class="status-pill">${ref}</span>` : ""}</div><div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span>${order ? `<button class="btn btn-outline btn-small" data-action="open-notification-order" data-order-id="${escapeHTML(order.id)}">فتح الطلب</button>` : ""}</div></article>`;
+}
+
 function notificationsSection() {
   const list = (state.notifications || []).filter((n) => NOTIFICATION_TEXT[n.kind]);
   if (!list.length) return "";
   const unread = list.filter((n) => !n.read_at).length;
   return `
-    <section class="page-panel" id="my-notifications">
+    <div class="notifications-box" id="my-notifications">
       <div class="section-heading"><div><span class="eyebrow">تنبيهات</span><h2>آخر التنبيهات${unread ? ` <span class="badge-count">${unread} جديد</span>` : ""}</h2></div></div>
       ${unread ? '<button class="btn btn-outline btn-small" data-action="mark-notifications-read">تمت قراءة الكل</button>' : ""}
-      <div class="orders-list">${list.slice(0, 8).map((n) => `<article class="order-card${n.read_at ? "" : " notification-unread"}"><div class="order-card-top"><strong>${escapeHTML(NOTIFICATION_TEXT[n.kind])}</strong></div><div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span></div></article>`).join("")}</div>
-    </section>`;
+      <div class="orders-list">${list.slice(0, 8).map((n) => `${notificationItem(n)}`).join("")}</div>
+    </div>`;
 }
 
 function medicalNotesSection() {
@@ -821,6 +827,7 @@ function ordersView() {
     <section class="page-panel">
       <div class="section-heading"><div><span class="eyebrow">حساب العميل</span><h1>طلباتي</h1></div><button class="btn btn-outline btn-small" data-action="reload-orders">تحديث</button></div>
       ${appointmentAlert()}
+      ${notificationsSection()}
       ${state.myOrders.length
         ? `<div class="orders-list">${state.myOrders.map(orderCard).join("")}</div>`
         : '<div class="empty-state"><strong>لا توجد طلبات بعد</strong><p>عندما ترسل أول طلب ستظهر حالته هنا.</p><button class="btn btn-primary" data-action="home">اكتشف الخدمات</button></div>'}
@@ -832,7 +839,6 @@ function ordersView() {
     ${labPriceSection()}
     ${nursingSection()}
     ${prescriptionSection()}
-    ${notificationsSection()}
     ${medicalNotesSection()}
     ${deliverySection()}
   `;
@@ -1574,6 +1580,13 @@ root.addEventListener("click", async (event) => {
       await refreshRoadmap();
     } else if (action === "orders" || action === "reload-orders") {
       await refreshMyOrders();
+    } else if (action === "open-notification-order") {
+      const card = document.getElementById(`order-${button.dataset.orderId}`);
+      if (!card) throw new Error("الطلب مش ظاهر في القائمة.");
+      card.style.scrollMarginTop = "110px";
+      card.scrollIntoView({ behavior: "smooth", block: "start" });
+      card.classList.add("notification-target");
+      setTimeout(() => card.classList.remove("notification-target"), 2500);
     } else if (action === "mark-notifications-read") {
       await dataApi.markNotificationsRead();
       state.notifications = await dataApi.getMyNotifications();
