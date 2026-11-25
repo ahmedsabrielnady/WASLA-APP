@@ -50,6 +50,7 @@ function renderOrderCard(order, providers, canWrite) {
     && provider.active
     && !provider.is_test
     && compatibleKinds.includes(provider.kind)
+    && (order.sector !== "nursing" || provider.nursing_credential_verified === true)
   );
 
   let assignment = "";
@@ -68,6 +69,8 @@ function renderOrderCard(order, providers, canWrite) {
         </label>
         <button class="btn btn-outline btn-small" type="submit" ${canWrite ? "" : "disabled"}>تعيين</button>
       </form>`;
+  } else if (order.sector === "nursing" && compatibleKinds.length) {
+    assignment = '<p class="ops-muted">لا يوجد مقدم خدمة معتمد للتمريض. اعتمد بيانات التمريض من قسم اعتماد التمريض أولًا.</p>';
   } else if (compatibleKinds.length) {
     assignment = '<p class="ops-muted">لا يوجد مقدم خدمة معتمد ومتوافق مع هذا القطاع حاليًا.</p>';
   } else if (order.sector === "clinic") {
@@ -121,6 +124,24 @@ function renderPendingProvider(provider, canWrite) {
         data-provider-id="${escapeHTML(provider.id)}"
         ${canWrite ? "" : "disabled"}>اعتماد مقدم الخدمة</button>
     </article>`;
+}
+
+function renderNursingCredentialManager(providers, canWrite) {
+  const list = providers.filter((p) => ["doctor", "technician"].includes(p.kind) && p.approved && p.active && !p.is_test);
+  return `
+    <section class="ops-section" id="nursing-credentials">
+      <div class="section-heading"><div><span class="eyebrow">التمريض المنزلي</span><h2>اعتماد التمريض</h2></div></div>
+      <p class="ops-muted">لا يُسند طلب تمريض إلا لمقدم خدمة اعتمدته السكرتارية هنا بعد مراجعة الترخيص خارج النظام. دور الطبيب أو الفني وحده لا يكفي.</p>
+      ${list.length ? `<div class="ops-order-list">${list.map((p) => `
+        <article class="ops-order-card">
+          <div class="ops-order-main">
+            <strong>${escapeHTML(p.display_name)}</strong>
+            <span>${escapeHTML(kindLabel(p.kind))}</span>
+            <span class="status-pill">${p.nursing_credential_verified ? "معتمد للتمريض" : "غير معتمد للتمريض"}</span>
+          </div>
+          <button class="btn btn-outline btn-small" type="button" data-action="set-nursing-credential" data-provider-id="${escapeHTML(p.id)}" data-verified="${p.nursing_credential_verified ? "no" : "yes"}" ${canWrite ? "" : "disabled"}>${p.nursing_credential_verified ? "سحب الاعتماد" : "اعتماد للتمريض"}</button>
+        </article>`).join("")}</div>` : '<p class="ops-muted">لا يوجد طبيب أو فني معتمد ونشط.</p>'}
+    </section>`;
 }
 
 function renderServicePriceManager(services, canWrite) {
@@ -272,6 +293,7 @@ export function renderOperationsView(options = {}) {
         </section>
       ` : ""}
       ${role === "admin" ? renderProviderCoverageManager(providers, services, coverage, canWrite) : ""}
+      ${renderNursingCredentialManager(providers, canWrite)}
       ${renderProviderInviteManager(latestInviteCode, canWrite)}
       <section class="ops-section">
         <div class="section-heading"><div><span class="eyebrow">مراجعة مقدمي الخدمة</span><h2>طلبات الانضمام</h2></div></div>
