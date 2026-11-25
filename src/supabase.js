@@ -523,6 +523,19 @@ export const dataApi = {
     } catch { return []; }
   },
 
+  // Web Push opt-in (draft 3000). Stores only the browser endpoint and keys for the signed-in user. Nothing sends.
+  async pushSubscribe(endpoint, p256dh, auth) {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولاً.");
+    return request("/rest/v1/rpc/push_subscribe", { method: "POST", token: session.access_token, body: { p_endpoint: endpoint, p_p256dh: p256dh, p_auth: auth } });
+  },
+
+  async pushUnsubscribe(endpoint) {
+    const session = await getValidSession();
+    if (!session?.access_token) return 0;
+    return request("/rest/v1/rpc/push_unsubscribe", { method: "POST", token: session.access_token, body: { p_endpoint: endpoint } });
+  },
+
   async markNotificationsRead() {
     const session = await getValidSession();
     if (!session?.access_token) return 0;
