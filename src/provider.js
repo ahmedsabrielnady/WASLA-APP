@@ -1,4 +1,4 @@
-import { escapeHTML, formatDate, formatEGP, sectorLabel, statusLabel } from "./domain.js";
+import { escapeHTML, formatDate, formatEGP, pageSlice, sectorLabel, statusLabel } from "./domain.js";
 
 const PROVIDER_ROLES = new Set(["doctor", "technician", "teacher", "courier", "merchant"]);
 const KIND_LABELS = Object.freeze({
@@ -17,6 +17,7 @@ export function renderProviderView(options = {}) {
   const profile = options.profile || null;
   const provider = options.provider || null;
   const orders = Array.isArray(options.orders) ? options.orders : [];
+  const limit = Number(options.limit) > 0 ? Number(options.limit) : 10;
   const preview = Boolean(options.preview);
   const saving = Boolean(options.saving);
   const error = String(options.error || "");
@@ -39,7 +40,8 @@ export function renderProviderView(options = {}) {
 
   const assigned = orders.filter((order) => !["done", "cancelled"].includes(order.status)).length;
   const completed = orders.filter((order) => order.status === "done").length;
-  const cards = orders.map((order) => {
+  const ordersPage = pageSlice(orders, limit);
+  const cards = ordersPage.items.map((order) => {
     const isClinic = order.sector === "clinic";
     const action = isClinic
       ? ({ new: ["confirmed", "تأكيد الموعد"], confirmed: ["in_progress", "بدء الكشف"], in_progress: ["done", "إنهاء الكشف"] })[order.status] || null
@@ -63,7 +65,7 @@ export function renderProviderView(options = {}) {
       (order.notes ? '<span>ملاحظات العميل: ' + e(order.notes) + '</span>' : "") +
       '</div>' + (actionMarkup ? '<div class="provider-order-actions">' + actionMarkup + '</div>' : "") +
       '</article>';
-  }).join("");
+  }).join("") + (ordersPage.remaining ? '<button class="btn btn-outline btn-small" data-action="more-list" data-list-key="providerOrders">عرض ' + ordersPage.remaining + ' أخرى</button>' : "");
 
   return '<section class="page-panel provider-page">' +
     '<div class="section-heading"><div><span class="eyebrow">مساحة مقدم الخدمة</span><h1>أهلًا ' + e(provider.display_name) + '</h1>' +

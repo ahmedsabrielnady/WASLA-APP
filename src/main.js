@@ -670,7 +670,7 @@ const PRODUCT_CATEGORY_LABELS = { market: "ماركت", food: "مطعم", suppli
 function merchantProductsSection() {
   if (!Array.isArray(state.merchantProducts) || state.profile?.role !== "merchant") return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
-  const rows = state.merchantProducts.map((p) => `
+  const rows = pagedRows("merchantProducts", state.merchantProducts, (p) => `
     <article class="order-card">
       <div class="order-card-top"><strong>${escapeHTML(p.name)}</strong><span class="status-pill">${p.active ? "ظاهر للعملاء" : "مخفي"}</span></div>
       <div class="order-meta"><span>${escapeHTML(PRODUCT_CATEGORY_LABELS[p.category] || p.category)} · المخزون ${escapeHTML(p.stock)}</span><strong>${escapeHTML(formatEGP(p.price_egp))}</strong></div>
@@ -684,7 +684,7 @@ function merchantProductsSection() {
         <label>المخزون<input type="number" name="stock" min="0" max="10000" value="${escapeHTML(p.stock)}" required></label>
         <div class="order-card-actions"><button class="btn btn-outline btn-small" type="submit" ${disabled}>حفظ المخزون</button><button class="btn btn-outline btn-small" type="button" data-action="toggle-product" data-product-id="${escapeHTML(p.id)}" data-active="${p.active ? "no" : "yes"}" ${disabled}>${p.active ? "إخفاء" : "إظهار"}</button></div>
       </form>
-    </article>`).join("");
+    </article>`);
   return `
     <section class="page-panel health-panel" id="merchant-products">
       <div class="section-heading"><div><span class="eyebrow">التاجر</span><h2>منتجاتي</h2></div></div>
@@ -1075,6 +1075,7 @@ function providerView() {
     profile: state.profile,
     provider: state.providerRecord,
     orders: state.providerOrders,
+    limit: (state.listLimits && state.listLimits.providerOrders) || ORDERS_PAGE_SIZE,
     preview: CONFIG.isPublicPreview,
     saving: state.providerSaving,
     error: state.providerError
