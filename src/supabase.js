@@ -348,18 +348,32 @@ export const authApi = {
 
 // A datetime-local value has no zone. The service area is Cairo time, so read it as Cairo wall-clock time
 // whatever the browser zone is. Egypt uses daylight saving, so the offset is computed for that date.
-export function cairoLocalToDate(value) {
+export function resolveCairoLocal(value) {
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(String(value || ""));
-  if (!m) return new Date(NaN);
+  if (!m) return { status: "invalid", date: new Date(NaN) };
   const [y, mo, d, h, mi] = m.slice(1).map(Number);
   const wall = Date.UTC(y, mo - 1, d, h, mi);
-  const offsetAt = (t) => {
-    const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "Africa/Cairo", hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(t)).map((x) => [x.type, x.value]));
-    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) - t;
-  };
-  let t = wall - offsetAt(wall);
-  t = wall - offsetAt(t);
-  return new Date(t);
+  if (new Date(wall).getUTCFullYear() !== y || new Date(wall).getUTCMonth() !== mo - 1 || new Date(wall).getUTCDate() !== d || h > 23 || mi > 59) return { status: "invalid", date: new Date(NaN) };
+  const fmt = new Intl.DateTimeFormat("en-US", { timeZone: "Africa/Cairo", hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const wallOf = (t) => { const p = Object.fromEntries(fmt.formatToParts(new Date(t)).map((x) => [x.type, x.value])); return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute); };
+  // Cairo is UTC+2 or UTC+3. A candidate instant is valid only if it shows exactly the typed wall time in Cairo.
+  const hits = [3, 2].map((off) => wall - off * 3600000).filter((t) => wallOf(t) === wall);
+  if (hits.length === 0) return { status: "gap", date: new Date(NaN) };
+  if (hits.length === 2) return { status: "ambiguous", date: new Date(NaN) };
+  return { status: "ok", date: new Date(hits[0]) };
+}
+// Kept for callers that only need the instant: anything that is not exactly one valid instant is an invalid date.
+export function cairoLocalToDate(value) { return resolveCairoLocal(value).date; }
+
+export function cairoLocalProblem(value) {
+  const r = resolveCairoLocal(value);
+  if (r.status === "gap") return "الوقت ده مش موجود بسبب تغيير الساعة. اختار وقت تاني.";
+  if (r.status === "ambiguous") return "الوقت ده بيتكرر بسبب تغيير الساعة. اختار وقت تاني.";
+  if (r.status === "invalid") return "الموعد غير صالح.";
+  const ms = r.date.getTime() - Date.now();
+  if (ms < 3600000) return "الموعد المقترح لازم يكون بعد ساعة على الأقل.";
+  if (ms > 60 * 86400000) return "الموعد المقترح لازم يكون خلال ٦٠ يوم.";
+  return "";
 }
 
 export const dataApi = {
@@ -1373,6 +1387,8 @@ export const dataApi = {
     if (a.length < 8) throw new Error("اكتب عنوان الزيارة بوضوح.");
     if (terms !== true) throw new Error("لازم توافق على الشروط والخصوصية.");
     if (consent !== true) throw new Error("لازم توافق على استخدام بياناتك الصحية لطلب التمريض.");
+    // Validate the proposed time before anything is created, so a bad time never leaves an order behind.
+    if (preferredAt) { const problem = cairoLocalProblem(preferredAt); if (problem) throw new Error(problem); }
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
     await this.acceptRequiredConsents();
@@ -1383,14 +1399,22 @@ export const dataApi = {
     });
     if (!Array.isArray(rows) || rows.length !== 1) throw new Error("لم يتم إرسال الطلب.");
     // The preferred time is only a proposal. A failure here must not lose the order that was already created.
-    const when = preferredAt ? cairoLocalToDate(preferredAt) : null;
-    if (when && Number.isFinite(when.getTime())) {
-      try {
-        await request("/rest/v1/rpc/set_nursing_preferred_time", { method: "POST", token: session.access_token, body: { p_order: rows[0].out_order_id, p_at: when.toISOString() } });
-      } catch { return { ...rows[0], preferredTimeSaved: false }; }
+    if (preferredAt) {
+      try { await this.setNursingPreferredTime({ orderId: rows[0].out_order_id, value: preferredAt }); }
+      catch { return { ...rows[0], preferredTimeSaved: false }; }
       return { ...rows[0], preferredTimeSaved: true };
     }
     return rows[0];
+  },
+
+  // Time-only step, also used to retry without creating another order.
+  async setNursingPreferredTime({ orderId, value }) {
+    assertLiveWritesAllowed("تحديد موعد مقترح");
+    const problem = cairoLocalProblem(value);
+    if (problem) throw new Error(problem);
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    await request("/rest/v1/rpc/set_nursing_preferred_time", { method: "POST", token: session.access_token, body: { p_order: orderId, p_at: cairoLocalToDate(value).toISOString() } });
   },
 
   async placeDeliveryRequest(pickup, dropoff, what) {
