@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { SECTORS, sectorEntryPlan, sectorIconSvg, ICON_SVG, SECTOR_ANCHORS } from "../src/domain.js";
+import { SECTORS, stripPictographs, sectorEntryPlan, sectorIconSvg, ICON_SVG, SECTOR_ANCHORS } from "../src/domain.js";
 
 const main = readFileSync(new URL("../src/main.js", import.meta.url), "utf8");
 const domain = readFileSync(new URL("../src/domain.js", import.meta.url), "utf8");
@@ -54,4 +54,22 @@ test("touch targets: 44px minimum for header controls, small buttons, search and
 test("checkboxes and consent links get a 44px hit area at phone width", () => {
   assert.match(css, /input\[type="checkbox"\], input\[type="radio"\] \{ width: 22px; height: 22px/);
   assert.match(css, /label:has\(input\[type="checkbox"\]\) \{ display: flex; align-items: center; gap: 10px; min-height: 44px/);
+});
+
+test("ticker text drops pictographs and keeps the words", () => {
+  assert.equal(stripPictographs("🚚 توصيل مجاني للعميل"), "توصيل مجاني للعميل");
+  assert.equal(stripPictographs("خصم ٢٠٪ 🎉🎉 على الماركت"), "خصم ٢٠٪ على الماركت");
+  assert.equal(stripPictographs("نص عادي 123"), "نص عادي 123");
+  assert.equal(stripPictographs("🛒"), "");
+  assert.equal(stripPictographs(null), "");
+  assert.match(main, /stripPictographs\(offer\.text\)/);
+});
+
+test("auth modal hides signup and email-registration copy when signup is closed", () => {
+  const m = main.slice(main.indexOf("function authModal()"), main.indexOf("function passwordResetModal()"));
+  assert.match(m, /const signupClosed = CONFIG\.isPublicPreview \|\| CONFIG\.isTestBackend/);
+  assert.match(m, /state\.authMode === "register" && !signupClosed/);
+  assert.match(m, /signupClosed\s*\? `<p class="form-footnote preview-auth-note">/);
+  assert.match(m, /\$\{signupClosed \? "" : `<p class="form-footnote">/);
+  assert.doesNotMatch(m, /!CONFIG\.isPublicPreview/);
 });
