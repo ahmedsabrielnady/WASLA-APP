@@ -1,6 +1,6 @@
 import { CONFIG } from "./config.js";
 import { isPhoneAliasSignupReady, resolveAuthIdentifier } from "./auth-utils.js";
-import { SECTORS, stripPictographs, pageSlice, FILE_PAGE_SIZE, sectorIconSvg, ICON_SVG, sectorEntryPlan, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, runWithBusyState, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
+import { SECTORS, stripPictographs, pageSlice, FILE_PAGE_SIZE, ORDERS_PAGE_SIZE, sectorIconSvg, ICON_SVG, sectorEntryPlan, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, runWithBusyState, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
 import { authApi, dataApi } from "./supabase.js";
 import { pushConfigured, pushSupported, enablePush, disablePush } from "./push.js";
 import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
@@ -990,7 +990,7 @@ function ordersView() {
       ${pushSection()}
       ${notificationsSection()}
       ${state.myOrders.length
-        ? `<div class="orders-list">${state.myOrders.map(orderCard).join("")}</div>`
+        ? (() => { const page = pageSlice(state.myOrders, state.ordersLimit || ORDERS_PAGE_SIZE); return `<div class="orders-list">${page.items.map(orderCard).join("")}</div>${page.remaining ? `<button class="btn btn-outline btn-small" data-action="more-orders">عرض ${page.remaining} طلب آخر</button>` : ""}`; })()
         : '<div class="empty-state"><strong>لا توجد طلبات بعد</strong><p>عندما ترسل أول طلب ستظهر حالته هنا.</p><button class="btn btn-primary" data-action="home">اكتشف الخدمات</button></div>'}
     </section>
     ${clinicSection()}
@@ -1896,6 +1896,9 @@ root.addEventListener("click", async (event) => {
       render();
       const card = document.getElementById("patient-file");
       if (card) { card.style.scrollMarginTop = "110px"; card.scrollIntoView({ behavior: "smooth", block: "start" }); }
+    } else if (action === "more-orders") {
+      state.ordersLimit = (state.ordersLimit || ORDERS_PAGE_SIZE) + ORDERS_PAGE_SIZE;
+      render();
     } else if (action === "more-patient-file") {
       if (state.doctorFile) state.doctorFile.limit = (state.doctorFile.limit || FILE_PAGE_SIZE) + FILE_PAGE_SIZE;
       render();
