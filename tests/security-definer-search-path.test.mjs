@@ -21,16 +21,16 @@ const hardenedFunctions = [
 
 test("security-definer hardening archive pins an empty search_path on every live-patched function", () => {
   for (const signature of hardenedFunctions) {
-    const escaped = signature.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escaped = signature.replace(/[()]/g, "\\$&");
     assert.match(
       sql,
       new RegExp(`alter\\s+function\\s+public\\.${escaped}\\s+set\\s+search_path\\s*=\\s*''\\s*;`, "i"),
       `missing hardened search_path for public.${signature}`,
     );
   }
-  assert.equal((sql.match(/alter\\s+function\\s+public\\./gi) || []).length, hardenedFunctions.length);
+  assert.equal((sql.match(/alter\s+function\s+public\./gi) || []).length, hardenedFunctions.length);
 });
 
 test("security-definer hardening archive does not change grants or application data", () => {
-  assert.doesNotMatch(sql, /\\b(grant|revoke|insert|update|delete|truncate|drop)\\b/i);
+  assert.doesNotMatch(sql, /\b(grant|revoke|insert|update|delete|truncate|drop)\b/i);
 });
