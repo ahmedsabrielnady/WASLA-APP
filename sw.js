@@ -1,4 +1,4 @@
-const CACHE_NAME = "wasla-shell-v4";
+const CACHE_NAME = "wasla-shell-v5";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -12,6 +12,7 @@ const APP_SHELL = [
   "./src/roadmap.js",
   "./src/crm.js",
   "./src/provider.js",
+  "./src/push.js",
   "./src/main.js"
 ];
 
@@ -53,5 +54,25 @@ self.addEventListener("fetch", (event) => {
         if (cached) return cached;
         throw new Error("WASLA app shell resource unavailable offline");
       })
+  );
+});
+
+// Web Push display. The text is fixed and generic on purpose: the payload is never read or shown, so a push can never carry health detail.
+self.addEventListener("push", (event) => {
+  event.waitUntil(self.registration.showNotification("وصلة", {
+    body: "عندك إشعار جديد في وصلة",
+    icon: "./wasla-icon.svg",
+    tag: "wasla-generic",
+    data: { url: "./" }
+  }));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      for (const client of windows) if ("focus" in client) return client.focus();
+      return self.clients.openWindow("./");
+    })
   );
 });
