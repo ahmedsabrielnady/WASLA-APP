@@ -1,5 +1,5 @@
 import { CONFIG } from "./config.js";
-import { validateRoadmapUpdate } from "./domain.js";
+import { validateRoadmapUpdate, patientFileDeniedMessage } from "./domain.js";
 import { normalizeEgyptianPhone, resolveAuthIdentifier, toWaslaAuthEmail } from "./auth-utils.js";
 import { fetchTextWithTimeout } from "./network.js";
 
@@ -1370,7 +1370,11 @@ export const dataApi = {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(patientId || ""))) throw new Error("اختر المريض.");
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
-    return request("/rest/v1/rpc/doctor_open_patient_file", { method: "POST", token: session.access_token, body: { p_patient: patientId } });
+    try {
+      return await request("/rest/v1/rpc/doctor_open_patient_file", { method: "POST", token: session.access_token, body: { p_patient: patientId } });
+    } catch (error) {
+      throw new Error(patientFileDeniedMessage(error?.message));
+    }
   },
 
   async doctorAddNote(values) {
