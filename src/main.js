@@ -1060,7 +1060,7 @@ function render() {
 
   root.innerHTML = `
     ${header()}
-    ${CONFIG.isPublicPreview ? '<div class="preview-banner" role="note">نسخة معاينة — يمكنك تصفح الخدمات وتسجيل الدخول للقراءة، لكن إنشاء الحسابات والطلبات وحفظ الموافقات متوقف لحماية قاعدة البيانات الحية.</div>' : ""}
+    ${CONFIG.isTestBackend ? `<div class="preview-banner" role="note">بيئة اختبار: بيانات تجريبية فقط، ولا تدخل أي بيانات حقيقية. ${CONFIG.isPublicPreview ? "الكتابة متوقفة من هذا العنوان." : "الدخول بحسابات الاختبار فقط."}</div>` : CONFIG.isPublicPreview ? '<div class="preview-banner" role="note">نسخة معاينة — يمكنك تصفح الخدمات وتسجيل الدخول للقراءة، لكن إنشاء الحسابات والطلبات وحفظ الموافقات متوقف لحماية قاعدة البيانات الحية.</div>' : ""}
     <main class="app-main">${view}</main>
     <footer class="site-footer">
       <div class="footer-brand"><span class="brand-mark small" aria-hidden="true"><span>W</span></span><strong>WASLA <span>وصلة</span></strong></div>
