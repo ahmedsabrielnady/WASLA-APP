@@ -1764,6 +1764,14 @@ root.addEventListener("click", async (event) => {
       if (!state.user || state.profile?.role !== "customer") throw new Error("تسجيل الانضمام متاح لحسابات العملاء فقط.");
       state.modal = "provider-invite";
       render();
+    } else if (action === "set-nursing-credential") {
+      if (CONFIG.isPublicPreview) throw new Error("الاعتماد متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح باعتماد التمريض.");
+      const grant = button.dataset.verified === "yes";
+      if (!window.confirm(grant ? "هل راجعت ترخيص مقدم الخدمة للتمريض وتريد اعتماده؟" : "سحب اعتماد التمريض؟")) return;
+      await dataApi.setNursingCredential(button.dataset.providerId, grant);
+      await refreshOperations();
+      showToast(grant ? "تم اعتماد مقدم الخدمة للتمريض." : "تم سحب اعتماد التمريض.", "success");
     } else if (action === "disable-provider-coverage") {
       if (CONFIG.isPublicPreview) throw new Error("إدارة التغطية متوقفة في نسخة المعاينة.");
       if (state.profile?.role !== "admin") throw new Error("إدارة التغطية مخصصة للمؤسس فقط.");
