@@ -1148,3 +1148,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 .badge-count { display: inline-block; margin-inline-start: 8px; padding: 2px 10px; border-radius: 999px; background: #0a8f63; color: #fff; font-size: 13px; vertical-align: middle; }
 .notification-unread { border-inline-start: 4px solid #0a8f63; }
+
+.notifications-box { margin: 12px 0 18px; }
+.notification-target { outline: 3px solid #0a8f63; outline-offset: 2px; }
+.notifications-box .status-pill { white-space: nowrap; }
