@@ -2130,7 +2130,7 @@ root.addEventListener("click", async (event) => {
       const customer = state.profile?.role === "customer";
       let plan = sectorEntryPlan({ code, signedIn: Boolean(state.user?.id), isCustomer: customer, present: new Set() });
       if (plan.kind === "services") {
-        document.querySelector("#services")?.scrollIntoView({ behavior: "smooth" });
+        (document.querySelector(`[data-sector-card="${code}"]`) || document.querySelector("#services"))?.scrollIntoView({ behavior: "smooth", block: "center" });
       } else if (plan.kind === "login") {
         showToast("سجّل دخولك الأول عشان تشوف المتاح في القطاع ده.", "info");
         openAuth("login");
