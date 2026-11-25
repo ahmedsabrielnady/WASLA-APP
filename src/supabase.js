@@ -932,13 +932,21 @@ export const dataApi = {
   async getSessions(teacherId = null) {
     const session = await getValidSession();
     if (!session?.access_token) return null;
-    const query = new URLSearchParams({
-      select: "id,title,subject,starts_at,duration_min,mode,seats,price_egp,status,teacher_id,teacher:providers(display_name)",
-      order: "starts_at.asc", limit: "50"
-    });
-    if (teacherId) query.set("teacher_id", `eq.${teacherId}`); else query.set("status", "eq.open");
+    const base = "id,title,subject,starts_at,duration_min,mode,seats,price_egp,status,teacher_id,teacher:providers(display_name)";
+    const build = (select) => {
+      const query = new URLSearchParams({ select, order: "starts_at.asc", limit: "50" });
+      if (teacherId) query.set("teacher_id", `eq.${teacherId}`); else query.set("status", "eq.open");
+      return query;
+    };
     try {
-      return await request(`/rest/v1/tutor_sessions?${query}`, { token: session.access_token });
+      try {
+        return await request(`/rest/v1/tutor_sessions?${build(base + ",course_id,course:courses(title)")}`, { token: session.access_token });
+      } catch (error) {
+        // Before the course/session link draft is applied sessions are standalone.
+        if (!/course/.test(String(error?.message))) throw error;
+        const rows = await request(`/rest/v1/tutor_sessions?${build(base)}`, { token: session.access_token });
+        return Array.isArray(rows) ? rows.map((row) => ({ ...row, course_id: null, course: null })) : rows;
+      }
     } catch (error) {
       if (/tutor_sessions/.test(String(error?.message))) return null;
       throw error;
@@ -1231,6 +1239,13 @@ export const dataApi = {
     if (!["online", "in_person"].includes(values?.mode)) throw new Error("اختر نوع الحصة.");
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    if (values?.course) {
+      // A session of a course is free to join for enrolled students; the course carries any price.
+      return request("/rest/v1/rpc/teacher_create_course_session", {
+        method: "POST", token: session.access_token,
+        body: { p_course: String(values.course), p_title: title, p_subject: subject, p_starts: new Date(values.starts).toISOString(), p_minutes: minutes, p_mode: values.mode, p_seats: seats }
+      });
+    }
     return request("/rest/v1/rpc/teacher_create_session", {
       method: "POST", token: session.access_token,
       body: { p_title: title, p_subject: subject, p_starts: new Date(values.starts).toISOString(), p_minutes: minutes, p_mode: values.mode, p_seats: seats, p_price: price }
