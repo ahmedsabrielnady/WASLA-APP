@@ -272,3 +272,11 @@ export function patientFileDeniedMessage(message) {
   if (/no care relationship/i.test(text)) return "مفيش حالة بينك وبين المريض ده، فمش هتقدر تفتح ملفه.";
   return text || "تعذر فتح الملف.";
 }
+
+// Doctor patient file lists show the newest rows first in pages, so a file with hundreds of cases stays usable on a phone.
+export const FILE_PAGE_SIZE = 20;
+export function pageSlice(list, limit = FILE_PAGE_SIZE) {
+  const all = Array.isArray(list) ? list : [];
+  const n = Math.max(1, Number(limit) || FILE_PAGE_SIZE);
+  return { items: all.slice(0, n), remaining: Math.max(0, all.length - n) };
+}
