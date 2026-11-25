@@ -14,7 +14,9 @@ test("the teacher can save a link only for an open online session and the page v
 
 test("only a booked student's card renders the link, as a new-tab anchor with noopener, and only for https", () => {
   assert.match(main, /e\.status === "booked" && safeMeetingUrl\(state\.sessionLinks\?\.\[e\.session_id\]\)/);
-  assert.match(main, /target="_blank" rel="noopener noreferrer"/);
+  assert.match(main, /class="btn btn-primary btn-small session-link"[^>]*target="_blank" rel="noopener noreferrer"/);
+  assert.match(main, /الرابط من المدرس ويفتح خدمة خارج وصلة/);
+  assert.match(main, /\\u2066https:\/\/\\u2069/);
   assert.doesNotMatch(main, /href="\$\{escapeHTML\(state\.sessionLinks/);
   assert.match(api, /session_join_links\?select=session_id,url/);
 });
