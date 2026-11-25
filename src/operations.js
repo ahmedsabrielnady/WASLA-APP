@@ -143,6 +143,28 @@ function renderPendingProvider(provider, canWrite) {
     </article>`;
 }
 
+function renderChangeRequests(requests, orders, canWrite) {
+  const open = requests.filter((r) => r.status === "open");
+  if (!open.length) return "";
+  const byId = new Map(orders.map((o) => [o.id, o]));
+  const kind = { change_time: "تغيير الموعد", cancel: "إلغاء الزيارة" };
+  return `
+    <section class="ops-section" id="order-change-requests">
+      <div class="section-heading"><div><span class="eyebrow">تمريض</span><h2>طلبات تعديل أو إلغاء بعد التأكيد</h2></div></div>
+      <p class="ops-muted">الطلب مجرد طلب من العميل. "تم التنفيذ" بتتقبل بس لو الزيارة اتلغت فعلًا أو الموعد اتغير فعلًا. غير كده اختار "مراجعة بدون تغيير".</p>
+      ${open.map((r) => { const ord = byId.get(r.order_id); return `
+        <article class="ops-provider-card">
+          <div><strong>${escapeHTML(ord?.ref || "طلب")}</strong> <span>${escapeHTML(kind[r.kind] || r.kind)} (طلب فقط)</span>
+            ${r.note ? `<small>ملاحظة العميل: ${escapeHTML(r.note)}</small>` : ""}
+          </div>
+          <div class="order-card-actions">
+            <button class="btn btn-primary btn-small" data-action="ops-resolve-change" data-request-id="${escapeHTML(r.id)}" data-status="applied" ${canWrite ? "" : "disabled"}>تم التنفيذ</button>
+            <button class="btn btn-outline btn-small" data-action="ops-resolve-change" data-request-id="${escapeHTML(r.id)}" data-status="declined" ${canWrite ? "" : "disabled"}>مراجعة بدون تغيير</button>
+          </div>
+        </article>`; }).join("")}
+    </section>`;
+}
+
 function renderNursingCredentialManager(providers, canWrite) {
   const list = providers.filter((p) => ["doctor", "technician"].includes(p.kind) && p.approved && p.active && !p.is_test);
   return `
@@ -273,6 +295,7 @@ export function renderOperationsView(options = {}) {
   const services = Array.isArray(options.services) ? options.services : [];
   const latestInviteCode = String(options.latestInviteCode || "");
   const coverage = Array.isArray(options.coverage) ? options.coverage : [];
+  const changeRequests = Array.isArray(options.changeRequests) ? options.changeRequests : [];
   const preview = Boolean(options.preview);
   const saving = Boolean(options.saving);
   const role = profile?.role;
@@ -310,6 +333,7 @@ export function renderOperationsView(options = {}) {
         </section>
       ` : ""}
       ${role === "admin" ? renderProviderCoverageManager(providers, services, coverage, canWrite) : ""}
+      ${renderChangeRequests(changeRequests, orders, canWrite)}
       ${renderNursingCredentialManager(providers, canWrite)}
       ${renderProviderInviteManager(latestInviteCode, canWrite)}
       <section class="ops-section">
