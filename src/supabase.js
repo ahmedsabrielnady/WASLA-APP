@@ -1024,6 +1024,30 @@ export const dataApi = {
     return URL.createObjectURL(await response.blob());
   },
 
+  async getMedicalNotes() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const token = session.access_token;
+    try {
+      const notes = await request(`/rest/v1/medical_notes?${new URLSearchParams({ select: "id,note,created_at,order_id", order: "created_at.desc", limit: "30" })}`, { token });
+      const targets = await request(`/rest/v1/orders?${new URLSearchParams({ select: "id,ref,created_at", sector: "in.(clinic,nursing)", order: "created_at.desc", limit: "20" })}`, { token }).catch(() => []);
+      return { notes, targets };
+    } catch (error) {
+      if (/medical_notes|schema cache|relation/i.test(String(error?.message))) return null;
+      throw error;
+    }
+  },
+
+  async doctorAddNote(values) {
+    assertLiveWritesAllowed("إضافة ملاحظة طبية");
+    const note = String(values?.note || "").trim();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(values?.orderId || ""))) throw new Error("اختر الحالة.");
+    if (note.length < 3 || note.length > 2000) throw new Error("الملاحظة من 3 إلى 2000 حرف.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/doctor_add_note", { method: "POST", token: session.access_token, body: { p_order: values.orderId, p_note: note } });
+  },
+
   async closePrescription(requestId) {
     assertLiveWritesAllowed("إغلاق الطلب");
     if (!requestId) throw new Error("اختر الطلب.");
