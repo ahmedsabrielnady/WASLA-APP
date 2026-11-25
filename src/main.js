@@ -397,7 +397,44 @@ function educationSection() {
     </section>`;
 }
 
+async function loadMedicalNotes() {
+  state.medicalNotes = null;
+  try { state.medicalNotes = await dataApi.getMedicalNotes(); } catch { state.medicalNotes = null; }
+}
+
+function medicalNotesSection() {
+  const data = state.medicalNotes;
+  if (!data) return "";
+  const isDoctor = state.providerRecord?.kind === "doctor";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const list = (data.notes || []).map((n) => `
+    <article class="order-card"><div class="order-card-top"><strong>${escapeHTML(n.note)}</strong></div>
+      <div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span></div></article>`).join("");
+  if (isDoctor) {
+    const options = (data.targets || []).map((o) => `<option value="${escapeHTML(o.id)}">${escapeHTML(o.ref || o.id.slice(0, 8))}</option>`).join("");
+    return `
+    <section class="page-panel health-panel" id="doctor-notes">
+      <div class="section-heading"><div><span class="eyebrow">السجل الطبي</span><h2>ملاحظات الحالات</h2></div></div>
+      <p class="deposit-note">الملاحظة تظهر للمريض صاحب الحالة فقط. لا تكتب بيانات هوية أو أرقام تواصل.</p>
+      ${options ? `<form data-form="doctor-note" novalidate>
+        <label>الحالة<select name="order" required>${options}</select></label>
+        <label>الملاحظة<textarea name="note" rows="3" maxlength="2000" required></textarea></label>
+        <button class="btn btn-primary btn-small" type="submit" ${disabled}>حفظ الملاحظة</button>
+      </form>` : '<p class="tracking-empty">لا توجد حالات مؤكدة لإضافة ملاحظات عليها.</p>'}
+      ${list ? `<div class="orders-list">${list}</div>` : ""}
+    </section>`;
+  }
+  if (!list) return "";
+  return `
+    <section class="page-panel health-panel" id="my-notes">
+      <div class="section-heading"><div><span class="eyebrow">السجل الطبي</span><h2>ملاحظات الطبيب الخاصة بك</h2></div></div>
+      <p class="deposit-note">هذه الملاحظات تظهر لك أنت فقط.</p>
+      <div class="orders-list">${list}</div>
+    </section>`;
+}
+
 async function loadHealthWork() {
+  await loadMedicalNotes();
   const provider = state.providerRecord;
   state.healthWork = null;
   if (!provider?.id || provider.kind !== "merchant") return;
@@ -606,6 +643,7 @@ function ordersView() {
     ${educationSection()}
     ${labPriceSection()}
     ${prescriptionSection()}
+    ${medicalNotesSection()}
     ${deliverySection()}
   `;
 }
@@ -672,7 +710,7 @@ function providerView() {
     preview: CONFIG.isPublicPreview,
     saving: state.providerSaving,
     error: state.providerError
-  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + teacherSection() + healthProviderSection();
+  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + teacherSection() + healthProviderSection() + medicalNotesSection();
 }
 
 function roadmapView() {
@@ -995,6 +1033,7 @@ async function refreshMyOrders() {
     try { state.doctors = await dataApi.getDoctors(); } catch { state.doctors = null; }
     try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
     try { state.sessions = await dataApi.getSessions(); state.enrollments = await dataApi.getMyEnrollments(); } catch { state.sessions = null; state.enrollments = null; }
+    await loadMedicalNotes();
     try { state.labTests = await dataApi.getLabTests(); state.prescriptions = await dataApi.getMyPrescriptions(); state.pharmacies = state.prescriptions ? await dataApi.getPharmacies() : null; const leftover = await dataApi.retryPendingFileCleanups(); if (leftover) showToast("ملف مرفوع من طلب فاشل لم يُحذف بعد. سنعيد المحاولة عند فتح التطبيق.", "error"); } catch { state.labTests = null; state.prescriptions = null; state.pharmacies = null; }
     if (!state.clinicDay) state.clinicDay = cairoDay(1);
     state.view = "orders";
@@ -1631,6 +1670,17 @@ root.addEventListener("submit", async (event) => {
         state.myOrders = await dataApi.getMyOrders(state.user.id);
         await loadClinicSlots();
         showToast("تم حجز الموعد. بانتظار تأكيد الطبيب.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "doctor-note") {
+      if (CONFIG.isPublicPreview) throw new Error("الإضافة متوقفة في نسخة المعاينة.");
+      const data = new FormData(form);
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.doctorAddNote({ orderId: data.get("order"), note: data.get("note") });
+        await loadMedicalNotes();
+        showToast("تم حفظ الملاحظة.", "success");
       });
       render();
     }
