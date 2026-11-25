@@ -1174,3 +1174,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 @media (max-width: 600px) {
   .nav-link { font-size: 11px; }
 }
+@media (max-width: 900px) {
+  input[type="checkbox"], input[type="radio"] { width: 22px; height: 22px; flex: 0 0 22px; }
+  label:has(input[type="checkbox"]) { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+  label a, .page-panel p a { padding-block: 12px; }
+}
