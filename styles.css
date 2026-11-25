@@ -47,7 +47,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   z-index: 20;
   backdrop-filter: blur(16px);
 }
-.brand { display: inline-flex; align-items: center; gap: 11px; }
+.brand { display: inline-flex; align-items: center; gap: 11px; min-height: 44px; }
 .brand-mark {
   width: 46px; height: 46px; border-radius: 15px;
   display: inline-grid; place-items: center;
