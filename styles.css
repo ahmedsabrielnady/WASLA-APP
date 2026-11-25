@@ -1155,4 +1155,4 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 .session-link-form { display: grid; gap: 8px; margin-top: 10px; }
 .session-link-form input { width: 100%; direction: ltr; text-align: left; }
-.session-link { font-weight: 700; word-break: break-all; }
+.session-link { font-weight: 700; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; text-decoration: none; }
