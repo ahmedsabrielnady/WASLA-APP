@@ -1,10 +1,10 @@
-# توثيق تقوية مسارات البحث لدوال قاعدة البيانات — 25 نوفمبر 2026
+# توثيق تقوية مسارات البحث وصلاحيات الملفات الشخصية — 25 نوفمبر 2026
 
-## التغيير المنفذ
+## 1) تثبيت search_path لدوال SECURITY DEFINER
 
 طُبقت migration باسم `harden_security_definer_search_paths` على مشروع Supabase الصحيح `yfgvimcqbtthnrbzbhft`.
 
-تم تثبيت `search_path = ''` لتسع دوال `SECURITY DEFINER` كانت بحاجة إلى هذا الضبط:
+تم تثبيت `search_path = ''` لتسع دوال `SECURITY DEFINER`:
 
 - `accept_consent(text, text)`
 - `admin_reset_user_password(text, text)`
@@ -16,26 +16,44 @@
 - `my_order_tracking(uuid)`
 - `set_order_location(uuid, double precision, double precision, text)`
 
-تمت مراجعة أجسام هذه الدوال بعد التعديل؛ المراجع إلى الجداول والدوال الخارجية مؤهلة بأسماء المخططات، مثل `public.orders` و`auth.uid()` و`extensions.crypt()`.
+## 2) إصلاح تكرار RLS في profiles
 
-## تحقق ما بعد التنفيذ
+أثناء اختبار تحديث الملف الشخصي تحت دور `authenticated`، ظهر الخطأ:
 
-استعلام التحقق أعاد 21 دالة `SECURITY DEFINER` قابلة للتنفيذ من `authenticated`:
+`42P17: infinite recursion detected in policy for relation "profiles"`
 
-- جميع الدوال الـ21 لها `search_path = ''`.
-- لا توجد أي من هذه الدوال قابلة للتنفيذ من دور `anon`.
-- لم تُسحب صلاحيات `EXECUTE` من المستخدم المسجل، لأن التطبيق يعتمد على RPCs محمية بفحوص هوية ودور وملكية.
-- لم تتغير بيانات العملاء أو الطلبات أو مقدمي الخدمة.
+كان شرط `WITH CHECK` في سياسة `profiles_update_own` يستعلم من جدول `profiles` نفسه مباشرة لمقارنة الدور القديم، ما تسبب في إعادة دخول السياسة على نفسها.
 
-## ما لم يُغلق بعد
+تم تطبيق migration باسم `fix_profiles_update_policy_recursion`:
+- إنشاء دالة مساعدة `private.current_profile_role()` في مخطط غير `public`.
+- الدالة `STABLE SECURITY DEFINER` مع `search_path = ''` وتقرأ دور المستخدم الحالي فقط باستخدام `auth.uid()`.
+- سحب التنفيذ من `PUBLIC` و`anon` و`authenticated` ثم منحه صراحة إلى `authenticated` فقط، مع منح `USAGE` على مخطط `private` لهذا الدور.
+- إعادة بناء سياسة `profiles_update_own` بحيث تسمح بتحديث صف المستخدم نفسه، لكنها تشترط بقاء الدور مساويًا للدور الحالي المسترجع عبر الدالة المساعدة.
 
-- لا يزال Security Advisor يعرض 22 تحذيرًا عن دوال `SECURITY DEFINER` المتاحة للمستخدم المسجل. ضبط `search_path` يقلل مخاطر name shadowing، لكنه لا يغني عن اختبار صلاحيات كل دالة.
+### اختبارات مباشرة على قاعدة الإنتاج
+
+تم تنفيذ الاختبارات داخل معاملات تنتهي بـ `ROLLBACK`، باستخدام حساب اختبار موجود بدور `customer`، دون حفظ أي تعديل على البيانات:
+
+- تحديث الملف الشخصي الذاتي مع الإبقاء على الدور: نجح وأعاد صف المستخدم.
+- محاولة تغيير الدور إلى `admin`: رُفضت بواسطة RLS بالخطأ `42501`.
+- اختبار التحديث السابق كان يفشل بسبب recursion قبل إصلاح السياسة؛ بعد الإصلاح اختفى هذا العطل في مسار التحديث الذاتي.
+
+## 3) مراجعة دوال SECURITY DEFINER
+
+- لا توجد دوال من الدوال العامة التي راجعناها قابلة للتنفيذ من `anon`.
+- لا تزال 22 ملاحظة Advisor عن دوال `SECURITY DEFINER` المتاحة للمستخدم المسجل. هذه الملاحظات تتطلب مراجعة صلاحيات كل RPC حسب وظيفته، ولا يصح إخفاؤها بسحب جماعي قد يعطل التطبيق.
 - ما زالت حماية كلمات المرور المسرّبة غير مفعلة في Supabase Auth.
-- جدول `public.order_status_transitions` عليه RLS بلا سياسات مباشرة؛ لا تُضف سياسة عامة دون مراجعة سبب العزل ومسارات RPC.
+- جدول `public.order_status_transitions` عليه RLS بلا سياسات مباشرة؛ لم نضف سياسة عامة لأن الوصول إليه يتم عبر دوال تشغيلية محددة.
 
-## ملفات التغيير
+## 4) ملفات الأرشفة والاختبارات
 
-- `supabase/live-patches/20261125_harden_security_definer_search_paths.sql`: أرشيف قابل لإعادة المراجعة للتغيير الحي.
-- `tests/security-definer-search-path.test.mjs`: اختبار يمنع فقدان هذا الضبط من الأرشيف مستقبلًا.
+- `supabase/live-patches/20261125_harden_security_definer_search_paths.sql`
+- `tests/security-definer-search-path.test.mjs`
+- `supabase/live-patches/20261125_fix_profiles_update_policy_recursion.sql`
+- `tests/profiles-update-policy.test.mjs`
 
-هذا التوثيق لا يعني أن الإصدار المنشور على Vercel يتضمن آخر تغييرات المستودع؛ آخر Production deployment مؤكد وقت التوثيق كان على commit `9f52467acbe234445196ff6d7753149be35bd58b`.
+لم تتغير بيانات العملاء أو الطلبات أو مقدمي الخدمة. التغييرات الحية اقتصرت على تعريف الدالة وسياسة RLS ومخطط المساعدة.
+
+## 5) حالة النشر
+
+هذا التوثيق لا يعني أن الإنتاج على Vercel يتضمن تغييرات قاعدة البيانات أو المستودع الأخيرة. آخر Production deployment مؤكد قبل هذه المراجعة كان على commit `9f52467acbe234445196ff6d7753149be35bd58b`. PR #40 ما زال مفتوحًا ولم يُدمج؛ تجنبنا الدمج ومحاولات النشر المتكررة بسبب قيود Vercel السابقة.
