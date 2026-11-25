@@ -77,6 +77,16 @@ function renderOrderCard(order, providers, canWrite) {
     assignment = '<p class="ops-muted">الحجوزات الطبية لها مسار مستقل؛ لا يتم تعيينها من أداة الطلبات العامة.</p>';
   }
 
+  const schedulable = order.sector === "nursing" && ["new", "confirmed"].includes(order.status);
+  const schedule = schedulable ? `
+    <form class="ops-action-form" data-form="operations-schedule" data-order-id="${escapeHTML(order.id)}">
+      ${order.preferred_at ? `<p class="ops-muted">الموعد المقترح من المريض: ${escapeHTML(formatCairoTime(order.preferred_at))} (مقترح فقط)</p>` : '<p class="ops-muted">المريض لم يقترح موعدًا.</p>'}
+      <label>الموعد المؤكد (بتوقيت القاهرة)
+        <input name="scheduled_at" type="datetime-local" required>
+      </label>
+      <button class="btn btn-outline btn-small" type="submit" ${canWrite ? "" : "disabled"}>تحديد الموعد المؤكد</button>
+    </form>` : "";
+
   const quote = ["new", "quoted"].includes(order.status) ? `
     <form class="ops-action-form" data-form="operations-quote" data-order-id="${escapeHTML(order.id)}">
       <label>عرض السعر بالجنيه
@@ -99,7 +109,7 @@ function renderOrderCard(order, providers, canWrite) {
         <span>أُنشئ: ${escapeHTML(formatDate(order.created_at))}</span>
         <span>السعر: ${order.price_egp === null ? "غير محدد" : escapeHTML(formatEGP(order.price_egp))}</span>
         <span>العربون: ${Number(order.deposit_egp) > 0 ? escapeHTML(formatEGP(order.deposit_egp)) : "لا يوجد"}</span>
-        ${order.scheduled_at ? `<span>الموعد: ${escapeHTML(formatDate(order.scheduled_at))}</span>` : ""}
+        ${order.scheduled_at ? `<span>الموعد المؤكد: ${escapeHTML(formatCairoTime(order.scheduled_at))}</span>` : ""}
         <span>العنوان: ${escapeHTML(address)}</span>
         <span>مقدم الخدمة: ${escapeHTML(provider)}</span>
       </div>
@@ -107,9 +117,16 @@ function renderOrderCard(order, providers, canWrite) {
         ${statusActions}
         ${quote}
         ${assignment}
+        ${schedule}
       </div>
     </article>
   `;
+}
+
+function formatCairoTime(value) {
+  try {
+    return new Intl.DateTimeFormat("ar-EG", { timeZone: "Africa/Cairo", weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit" }).format(new Date(value));
+  } catch { return "غير محدد"; }
 }
 
 function renderPendingProvider(provider, canWrite) {
