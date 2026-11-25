@@ -1,4 +1,4 @@
-# Self-contained: creates its own two products through merchant_add_product as merchant user 7 (P1: 40 EGP stock 5, P2: 25 EGP stock 1), so earlier runs cannot drift the stock. Server-side discount pricing is NOT covered here (merchant_add_product takes no discount); see the report.
+# Self-contained: creates its own two products through merchant_add_product as merchant user 7 (P1: 40 EGP stock 5, P2: 25 EGP stock 1), so earlier runs cannot drift the stock. Server-side discount pricing uses the persistent synthetic product '[fixture] discount product 30/25' (price 30, discount 25) created by discount_fixture.sql; the test fails closed if it is missing.
 import os,threading
 src=open(os.path.join(os.path.dirname(os.path.abspath(__file__)),"e2e_rpc.py")).read().split('c,s,p=login')[0]
 exec(src)
@@ -24,7 +24,7 @@ res=[]
 def go():res.append(rpc("place_product_order",{"p_product":P2,"p_qty":1,"p_address":"عنوان اختبار 12"},c)[0])
 t=[threading.Thread(target=go) for _ in range(4)];[x.start() for x in t];[x.join() for x in t]
 chk("4 concurrent buys of last unit: exactly one succeeds",res.count(200)==1 and stock(P2)==0,(res,stock(P2)))
-chk("server-side price used (25 EGP set by the merchant; discount pricing not covered)",call("/rest/v1/orders?select=price_egp&product_id=eq."+str(P2)+"&order=created_at.desc&limit=1",None,c)[1][0]["price_egp"]==25)
+chk("server-side price used (25 EGP set by the merchant)",call("/rest/v1/orders?select=price_egp&product_id=eq."+str(P2)+"&order=created_at.desc&limit=1",None,c)[1][0]["price_egp"]==25)
 chk("customer cancels new order -> stock restored",rpc("customer_cancel_order_v2",{"p_order":o1},c)[0] in (200,204) and stock(P1)==5,stock(P1))
 r=rpc("customer_cancel_order_v2",{"p_order":o1},c);chk("repeat cancel does not restore stock twice (idempotent or refused)",r[0]>=400 or stock(P1)==5,(r[0],stock(P1)))
 st,b=rpc("place_product_order",{"p_product":P1,"p_qty":1,"p_address":"عنوان اختبار 12"},c);o2=b[0]["out_order_id"]
@@ -39,4 +39,13 @@ for to in ("in_progress","done"):
     r=rpc("provider_set_order_status_v2",{"p_order":o2,"p_to":to},m);print("  merchant ->",to,msg(r))
 chk("merchant reaches done",call("/rest/v1/orders?select=status&id=eq."+o2,None,c)[1][0]["status"]=="done")
 chk("repeat done refused",rpc("provider_set_order_status_v2",{"p_order":o2,"p_to":"done"},m)[0]>=400)
+# discount pricing, server side (isolated fixture product from discount_fixture.sql; fail closed if it is missing or changed)
+_dp=call("/rest/v1/products?select=id,price_egp,discount_price_egp,stock,active&name=eq."+__import__("urllib.parse").parse.quote("[fixture] discount product 30/25"),None,c)[1]
+assert len(_dp)==1 and _dp[0]["price_egp"]==30 and _dp[0]["discount_price_egp"]==25 and _dp[0]["active"] and _dp[0]["stock"]>=2,("fixture: run discount_fixture.sql ON first",_dp)
+_pid=_dp[0]["id"];_s0=_dp[0]["stock"]
+st,b=rpc("place_product_order",{"p_product":_pid,"p_qty":2,"p_address":"عنوان اختبار خصم"},c);chk("discount product: 2 units total = 2 x 25 (discount applied server side, not the 30 list price)",st==200 and b[0]["out_total"]==50,(st,str(b)[:80]))
+_o=b[0]["out_order_id"] if st==200 else None
+_r=call("/rest/v1/orders?select=price_egp&id=eq."+str(_o),None,c)[1];chk("stored order price is the discount price",_r and _r[0]["price_egp"] in (25,50),_r)
+chk("stock decreased by 2",stock(_pid)==_s0-2,(_s0,stock(_pid)))
+chk("cancel restores the stock (fixture left as found)",rpc("customer_cancel_order_v2",{"p_order":_o},c)[0] in (200,204) and stock(_pid)==_s0,(_s0,stock(_pid)))
 print(sum(R),"pass",len(R)-sum(R),"fail")
