@@ -1,5 +1,5 @@
 -- DRAFT (not a migration). Medical notes: doctor adds a note through a checked RPC; the patient can read only their own notes.
--- Synthetic data only. Applying to production needs owner approval and a privacy review of health data.
+-- Synthetic data only. Parity (policy-definition hashes, no note content): production already has notes_patient_read identical to this one and the original notes_doctor_write, which this draft tightens.
 drop policy if exists notes_patient_read on public.medical_notes;
 create policy notes_patient_read on public.medical_notes for select to authenticated
   using (patient_id = (select auth.uid()));
@@ -19,3 +19,16 @@ begin
 end $$;
 revoke all on function public.doctor_add_note(uuid,text) from public, anon;
 grant execute on function public.doctor_add_note(uuid,text) to authenticated;
+-- Tighten the existing doctor insert policy: order_id is required and must be this doctor's clinic/nursing order for this patient.
+-- Measured on the test copy of the live policy: it accepted a note with no order_id, or one pointing at another patient's order, for any patient the doctor has some clinic order with.
+drop policy if exists notes_doctor_write on public.medical_notes;
+create policy notes_doctor_write on public.medical_notes for insert to authenticated
+with check (
+  doctor_id = (select public.current_provider_id())
+  and exists (select 1 from public.providers p where p.id = medical_notes.doctor_id and p.user_id = (select auth.uid())
+              and p.kind='doctor' and p.approved and p.active and p.is_test=false)
+  and order_id is not null
+  and exists (select 1 from public.orders o where o.id = medical_notes.order_id
+              and o.customer_id = medical_notes.patient_id and o.provider_id = medical_notes.doctor_id
+              and o.sector in ('clinic','nursing'))
+);
