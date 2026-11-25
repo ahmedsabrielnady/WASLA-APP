@@ -122,3 +122,20 @@ test("staff scheduling: only open nursing orders get the form, the patient's tim
   assert.match(api, /resolveCairoLocal\(value\)[\s\S]*staff_schedule_order/);
   assert.match(api, /preferred_at/);
 });
+
+test("change requests: requested vs executed are separate labels in customer and staff views", () => {
+  const ops = readFileSync(new URL("../src/operations.js", import.meta.url), "utf8");
+  const api = readFileSync(new URL("../src/supabase.js", import.meta.url), "utf8");
+  assert.match(main, /applied: "تم التنفيذ", declined: "تمت المراجعة بدون تغيير"/);
+  assert.match(main, /open: "طلبك مفتوح، لسه ماتراجعش"/);
+  assert.match(main, /order\.status === "confirmed"\) kinds\.unshift\(\["change_time"/);
+  assert.match(main, /ده طلب بس/);
+  assert.match(ops, /data-status="applied"[\s\S]*data-status="declined"/);
+  assert.match(ops, /\(طلب فقط\)/);
+  assert.match(api, /customer_request_order_change/);
+  assert.match(api, /staff_resolve_order_change/);
+  const panel = main.slice(main.indexOf("function changeRequestPanel"), main.indexOf("function formatAppointment"));
+  const staffPanel = ops.slice(ops.indexOf("function renderChangeRequests"), ops.indexOf("function renderNursingCredentialManager"));
+  assert.ok(panel.length > 200 && staffPanel.length > 200);
+  assert.doesNotMatch(panel + staffPanel, /رسوم|غرامة|استرداد|ج\.م/);
+});
