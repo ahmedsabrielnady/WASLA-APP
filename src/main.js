@@ -431,7 +431,7 @@ function educationSection() {
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
   const liveEnrollments = (state.enrollments || []).filter((e) => e.status === "booked" && e.session?.title);
   const enrolledIds = new Set(liveEnrollments.map((e) => e.session_id));
-  const open = state.sessions.map((item) => `
+  const open = pagedRows("sessions", state.sessions, (item) => `
     <article class="order-card">
       <div class="order-card-top"><strong>${escapeHTML(item.title)}</strong><span class="status-pill">${escapeHTML(sessionModeLabel(item.mode))}</span></div>
       <div class="order-name">${escapeHTML(item.subject)} · ${escapeHTML(item.teacher?.display_name || "مدرس")}</div>
@@ -441,14 +441,14 @@ function educationSection() {
       <div class="order-card-actions">${enrolledIds.has(item.id)
         ? '<span class="status-pill">أنت مسجل</span>'
         : `<button class="btn btn-primary btn-small" data-action="enroll-session" data-session-id="${escapeHTML(item.id)}" ${disabled}>سجل في الحصة</button>`}</div>
-    </article>`).join("");
-  const mine = liveEnrollments.map((e) => `
+    </article>`);
+  const mine = pagedRows("enrollments", liveEnrollments, (e) => `
     <article class="order-card" id="session-${escapeHTML(e.session_id)}">
       <div class="order-card-top"><strong>${escapeHTML(e.session?.title || "حصة")}</strong><span class="status-pill">مسجل</span></div>
       <div class="order-meta"><span>${escapeHTML(e.session?.starts_at ? formatAppointment(e.session.starts_at) : "")}</span></div>
       ${e.status === "booked" && safeMeetingUrl(state.sessionLinks?.[e.session_id]) ? `<p class="deposit-note">الرابط من المدرس ويفتح خدمة خارج وصلة.</p><div class="order-card-actions"><a class="btn btn-primary btn-small session-link" href="${escapeHTML(safeMeetingUrl(state.sessionLinks[e.session_id]))}" target="_blank" rel="noopener noreferrer">فتح رابط الحصة</a></div>` : ""}
       <div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="cancel-enrollment" data-enrollment-id="${escapeHTML(e.id)}" ${disabled}>إلغاء التسجيل</button></div>
-    </article>`).join("");
+    </article>`);
   return `
     <section class="page-panel education-panel" id="education">
       <div class="section-heading"><div><span class="eyebrow">التعليم</span><h2>حصص ودروس</h2></div></div>
@@ -951,9 +951,17 @@ async function loadClinicSlots() {
   }
 }
 
+// Long customer lists show ORDERS_PAGE_SIZE rows, then more on tap. The limit is kept per list key.
+function pagedRows(key, list, render) {
+  const limit = (state.listLimits && state.listLimits[key]) || ORDERS_PAGE_SIZE;
+  const page = pageSlice(list, limit);
+  const more = page.remaining ? `<button class="btn btn-outline btn-small" data-action="more-list" data-list-key="${key}">عرض ${page.remaining} أخرى</button>` : "";
+  return page.items.map(render).join("") + more;
+}
+
 function deliverySection() {
   if (!Array.isArray(state.deliveries)) return "";
-  const cards = state.deliveries.map((item) => `
+  const cards = pagedRows("deliveries", state.deliveries, (item) => `
     <article class="order-card" id="delivery-${escapeHTML(item.id)}">
       <div class="order-card-top"><strong>${escapeHTML(item.ref)}</strong><span class="status-pill">${escapeHTML(statusLabel(item.status))}</span></div>
       <div class="order-name">${escapeHTML(item.what_to_deliver)}</div>
@@ -961,7 +969,7 @@ function deliverySection() {
       <div class="order-meta"><span>إلى: ${escapeHTML(item.dropoff_address)}</span></div>
       <div class="order-meta"><span>${escapeHTML(formatDate(item.created_at))}</span><strong>مجاني للعميل</strong></div>
       ${item.status === "new" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="customer-cancel-delivery" data-request-id="${escapeHTML(item.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>إلغاء الطلب قبل التعيين</button></div>` : ""}
-    </article>`).join("");
+    </article>`);
   return `
     <section class="page-panel delivery-panel" id="delivery-request">
       <div class="section-heading"><div><span class="eyebrow">توصيل</span><h2>اطلب توصيل</h2></div></div>
@@ -1896,6 +1904,10 @@ root.addEventListener("click", async (event) => {
       render();
       const card = document.getElementById("patient-file");
       if (card) { card.style.scrollMarginTop = "110px"; card.scrollIntoView({ behavior: "smooth", block: "start" }); }
+    } else if (action === "more-list") {
+      const key = button.dataset.listKey;
+      state.listLimits = { ...(state.listLimits || {}), [key]: ((state.listLimits || {})[key] || ORDERS_PAGE_SIZE) + ORDERS_PAGE_SIZE };
+      render();
     } else if (action === "more-orders") {
       state.ordersLimit = (state.ordersLimit || ORDERS_PAGE_SIZE) + ORDERS_PAGE_SIZE;
       render();
