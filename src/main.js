@@ -1,6 +1,6 @@
 import { CONFIG } from "./config.js";
 import { isPhoneAliasSignupReady, resolveAuthIdentifier } from "./auth-utils.js";
-import { SECTORS, stripPictographs, sectorIconSvg, ICON_SVG, sectorEntryPlan, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, runWithBusyState, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
+import { SECTORS, stripPictographs, pageSlice, FILE_PAGE_SIZE, sectorIconSvg, ICON_SVG, sectorEntryPlan, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, runWithBusyState, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
 import { authApi, dataApi } from "./supabase.js";
 import { pushConfigured, pushSupported, enablePush, disablePush } from "./push.js";
 import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
@@ -533,14 +533,18 @@ function doctorPatientFilesHTML(targets, disabled) {
   for (const o of targets) if (o.customer_id && !seen.has(o.customer_id)) seen.set(o.customer_id, o);
   const buttons = [...seen.entries()].map(([id, o]) => `<button class="btn btn-outline btn-small" data-action="open-patient-file" data-patient-id="${escapeHTML(id)}" ${disabled}>فتح ملف المريض #${escapeHTML(String(id).slice(0, 4).toUpperCase())} (آخر حالة ${escapeHTML(o.ref || "")})</button>`).join("");
   const f = state.doctorFile;
+  const ordersPage = pageSlice(f?.data?.orders, f?.limit);
+  const notesPage = pageSlice(f?.data?.notes, f?.limit);
   const file = f ? `
     <div class="order-card" id="patient-file">
       <div class="order-card-top"><strong>ملف المريض #${escapeHTML(String(f.patientId).slice(0, 4).toUpperCase())}</strong><button class="btn btn-outline btn-small" data-action="close-patient-file">إغلاق</button></div>
       <p class="deposit-note">فتح الملف بيتسجل في سجل الوصول. تظهر لك حالاتك وملاحظاتك أنت فقط.</p>
       <h3>الحالات</h3>
-      ${(f.data.orders || []).map((o) => `<div class="order-meta"><span>${escapeHTML(o.ref || "")} · ${escapeHTML(formatDate(o.created_at))}</span></div>`).join("") || '<p class="tracking-empty">لا توجد حالات.</p>'}
+      ${ordersPage.items.map((o) => `<div class="order-meta"><span>${escapeHTML(o.ref || "")} · ${escapeHTML(formatDate(o.created_at))}</span></div>`).join("") || '<p class="tracking-empty">لا توجد حالات.</p>'}
+      ${ordersPage.remaining ? `<button class="btn btn-outline btn-small" data-action="more-patient-file">عرض ${ordersPage.remaining} حالة أخرى</button>` : ""}
       <h3>الملاحظات</h3>
-      ${(f.data.notes || []).map((n) => `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(n.note)}</strong></div><div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span></div></article>`).join("") || '<p class="tracking-empty">لا توجد ملاحظات.</p>'}
+      ${notesPage.items.map((n) => `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(n.note)}</strong></div><div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span></div></article>`).join("") || '<p class="tracking-empty">لا توجد ملاحظات.</p>'}
+      ${notesPage.remaining ? `<button class="btn btn-outline btn-small" data-action="more-patient-file">عرض ${notesPage.remaining} ملاحظة أخرى</button>` : ""}
     </div>` : "";
   return `${buttons ? `<div class="order-card-actions">${buttons}</div>` : ""}${file}`;
 }
@@ -1887,11 +1891,14 @@ root.addEventListener("click", async (event) => {
       await runWithBusyState(state, async () => {
         render();
         const data = await dataApi.doctorOpenPatientFile(button.dataset.patientId);
-        state.doctorFile = { patientId: button.dataset.patientId, data };
+        state.doctorFile = { patientId: button.dataset.patientId, data, limit: FILE_PAGE_SIZE };
       });
       render();
       const card = document.getElementById("patient-file");
       if (card) { card.style.scrollMarginTop = "110px"; card.scrollIntoView({ behavior: "smooth", block: "start" }); }
+    } else if (action === "more-patient-file") {
+      if (state.doctorFile) state.doctorFile.limit = (state.doctorFile.limit || FILE_PAGE_SIZE) + FILE_PAGE_SIZE;
+      render();
     } else if (action === "close-patient-file") {
       state.doctorFile = null;
       render();
