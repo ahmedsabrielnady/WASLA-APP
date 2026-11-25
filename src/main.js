@@ -397,6 +397,57 @@ function educationSection() {
     </section>`;
 }
 
+function labPriceSection() {
+  if (!Array.isArray(state.labTests) || !state.labTests.length) return "";
+  const rows = state.labTests.map((t) => `
+    <article class="order-card">
+      <div class="order-card-top"><strong>${escapeHTML(t.name)}</strong><span class="status-pill">${t.kind === "radiology" ? "أشعة" : "تحليل"}</span></div>
+      <div class="order-meta"><span>${escapeHTML(t.provider?.display_name || "")}</span><strong>${escapeHTML(formatEGP(t.price_egp))}</strong></div>
+    </article>`).join("");
+  return `
+    <section class="page-panel health-panel" id="lab-prices">
+      <div class="section-heading"><div><span class="eyebrow">الصحة</span><h2>أسعار التحاليل والأشعة</h2></div></div>
+      <p class="deposit-note">الأسعار يحددها كل معمل أو مركز. لا يتم تحصيل أي مبلغ داخل وصلة.</p>
+      <div class="orders-list">${rows}</div>
+    </section>`;
+}
+
+function prescriptionStatusLabel(status) {
+  return status === "answered" ? "تم الرد" : status === "open" ? "بانتظار الردود" : "مغلق";
+}
+
+function prescriptionSection() {
+  if (!Array.isArray(state.prescriptions)) return "";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const pharmacies = Array.isArray(state.pharmacies) ? state.pharmacies : [];
+  const cards = state.prescriptions.map((r) => {
+    const quotes = (r.quotes || []).map((q) => `
+      <div class="order-meta"><span>${escapeHTML(q.pharmacy?.display_name || "صيدلية")}${q.delivery_available ? ` · توصيل${q.eta_minutes ? ` خلال ${escapeHTML(q.eta_minutes)} دقيقة` : ""}` : " · استلام من الصيدلية"}${q.note ? ` · ${escapeHTML(q.note)}` : ""}</span><strong>${escapeHTML(formatEGP(q.price_egp))}</strong></div>`).join("");
+    return `
+    <article class="order-card">
+      <div class="order-card-top"><strong>${escapeHTML(r.note)}</strong><span class="status-pill">${escapeHTML(prescriptionStatusLabel(r.status))}</span></div>
+      ${r.attachment_path ? '<div class="order-meta"><span>مرفق: صورة الروشتة</span></div>' : ""}
+      ${quotes || '<p class="tracking-empty">لا توجد ردود بعد.</p>'}
+      <div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="close-prescription" data-request-id="${escapeHTML(r.id)}" ${disabled}>إغلاق الطلب وسحب المشاركة</button></div>
+    </article>`;
+  }).join("");
+  const choices = pharmacies.map((p) => `
+    <label class="check-row"><input type="checkbox" name="pharmacy" value="${escapeHTML(p.id)}"> ${escapeHTML(p.display_name)}${p.area ? ` · ${escapeHTML(p.area)}` : ""}</label>`).join("");
+  return `
+    <section class="page-panel health-panel" id="prescriptions">
+      <div class="section-heading"><div><span class="eyebrow">الصحة</span><h2>اطلب أدويتك من الصيدليات</h2></div></div>
+      <p>اكتب أسماء الأدوية أو ارفع صورة الروشتة، واختر الصيدليات التي تريد أن ترد عليك. لا تراها أي صيدلية غير التي تختارها، ويمكنك إغلاق الطلب وسحب المشاركة في أي وقت. الدفع للصيدلية مباشرة.</p>
+      ${pharmacies.length ? `<form data-form="prescription" novalidate>
+        <label>الأدوية المطلوبة<textarea name="note" rows="3" maxlength="500" required></textarea></label>
+        <label>صورة الروشتة (اختياري، JPG أو PNG أو WebP أو PDF حتى 5 ميجا)<input type="file" name="file" accept="image/jpeg,image/png,image/webp,application/pdf"></label>
+        <fieldset><legend>الصيدليات التي سترى طلبك (حتى 5)</legend>${choices}</fieldset>
+        <label class="check-row"><input type="checkbox" name="consent" value="yes"> أوافق على مشاركة هذا الطلب والمرفق مع الصيدليات التي اخترتها فقط. الصيدلية قد ترى معلومات صحية تظهر في الروشتة.</label>
+        <button class="btn btn-primary" type="submit" ${disabled}>أرسل الطلب</button>
+      </form>` : '<p class="tracking-empty">لا توجد صيدليات متاحة الآن.</p>'}
+      ${cards ? `<h3>طلباتي</h3><div class="orders-list">${cards}</div>` : ""}
+    </section>`;
+}
+
 function teacherSection() {
   if (state.profile?.role !== "teacher" || !Array.isArray(state.teacherSessions)) return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
@@ -499,6 +550,8 @@ function ordersView() {
     ${clinicSection()}
     ${storeSection()}
     ${educationSection()}
+    ${labPriceSection()}
+    ${prescriptionSection()}
     ${deliverySection()}
   `;
 }
@@ -888,6 +941,7 @@ async function refreshMyOrders() {
     try { state.doctors = await dataApi.getDoctors(); } catch { state.doctors = null; }
     try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
     try { state.sessions = await dataApi.getSessions(); state.enrollments = await dataApi.getMyEnrollments(); } catch { state.sessions = null; state.enrollments = null; }
+    try { state.labTests = await dataApi.getLabTests(); state.prescriptions = await dataApi.getMyPrescriptions(); state.pharmacies = state.prescriptions ? await dataApi.getPharmacies() : null; } catch { state.labTests = null; state.prescriptions = null; state.pharmacies = null; }
     if (!state.clinicDay) state.clinicDay = cairoDay(1);
     state.view = "orders";
   } catch (error) {
@@ -1275,6 +1329,15 @@ root.addEventListener("click", async (event) => {
         showToast("تم تسجيلك في الحصة.", "success");
       });
       render();
+    } else if (action === "close-prescription") {
+      if (!window.confirm("إغلاق الطلب؟ لن تتمكن أي صيدلية من رؤيته بعد ذلك.")) return;
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.closePrescription(button.dataset.requestId);
+        state.prescriptions = await dataApi.getMyPrescriptions();
+        showToast("تم إغلاق الطلب وسحب المشاركة.", "success");
+      });
+      render();
     } else if (action === "cancel-enrollment") {
       if (state.profile?.role !== "customer") throw new Error("هذه العملية للعملاء فقط.");
       await runWithBusyState(state, async () => {
@@ -1501,6 +1564,19 @@ root.addEventListener("submit", async (event) => {
         state.myOrders = await dataApi.getMyOrders(state.user.id);
         await loadClinicSlots();
         showToast("تم حجز الموعد. بانتظار تأكيد الطبيب.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "prescription") {
+      if (CONFIG.isPublicPreview) throw new Error("الإرسال متوقف في نسخة المعاينة.");
+      const data = new FormData(form);
+      const values = { note: data.get("note"), file: data.get("file"), pharmacies: data.getAll("pharmacy"), consent: data.get("consent") === "yes" };
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.acceptRequiredConsents();
+        await dataApi.submitPrescription(values);
+        state.prescriptions = await dataApi.getMyPrescriptions();
+        showToast("تم إرسال الطلب للصيدليات التي اخترتها.", "success");
       });
       render();
     }
