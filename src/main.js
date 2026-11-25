@@ -510,8 +510,41 @@ async function loadHealthWork() {
   await loadMedicalNotes();
   const provider = state.providerRecord;
   state.healthWork = null;
+  state.merchantProducts = null;
+  if (provider?.id && provider.kind === "merchant") {
+    try { state.merchantProducts = await dataApi.getMyProducts(provider.id); } catch { state.merchantProducts = null; }
+  }
   if (!provider?.id || provider.kind !== "merchant") return;
   try { state.healthWork = await dataApi.getProviderHealthWorkspace(provider); } catch { state.healthWork = null; }
+}
+
+const PRODUCT_CATEGORY_LABELS = { market: "ماركت", food: "مطعم", supplies: "مستلزمات طبية" };
+
+function merchantProductsSection() {
+  if (!Array.isArray(state.merchantProducts) || state.profile?.role !== "merchant") return "";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const rows = state.merchantProducts.map((p) => `
+    <article class="order-card">
+      <div class="order-card-top"><strong>${escapeHTML(p.name)}</strong><span class="status-pill">${p.active ? "ظاهر للعملاء" : "مخفي"}</span></div>
+      <div class="order-meta"><span>${escapeHTML(PRODUCT_CATEGORY_LABELS[p.category] || p.category)} · المخزون ${escapeHTML(p.stock)}</span><strong>${escapeHTML(formatEGP(p.price_egp))}</strong></div>
+      <form data-form="product-stock" data-product-id="${escapeHTML(p.id)}" novalidate>
+        <label>المخزون<input type="number" name="stock" min="0" max="10000" value="${escapeHTML(p.stock)}" required></label>
+        <div class="order-card-actions"><button class="btn btn-outline btn-small" type="submit" ${disabled}>حفظ المخزون</button><button class="btn btn-outline btn-small" type="button" data-action="toggle-product" data-product-id="${escapeHTML(p.id)}" data-active="${p.active ? "no" : "yes"}" ${disabled}>${p.active ? "إخفاء" : "إظهار"}</button></div>
+      </form>
+    </article>`).join("");
+  return `
+    <section class="page-panel health-panel" id="merchant-products">
+      <div class="section-heading"><div><span class="eyebrow">التاجر</span><h2>منتجاتي</h2></div></div>
+      <p class="deposit-note">أنت تحدد الاسم والسعر والمخزون. الدفع عند الاستلام ولا يتم تحصيل أي مبلغ داخل وصلة.</p>
+      <form data-form="product-add" novalidate>
+        <label>اسم المنتج<input name="name" maxlength="120" required></label>
+        <label>التصنيف<select name="category" required><option value="market">ماركت</option><option value="food">مطعم</option><option value="supplies">مستلزمات طبية</option></select></label>
+        <label>السعر بالجنيه<input type="number" name="price" min="1" max="100000" required></label>
+        <label>المخزون<input type="number" name="stock" min="0" max="10000" value="1" required></label>
+        <button class="btn btn-primary" type="submit" ${disabled}>أضف المنتج</button>
+      </form>
+      ${rows ? `<div class="orders-list">${rows}</div>` : '<p class="tracking-empty">لا توجد منتجات بعد.</p>'}
+    </section>`;
 }
 
 function healthProviderSection() {
@@ -662,7 +695,7 @@ function storePanel(category, eyebrow, title, intro) {
 function storeSection() {
   return storePanel("market", "الماركت", "اطلب من الماركت", "منتجات البقالة واحتياجات البيت.")
     + storePanel("food", "المطاعم", "اطلب وجبة", "وجبات من مطاعم شبين القناطر.")
-    + storePanel("supplies", "الصحة", "مستلزمات طبية", "كمامات وشاش وأجهزة قياس منزلية من تجار معتمدين.");
+    + storePanel("supplies", "الصحة", "مستلزمات طبية", "كمامات وشاش وأجهزة قياس منزلية.");
 }
 
 async function loadClinicSlots() {
@@ -785,7 +818,7 @@ function providerView() {
     preview: CONFIG.isPublicPreview,
     saving: state.providerSaving,
     error: state.providerError
-  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + teacherSection() + teacherCatalogueSection() + healthProviderSection() + medicalNotesSection();
+  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + teacherSection() + teacherCatalogueSection() + merchantProductsSection() + healthProviderSection() + medicalNotesSection();
 }
 
 function roadmapView() {
@@ -1527,6 +1560,14 @@ root.addEventListener("click", async (event) => {
         showToast("تم التحديث.", "success");
       });
       render();
+    } else if (action === "toggle-product") {
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.updateProduct(button.dataset.productId, { active: button.dataset.active === "yes" });
+        await loadHealthWork();
+        showToast("تم التحديث.", "success");
+      });
+      render();
     } else if (action === "toggle-lab-test") {
       await runWithBusyState(state, async () => {
         render();
@@ -1818,6 +1859,28 @@ root.addEventListener("submit", async (event) => {
         await dataApi.pharmacyQuote({ requestId: form.dataset.requestId, price: data.get("price"), note: data.get("note"), delivery: data.get("delivery") === "yes", eta: data.get("eta") });
         await loadHealthWork();
         showToast("تم إرسال ردك للعميل.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "product-add") {
+      if (CONFIG.isPublicPreview) throw new Error("الإضافة متوقفة في نسخة المعاينة.");
+      const data = new FormData(form);
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.saveProduct({ name: data.get("name"), category: data.get("category"), price: data.get("price"), stock: data.get("stock") });
+        await loadHealthWork();
+        showToast("تمت إضافة المنتج.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "product-stock") {
+      if (CONFIG.isPublicPreview) throw new Error("التعديل متوقف في نسخة المعاينة.");
+      const data = new FormData(form);
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.updateProduct(form.dataset.productId, { stock: data.get("stock") });
+        await loadHealthWork();
+        showToast("تم حفظ المخزون.", "success");
       });
       render();
     }
