@@ -79,3 +79,21 @@ test("setNursingCredential calls only the staff RPC", async () => {
   assert.match(calls[0].url, /rpc\/staff_set_nursing_credential$/);
   assert.deepEqual(calls[0].body, { p_provider: "p1", p_verified: true });
 });
+
+test("teacherCreateSession routes to the linked RPC only when a course is chosen", async () => {
+  const calls = mockFetch("00000000-0000-0000-0000-000000000001");
+  const v = { title: "حصة جديدة", subject: "رياضيات", starts: "2030-01-01T10:00", seats: 5, price: 0, mode: "online" };
+  await dataApi.teacherCreateSession(v);
+  assert.match(calls[0].url, /rpc\/teacher_create_session$/);
+  await dataApi.teacherCreateSession({ ...v, course: "c1" });
+  assert.match(calls[1].url, /rpc\/teacher_create_course_session$/);
+  assert.equal(calls[1].body.p_course, "c1");
+  assert.ok(!("p_price" in calls[1].body));
+});
+
+test("getSessions falls back to standalone sessions when the course link is not installed", async () => {
+  let n = 0;
+  globalThis.fetch = async () => (n++ === 0 ? new Response(JSON.stringify({ message: "column tutor_sessions.course_id does not exist" }), { status: 400 }) : new Response(JSON.stringify([{ id: "s1" }]), { status: 200 }));
+  const rows = await dataApi.getSessions();
+  assert.equal(rows[0].course_id, null);
+});
