@@ -47,14 +47,27 @@ function clearSession() {
   localStorage.removeItem(SESSION_KEY);
 }
 
+const PENDING_CLEANUP_KEY = "wasla.pending-file-cleanup.v1";
+
+function readPendingCleanups() {
+  try { const list = JSON.parse(localStorage.getItem(PENDING_CLEANUP_KEY) || "[]"); return Array.isArray(list) ? list : []; } catch { return []; }
+}
+
+function writePendingCleanups(list) {
+  try { if (list.length) localStorage.setItem(PENDING_CLEANUP_KEY, JSON.stringify(list.slice(-20))); else localStorage.removeItem(PENDING_CLEANUP_KEY); } catch { /* storage unavailable */ }
+}
+
+// Deletes through the Storage API, then verifies by LISTING the folder (a POST, never served from a CDN cache).
+// Returns true only when the listing succeeds and the file is not in it.
 async function removeUploadedPrescriptionFile(token, path) {
-  const url = `${API_ROOT}/storage/v1/object/prescriptions/${path}`;
   const headers = { apikey: CONFIG.supabasePublishableKey, Authorization: `Bearer ${token}` };
+  const [folder, name] = String(path).split("/");
   try {
-    const removed = await fetch(url, { method: "DELETE", headers });
-    if (!removed.ok && removed.status !== 404) return false;
-    const check = await fetch(url.replace("/object/", "/object/authenticated/"), { headers });
-    return !check.ok; // verified gone only when the file can no longer be read
+    await fetch(`${API_ROOT}/storage/v1/object/prescriptions/${path}`, { method: "DELETE", headers });
+    const listed = await fetch(`${API_ROOT}/storage/v1/object/list/prescriptions`, { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ prefix: folder, limit: 100 }) });
+    if (!listed.ok) return false;
+    const items = await listed.json();
+    return Array.isArray(items) && !items.some((item) => item?.name === name);
   } catch {
     return false;
   }
@@ -923,10 +936,26 @@ export const dataApi = {
       // Compensate: delete the uploaded file through the Storage API and verify it is gone, then close the request.
       const cleaned = uploadedPath ? await removeUploadedPrescriptionFile(token, uploadedPath) : true;
       try { await request("/rest/v1/rpc/customer_close_prescription_request", { method: "POST", token, body: { p_request: id } }); } catch { /* best effort */ }
-      if (!cleaned) throw new Error("تعذر إرسال الطلب وتعذر حذف الملف المرفوع الآن. أُغلق الطلب، وسيُحذف الملف تلقائيًا عند انتهاء مدة الاحتفاظ.");
+      if (!cleaned) {
+        writePendingCleanups([...readPendingCleanups(), { path: uploadedPath, at: Date.now() }]); // actionable record, retried by retryPendingFileCleanups
+        throw new Error("تعذر إرسال الطلب، وفشل حذف الملف المرفوع وقد يظل موجودًا. أُغلق الطلب، وسُجل الملف على هذا الجهاز لإعادة محاولة حذفه عند فتح التطبيق.");
+      }
       throw error;
     }
     return id;
+  },
+
+  async retryPendingFileCleanups() {
+    const pending = readPendingCleanups();
+    if (!pending.length) return 0;
+    const session = await getValidSession();
+    if (!session?.access_token) return pending.length;
+    const remaining = [];
+    for (const item of pending) {
+      if (!(await removeUploadedPrescriptionFile(session.access_token, item.path))) remaining.push(item);
+    }
+    writePendingCleanups(remaining);
+    return remaining.length;
   },
 
   async closePrescription(requestId) {
