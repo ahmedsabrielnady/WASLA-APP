@@ -17,6 +17,7 @@ Status of each draft (all tested only on the isolated `wasla-test` project):
 | `20261125000800_prescription_audit_retention.sql` | `rx_access_log` audit table, `rx_authorize_read` (authorizes and logs every read, staff included), `rx_retention_candidates` (service role only) | Requires 0500 to 0700; run `health_rx_audit_test.py` (9 checks); non-breaking, applied to the test project |
 | `20261125000801_prescription_remove_direct_storage_read.sql` | removes the direct storage read policy so no user can read or sign storage URLs; reads go only through `supabase/functions/rx-file` | NOT applied anywhere; needs the function deployed first; does not revoke a signed URL issued earlier or a response a cache already holds; functions are dev artifacts, never deployed, unit-tested with fakes only (`tests/prescription-proxy.test.mjs`) |
 | `20261125000900_medical_notes_patient.sql` | doctor `doctor_add_note` RPC (approved doctor, own clinic or nursing order) and patient read of own notes | Owner and privacy review of real health data; tested only with synthetic text |
+| `20261125001000_education_catalogue.sql` | tutor profile and course catalogue (teacher RPCs, read-only tables for everyone else) | Owner decides who approves teachers and the pricing display; no payment is collected |
 
 Activation steps (deliberate, one at a time):
 1. Run the draft on a disposable test project and the matching RPC test script.
