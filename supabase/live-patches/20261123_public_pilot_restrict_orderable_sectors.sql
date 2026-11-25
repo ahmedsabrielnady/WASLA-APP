@@ -75,7 +75,10 @@ begin
 
  select * into v_item
  from public.service_items
- where id=p_item_id and sector=p_sector and active=true
+ where id=p_item_id
+   and sector=p_sector
+   and active=true
+   and public_orderable=true
  for share;
  if not found then
    raise exception 'الخدمة دي مش متاحة' using errcode='22023';
