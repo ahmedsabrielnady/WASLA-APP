@@ -1134,3 +1134,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 /* Checkbox rows in the delivery form must not inherit the full-width text input sizing */
 .delivery-panel .check-row { display: flex; align-items: center; gap: 9px; font-size: 13px; line-height: 1.6; }
 .delivery-panel .check-row input[type=checkbox], .delivery-panel input[type=checkbox] { width: auto; min-height: 0; margin: 0; accent-color: var(--green); }
+
+/* Scroll clearance under the sticky header, and equal-width form controls on mobile */
+.health-panel, .education-panel, .delivery-panel { scroll-margin-top: 104px; }
+.health-panel form select, .health-panel form input[type=number] { max-width: 100%; box-sizing: border-box; }
+.health-panel form + form, .health-panel form + .orders-list { margin-top: 22px; }
