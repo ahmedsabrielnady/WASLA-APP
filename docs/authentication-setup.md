@@ -1,47 +1,53 @@
-# WASLA authentication setup
+# إعداد تسجيل الدخول في وصلة
 
-## Supported sign-in methods
+## الآلية المعتمدة حاليًا
 
-- Egyptian mobile number + password (no SMS OTP), when the Supabase Phone provider is enabled and phone auto-confirm is enabled.
-- Email address + password remains supported for existing accounts and new email registrations.
-- Google OAuth is optional and appears only when Supabase reports the Google provider as enabled.
+تستخدم وصلة تسجيل الدخول بكلمة المرور عبر Supabase Auth دون SMS:
 
-## Enable mobile/password without SMS
+- البريد الإلكتروني الحقيقي يظل مدعومًا للحسابات الحالية والتسجيل الجديد.
+- رقم المحمول المصري للحسابات الموجودة يُحوّل داخليًا إلى بريد اصطناعي ثابت بالشكل `01xxxxxxxxx@wasla.app` ثم تتم المصادقة عبر Email/Password.
+- لا يُرسل SMS ولا يُستخدم مزود Twilio.
+- رقم الهاتف وحده لا يثبت ملكية الرقم، ولا يجوز استخدامه وحده لربط حسابين أو استعادة كلمة المرور.
 
-In the Supabase project used by the application (`yfgvimcqbtthnrbzbhft`):
+**مهم:** لا تفعّل Phone Provider لمجرد تشغيل دخول وصلة الحالي. الكود الحالي يعتمد على Email/Password alias وليس Supabase Phone OTP.
 
-1. Open **Authentication → Sign In / Providers**.
-2. Enable the **Phone** provider.
-3. Turn on phone auto-confirm / turn off phone confirmation. This is required to avoid SMS and permit password-based signup to return a session.
-4. Leave the Email provider and its confirmation policy unchanged.
-5. Confirm the public Auth settings endpoint reports `external.phone = true` and `phone_autoconfirm = true`.
+## شرط إنشاء حساب جديد برقم الهاتف دون SMS
 
-The application deliberately blocks phone sign-in and sign-up unless both settings are true. Email sign-in remains available if the phone provider is not ready.
+واجهة وصلة تقرأ إعدادات Auth العامة من `/auth/v1/settings`، وتسمح بإنشاء حساب جديد باستخدام رقم الهاتف فقط عندما يتحقق الشرطان معًا:
 
-### Security constraints
+1. `external.email = true`
+2. `mailer_autoconfirm = true`
 
-- Phone + password without verification does not prove ownership of that number.
-- Do not use a phone number alone for password recovery or account linking.
-- Do not merge an existing email account with a phone account solely because profile phone values match.
-- Phone-only password recovery is not enabled. Email accounts continue to use email password recovery.
+إذا لم يتحققا، يظل تسجيل الدخول متاحًا للحسابات الهاتفية الموجودة، لكن إنشاء حساب جديد برقم الهاتف يتوقف لتجنب إنشاء حساب ينتظر رسالة تأكيد إلى عنوان اصطناعي لا يملكه المستخدم. يمكن للمستخدم التسجيل ببريد إلكتروني حقيقي وفق سياسة تأكيد البريد القائمة.
 
-## Optional Google OAuth
+لا تغيّر سياسة تأكيد البريد العامة دون تقييم أثرها على كل الحسابات. تفعيل auto-confirm يعني عدم اشتراط تأكيد البريد للحسابات الجديدة؛ وهو قرار أمني وتشغيلي يجب أن يكون مقصودًا.
 
-1. In Google Cloud Console, create an OAuth client of type **Web application**.
-2. Add the production origin `https://wasla-app-gg2f.vercel.app` to Authorized JavaScript origins.
-3. Add this redirect URI to Authorized redirect URIs:
-   `https://yfgvimcqbtthnrbzbhft.supabase.co/auth/v1/callback`
-4. In Supabase **Authentication → Sign In / Providers → Google**, enable Google and enter the Web Client ID and Client Secret.
-5. Add `https://wasla-app-gg2f.vercel.app/` to the Supabase Auth redirect URL allowlist.
-6. Verify `external.google = true` at the public Auth settings endpoint and complete a real Google sign-in test.
+## قيود الاستعادة والربط
 
-Never commit the Google Client Secret or place it in browser code. Store it only in Supabase Auth provider configuration.
+- استعادة كلمة المرور متاحة عبر البريد الإلكتروني الحقيقي فقط.
+- لا تستخدم رقم الهاتف وحده لإعادة تعيين كلمة المرور.
+- لا تدمج حساب بريد مع حساب رقم هاتف لمجرد تطابق رقم الهاتف في الملف الشخصي.
+- لا تضبط `phone_confirmed_at` يدويًا ولا تعتبر رقمًا موثقًا دون تحقق فعلي من ملكيته.
+- لا تخزن مفاتيح Service Role في المتصفح أو المستودع.
 
-## Verification checklist
+## التحقق قبل الإطلاق
 
-- Run `npm run verify`.
-- Confirm local mobile numbers such as `01012345678` normalize to `+201012345678`.
-- Test phone signup and sign-in only after the two phone settings above are enabled.
-- Test legacy email sign-in and email recovery.
-- Test Google OAuth end-to-end only after configuring the Google client.
-- Test role resolution, existing customer order history, and pending-order resume after each sign-in method.
+- اختبر دخول حساب المؤسس الحالي برقم الهاتف وكلمة المرور على إصدار Production بعد نشره.
+- اختبر حسابًا هاتفيًا موجودًا وحساب بريد إلكتروني موجودًا.
+- اختبر رفض إنشاء حساب جديد برقم الهاتف عندما لا يتحقق شرطان الإعداد أعلاه.
+- اختبر إنشاء حساب بالبريد الحقيقي وسياسة تأكيده.
+- اختبر استعادة كلمة المرور عبر البريد الحقيقي.
+- اختبر الصلاحيات بحسب الدور: customer وprovider وstaff وadmin.
+- لا تعتبر اختبارات الوحدات بديلًا عن اختبار متصفح حقيقي على النطاق الإنتاجي.
+
+## OAuth اختياري
+
+يمكن تفعيل Google OAuth لاحقًا، لكنه ليس مطلوبًا لتسجيل الدخول الحالي. عند تفعيله:
+1. أنشئ OAuth client من نوع Web application في Google Cloud Console.
+2. أضف أصل الإنتاج `https://wasla-app-gg2f.vercel.app`.
+3. أضف Redirect URI: `https://yfgvimcqbtthnrbzbhft.supabase.co/auth/v1/callback`.
+4. أدخل Client ID وClient Secret في إعدادات Google Provider داخل Supabase فقط.
+5. أضف عنوان الإنتاج إلى قائمة Auth redirect URLs.
+6. اختبر تسجيل دخول Google كاملًا قبل إظهاره للمستخدمين.
+
+لا تضع Google Client Secret في كود المتصفح أو GitHub.
