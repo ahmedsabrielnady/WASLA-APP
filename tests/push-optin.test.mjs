@@ -90,3 +90,13 @@ test("draft 3000: no app-role table access, https only, device cap, no sender", 
   assert.match(sql, /v_n >= 5/);
   assert.doesNotMatch(sql, /http_post|net\.http|pg_net/i);
 });
+
+test("hardening draft 3100: origin allowlist, no takeover, logout releases the device", () => {
+  const h = readFileSync(new URL("../supabase/drafts/20261125003100_push_endpoint_hardening.sql", import.meta.url), "utf8");
+  assert.match(h, /fcm\\\.googleapis\\\.com/);
+  assert.doesNotMatch(h.slice(h.indexOf("alter table")), /windows/);
+  assert.match(h, /endpoint belongs to another user/);
+  assert.doesNotMatch(h, /delete from public\.push_subscriptions where endpoint = p_endpoint and user_id <> v_uid/);
+  const logout = main.slice(main.indexOf('action === "logout"'), main.indexOf("authApi.signOut()", main.indexOf('action === "logout"')));
+  assert.match(logout, /disablePush/);
+});
