@@ -446,7 +446,11 @@ const NOTIFICATION_TEXT = {
   order_status: "حالة طلبك اتغيرت. افتح الطلب لتشوف التفاصيل.",
   order_scheduled: "موعد طلبك اتحدد أو اتغير. افتح الطلب لتشوف الموعد.",
   change_request_applied: "تم تنفيذ طلبك.",
-  change_request_declined: "تمت مراجعة طلبك بدون تغيير."
+  change_request_declined: "تمت مراجعة طلبك بدون تغيير.",
+  delivery_status: "حالة طلب التوصيل اتغيرت.",
+  prescription_quote: "وصلك رد جديد على أحد طلباتك.",
+  session_cancelled: "تم إلغاء إحدى حصصك.",
+  session_link: "المدرس أضاف أو غيّر رابط إحدى حصصك."
 };
 
 function notificationItem(n) {
