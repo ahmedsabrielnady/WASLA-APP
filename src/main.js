@@ -422,7 +422,7 @@ function educationSection() {
         : `<button class="btn btn-primary btn-small" data-action="enroll-session" data-session-id="${escapeHTML(item.id)}" ${disabled}>سجل في الحصة</button>`}</div>
     </article>`).join("");
   const mine = (state.enrollments || []).map((e) => `
-    <article class="order-card">
+    <article class="order-card" id="session-${escapeHTML(e.session_id)}">
       <div class="order-card-top"><strong>${escapeHTML(e.session?.title || "حصة")}</strong><span class="status-pill">مسجل</span></div>
       <div class="order-meta"><span>${escapeHTML(e.session?.starts_at ? formatAppointment(e.session.starts_at) : "")}</span></div>
       ${e.status === "booked" && safeMeetingUrl(state.sessionLinks?.[e.session_id]) ? `<p class="deposit-note">الرابط من المدرس ويفتح خدمة خارج وصلة.</p><div class="order-card-actions"><a class="btn btn-primary btn-small session-link" href="${escapeHTML(safeMeetingUrl(state.sessionLinks[e.session_id]))}" target="_blank" rel="noopener noreferrer">فتح رابط الحصة</a></div>` : ""}
@@ -454,10 +454,28 @@ const NOTIFICATION_TEXT = {
   session_link: "المدرس أضاف أو غيّر رابط إحدى حصصك."
 };
 
+const NOTIFICATION_TARGET = {
+  delivery_status: "delivery",
+  prescription_quote: "rx",
+  prescription_quote_revised: "rx",
+  session_cancelled: "session",
+  session_link: "session"
+};
+
+function notificationTargetLabel(n) {
+  const type = NOTIFICATION_TARGET[n.kind];
+  if (type === "delivery") return (state.deliveries || []).find((d) => d.id === n.ref_id)?.ref || "";
+  if (type === "rx") { const r = (state.prescriptions || []).find((x) => x.id === n.ref_id); return r?.created_at ? `طلب ${formatDate(r.created_at)}` : ""; }
+  if (type === "session") return (state.enrollments || []).find((e) => e.session_id === n.ref_id)?.session?.title || "";
+  return "";
+}
+
 function notificationItem(n) {
   const order = (state.myOrders || []).find((o) => o.id === n.ref_id);
-  const ref = order ? escapeHTML(order.ref || "") : "";
-  return `<article class="order-card${n.read_at ? "" : " notification-unread"}"><div class="order-card-top"><strong>${escapeHTML(NOTIFICATION_TEXT[n.kind])}</strong>${ref ? `<span class="status-pill">${ref}</span>` : ""}</div><div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span>${order ? `<button class="btn btn-outline btn-small" data-action="open-notification-order" data-order-id="${escapeHTML(order.id)}">فتح الطلب</button>` : ""}</div></article>`;
+  const targetType = NOTIFICATION_TARGET[n.kind];
+  const targetLabel = targetType ? notificationTargetLabel(n) : "";
+  const ref = order ? escapeHTML(order.ref || "") : escapeHTML(targetLabel);
+  return `<article class="order-card${n.read_at ? "" : " notification-unread"}"><div class="order-card-top"><strong>${escapeHTML(NOTIFICATION_TEXT[n.kind])}</strong>${ref ? `<span class="status-pill">${ref}</span>` : ""}</div><div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span>${order ? `<button class="btn btn-outline btn-small" data-action="open-notification-order" data-order-id="${escapeHTML(order.id)}">فتح الطلب</button>` : ""}${targetType ? `<button class="btn btn-outline btn-small" data-action="open-notification-target" data-target-type="${targetType}" data-target-id="${escapeHTML(n.ref_id)}" data-kind="${escapeHTML(n.kind)}">فتح</button>` : ""}</div></article>`;
 }
 
 function notificationsSection() {
@@ -696,7 +714,7 @@ function prescriptionSection() {
     const quotes = (r.quotes || []).map((q) => `
       <div class="order-meta"><span>${escapeHTML(q.pharmacy?.display_name || "صيدلية")}${q.delivery_available ? ` · توصيل${q.eta_minutes ? ` خلال ${escapeHTML(q.eta_minutes)} دقيقة` : ""}` : " · استلام من الصيدلية"}${q.note ? ` · ${escapeHTML(q.note)}` : ""}</span><strong>${escapeHTML(formatEGP(q.price_egp))}</strong></div>`).join("");
     return `
-    <article class="order-card">
+    <article class="order-card" id="rx-${escapeHTML(r.id)}">
       <div class="order-card-top"><strong>${escapeHTML(r.note)}</strong><span class="status-pill">${escapeHTML(prescriptionStatusLabel(r.status))}</span></div>
       ${r.attachment_path ? '<div class="order-meta"><span>مرفق: صورة الروشتة</span></div>' : ""}
       ${quotes || '<p class="tracking-empty">لا توجد ردود بعد.</p>'}
@@ -813,7 +831,7 @@ async function loadClinicSlots() {
 function deliverySection() {
   if (!Array.isArray(state.deliveries)) return "";
   const cards = state.deliveries.map((item) => `
-    <article class="order-card">
+    <article class="order-card" id="delivery-${escapeHTML(item.id)}">
       <div class="order-card-top"><strong>${escapeHTML(item.ref)}</strong><span class="status-pill">${escapeHTML(statusLabel(item.status))}</span></div>
       <div class="order-name">${escapeHTML(item.what_to_deliver)}</div>
       <div class="order-meta"><span>من: ${escapeHTML(item.pickup_address)}</span></div>
@@ -1602,6 +1620,13 @@ root.addEventListener("click", async (event) => {
     } else if (action === "open-notification-order") {
       const card = document.getElementById(`order-${button.dataset.orderId}`);
       if (!card) throw new Error("الطلب مش ظاهر في القائمة.");
+      card.style.scrollMarginTop = "110px";
+      card.scrollIntoView({ behavior: "smooth", block: "start" });
+      card.classList.add("notification-target");
+      setTimeout(() => card.classList.remove("notification-target"), 2500);
+    } else if (action === "open-notification-target") {
+      const card = document.getElementById(`${button.dataset.targetType}-${button.dataset.targetId}`);
+      if (!card) throw new Error(button.dataset.kind === "session_cancelled" ? "الحصة دي اتلغت ومش ظاهرة في تسجيلاتك." : "العنصر ده مش متاح دلوقتي (اتلغى أو اتقفل).");
       card.style.scrollMarginTop = "110px";
       card.scrollIntoView({ behavior: "smooth", block: "start" });
       card.classList.add("notification-target");
