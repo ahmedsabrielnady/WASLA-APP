@@ -73,3 +73,7 @@ test("auth modal hides signup and email-registration copy when signup is closed"
   assert.match(m, /\$\{signupClosed \? "" : `<p class="form-footnote">/);
   assert.doesNotMatch(m, /!CONFIG\.isPublicPreview/);
 });
+
+test("header login button does not offer a new account when signup is closed", () => {
+  assert.match(main, /CONFIG\.isPublicPreview \|\| CONFIG\.isTestBackend \? "تسجيل الدخول" : "دخول \/ حساب جديد"/);
+});
