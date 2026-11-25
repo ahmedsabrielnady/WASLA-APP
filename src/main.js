@@ -554,9 +554,9 @@ function medicalNotesSection() {
   if (!data) return "";
   const isDoctor = state.providerRecord?.kind === "doctor";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
-  const list = (data.notes || []).map((n) => `
+  const list = pagedRows("notes", data.notes || [], (n) => `
     <article class="order-card"><div class="order-card-top"><strong>${escapeHTML(n.note)}</strong></div>
-      <div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span></div></article>`).join("");
+      <div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span></div></article>`);
   if (isDoctor) {
     const options = (data.targets || []).map((o) => `<option value="${escapeHTML(o.id)}">${escapeHTML(o.ref || o.id.slice(0, 8))}</option>`).join("");
     return `
@@ -619,7 +619,7 @@ function courseCatalogueSection() {
       <div class="section-heading"><div><span class="eyebrow">التعليم</span><h2>الدورات المتاحة</h2></div></div>
       <p class="deposit-note">الاتفاق والدفع مع المدرس مباشرة. لا يتم تحصيل أي مبلغ داخل وصلة.</p>
       ${mineCourses}
-      <div class="orders-list">${state.courses.map((c) => courseCard(c, courseEnrollButton(c))).join("")}</div>
+      <div class="orders-list">${pagedRows("courses", state.courses, (c) => courseCard(c, courseEnrollButton(c)))}</div>
     </section>`;
 }
 
@@ -811,12 +811,12 @@ function labIncomingSection() {
 
 function labPriceSection() {
   if (!Array.isArray(state.labTests) || !state.labTests.length) return "";
-  const rows = state.labTests.map((t) => `
+  const rows = pagedRows("labTests", state.labTests, (t) => `
     <article class="order-card">
       <div class="order-card-top"><strong>${escapeHTML(t.name)}</strong><span class="status-pill">${t.kind === "radiology" ? "أشعة" : "تحليل"}</span></div>
       <div class="order-meta"><span>${escapeHTML(t.provider?.display_name || "")}</span><strong>${escapeHTML(formatEGP(t.price_egp))}</strong></div>
       ${state.profile?.role === "customer" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="request-lab-test" data-test-id="${escapeHTML(t.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>اطلب الخدمة دي</button></div>` : ""}
-    </article>`).join("");
+    </article>`);
   return `
     <section class="page-panel health-panel" id="lab-prices">
       <div class="section-heading"><div><span class="eyebrow">الصحة</span><h2>أسعار التحاليل والأشعة</h2></div></div>
