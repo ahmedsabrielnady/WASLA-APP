@@ -727,6 +727,7 @@ function healthTimelineSection() {
   for (const n of (state.medicalNotes?.notes) || []) items.push({ at: n.created_at, label: "ملاحظة من الطبيب", detail: n.note });
   for (const r of state.prescriptions || []) items.push({ at: r.created_at, label: "طلب أدوية", detail: prescriptionStatusLabel(r.status) });
   for (const r of state.labRequests || []) items.push({ at: r.created_at, label: r.test?.kind === "radiology" ? "طلب أشعة" : "طلب تحليل", detail: LAB_STATUS_LABELS[r.status] || "" });
+  for (const r of state.labRequests || []) if (r.status === "result_ready" && r.result_text && r.updated_at) items.push({ at: r.updated_at, label: "نتيجة من المعمل", detail: r.test?.name || "" });
   const rows = items.filter((i) => i.at).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 15);
   if (!rows.length) return "";
   return `
