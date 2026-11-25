@@ -1130,3 +1130,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .health-panel legend { font-size: 13px; font-weight: 800; color: #3c515b; padding: 0 6px; }
 .health-panel .check-row { font-size: 13px; line-height: 1.6; align-items: center; }
 .health-panel .check-row input { width: auto; min-height: 0; margin: 0; }
+
+/* Checkbox rows in the delivery form must not inherit the full-width text input sizing */
+.delivery-panel .check-row { display: flex; align-items: center; gap: 9px; font-size: 13px; line-height: 1.6; }
+.delivery-panel .check-row input[type=checkbox], .delivery-panel input[type=checkbox] { width: auto; min-height: 0; margin: 0; accent-color: var(--green); }
