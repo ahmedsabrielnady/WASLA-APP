@@ -18,6 +18,7 @@ Status of each draft (all tested only on the isolated `wasla-test` project):
 | `20261125000801_prescription_remove_direct_storage_read.sql` | removes the direct storage read policy so no user can read or sign storage URLs; reads go only through `supabase/functions/rx-file` | NOT applied anywhere; needs the function deployed first; does not revoke a signed URL issued earlier or a response a cache already holds; functions are dev artifacts, never deployed, unit-tested with fakes only (`tests/prescription-proxy.test.mjs`) |
 | `20261125000900_medical_notes_patient.sql` | doctor `doctor_add_note` RPC (approved doctor, own clinic or nursing order) and patient read of own notes | Owner and privacy review of real health data; tested only with synthetic text |
 | `20261125001000_education_catalogue.sql` | tutor profile and course catalogue (teacher RPCs, read-only tables for everyone else) | Owner decides who approves teachers and the pricing display; no payment is collected |
+| `20261125001100_course_enrollment.sql` | course seats, `course_enrollments`, enroll/cancel RPCs (consent, seat cap, own-course block); replaces the `teacher_create_course` signature with a seats argument | Same owner decisions as the catalogue; no payment is collected |
 
 Activation steps (deliberate, one at a time):
 1. Run the draft on a disposable test project and the matching RPC test script.
