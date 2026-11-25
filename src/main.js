@@ -449,6 +449,7 @@ const NOTIFICATION_TEXT = {
   change_request_declined: "تمت مراجعة طلبك بدون تغيير.",
   delivery_status: "حالة طلب التوصيل اتغيرت.",
   prescription_quote: "وصلك رد جديد على أحد طلباتك.",
+  prescription_quote_revised: "تم تعديل رد على أحد طلباتك.",
   session_cancelled: "تم إلغاء إحدى حصصك.",
   session_link: "المدرس أضاف أو غيّر رابط إحدى حصصك."
 };
