@@ -20,3 +20,9 @@ test("the orders view wires the more-orders button to the page limit", () => {
   assert.match(src, /data-action="more-orders"/);
   assert.match(src, /action === "more-orders"/);
 });
+
+test("deliveries, open sessions and enrolments are paged through one more-list action", () => {
+  const src = readFileSync(new URL("../src/main.js", import.meta.url), "utf8");
+  for (const key of ["deliveries", "sessions", "enrollments"]) assert.match(src, new RegExp(`pagedRows\\("${key}"`));
+  assert.match(src, /action === "more-list"/);
+});
