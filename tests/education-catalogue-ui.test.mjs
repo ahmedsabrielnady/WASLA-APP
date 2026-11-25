@@ -18,13 +18,13 @@ const good = { title: "Algebra basics", subject: "Math", description: "d", lesso
 
 test("course creation validates locally and calls only the checked RPC", async () => {
   const calls = mockFetch();
-  for (const bad of [{ title: "ab" }, { subject: "x" }, { lessons: 0 }, { lessons: 201 }, { lessons: 2.5 }, { mode: "x" }, { price: -1 }, { price: 20001 }, { description: "x".repeat(1001) }]) {
+  for (const bad of [{ title: "ab" }, { subject: "x" }, { lessons: 0 }, { lessons: 201 }, { lessons: 2.5 }, { mode: "x" }, { price: -1 }, { price: 20001 }, { description: "x".repeat(1001) }, { seats: 0 }, { seats: 201 }]) {
     await assert.rejects(dataApi.teacherCreateCourse({ ...good, ...bad }));
   }
   assert.equal(calls.length, 0);
   await dataApi.teacherCreateCourse({ ...good, price: "" });
   assert.match(calls[0].url, /rpc\/teacher_create_course$/);
-  assert.deepEqual(calls[0].body, { p_title: "Algebra basics", p_subject: "Math", p_description: "d", p_lessons: 8, p_mode: "online", p_price: 0 });
+  assert.deepEqual(calls[0].body, { p_title: "Algebra basics", p_subject: "Math", p_description: "d", p_lessons: 8, p_mode: "online", p_price: 0, p_seats: 20 });
 });
 
 test("profile saving trims, splits subjects and validates the headline", async () => {
@@ -48,4 +48,20 @@ test("catalogue UI never writes the tables directly and hides the teacher form f
   assert.doesNotMatch(readFileSync(new URL("../src/supabase.js", import.meta.url), "utf8"), /rest\/v1\/(courses|tutor_profiles)["`'?][^;]*method: "(POST|PATCH|DELETE)"/);
   assert.match(main, /state\.profile\?\.role !== "teacher" \|\| !Array\.isArray\(state\.teacherCourses\)/);
   assert.match(main, /state\.profile\?\.role === "teacher"\) return ""/);
+});
+
+test("course enrollment validates ids, translates server refusals and never writes the table directly", async () => {
+  const calls = mockFetch();
+  await assert.rejects(dataApi.enrollInCourse("nope"));
+  await assert.rejects(dataApi.cancelCourseEnrollment("nope"));
+  assert.equal(calls.length, 0);
+  await dataApi.enrollInCourse(CID);
+  assert.match(calls[0].url, /rpc\/enroll_in_course$/);
+  assert.deepEqual(calls[0].body, { p_course: CID });
+  for (const [msg, expected] of [["course full", /مكتملة/], ["already enrolled", /مسجل/], ["course unavailable", /مش متاحة/]]) {
+    globalThis.fetch = async () => new Response(JSON.stringify({ message: msg }), { status: 400 });
+    await assert.rejects(dataApi.enrollInCourse(CID), expected);
+  }
+  assert.match(main, /data-action="enroll-course"/);
+  assert.match(main, /state\.profile\?\.role !== "customer"\) throw new Error\("التسجيل متاح لحسابات العملاء فقط/);
 });
