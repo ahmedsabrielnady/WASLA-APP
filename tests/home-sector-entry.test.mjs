@@ -46,7 +46,12 @@ test("sector tap handler no longer scrolls to #services for every sector", () =>
 });
 
 test("touch targets: 44px minimum for header controls, small buttons, search and legal links at phone width", () => {
-  const block = css.slice(css.lastIndexOf("@media (max-width: 900px)"));
+  const block = css.slice(css.indexOf("/* Inline SVG icons"));
   for (const sel of [".nav-link, .account-chip", ".btn-small", ".search-box", ".site-footer a"]) assert.ok(block.includes(sel), sel);
   assert.equal((block.match(/min-height: 44px/g) || []).length >= 4, true);
+});
+
+test("checkboxes and consent links get a 44px hit area at phone width", () => {
+  assert.match(css, /input\[type="checkbox"\], input\[type="radio"\] \{ width: 22px; height: 22px/);
+  assert.match(css, /label:has\(input\[type="checkbox"\]\) \{ display: flex; align-items: center; gap: 10px; min-height: 44px/);
 });
