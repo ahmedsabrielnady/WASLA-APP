@@ -88,10 +88,11 @@ function renderOrderCard(order, providers, canWrite) {
     </form>` : "";
 
   const quote = ["new", "quoted"].includes(order.status) ? `
+    ${order.status === "quoted" && order.quote_price_egp != null ? `<p class="ops-muted">عرض السعر المرسل: ${escapeHTML(Number(order.quote_price_egp))} ج.م. بانتظار موافقة العميل.</p>` : ""}
     <form class="ops-action-form" data-form="operations-quote" data-order-id="${escapeHTML(order.id)}">
       <label>عرض السعر بالجنيه
         <input name="price" type="number" min="0" max="10000000" step="1"
-          value="${order.price_egp === null ? "" : Number(order.price_egp)}" required>
+          value="${order.status === "quoted" && order.quote_price_egp != null ? Number(order.quote_price_egp) : (order.price_egp === null ? "" : Number(order.price_egp))}" required>
       </label>
       <button class="btn btn-outline btn-small" type="submit" ${canWrite ? "" : "disabled"}>إرسال عرض السعر</button>
     </form>` : "";
