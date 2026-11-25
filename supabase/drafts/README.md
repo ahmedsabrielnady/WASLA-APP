@@ -19,6 +19,7 @@ Status of each draft (all tested only on the isolated `wasla-test` project):
 | `20261125000900_medical_notes_patient.sql` | doctor `doctor_add_note` RPC (approved doctor, own clinic or nursing order) and patient read of own notes | Owner and privacy review of real health data; tested only with synthetic text |
 | `20261125001000_education_catalogue.sql` | tutor profile and course catalogue (teacher RPCs, read-only tables for everyone else) | Owner decides who approves teachers and the pricing display; no payment is collected |
 | `20261125001100_course_enrollment.sql` | course seats, `course_enrollments`, enroll/cancel RPCs (consent, seat cap, own-course block); replaces the `teacher_create_course` signature with a seats argument | Same owner decisions as the catalogue; no payment is collected |
+| `20261125001200_products_supplies_category.sql` | adds the `supplies` (medical supplies) product category to the products and orders checks; re-creates `place_product_order` with the same merchant-kind, approval, own-product and stock guards | Requires drafts 0300 and 0400. Which merchants may sell medical supplies, and any licensing rule, are owner decisions. |
 
 Activation steps (deliberate, one at a time):
 1. Run the draft on a disposable test project and the matching RPC test script.
