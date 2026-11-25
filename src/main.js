@@ -1930,9 +1930,13 @@ root.addEventListener("submit", async (event) => {
       const data = new FormData(form);
       await runWithBusyState(state, async () => {
         render();
-        await dataApi.requestNursingVisit({ itemId: data.get("item"), address: data.get("address"), notes: data.get("notes"), consent: data.get("consent") === "yes", terms: data.get("terms") === "yes", preferredAt: data.get("preferred_at") || null });
+        const sent = await dataApi.requestNursingVisit({ itemId: data.get("item"), address: data.get("address"), notes: data.get("notes"), consent: data.get("consent") === "yes", terms: data.get("terms") === "yes", preferredAt: data.get("preferred_at") || null });
         state.myOrders = await dataApi.getMyOrders(state.user?.id);
-        showToast("تم إرسال طلب التمريض. هيتم تعيين ممرض معتمد وتأكيد الموعد معاك.", "success");
+        if (sent && sent.preferredTimeSaved === false) {
+          showToast("تم إرسال طلب التمريض لكن الموعد المقترح ما اتحفظش. متبعتش الطلب تاني، فريق وصلة هيتواصل معاك لتحديد الموعد.", "error");
+        } else {
+          showToast("تم إرسال طلب التمريض. هيتم تعيين ممرض معتمد وتأكيد الموعد معاك.", "success");
+        }
       });
       render();
     }
