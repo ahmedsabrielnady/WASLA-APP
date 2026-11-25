@@ -409,7 +409,8 @@ async function loadSessionLinks() {
 function educationSection() {
   if (!Array.isArray(state.sessions) || (!state.sessions.length && !(state.enrollments || []).length)) return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
-  const enrolledIds = new Set((state.enrollments || []).map((e) => e.session_id));
+  const liveEnrollments = (state.enrollments || []).filter((e) => e.status === "booked" && e.session?.title);
+  const enrolledIds = new Set(liveEnrollments.map((e) => e.session_id));
   const open = state.sessions.map((item) => `
     <article class="order-card">
       <div class="order-card-top"><strong>${escapeHTML(item.title)}</strong><span class="status-pill">${escapeHTML(sessionModeLabel(item.mode))}</span></div>
@@ -421,7 +422,7 @@ function educationSection() {
         ? '<span class="status-pill">أنت مسجل</span>'
         : `<button class="btn btn-primary btn-small" data-action="enroll-session" data-session-id="${escapeHTML(item.id)}" ${disabled}>سجل في الحصة</button>`}</div>
     </article>`).join("");
-  const mine = (state.enrollments || []).map((e) => `
+  const mine = liveEnrollments.map((e) => `
     <article class="order-card" id="session-${escapeHTML(e.session_id)}">
       <div class="order-card-top"><strong>${escapeHTML(e.session?.title || "حصة")}</strong><span class="status-pill">مسجل</span></div>
       <div class="order-meta"><span>${escapeHTML(e.session?.starts_at ? formatAppointment(e.session.starts_at) : "")}</span></div>
@@ -474,7 +475,8 @@ function notificationItem(n) {
   const order = (state.myOrders || []).find((o) => o.id === n.ref_id);
   const targetType = NOTIFICATION_TARGET[n.kind];
   const targetLabel = targetType ? notificationTargetLabel(n) : "";
-  const ref = order ? escapeHTML(order.ref || "") : escapeHTML(targetLabel);
+  const opaque = n.ref_id ? `#${String(n.ref_id).slice(0, 4).toUpperCase()}` : "";
+  const ref = order ? escapeHTML(order.ref || "") : escapeHTML(targetLabel || (targetType ? opaque : ""));
   return `<article class="order-card${n.read_at ? "" : " notification-unread"}"><div class="order-card-top"><strong>${escapeHTML(NOTIFICATION_TEXT[n.kind])}</strong>${ref ? `<span class="status-pill">${ref}</span>` : ""}</div><div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span>${order ? `<button class="btn btn-outline btn-small" data-action="open-notification-order" data-order-id="${escapeHTML(order.id)}">فتح الطلب</button>` : ""}${targetType ? `<button class="btn btn-outline btn-small" data-action="open-notification-target" data-target-type="${targetType}" data-target-id="${escapeHTML(n.ref_id)}" data-kind="${escapeHTML(n.kind)}">فتح</button>` : ""}</div></article>`;
 }
 
