@@ -715,7 +715,7 @@ function nursingSection() {
       ${state.nursingTimeRetry ? `<div class="deposit-note" role="alert"><strong>طلبك ${escapeHTML(state.nursingTimeRetry.ref || "")} اتسجل، لكن الموعد المقترح ما اتحفظش.</strong> متبعتش الطلب تاني. اختار الموعد من هنا، أو اتخطاه وفريق وصلة هيتواصل معاك.
         <form data-form="nursing-time-retry" novalidate><label>الموعد المقترح (مقترح فقط)<input type="datetime-local" name="preferred_at" required></label>
         <button class="btn btn-primary" type="submit" ${disabled}>احفظ الموعد المقترح</button> <button class="btn btn-outline" type="button" data-action="nursing-time-skip">تخطي</button></form></div>` : ""}
-      <form data-form="nursing-request" novalidate ${state.nursingTimeRetry ? 'hidden aria-hidden="true"' : ""}>
+      <form data-form="nursing-request" novalidate ${state.nursingTimeRetry ? 'hidden aria-hidden="true" style="display:none"' : ""}>
         <label>الخدمة<select name="item" required>${options}</select></label>
         <label>عنوان الزيارة<input name="address" maxlength="300" required></label>
         <label>ملاحظات (اختياري)<input name="notes" maxlength="300"></label>
