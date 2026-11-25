@@ -275,6 +275,7 @@ export function patientFileDeniedMessage(message) {
 
 // Doctor patient file lists show the newest rows first in pages, so a file with hundreds of cases stays usable on a phone.
 export const FILE_PAGE_SIZE = 20;
+export const ORDERS_PAGE_SIZE = 10;
 export function pageSlice(list, limit = FILE_PAGE_SIZE) {
   const all = Array.isArray(list) ? list : [];
   const n = Math.max(1, Number(limit) || FILE_PAGE_SIZE);
