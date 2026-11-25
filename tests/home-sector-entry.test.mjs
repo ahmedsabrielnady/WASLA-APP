@@ -82,3 +82,9 @@ test("brand link keeps a 44px touch target", () => {
   const css = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
   assert.match(css, /\.brand \{ display: inline-flex; align-items: center; gap: 11px; min-height: 44px; \}/);
 });
+
+test("delivery sends a signed-in customer to the delivery request form first, then to store or food orders", () => {
+  const have = (...ids) => new Set(ids);
+  assert.equal(sectorEntryPlan({ code: "delivery", signedIn: true, isCustomer: true, present: have("delivery-request", "store") }).anchor, "delivery-request");
+  assert.equal(sectorEntryPlan({ code: "delivery", signedIn: true, isCustomer: true, present: have("food") }).anchor, "food");
+});
