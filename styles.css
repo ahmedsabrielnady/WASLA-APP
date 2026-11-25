@@ -1156,3 +1156,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .session-link-form { display: grid; gap: 8px; margin-top: 10px; }
 .session-link-form input { width: 100%; direction: ltr; text-align: left; }
 .session-link { font-weight: 700; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; text-decoration: none; }
+
+/* Inline SVG icons (emoji showed as empty boxes without an emoji font) and touch targets. */
+.svg-icon { display: block; width: 1em; height: 1em; flex: 0 0 auto; }
+.icon { display: inline-flex; align-items: center; }
+.sector-icon .svg-icon, .service-icon .svg-icon { width: 24px; height: 24px; color: var(--green-dark); }
+.float-icon .svg-icon { width: 26px; height: 26px; color: #fff; }
+.hero-location .svg-icon, .location-note .svg-icon, .location-button .svg-icon { display: inline-block; vertical-align: -2px; margin-inline-end: 3px; }
+.account-chip .svg-icon { width: 16px; height: 16px; }
+@media (max-width: 900px) {
+  .nav-link, .account-chip { min-height: 44px; display: inline-flex; align-items: center; }
+  .btn-small, .top-actions .btn-small { min-height: 44px; }
+  .search-box { min-height: 48px; }
+  .search-box input { min-height: 44px; }
+  .site-footer a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; }
+}
+@media (max-width: 600px) {
+  .nav-link { font-size: 11px; }
+}
