@@ -1,5 +1,5 @@
 import { CONFIG } from "./config.js";
-import { googleDisplayName, isPhoneAliasSignupReady, resolveAuthIdentifier, shouldAdoptGoogleName, shouldShowGoogleButton } from "./auth-utils.js";
+import { googleDisplayName, isPhoneAliasSignupReady, resolveAuthIdentifier, shouldAdoptGoogleName, shouldShowGoogleButton, shouldShowLinkGoogle } from "./auth-utils.js";
 import { SECTORS, stripPictographs, pageSlice, FILE_PAGE_SIZE, ORDERS_PAGE_SIZE, sectorIconSvg, ICON_SVG, sectorEntryPlan, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, runWithBusyState, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
 import { authApi, dataApi } from "./supabase.js";
 import { pushConfigured, pushSupported, enablePush, disablePush } from "./push.js";
@@ -128,7 +128,7 @@ function header() {
         ${isProvider ? '<button class="nav-link" data-action="provider">طلبات مقدم الخدمة</button>' : ""}
         ${authenticated && state.profile?.role === "customer" ? '<button class="nav-link" data-action="provider-invite">لديك دعوة مقدم خدمة؟</button>' : ""}
         ${authenticated
-          ? `<button class="account-chip" data-action="account" title="الحساب">${icon(ICON_SVG.user)}<span>${escapeHTML(displayName)}</span></button><button class="btn btn-outline btn-small" data-action="logout">خروج</button>`
+          ? `<button class="account-chip" data-action="account" title="الحساب">${icon(ICON_SVG.user)}<span>${escapeHTML(displayName)}</span></button>${shouldShowLinkGoogle({ googleEnabled: state.googleAuthEnabled, isPublicPreview: CONFIG.isPublicPreview, user: state.user }) ? '<button class="btn btn-outline btn-small" data-action="link-google">ربط حساب Google</button>' : ""}<button class="btn btn-outline btn-small" data-action="logout">خروج</button>`
           : `<button class="btn btn-primary btn-small" data-action="auth">${CONFIG.isPublicPreview || CONFIG.isTestBackend ? "تسجيل الدخول" : "دخول / حساب جديد"}</button>`}
       </nav>
     </header>
@@ -1733,6 +1733,8 @@ root.addEventListener("click", async (event) => {
       state.modal = "password-reset";
       render();
       root.querySelector('input[name="email"]')?.focus();
+    } else if (action === "link-google") {
+      await authApi.linkGoogle();
     } else if (action === "logout") {
       // Release this device's push subscription while still signed in, so the next account on a shared device can register it (a subscribed endpoint is never taken over by another user).
       if (pushConfigured(CONFIG.pushPublicKey) && pushSupported()) {
