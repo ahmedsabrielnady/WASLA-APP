@@ -2,6 +2,7 @@ import { CONFIG } from "./config.js";
 import { isPhoneAliasSignupReady, resolveAuthIdentifier } from "./auth-utils.js";
 import { SECTORS, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, runWithBusyState, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
 import { authApi, dataApi } from "./supabase.js";
+import { pushConfigured, pushSupported, enablePush, disablePush } from "./push.js";
 import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
 import { renderOperationsView } from "./operations.js";
 import { renderCrmView } from "./crm.js";
@@ -490,6 +491,12 @@ function notificationItem(n) {
   return `<article class="order-card${n.read_at ? "" : " notification-unread"}"><div class="order-card-top"><strong>${escapeHTML(NOTIFICATION_TEXT[n.kind])}</strong>${ref ? `<span class="status-pill">${ref}</span>` : ""}</div><div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span>${order ? `<button class="btn btn-outline btn-small" data-action="open-notification-order" data-order-id="${escapeHTML(order.id)}">فتح الطلب</button>` : ""}${targetType ? `<button class="btn btn-outline btn-small" data-action="open-notification-target" data-target-type="${targetType}" data-target-id="${escapeHTML(n.ref_id)}" data-kind="${escapeHTML(n.kind)}">فتح</button>` : ""}</div></article>`;
 }
 
+// Opt-in device alerts. Hidden unless a VAPID public key is configured and the browser supports push, so today it renders nothing.
+function pushSection() {
+  if (!state.user?.id || !pushConfigured(CONFIG.pushPublicKey) || !pushSupported()) return "";
+  return `<div class="notifications-box" id="push-optin"><p class="muted">تنبيه على جهازك بدون أي تفاصيل صحية. تقدر توقفه في أي وقت.</p><button class="btn btn-outline btn-small" data-action="enable-push">تفعيل التنبيهات على هذا الجهاز</button> <button class="btn btn-outline btn-small" data-action="disable-push">إيقاف التنبيهات</button></div>`;
+}
+
 function notificationsSection() {
   const list = (state.notifications || []).filter((n) => NOTIFICATION_TEXT[n.kind]);
   if (!list.length) return "";
@@ -957,6 +964,7 @@ function ordersView() {
     <section class="page-panel">
       <div class="section-heading"><div><span class="eyebrow">حساب العميل</span><h1>طلباتي</h1></div><button class="btn btn-outline btn-small" data-action="reload-orders">تحديث</button></div>
       ${appointmentAlert()}
+      ${pushSection()}
       ${notificationsSection()}
       ${state.myOrders.length
         ? `<div class="orders-list">${state.myOrders.map(orderCard).join("")}</div>`
@@ -1727,6 +1735,14 @@ root.addEventListener("click", async (event) => {
       card.scrollIntoView({ behavior: "smooth", block: "start" });
       card.classList.add("notification-target");
       setTimeout(() => card.classList.remove("notification-target"), 2500);
+    } else if (action === "enable-push") {
+      const registration = await navigator.serviceWorker.ready;
+      const result = await enablePush({ publicKey: CONFIG.pushPublicKey, registration, requestPermission: () => Notification.requestPermission(), subscribeRpc: (e, k, a) => dataApi.pushSubscribe(e, k, a) });
+      showToast(result.ok ? "تم تفعيل التنبيهات على هذا الجهاز." : "ما قدرناش نفعل التنبيهات. جرّب تاني.");
+    } else if (action === "disable-push") {
+      const registration = await navigator.serviceWorker.ready;
+      await disablePush({ registration, unsubscribeRpc: (e) => dataApi.pushUnsubscribe(e) });
+      showToast("تم إيقاف التنبيهات على هذا الجهاز.");
     } else if (action === "mark-notifications-read") {
       await dataApi.markNotificationsRead();
       state.notifications = await dataApi.getMyNotifications();
