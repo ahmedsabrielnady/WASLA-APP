@@ -397,6 +397,60 @@ function educationSection() {
     </section>`;
 }
 
+async function loadHealthWork() {
+  const provider = state.providerRecord;
+  state.healthWork = null;
+  if (!provider?.id || provider.kind !== "merchant") return;
+  try { state.healthWork = await dataApi.getProviderHealthWorkspace(provider); } catch { state.healthWork = null; }
+}
+
+function healthProviderSection() {
+  const work = state.healthWork;
+  if (!work) return "";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  if (work.kind === "pharmacy") {
+    const cards = (work.requests || []).map((r) => {
+      const mine = (r.quotes || [])[0];
+      return `
+    <article class="order-card">
+      <div class="order-card-top"><strong>${escapeHTML(r.note)}</strong><span class="status-pill">${escapeHTML(prescriptionStatusLabel(r.status))}</span></div>
+      ${r.attachment_path ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="open-rx-file" data-path="${escapeHTML(r.attachment_path)}" ${disabled}>عرض صورة الروشتة</button></div>` : ""}
+      ${mine ? `<div class="order-meta"><span>ردك: ${mine.delivery_available ? "توصيل" : "استلام"}${mine.eta_minutes ? ` · ${escapeHTML(mine.eta_minutes)} دقيقة` : ""}</span><strong>${escapeHTML(formatEGP(mine.price_egp))}</strong></div>` : ""}
+      <form data-form="pharmacy-quote" data-request-id="${escapeHTML(r.id)}" novalidate>
+        <label>السعر الإجمالي بالجنيه<input type="number" name="price" min="1" max="20000" required></label>
+        <label>ملاحظة (اختياري)<input name="note" maxlength="300"></label>
+        <label class="check-row"><input type="checkbox" name="delivery" value="yes"> متاح توصيل</label>
+        <label>مدة التوصيل بالدقائق (اختياري)<input type="number" name="eta" min="5" max="2880"></label>
+        <button class="btn btn-primary btn-small" type="submit" ${disabled}>${mine ? "حدّث الرد" : "أرسل الرد"}</button>
+      </form>
+    </article>`;
+    }).join("");
+    return `
+    <section class="page-panel health-panel" id="pharmacy-work">
+      <div class="section-heading"><div><span class="eyebrow">الصيدلية</span><h2>طلبات الأدوية الموجهة لك</h2></div></div>
+      <p class="deposit-note">تظهر لك فقط الطلبات التي اختارك العميل لها. لا تشارك أي بيانات من الروشتة خارج هذا الرد. السعر والدفع بينك وبين العميل مباشرة.</p>
+      ${cards ? `<div class="orders-list">${cards}</div>` : '<p class="tracking-empty">لا توجد طلبات موجهة لك الآن.</p>'}
+    </section>`;
+  }
+  const kindLabel = work.kind === "radiology" ? "الأشعة" : "التحاليل";
+  const rows = (work.tests || []).map((t) => `
+    <article class="order-card">
+      <div class="order-card-top"><strong>${escapeHTML(t.name)}</strong><span class="status-pill">${t.active ? "ظاهر للعملاء" : "مخفي"}</span></div>
+      <div class="order-meta"><span></span><strong>${escapeHTML(formatEGP(t.price_egp))}</strong></div>
+      <div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="toggle-lab-test" data-test-id="${escapeHTML(t.id)}" data-active="${t.active ? "no" : "yes"}" ${disabled}>${t.active ? "إخفاء" : "إظهار"}</button></div>
+    </article>`).join("");
+  return `
+    <section class="page-panel health-panel" id="lab-work">
+      <div class="section-heading"><div><span class="eyebrow">${kindLabel}</span><h2>قائمة أسعار ${kindLabel}</h2></div></div>
+      <form data-form="lab-test" data-kind="${escapeHTML(work.kind)}" novalidate>
+        <label>الاسم<input name="name" maxlength="120" required></label>
+        <label>السعر بالجنيه<input type="number" name="price" min="1" max="20000" required></label>
+        <button class="btn btn-primary" type="submit" ${disabled}>أضف أو حدّث السعر</button>
+      </form>
+      ${rows ? `<div class="orders-list">${rows}</div>` : '<p class="tracking-empty">لا توجد أسعار بعد.</p>'}
+    </section>`;
+}
+
 function labPriceSection() {
   if (!Array.isArray(state.labTests) || !state.labTests.length) return "";
   const rows = state.labTests.map((t) => `
@@ -618,7 +672,7 @@ function providerView() {
     preview: CONFIG.isPublicPreview,
     saving: state.providerSaving,
     error: state.providerError
-  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + teacherSection();
+  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + teacherSection() + healthProviderSection();
 }
 
 function roadmapView() {
@@ -990,6 +1044,7 @@ async function refreshProvider() {
     if (state.profile?.role === "courier") {
       try { state.deliveryQueue = await dataApi.getDeliveryQueue(); } catch { state.deliveryQueue = null; }
     }
+    await loadHealthWork();
     state.teacherSessions = null;
     if (state.profile?.role === "teacher" && state.providerRecord?.id) {
       try { state.teacherSessions = await dataApi.getSessions(state.providerRecord.id); } catch { state.teacherSessions = null; }
@@ -1329,6 +1384,18 @@ root.addEventListener("click", async (event) => {
         showToast("تم تسجيلك في الحصة.", "success");
       });
       render();
+    } else if (action === "toggle-lab-test") {
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.setLabTestActive(button.dataset.testId, button.dataset.active === "yes");
+        await loadHealthWork();
+        showToast("تم التحديث.", "success");
+      });
+      render();
+    } else if (action === "open-rx-file") {
+      const url = await dataApi.getPrescriptionFileUrl(button.dataset.path);
+      window.open(url, "_blank", "noopener");
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } else if (action === "close-prescription") {
       if (!window.confirm("إغلاق الطلب؟ لن تتمكن أي صيدلية من رؤيته بعد ذلك.")) return;
       await runWithBusyState(state, async () => {
@@ -1564,6 +1631,28 @@ root.addEventListener("submit", async (event) => {
         state.myOrders = await dataApi.getMyOrders(state.user.id);
         await loadClinicSlots();
         showToast("تم حجز الموعد. بانتظار تأكيد الطبيب.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "pharmacy-quote") {
+      if (CONFIG.isPublicPreview) throw new Error("الإرسال متوقف في نسخة المعاينة.");
+      const data = new FormData(form);
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.pharmacyQuote({ requestId: form.dataset.requestId, price: data.get("price"), note: data.get("note"), delivery: data.get("delivery") === "yes", eta: data.get("eta") });
+        await loadHealthWork();
+        showToast("تم إرسال ردك للعميل.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "lab-test") {
+      if (CONFIG.isPublicPreview) throw new Error("الإضافة متوقفة في نسخة المعاينة.");
+      const data = new FormData(form);
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.upsertLabTest({ kind: form.dataset.kind, name: data.get("name"), price: data.get("price") });
+        await loadHealthWork();
+        showToast("تم حفظ السعر.", "success");
       });
       render();
     }
