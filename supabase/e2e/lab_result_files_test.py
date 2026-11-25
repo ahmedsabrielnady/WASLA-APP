@@ -28,7 +28,20 @@ def delf(path,tok):
 def sign(path,tok):
     return call("/storage/v1/object/sign/lab-results/"+path,{"expiresIn":60},tok)
 def denied(st):return st in (400,401,403,404) 
-PDF=b"%PDF-1.4\n% synthetic lab result (test data)\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n"
+def _valid_pdf():
+    # Minimal valid one-page PDF (synthetic text only) with a real xref table, so the opened file is a readable document.
+    objs=[b"<</Type/Catalog/Pages 2 0 R>>",b"<</Type/Pages/Kids[3 0 R]/Count 1>>",
+          b"<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 200]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>"]
+    txt=b"BT /F1 14 Tf 20 120 Td (Synthetic lab result - TEST DATA) Tj 0 -24 Td (Not a real patient. Hemoglobin 13.5 g/dL) Tj ET"
+    objs.append(b"<</Length %d>>\nstream\n"%len(txt)+txt+b"\nendstream")
+    objs.append(b"<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>")
+    out=b"%PDF-1.4\n";offs=[]
+    for i,o in enumerate(objs,1):
+        offs.append(len(out));out+=b"%d 0 obj\n"%i+o+b"\nendobj\n"
+    x=len(out);out+=b"xref\n0 %d\n0000000000 65535 f \n"%(len(objs)+1)
+    for o in offs:out+=b"%010d 00000 n \n"%o
+    return out+b"trailer\n<</Size %d/Root 1 0 R>>\nstartxref\n%d\n%%%%EOF\n"%(len(objs)+1,x)
+PDF=_valid_pdf()
 for k in ("terms","privacy"):
     for u in (1,9):rpc("accept_consent",{"p_kind":k,"p_version":"test"},T[u])
 tn="اختبار ملف نتيجة %d"%(os.getpid()%1000)
