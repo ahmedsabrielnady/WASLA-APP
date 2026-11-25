@@ -397,6 +397,15 @@ function clinicSection() {
 
 function sessionModeLabel(mode) { return mode === "online" ? "أونلاين" : "حضوري"; }
 
+function safeMeetingUrl(value) {
+  const text = String(value || "").trim();
+  return /^https:\/\/[^/@\s]+(\/\S*)?$/.test(text) && text.length <= 300 ? text : "";
+}
+
+async function loadSessionLinks() {
+  try { state.sessionLinks = await dataApi.getSessionLinks(); } catch { state.sessionLinks = {}; }
+}
+
 function educationSection() {
   if (!Array.isArray(state.sessions) || (!state.sessions.length && !(state.enrollments || []).length)) return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
@@ -416,6 +425,7 @@ function educationSection() {
     <article class="order-card">
       <div class="order-card-top"><strong>${escapeHTML(e.session?.title || "حصة")}</strong><span class="status-pill">مسجل</span></div>
       <div class="order-meta"><span>${escapeHTML(e.session?.starts_at ? formatAppointment(e.session.starts_at) : "")}</span></div>
+      ${e.status === "booked" && safeMeetingUrl(state.sessionLinks?.[e.session_id]) ? `<p class="deposit-note">رابط الحصة من المدرس (خارج وصلة): <a class="session-link" href="${escapeHTML(safeMeetingUrl(state.sessionLinks[e.session_id]))}" target="_blank" rel="noopener noreferrer">فتح رابط الحصة</a></p>` : ""}
       <div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="cancel-enrollment" data-enrollment-id="${escapeHTML(e.id)}" ${disabled}>إلغاء التسجيل</button></div>
     </article>`).join("");
   return `
@@ -714,6 +724,10 @@ function teacherSection() {
       <div class="order-card-top"><strong>${escapeHTML(item.title)}</strong><span class="status-pill">${item.status === "open" ? "مفتوحة" : "ملغاة"}</span></div>
       ${item.course?.title ? `<div class="order-name">ضمن الدورة: ${escapeHTML(item.course.title)}</div>` : ""}
       <div class="order-meta"><span>${escapeHTML(formatAppointment(item.starts_at))} · ${escapeHTML(sessionModeLabel(item.mode))} · ${escapeHTML(item.seats)} مقاعد</span><strong>${escapeHTML(formatEGP(item.price_egp))}</strong></div>
+      ${item.status === "open" && item.mode === "online" ? `<form class="session-link-form" data-form="teacher-session-link" data-session-id="${escapeHTML(item.id)}" novalidate>
+        <label>رابط الحصة (https، من أي خدمة اجتماعات تستخدمها، يراه المسجلون فقط)<input name="url" type="url" inputmode="url" maxlength="300" dir="ltr" value="${escapeHTML(safeMeetingUrl(state.sessionLinks?.[item.id]))}" placeholder="https://"></label>
+        <button class="btn btn-outline btn-small" type="submit" ${disabled}>حفظ الرابط</button>
+      </form>` : ""}
       ${item.status === "open" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="teacher-cancel-session" data-session-id="${escapeHTML(item.id)}" ${disabled}>إلغاء الحصة</button></div>` : ""}
     </article>`).join("");
   return `
@@ -1231,7 +1245,7 @@ async function refreshMyOrders() {
     try { state.deliveries = await dataApi.getMyDeliveries(); } catch { state.deliveries = null; }
     try { state.doctors = await dataApi.getDoctors(); } catch { state.doctors = null; }
     try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
-    try { state.sessions = await dataApi.getSessions(); state.enrollments = await dataApi.getMyEnrollments(); } catch { state.sessions = null; state.enrollments = null; }
+    try { state.sessions = await dataApi.getSessions(); state.enrollments = await dataApi.getMyEnrollments(); await loadSessionLinks(); } catch { state.sessions = null; state.enrollments = null; }
     await loadMedicalNotes();
     await loadCourses();
     try { state.nursingItems = await dataApi.getNursingItems(); } catch { state.nursingItems = null; }
@@ -1288,7 +1302,7 @@ async function refreshProvider() {
     await loadHealthWork();
     state.teacherSessions = null;
     if (state.profile?.role === "teacher" && state.providerRecord?.id) {
-      try { state.teacherSessions = await dataApi.getSessions(state.providerRecord.id); } catch { state.teacherSessions = null; }
+      try { state.teacherSessions = await dataApi.getSessions(state.providerRecord.id); await loadSessionLinks(); } catch { state.teacherSessions = null; }
     }
     state.view = "provider";
   } catch (error) {
@@ -1635,6 +1649,7 @@ root.addEventListener("click", async (event) => {
         await dataApi.enrollInSession(button.dataset.sessionId);
         state.sessions = await dataApi.getSessions();
         state.enrollments = await dataApi.getMyEnrollments();
+        await loadSessionLinks();
         showToast("تم تسجيلك في الحصة.", "success");
       });
       render();
@@ -1701,6 +1716,7 @@ root.addEventListener("click", async (event) => {
         render();
         await dataApi.cancelEnrollment(button.dataset.enrollmentId);
         state.enrollments = await dataApi.getMyEnrollments();
+        await loadSessionLinks();
         showToast("تم إلغاء التسجيل.", "success");
       });
       render();
@@ -2087,6 +2103,19 @@ root.addEventListener("submit", async (event) => {
         await dataApi.submitPrescription(values);
         state.prescriptions = await dataApi.getMyPrescriptions();
         showToast("تم إرسال الطلب للصيدليات التي اخترتها.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "teacher-session-link") {
+      if (CONFIG.isPublicPreview) throw new Error("الحفظ متوقف في نسخة المعاينة.");
+      if (state.profile?.role !== "teacher") throw new Error("هذه العملية للمدرس فقط.");
+      const url = safeMeetingUrl(new FormData(form).get("url"));
+      if (!url) throw new Error("الرابط لازم يبدأ بـ https:// وبدون مسافات.");
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.teacherSetSessionLink(form.dataset.sessionId, url);
+        await loadSessionLinks();
+        showToast("تم حفظ رابط الحصة. يراه المسجلون فقط.", "success");
       });
       render();
     }
