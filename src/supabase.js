@@ -514,6 +514,31 @@ export const dataApi = {
     }
   },
 
+  // Requests to change or cancel a confirmed nursing order. A request is not a change: only 'applied' means staff did it.
+  async getMyChangeRequests() {
+    const session = await getValidSession();
+    if (!session?.access_token) return [];
+    try {
+      return await request(`/rest/v1/order_change_requests?${new URLSearchParams({ select: "id,order_id,kind,status,note,created_at", order: "created_at.desc", limit: "100" })}`, { token: session.access_token });
+    } catch { return []; }
+  },
+
+  async requestOrderChange({ orderId, kind, note }) {
+    assertLiveWritesAllowed("طلب تعديل أو إلغاء");
+    if (!["change_time", "cancel"].includes(kind)) throw new Error("نوع الطلب غير صالح.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/customer_request_order_change", { method: "POST", token: session.access_token, body: { p_order: orderId, p_kind: kind, p_note: String(note || "").trim().slice(0, 300) || null } });
+  },
+
+  async resolveOrderChange({ requestId, status }) {
+    assertLiveWritesAllowed("مراجعة طلب التعديل");
+    if (!["applied", "declined"].includes(status)) throw new Error("حالة غير صالحة.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    await request("/rest/v1/rpc/staff_resolve_order_change", { method: "POST", token: session.access_token, body: { p_request: requestId, p_status: status } });
+  },
+
   // Staff fix the agreed visit time. The server only accepts open nursing orders; the time is read as Cairo wall-clock time.
   async staffScheduleOrder({ orderId, value }) {
     assertLiveWritesAllowed("تحديد موعد الزيارة");
