@@ -377,6 +377,7 @@ function educationSection() {
     <article class="order-card">
       <div class="order-card-top"><strong>${escapeHTML(item.title)}</strong><span class="status-pill">${escapeHTML(sessionModeLabel(item.mode))}</span></div>
       <div class="order-name">${escapeHTML(item.subject)} · ${escapeHTML(item.teacher?.display_name || "مدرس")}</div>
+      ${item.course_id ? `<p class="deposit-note">ضمن الدورة: ${escapeHTML(item.course?.title || "")}. الحجز لمن سجل في الدورة فقط.</p>` : ""}
       <div class="order-meta"><span>${escapeHTML(formatAppointment(item.starts_at))} · ${escapeHTML(item.duration_min)} دقيقة</span><strong>${escapeHTML(formatEGP(item.price_egp))}</strong></div>
       <p class="deposit-note">يُدفع للمدرس مباشرة. لا يتم تحصيل أي مبلغ داخل وصلة.</p>
       <div class="order-card-actions">${enrolledIds.has(item.id)
@@ -654,14 +655,16 @@ function prescriptionSection() {
 function teacherSection() {
   if (state.profile?.role !== "teacher" || !Array.isArray(state.teacherSessions)) return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const courseOptions = (Array.isArray(state.teacherCourses) ? state.teacherCourses : []).filter((c) => c.active).map((c) => `<option value="${escapeHTML(c.id)}">${escapeHTML(c.title)}</option>`).join("");
   const cards = state.teacherSessions.map((item) => `
     <article class="order-card">
       <div class="order-card-top"><strong>${escapeHTML(item.title)}</strong><span class="status-pill">${item.status === "open" ? "مفتوحة" : "ملغاة"}</span></div>
+      ${item.course?.title ? `<div class="order-name">ضمن الدورة: ${escapeHTML(item.course.title)}</div>` : ""}
       <div class="order-meta"><span>${escapeHTML(formatAppointment(item.starts_at))} · ${escapeHTML(sessionModeLabel(item.mode))} · ${escapeHTML(item.seats)} مقاعد</span><strong>${escapeHTML(formatEGP(item.price_egp))}</strong></div>
       ${item.status === "open" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="teacher-cancel-session" data-session-id="${escapeHTML(item.id)}" ${disabled}>إلغاء الحصة</button></div>` : ""}
     </article>`).join("");
   return `
-    <section class="page-panel education-panel" id="teacher-sessions">
+    <section class="page-panel education-panel health-panel" id="teacher-sessions">
       <div class="section-heading"><div><span class="eyebrow">مساحة المدرس</span><h2>حصصي</h2></div></div>
       <form data-form="teacher-session" novalidate>
         <label>عنوان الحصة<input name="title" maxlength="120" required></label>
@@ -669,7 +672,8 @@ function teacherSection() {
         <label>الموعد<input type="datetime-local" name="starts" required></label>
         <label>النوع<select name="mode"><option value="online">أونلاين</option><option value="in_person">حضوري</option></select></label>
         <label>عدد المقاعد<input type="number" name="seats" min="1" max="30" value="5" required></label>
-        <label>السعر بالجنيه (يُدفع مباشرة للمدرس)<input type="number" name="price" min="0" max="5000" value="0" required></label>
+        <label>السعر بالجنيه (يُدفع مباشرة للمدرس، لا ينطبق على حصص الدورة)<input type="number" name="price" min="0" max="5000" value="0" required></label>
+        ${courseOptions ? `<label>الدورة (اختياري)<select name="course"><option value="">حصة مستقلة</option>${courseOptions}</select></label>` : ""}
         <button class="btn btn-primary" type="submit" ${disabled}>أضف الحصة</button>
       </form>
       ${cards ? `<div class="orders-list">${cards}</div>` : '<p class="tracking-empty">لا توجد حصص بعد.</p>'}
