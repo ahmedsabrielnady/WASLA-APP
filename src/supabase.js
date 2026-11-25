@@ -1312,12 +1312,19 @@ export const dataApi = {
     const token = session.access_token;
     try {
       const notes = await request(`/rest/v1/medical_notes?${new URLSearchParams({ select: "id,note,created_at,order_id", order: "created_at.desc", limit: "30" })}`, { token });
-      const targets = await request(`/rest/v1/orders?${new URLSearchParams({ select: "id,ref,created_at", sector: "in.(clinic,nursing)", order: "created_at.desc", limit: "20" })}`, { token }).catch(() => []);
+      const targets = await request(`/rest/v1/orders?${new URLSearchParams({ select: "id,ref,created_at,customer_id", sector: "in.(clinic,nursing)", order: "created_at.desc", limit: "20" })}`, { token }).catch(() => []);
       return { notes, targets };
     } catch (error) {
       if (/medical_notes|schema cache|relation/i.test(String(error?.message))) return null;
       throw error;
     }
+  },
+
+  async doctorOpenPatientFile(patientId) {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(patientId || ""))) throw new Error("اختر المريض.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/doctor_open_patient_file", { method: "POST", token: session.access_token, body: { p_patient: patientId } });
   },
 
   async doctorAddNote(values) {
