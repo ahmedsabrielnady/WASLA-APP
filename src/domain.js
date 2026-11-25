@@ -265,3 +265,10 @@ export function sectorEntryPlan({ code, signedIn, isCustomer, present = new Set(
 export function stripPictographs(value) {
   return String(value ?? "").replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]/gu, "").replace(/\s{2,}/g, " ").trim();
 }
+
+// The server refuses a patient file with an English message when the doctor has no case with that patient. Show it in Arabic, keep other messages.
+export function patientFileDeniedMessage(message) {
+  const text = String(message || "");
+  if (/no care relationship/i.test(text)) return "مفيش حالة بينك وبين المريض ده، فمش هتقدر تفتح ملفه.";
+  return text || "تعذر فتح الملف.";
+}
