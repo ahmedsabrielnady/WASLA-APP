@@ -45,7 +45,7 @@ assert len(_dp)==1 and _dp[0]["price_egp"]==30 and _dp[0]["discount_price_egp"]=
 _pid=_dp[0]["id"];_s0=_dp[0]["stock"]
 st,b=rpc("place_product_order",{"p_product":_pid,"p_qty":2,"p_address":"عنوان اختبار خصم"},c);chk("discount product: 2 units total = 2 x 25 (discount applied server side, not the 30 list price)",st==200 and b[0]["out_total"]==50,(st,str(b)[:80]))
 _o=b[0]["out_order_id"] if st==200 else None
-_r=call("/rest/v1/orders?select=price_egp&id=eq."+str(_o),None,c)[1];chk("stored order price is the discount price",_r and _r[0]["price_egp"] in (25,50),_r)
+_r=call("/rest/v1/orders?select=price_egp,quantity&id=eq."+str(_o),None,c)[1];chk("stored orders.price_egp is the order TOTAL at the discount price (2 x 25 = 50, not 60 at list price) and quantity is 2 (schema: price_egp = v_total, draft 1200)",bool(_r) and _r[0]["price_egp"]==50 and _r[0]["quantity"]==2,_r)
 chk("stock decreased by 2",stock(_pid)==_s0-2,(_s0,stock(_pid)))
 chk("cancel restores the stock (fixture left as found)",rpc("customer_cancel_order_v2",{"p_order":_o},c)[0] in (200,204) and stock(_pid)==_s0,(_s0,stock(_pid)))
 print(sum(R),"pass",len(R)-sum(R),"fail")
