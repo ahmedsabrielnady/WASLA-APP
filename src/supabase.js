@@ -346,6 +346,22 @@ export const authApi = {
   }
 };
 
+// A datetime-local value has no zone. The service area is Cairo time, so read it as Cairo wall-clock time
+// whatever the browser zone is. Egypt uses daylight saving, so the offset is computed for that date.
+export function cairoLocalToDate(value) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(String(value || ""));
+  if (!m) return new Date(NaN);
+  const [y, mo, d, h, mi] = m.slice(1).map(Number);
+  const wall = Date.UTC(y, mo - 1, d, h, mi);
+  const offsetAt = (t) => {
+    const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "Africa/Cairo", hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(t)).map((x) => [x.type, x.value]));
+    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) - t;
+  };
+  let t = wall - offsetAt(wall);
+  t = wall - offsetAt(t);
+  return new Date(t);
+}
+
 export const dataApi = {
   async getProfile(userId) {
     const session = await getValidSession();
@@ -1367,7 +1383,7 @@ export const dataApi = {
     });
     if (!Array.isArray(rows) || rows.length !== 1) throw new Error("لم يتم إرسال الطلب.");
     // The preferred time is only a proposal. A failure here must not lose the order that was already created.
-    const when = preferredAt ? new Date(preferredAt) : null;
+    const when = preferredAt ? cairoLocalToDate(preferredAt) : null;
     if (when && Number.isFinite(when.getTime())) {
       try {
         await request("/rest/v1/rpc/set_nursing_preferred_time", { method: "POST", token: session.access_token, body: { p_order: rows[0].out_order_id, p_at: when.toISOString() } });
