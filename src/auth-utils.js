@@ -43,3 +43,25 @@ export function toWaslaAuthEmail(value) {
 export function isPhoneAliasSignupReady(settings) {
   return Boolean(settings?.external?.email && settings?.mailer_autoconfirm === true);
 }
+
+const DEFAULT_PROFILE_NAMES = new Set(["", "مستخدم"]);
+
+export function googleDisplayName(user) {
+  const hasGoogle = Array.isArray(user?.identities)
+    ? user.identities.some((identity) => identity?.provider === "google")
+    : user?.app_metadata?.provider === "google";
+  if (!hasGoogle) return "";
+  const meta = user?.user_metadata ?? {};
+  const name = String(meta.full_name ?? meta.name ?? "").replace(/\s+/g, " ").trim();
+  return name.length >= 2 && name.length <= 60 ? name : "";
+}
+
+export function shouldAdoptGoogleName(profile, user) {
+  if (!profile?.id || profile.id !== user?.id) return false;
+  if (!DEFAULT_PROFILE_NAMES.has(String(profile.full_name ?? "").trim())) return false;
+  return Boolean(googleDisplayName(user));
+}
+
+export function shouldShowGoogleButton({ googleEnabled, isPublicPreview, register }) {
+  return Boolean(googleEnabled) && !isPublicPreview && !register;
+}
