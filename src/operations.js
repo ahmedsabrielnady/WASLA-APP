@@ -79,8 +79,8 @@ function renderOrderCard(order, providers, canWrite) {
 
   const schedulable = order.sector === "nursing" && ["new", "confirmed"].includes(order.status);
   const schedule = schedulable ? `
+    ${order.preferred_at ? `<p class="ops-muted">الموعد المقترح من المريض: ${escapeHTML(formatCairoTime(order.preferred_at))} (مقترح فقط)</p>` : '<p class="ops-muted">المريض لم يقترح موعدًا.</p>'}
     <form class="ops-action-form" data-form="operations-schedule" data-order-id="${escapeHTML(order.id)}">
-      ${order.preferred_at ? `<p class="ops-muted">الموعد المقترح من المريض: ${escapeHTML(formatCairoTime(order.preferred_at))} (مقترح فقط)</p>` : '<p class="ops-muted">المريض لم يقترح موعدًا.</p>'}
       <label>الموعد المؤكد (بتوقيت القاهرة)
         <input name="scheduled_at" type="datetime-local" required>
       </label>
