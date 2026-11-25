@@ -958,6 +958,72 @@ export const dataApi = {
     return remaining.length;
   },
 
+  async getProviderHealthWorkspace(provider) {
+    const session = await getValidSession();
+    if (!session?.access_token || provider?.kind !== "merchant") return null;
+    const token = session.access_token;
+    try {
+      if (provider.specialty === "pharmacy") {
+        const query = new URLSearchParams({
+          select: "id,note,status,expires_at,created_at,attachment_path,quotes:prescription_quotes(id,price_egp,note,delivery_available,eta_minutes)",
+          status: "neq.closed", order: "created_at.desc", limit: "30"
+        });
+        return { kind: "pharmacy", requests: await request(`/rest/v1/prescription_requests?${query}`, { token }) };
+      }
+      if (["lab", "radiology"].includes(provider.specialty)) {
+        const query = new URLSearchParams({ select: "id,kind,name,price_egp,active", provider_id: `eq.${provider.id}`, order: "name.asc", limit: "100" });
+        return { kind: provider.specialty, tests: await request(`/rest/v1/lab_tests?${query}`, { token }) };
+      }
+    } catch (error) {
+      if (/prescription_requests|lab_tests|schema cache|relation/i.test(String(error?.message))) return null;
+      throw error;
+    }
+    return null;
+  },
+
+  async pharmacyQuote(values) {
+    assertLiveWritesAllowed("الرد على روشتة");
+    const price = Number(values?.price), eta = values?.eta === "" || values?.eta == null ? null : Number(values.eta);
+    if (!values?.requestId) throw new Error("اختر الطلب.");
+    if (!Number.isInteger(price) || price < 1 || price > 20000) throw new Error("السعر من 1 إلى 20000.");
+    if (eta !== null && (!Number.isInteger(eta) || eta < 5 || eta > 2880)) throw new Error("مدة التوصيل من 5 إلى 2880 دقيقة.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/pharmacy_quote_request", {
+      method: "POST", token: session.access_token,
+      body: { p_request: values.requestId, p_price: price, p_note: String(values.note || "").trim() || null, p_delivery: values.delivery === true, p_eta: eta }
+    });
+  },
+
+  async upsertLabTest(values) {
+    assertLiveWritesAllowed("تحديث سعر تحليل");
+    const name = String(values?.name || "").trim(), price = Number(values?.price);
+    if (!["lab", "radiology"].includes(values?.kind)) throw new Error("نوع الحساب غير مناسب.");
+    if (name.length < 3 || name.length > 120) throw new Error("اكتب اسم التحليل أو الأشعة.");
+    if (!Number.isInteger(price) || price < 1 || price > 20000) throw new Error("السعر من 1 إلى 20000.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/provider_upsert_lab_test", { method: "POST", token: session.access_token, body: { p_name: name, p_kind: values.kind, p_price: price } });
+  },
+
+  async setLabTestActive(testId, active) {
+    assertLiveWritesAllowed("تعديل تحليل");
+    if (!testId) throw new Error("اختر التحليل.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/provider_set_lab_test_active", { method: "POST", token: session.access_token, body: { p_test: testId, p_active: active === true } });
+  },
+
+  // Returns a short-lived blob URL for the prescription file. Reads go straight to private storage (see draft 0801 for the audited proxy path).
+  async getPrescriptionFileUrl(path) {
+    if (!/^[0-9a-f-]{36}\/[A-Za-z0-9._-]{1,80}$/.test(String(path || ""))) throw new Error("مسار الملف غير صالح.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const response = await fetch(`${API_ROOT}/storage/v1/object/authenticated/prescriptions/${path}`, { headers: { apikey: CONFIG.supabasePublishableKey, Authorization: `Bearer ${session.access_token}` }, cache: "no-store" });
+    if (!response.ok) throw new Error("تعذر فتح المرفق. قد يكون الطلب أُغلق أو سُحبت المشاركة.");
+    return URL.createObjectURL(await response.blob());
+  },
+
   async closePrescription(requestId) {
     assertLiveWritesAllowed("إغلاق الطلب");
     if (!requestId) throw new Error("اختر الطلب.");
