@@ -1,5 +1,5 @@
 import { CONFIG } from "./config.js";
-import { isPhoneAliasSignupReady, resolveAuthIdentifier } from "./auth-utils.js";
+import { googleDisplayName, isPhoneAliasSignupReady, resolveAuthIdentifier, shouldAdoptGoogleName, shouldShowGoogleButton } from "./auth-utils.js";
 import { SECTORS, stripPictographs, pageSlice, FILE_PAGE_SIZE, ORDERS_PAGE_SIZE, sectorIconSvg, ICON_SVG, sectorEntryPlan, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, runWithBusyState, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
 import { authApi, dataApi } from "./supabase.js";
 import { pushConfigured, pushSupported, enablePush, disablePush } from "./push.js";
@@ -1120,7 +1120,7 @@ function authModal() {
           <button class="btn btn-primary btn-block" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "جارٍ التنفيذ..." : (register ? "إنشاء الحساب" : "تسجيل الدخول")}</button>
         </form>
         ${!register && !signupClosed ? '<button class="switch-auth" data-action="forgot-password">استعادة حساب البريد الإلكتروني</button>' : ""}
-        ${!signupClosed && state.googleAuthEnabled ? '<button class="btn btn-outline btn-block" type="button" data-action="google-auth">المتابعة باستخدام Google</button>' : ""}
+        ${shouldShowGoogleButton({ googleEnabled: state.googleAuthEnabled, isPublicPreview: CONFIG.isPublicPreview, register }) ? '<button class="btn btn-outline btn-block" type="button" data-action="google-auth">المتابعة باستخدام Google</button>' : ""}
         ${signupClosed ? "" : `<p class="form-footnote">${state.phoneAuthReady ? "الدخول وإنشاء الحساب برقم الهاتف وكلمة مرور دون SMS. لا يمكن استعادة الحساب عبر الرقم وحده دون وسيلة موثقة." : "يمكنك الدخول برقم الهاتف للحسابات الموجودة دون SMS. تسجيل حساب جديد برقم الهاتف يحتاج إعدادًا إضافيًا؛ استخدم بريدًا إلكترونيًا حقيقيًا للتسجيل."}</p>`}
         ${signupClosed
           ? `<p class="form-footnote preview-auth-note">${CONFIG.isPublicPreview ? "إنشاء الحسابات متوقف في نسخة المعاينة لحماية قاعدة البيانات الحية." : "إنشاء الحسابات متوقف في بيئة الاختبار. الدخول بحسابات الاختبار فقط."}</p>`
