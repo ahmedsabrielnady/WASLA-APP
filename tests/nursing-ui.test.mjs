@@ -49,3 +49,33 @@ test("updateProduct validates name, price and category locally and sends only th
   await dataApi.updateProduct(1, { name: "اسم جديد", price: 55, category: "food" });
   assert.deepEqual(calls[0].body, { name: "اسم جديد", price_egp: 55, category: "food" });
 });
+
+const { renderOperationsView } = await import("../src/operations.js");
+const provs = [
+  { id: "p1", kind: "doctor", display_name: "د. معتمد", approved: true, active: true, is_test: false, nursing_credential_verified: true },
+  { id: "p2", kind: "technician", display_name: "فني غير معتمد", approved: true, active: true, is_test: false, nursing_credential_verified: false }
+];
+const nOrder = { id: "o1", sector: "nursing", status: "new", ref: "OR-1", created_at: "2026-11-25T00:00:00Z", price_egp: 120, deposit_egp: 0, provider_id: null, address: "x" };
+
+test("nursing assignment lists only credentialed providers; credential section for staff", () => {
+  const html = renderOperationsView({ profile: { role: "staff" }, services: [], orders: [nOrder], providers: provs, preview: false, saving: false });
+  const form = html.split('data-form="operations-assign"')[1] || "";
+  assert.match(form, /د\. معتمد/);
+  assert.doesNotMatch(form, /فني غير معتمد/);
+  assert.match(html, /id="nursing-credentials"/);
+  assert.match(html, /data-action="set-nursing-credential" data-provider-id="p2" data-verified="yes"/);
+  assert.match(html, /data-action="set-nursing-credential" data-provider-id="p1" data-verified="no"/);
+});
+
+test("no credentialed provider shows a message, not an assign form", () => {
+  const html = renderOperationsView({ profile: { role: "staff" }, services: [], orders: [nOrder], providers: [provs[1]], preview: false, saving: false });
+  assert.doesNotMatch(html, /data-form="operations-assign"/);
+  assert.match(html, /لا يوجد مقدم خدمة معتمد للتمريض/);
+});
+
+test("setNursingCredential calls only the staff RPC", async () => {
+  const calls = mockFetch([]);
+  await dataApi.setNursingCredential("p1", true);
+  assert.match(calls[0].url, /rpc\/staff_set_nursing_credential$/);
+  assert.deepEqual(calls[0].body, { p_provider: "p1", p_verified: true });
+});
