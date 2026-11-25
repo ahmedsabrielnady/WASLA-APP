@@ -1700,6 +1700,13 @@ root.addEventListener("click", async (event) => {
       render();
       root.querySelector('input[name="email"]')?.focus();
     } else if (action === "logout") {
+      // Release this device's push subscription while still signed in, so the next account on a shared device can register it (a subscribed endpoint is never taken over by another user).
+      if (pushConfigured(CONFIG.pushPublicKey) && pushSupported()) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          await disablePush({ registration, unsubscribeRpc: (e) => dataApi.pushUnsubscribe(e) });
+        } catch { /* best effort; logout must not fail */ }
+      }
       await authApi.signOut();
       state.user = state.profile = state.session = null;
       state.myOrders = [];
