@@ -1,0 +1,8 @@
+-- wasla-test ONLY. Bounded fixture reset for course_no_consent_test.py (user 01000000009 must have NO consents).
+-- Never run on production. Not a real consent withdrawal: it is synthetic test-actor state, snapshotted and restored exactly.
+-- 1) snapshot:   select c.* from public.consents c join auth.users u on u.id=c.user_id where u.email='01000000009@wasla.app' order by c.id;
+-- 2) reset:      delete from public.consents where user_id=(select id from auth.users where email='01000000009@wasla.app');
+-- 3) run:        python3 course_no_consent_test.py   (expects 11 pass / 0 fail)
+-- 4) restore:    delete again (the test re-accepts consents), then re-insert the snapshot rows with `overriding system value` (ids and accepted_at preserved), then compare to the snapshot.
+-- Snapshot taken 2026-11-25 11:12 (ids 90,91,92,134,136) and restored exactly at 11:14:
+-- 90 terms draft-2026-11-24.2 2026-11-25 03:41:17.138189+00 | 91 privacy draft-2026-11-24.2 03:41:17.724274+00 | 92 health_data draft-2026-11-24.2 03:43:23.404973+00 | 134 terms test 07:26:38.394343+00 | 136 privacy test 07:26:39.057714+00
