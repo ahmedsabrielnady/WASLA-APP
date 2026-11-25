@@ -149,3 +149,12 @@ test("notifications: generic text only, no health detail, read through RPC", () 
   assert.match(api, /rpc\/mark_notifications_read/);
   assert.doesNotMatch(api.slice(api.indexOf("async getMyNotifications"), api.indexOf("async getMyChangeRequests")), /method: "(POST|PATCH|DELETE)"[\s\S]{0,80}notifications\?/);
 });
+
+test("notifications: shown above the orders list with order ref and a working open-order action", () => {
+  const view = main.slice(main.indexOf("function ordersView"), main.indexOf("${clinicSection()}"));
+  assert.ok(view.indexOf("notificationsSection()") > 0 && view.indexOf("notificationsSection()") < view.indexOf("state.myOrders.map(orderCard)"));
+  assert.match(main, /id="order-\$\{escapeHTML\(order\.id\)\}"/);
+  assert.match(main, /data-action="open-notification-order"/);
+  assert.match(main, /action === "open-notification-order"/);
+  assert.match(main, /getElementById\(`order-\$\{button\.dataset\.orderId\}`\)/);
+});
