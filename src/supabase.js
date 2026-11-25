@@ -1074,7 +1074,7 @@ export const dataApi = {
   async getMyLabRequests() {
     const session = await getValidSession();
     if (!session?.access_token) return null;
-    const query = new URLSearchParams({ select: "id,status,price_egp,result_text,created_at,updated_at,test:lab_tests(name,kind),provider:providers(display_name)", order: "created_at.desc", limit: "50" });
+    const query = new URLSearchParams({ select: "id,status,price_egp,result_text,result_file_path,created_at,updated_at,test:lab_tests(name,kind),provider:providers(display_name)", order: "created_at.desc", limit: "50" });
     try {
       return await request(`/rest/v1/lab_requests?${query}`, { token: session.access_token });
     } catch (error) {
@@ -1093,6 +1093,39 @@ export const dataApi = {
   requestLabTest(testId) { return this.labRpc("request_lab_test", { p_test: testId }, "طلب تحليل"); },
   cancelLabRequest(requestId) { return this.labRpc("patient_cancel_lab_request", { p_request: requestId }, "إلغاء طلب تحليل"); },
   labMarkSampleDone(requestId) { return this.labRpc("lab_set_request_status", { p_request: requestId, p_to: "sample_done" }, "تحديث حالة طلب"); },
+  // Publishes a result FILE (pdf/jpeg/png, 5 MB) held in the private bucket 'lab-results', with an optional short note. Synthetic data only on the test project.
+  async labPublishResultFile(requestId, file, text) {
+    assertLiveWritesAllowed("نشر نتيجة");
+    const types = { "application/pdf": "pdf", "image/jpeg": "jpg", "image/png": "png" };
+    if (!file || !types[file.type] || file.size < 1 || file.size > 5 * 1024 * 1024) throw new Error("الملف PDF أو JPG أو PNG بحد أقصى 5 ميجا.");
+    const note = String(text || "").trim();
+    if (note && (note.length < 3 || note.length > 2000)) throw new Error("الملاحظة من 3 إلى 2000 حرف.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const token = session.access_token;
+    const path = `${requestId}/res-${Date.now()}.${types[file.type]}`;
+    const headers = { apikey: CONFIG.supabasePublishableKey, Authorization: `Bearer ${token}` };
+    const upload = await fetch(`${API_ROOT}/storage/v1/object/lab-results/${path}`, { method: "POST", headers: { ...headers, "Content-Type": file.type }, body: file });
+    if (!upload.ok) throw new Error("تعذر رفع الملف. تأكد إن العينة اتأخدت أولًا.");
+    try {
+      return await request("/rest/v1/rpc/lab_publish_result_file", { method: "POST", token, body: { p_request: requestId, p_path: path, p_text: note || null } });
+    } catch (error) {
+      let removed = false;
+      try { removed = (await fetch(`${API_ROOT}/storage/v1/object/lab-results/${path}`, { method: "DELETE", headers })).ok; } catch { /* reported below */ }
+      if (!removed) throw new Error("تعذر نشر النتيجة، وفشل حذف الملف المرفوع. الملف ظاهر للمعمل فقط ولم يُنشر للعميل.");
+      throw error;
+    }
+  },
+
+  async getLabResultFileUrl(path) {
+    if (!/^[0-9a-f-]{36}\/[A-Za-z0-9._-]{1,80}$/.test(String(path || ""))) throw new Error("مسار الملف غير صالح.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const response = await fetch(`${API_ROOT}/storage/v1/object/authenticated/lab-results/${path}`, { headers: { apikey: CONFIG.supabasePublishableKey, Authorization: `Bearer ${session.access_token}` }, cache: "no-store" });
+    if (!response.ok) throw new Error("تعذر فتح ملف النتيجة.");
+    return URL.createObjectURL(await response.blob());
+  },
+
   labPublishResult(requestId, text) {
     const value = String(text || "").trim();
     if (value.length < 3 || value.length > 2000) throw new Error("النتيجة من 3 إلى 2000 حرف.");
