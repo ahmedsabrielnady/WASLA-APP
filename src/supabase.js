@@ -256,6 +256,43 @@ export const authApi = {
     window.location.assign(`${API_ROOT}/auth/v1/authorize?${query}`);
   },
 
+  async linkGoogle() {
+    // Signed-in users attach their own Google account. Supabase requires manual linking to be enabled
+    // and refuses to attach a Google identity that already belongs to another user.
+    if (!globalThis.crypto?.subtle || !globalThis.crypto?.getRandomValues) {
+      throw new Error("المتصفح لا يدعم ربط Google الآمن. حدّث المتصفح.");
+    }
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const bytes = new Uint8Array(32);
+    globalThis.crypto.getRandomValues(bytes);
+    const verifier = btoa(String.fromCharCode(...bytes))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+    const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
+    const challenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+    sessionStorage.setItem(OAUTH_VERIFIER_KEY, verifier);
+    const query = new URLSearchParams({
+      provider: "google",
+      redirect_to: window.location.origin + window.location.pathname + window.location.search,
+      code_challenge: challenge,
+      code_challenge_method: "s256",
+      skip_http_redirect: "true"
+    });
+    let result;
+    try {
+      result = await request(`/auth/v1/user/identities/authorize?${query}`, { token: session.access_token });
+    } catch (error) {
+      sessionStorage.removeItem(OAUTH_VERIFIER_KEY);
+      throw error;
+    }
+    if (!result?.url) {
+      sessionStorage.removeItem(OAUTH_VERIFIER_KEY);
+      throw new Error("تعذر بدء ربط Google. تأكد أن الربط مفعّل ثم أعد المحاولة.");
+    }
+    window.location.assign(result.url);
+  },
+
   async acceptOAuthFromUrl() {
     const url = new URL(window.location.href);
     const code = url.searchParams.get("code");
