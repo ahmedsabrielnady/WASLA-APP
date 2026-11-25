@@ -452,7 +452,9 @@ const NOTIFICATION_TEXT = {
   prescription_quote: "وصلك رد جديد على أحد طلباتك.",
   prescription_quote_revised: "تم تعديل رد على أحد طلباتك.",
   session_cancelled: "تم إلغاء إحدى حصصك.",
-  session_link: "المدرس أضاف أو غيّر رابط إحدى حصصك."
+  session_link: "المدرس أضاف أو غيّر رابط إحدى حصصك.",
+  doctor_note: "الدكتور أضاف ملاحظة على أحد حجوزاتك.",
+  course_changed: "حصل تغيير في إحدى الدورات المسجل فيها."
 };
 
 const NOTIFICATION_TARGET = {
@@ -460,13 +462,15 @@ const NOTIFICATION_TARGET = {
   prescription_quote: "rx",
   prescription_quote_revised: "rx",
   session_cancelled: "session",
-  session_link: "session"
+  session_link: "session",
+  course_changed: "course"
 };
 
 function notificationTargetLabel(n) {
   const type = NOTIFICATION_TARGET[n.kind];
   if (type === "delivery") return (state.deliveries || []).find((d) => d.id === n.ref_id)?.ref || "";
   if (type === "rx") { const r = (state.prescriptions || []).find((x) => x.id === n.ref_id); return r?.created_at ? `طلب ${formatDate(r.created_at)}` : ""; }
+  if (type === "course") return (state.courses || []).find((c) => c.id === n.ref_id)?.title || "";
   if (type === "session") return (state.enrollments || []).find((e) => e.session_id === n.ref_id)?.session?.title || "";
   return "";
 }
@@ -536,7 +540,7 @@ async function loadCourses() {
 
 function courseCard(item, extra = "") {
   return `
-    <article class="order-card">
+    <article class="order-card" id="course-${escapeHTML(item.id)}">
       <div class="order-card-top"><strong>${escapeHTML(item.title)}</strong><span class="status-pill">${escapeHTML(sessionModeLabel(item.mode))}</span></div>
       <div class="order-name">${escapeHTML(item.subject)}${item.teacher?.display_name ? ` · ${escapeHTML(item.teacher.display_name)}` : ""}</div>
       ${item.description ? `<p class="deposit-note">${escapeHTML(item.description)}</p>` : ""}
@@ -1628,7 +1632,7 @@ root.addEventListener("click", async (event) => {
       setTimeout(() => card.classList.remove("notification-target"), 2500);
     } else if (action === "open-notification-target") {
       const card = document.getElementById(`${button.dataset.targetType}-${button.dataset.targetId}`);
-      if (!card) throw new Error(button.dataset.kind === "session_cancelled" ? "الحصة دي اتلغت ومش ظاهرة في تسجيلاتك." : "العنصر ده مش متاح دلوقتي (اتلغى أو اتقفل).");
+      if (!card) throw new Error(button.dataset.kind === "session_cancelled" ? "الحصة دي اتلغت ومش ظاهرة في تسجيلاتك." : button.dataset.kind === "course_changed" ? "الدورة دي مش ظاهرة دلوقتي (اتخفت أو اتقفلت)." : "العنصر ده مش متاح دلوقتي (اتلغى أو اتقفل).");
       card.style.scrollMarginTop = "110px";
       card.scrollIntoView({ behavior: "smooth", block: "start" });
       card.classList.add("notification-target");
