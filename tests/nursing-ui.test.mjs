@@ -97,3 +97,16 @@ test("getSessions falls back to standalone sessions when the course link is not 
   const rows = await dataApi.getSessions();
   assert.equal(rows[0].course_id, null);
 });
+
+test("nursing time: preferred time is labelled as a proposal and the agreed time is separate", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const main = await readFile(new URL("../src/main.js", import.meta.url), "utf8");
+  const api = await readFile(new URL("../src/supabase.js", import.meta.url), "utf8");
+  assert.match(main, /الموعد المؤكد:/);
+  assert.match(main, /الموعد المقترح منك:[^`]*مقترح فقط/);
+  assert.match(main, /order\.preferred_at && !order\.scheduled_at/);
+  assert.match(main, /name="preferred_at"/);
+  assert.match(api, /set_nursing_preferred_time/);
+  assert.match(api, /preferredTimeSaved: false/);
+  assert.doesNotMatch(main, /رسوم إلغاء|غرامة/);
+});
