@@ -15,6 +15,8 @@ const TEST_PUBLISHABLE_KEY = "sb_publishable_Z-1vjfz6rsD3an_EP-4wqQ_bglZ_KSx";
 export const CONFIG = Object.freeze({
   supabaseUrl: SUPABASE_URL,
   supabasePublishableKey: ON_TEST_ALIAS ? TEST_PUBLISHABLE_KEY : "sb_publishable_Aej6zAcIojeoTI7GUxcXbA_lSKKqUmh",
+  // Web Push stays off until a VAPID public key is set here. A sender and the private key do not exist yet.
+  pushPublicKey: "",
   appName: "WASLA",
   appCity: "شبين القناطر",
   appRegion: "القليوبية",
