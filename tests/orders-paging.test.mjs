@@ -31,3 +31,10 @@ test("course catalogue, lab prices and the patient's own notes are paged too", (
   const src = readFileSync(new URL("../src/main.js", import.meta.url), "utf8");
   for (const key of ["courses", "labTests", "notes"]) assert.match(src, new RegExp(`pagedRows\\("${key}"`));
 });
+
+test("teacher sessions and courses are paged, and the staff order list carries the sent quote", () => {
+  const main = readFileSync(new URL("../src/main.js", import.meta.url), "utf8");
+  for (const key of ["teacherSessions", "teacherCourses"]) assert.match(main, new RegExp(`pagedRows\\("${key}"`));
+  assert.match(readFileSync(new URL("../src/supabase.js", import.meta.url), "utf8"), /preferred_at,quote_price_egp/);
+  assert.match(readFileSync(new URL("../src/operations.js", import.meta.url), "utf8"), /عرض السعر المرسل/);
+});
