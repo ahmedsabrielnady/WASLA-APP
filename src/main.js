@@ -302,7 +302,8 @@ function orderCard(order) {
       <div class="order-card-top"><strong>${escapeHTML(order.ref || "طلب وصلة")}</strong><span class="status-pill">${escapeHTML(statusLabel(order.status))}</span></div>
       <div class="order-name">${escapeHTML(orderItemName(order))}</div>
       <div class="order-meta"><span>${escapeHTML(formatDate(order.created_at))}</span><strong>${escapeHTML(price)}</strong></div>
-      ${order.scheduled_at ? `<div class="order-meta"><span>الموعد: ${escapeHTML(formatAppointment(order.scheduled_at))}</span></div>` : ""}
+      ${order.scheduled_at ? `<div class="order-meta"><span>الموعد المؤكد: ${escapeHTML(formatAppointment(order.scheduled_at))}</span></div>` : ""}
+      ${order.preferred_at && !order.scheduled_at ? `<div class="order-meta"><span>الموعد المقترح منك: ${escapeHTML(formatAppointment(order.preferred_at))} (مقترح فقط، لسه متأكدش)</span></div>` : ""}
       ${order.status === "quoted" ? `<div class="quote-box"><strong>عرض سعر: ${escapeHTML(formatEGP(order.quote_price_egp))}</strong><p>هذا السعر المقترح من فريق وصلة. لن يبدأ التنفيذ ولن يُسجل أي التزام إلا بعد موافقتك. لا يتم تحصيل أي مبلغ داخل وصلة.</p><div class="order-card-actions"><button class="btn btn-primary btn-small" data-action="respond-quote" data-decision="accept" data-order-id="${escapeHTML(order.id)}" data-version="${escapeHTML(order.quote_version)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>أوافق على السعر</button><button class="btn btn-outline btn-small" data-action="respond-quote" data-decision="decline" data-order-id="${escapeHTML(order.id)}" data-version="${escapeHTML(order.quote_version)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>أرفض وألغي الطلب</button></div></div>` : ""}
       ${Number(order.deposit_egp) > 0 ? `<p class="deposit-note">عربون مسجل: ${escapeHTML(formatEGP(order.deposit_egp))} · ${order.deposit_paid ? "مدفوع" : "غير مسدد"}</p>` : ""}
       ${order.lat != null && order.lng != null && Number.isFinite(Number(order.lat)) && Number.isFinite(Number(order.lng)) ? '<p class="location-note">📍 تم تسجيل إحداثيات موقع التنفيذ</p>' : ""}
@@ -714,6 +715,7 @@ function nursingSection() {
         <label>الخدمة<select name="item" required>${options}</select></label>
         <label>عنوان الزيارة<input name="address" maxlength="300" required></label>
         <label>ملاحظات (اختياري)<input name="notes" maxlength="300"></label>
+        <label>الموعد المفضل (اختياري، مقترح فقط ولا يتأكد إلا من فريق وصلة)<input type="datetime-local" name="preferred_at"></label>
         <label class="check-row"><input type="checkbox" name="terms" value="yes"><span>أوافق على <a href="./terms.html" target="_blank" rel="noopener">شروط الاستخدام (مسودة)</a> و<a href="./privacy.html" target="_blank" rel="noopener">سياسة الخصوصية (مسودة)</a>.</span></label>
         <label class="check-row"><input type="checkbox" name="consent" value="yes"><span>أوافق على استخدام بياناتي الصحية لتنفيذ هذا الطلب فقط.</span></label>
         <button class="btn btn-primary" type="submit" ${disabled}>أرسل طلب التمريض</button>
@@ -1928,7 +1930,7 @@ root.addEventListener("submit", async (event) => {
       const data = new FormData(form);
       await runWithBusyState(state, async () => {
         render();
-        await dataApi.requestNursingVisit({ itemId: data.get("item"), address: data.get("address"), notes: data.get("notes"), consent: data.get("consent") === "yes", terms: data.get("terms") === "yes" });
+        await dataApi.requestNursingVisit({ itemId: data.get("item"), address: data.get("address"), notes: data.get("notes"), consent: data.get("consent") === "yes", terms: data.get("terms") === "yes", preferredAt: data.get("preferred_at") || null });
         state.myOrders = await dataApi.getMyOrders(state.user?.id);
         showToast("تم إرسال طلب التمريض. هيتم تعيين ممرض معتمد وتأكيد الموعد معاك.", "success");
       });
