@@ -515,6 +515,20 @@ export const dataApi = {
   },
 
   // Requests to change or cancel a confirmed nursing order. A request is not a change: only 'applied' means staff did it.
+  async getMyNotifications() {
+    const session = await getValidSession();
+    if (!session?.access_token) return [];
+    try {
+      return await request(`/rest/v1/notifications?${new URLSearchParams({ select: "id,kind,ref_id,created_at,read_at", order: "created_at.desc", limit: "20" })}`, { token: session.access_token });
+    } catch { return []; }
+  },
+
+  async markNotificationsRead() {
+    const session = await getValidSession();
+    if (!session?.access_token) return 0;
+    return request("/rest/v1/rpc/mark_notifications_read", { method: "POST", token: session.access_token, body: {} });
+  },
+
   async getMyChangeRequests() {
     const session = await getValidSession();
     if (!session?.access_token) return [];
