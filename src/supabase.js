@@ -1334,6 +1334,26 @@ export const dataApi = {
     });
   },
 
+  async getSessionLinks() {
+    const session = await getValidSession();
+    if (!session?.access_token) return {};
+    try {
+      const rows = await request("/rest/v1/session_join_links?select=session_id,url", { token: session.access_token });
+      return Object.fromEntries((Array.isArray(rows) ? rows : []).map((row) => [row.session_id, row.url]));
+    } catch (error) {
+      if (/session_join_links/.test(String(error?.message))) return {};
+      throw error;
+    }
+  },
+
+  async teacherSetSessionLink(sessionId, url) {
+    assertLiveWritesAllowed("حفظ رابط الحصة");
+    if (!sessionId) throw new Error("اختر الحصة.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/teacher_set_session_link", { method: "POST", token: session.access_token, body: { p_session: sessionId, p_url: url } });
+  },
+
   async teacherCancelSession(sessionId) {
     assertLiveWritesAllowed("إلغاء حصة");
     if (!sessionId) throw new Error("اختر الحصة.");
