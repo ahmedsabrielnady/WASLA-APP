@@ -454,7 +454,9 @@ const NOTIFICATION_TEXT = {
   session_cancelled: "تم إلغاء إحدى حصصك.",
   session_link: "المدرس أضاف أو غيّر رابط إحدى حصصك.",
   doctor_note: "الدكتور أضاف ملاحظة على أحد حجوزاتك.",
-  course_changed: "حصل تغيير في إحدى الدورات المسجل فيها."
+  course_changed: "حصل تغيير في إحدى الدورات المسجل فيها.",
+  lab_status: "حالة أحد طلباتك اتغيرت.",
+  lab_result_ready: "في نتيجة جاهزة لأحد طلباتك."
 };
 
 const NOTIFICATION_TARGET = {
@@ -463,13 +465,16 @@ const NOTIFICATION_TARGET = {
   prescription_quote_revised: "rx",
   session_cancelled: "session",
   session_link: "session",
-  course_changed: "course"
+  course_changed: "course",
+  lab_status: "lab",
+  lab_result_ready: "lab"
 };
 
 function notificationTargetLabel(n) {
   const type = NOTIFICATION_TARGET[n.kind];
   if (type === "delivery") return (state.deliveries || []).find((d) => d.id === n.ref_id)?.ref || "";
   if (type === "rx") { const r = (state.prescriptions || []).find((x) => x.id === n.ref_id); return r?.created_at ? `طلب ${formatDate(r.created_at)}` : ""; }
+  if (type === "lab") { const r = (state.labRequests || []).find((x) => x.id === n.ref_id); return r?.created_at ? `طلب ${formatDate(r.created_at)}` : ""; }
   if (type === "course") return (state.courses || []).find((c) => c.id === n.ref_id)?.title || "";
   if (type === "session") return (state.enrollments || []).find((e) => e.session_id === n.ref_id)?.session?.title || "";
   return "";
@@ -608,6 +613,7 @@ async function loadHealthWork() {
     try { state.merchantProducts = await dataApi.getMyProducts(provider.id); } catch { state.merchantProducts = null; }
   }
   if (!provider?.id || provider.kind !== "merchant") return;
+  try { state.labRequests = await dataApi.getMyLabRequests(); } catch { state.labRequests = null; }
   try { state.healthWork = await dataApi.getProviderHealthWorkspace(provider); } catch { state.healthWork = null; }
 }
 
@@ -690,6 +696,48 @@ function healthProviderSection() {
         <button class="btn btn-primary" type="submit" ${disabled}>أضف أو حدّث السعر</button>
       </form>
       ${rows ? `<div class="orders-list">${rows}</div>` : '<p class="tracking-empty">لا توجد أسعار بعد.</p>'}
+    </section>
+    ${labIncomingSection()}`;
+}
+
+const LAB_STATUS_LABELS = { requested: "تم الطلب", sample_done: "تم أخذ العينة", result_ready: "النتيجة جاهزة", cancelled: "ملغي" };
+
+function labRequestsSection() {
+  if (!Array.isArray(state.labRequests) || !state.labRequests.length || state.profile?.role !== "customer") return "";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const cards = state.labRequests.map((r) => `
+    <article class="order-card" id="lab-${escapeHTML(r.id)}">
+      <div class="order-card-top"><strong>${escapeHTML(r.test?.name || "")}</strong><span class="status-pill">${escapeHTML(LAB_STATUS_LABELS[r.status] || "")}</span></div>
+      <div class="order-meta"><span>${escapeHTML(r.provider?.display_name || "")} · ${escapeHTML(formatDate(r.created_at))}</span><strong>${escapeHTML(formatEGP(r.price_egp))}</strong></div>
+      <p class="deposit-note">السعر وقت الطلب. الدفع للمعمل مباشرة.</p>
+      ${r.result_text ? `<div class="deposit-note"><strong>النتيجة من ${escapeHTML(r.provider?.display_name || "المعمل")}:</strong><p>${escapeHTML(r.result_text)}</p><p>النتيجة كتبها المعمل. وصلة لا تفسّر النتائج ولا تقدم تشخيصًا. استشر طبيبك.</p></div>` : ""}
+      ${r.status === "requested" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="cancel-lab-request" data-request-id="${escapeHTML(r.id)}" ${disabled}>إلغاء الطلب</button></div>` : ""}
+    </article>`).join("");
+  return `
+    <section class="page-panel health-panel" id="lab-requests">
+      <div class="section-heading"><div><span class="eyebrow">الصحة</span><h2>طلبات التحاليل والأشعة</h2></div></div>
+      <div class="orders-list">${cards}</div>
+    </section>`;
+}
+
+function labIncomingSection() {
+  if (!Array.isArray(state.labRequests) || !state.labRequests.length) return "";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const cards = state.labRequests.map((r) => `
+    <article class="order-card" id="lab-${escapeHTML(r.id)}">
+      <div class="order-card-top"><strong>${escapeHTML(r.test?.name || "")}</strong><span class="status-pill">${escapeHTML(LAB_STATUS_LABELS[r.status] || "")}</span></div>
+      <div class="order-meta"><span>${escapeHTML(formatDate(r.created_at))}</span><strong>${escapeHTML(formatEGP(r.price_egp))}</strong></div>
+      ${r.status === "requested" ? `<div class="order-card-actions"><button class="btn btn-primary btn-small" data-action="lab-sample-done" data-request-id="${escapeHTML(r.id)}" ${disabled}>تم أخذ العينة</button></div>` : ""}
+      ${r.status === "sample_done" ? `<form data-form="lab-result" data-request-id="${escapeHTML(r.id)}" novalidate>
+        <label>نتيجة المعمل (نص قصير، بيانات تجريبية فقط)<textarea name="result" rows="3" minlength="3" maxlength="2000" required></textarea></label>
+        <button class="btn btn-primary" type="submit" ${disabled}>انشر النتيجة للعميل</button>
+      </form>` : ""}
+      ${r.status === "result_ready" ? '<p class="deposit-note">تم نشر النتيجة للعميل.</p>' : ""}
+    </article>`).join("");
+  return `
+    <section class="page-panel health-panel" id="lab-incoming">
+      <div class="section-heading"><div><span class="eyebrow">الطلبات</span><h2>طلبات العملاء</h2></div></div>
+      <div class="orders-list">${cards}</div>
     </section>`;
 }
 
@@ -699,6 +747,7 @@ function labPriceSection() {
     <article class="order-card">
       <div class="order-card-top"><strong>${escapeHTML(t.name)}</strong><span class="status-pill">${t.kind === "radiology" ? "أشعة" : "تحليل"}</span></div>
       <div class="order-meta"><span>${escapeHTML(t.provider?.display_name || "")}</span><strong>${escapeHTML(formatEGP(t.price_egp))}</strong></div>
+      ${state.profile?.role === "customer" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="request-lab-test" data-test-id="${escapeHTML(t.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>اطلب الخدمة دي</button></div>` : ""}
     </article>`).join("");
   return `
     <section class="page-panel health-panel" id="lab-prices">
@@ -880,6 +929,7 @@ function ordersView() {
     ${educationSection()}
     ${courseCatalogueSection()}
     ${labPriceSection()}
+    ${labRequestsSection()}
     ${nursingSection()}
     ${prescriptionSection()}
     ${medicalNotesSection()}
@@ -1278,7 +1328,7 @@ async function refreshMyOrders() {
     await loadMedicalNotes();
     await loadCourses();
     try { state.nursingItems = await dataApi.getNursingItems(); } catch { state.nursingItems = null; }
-    try { state.labTests = await dataApi.getLabTests(); state.prescriptions = await dataApi.getMyPrescriptions(); state.pharmacies = state.prescriptions ? await dataApi.getPharmacies() : null; const leftover = await dataApi.retryPendingFileCleanups(); if (leftover) showToast("ملف مرفوع من طلب فاشل لم يُحذف بعد. سنعيد المحاولة عند فتح التطبيق.", "error"); } catch { state.labTests = null; state.prescriptions = null; state.pharmacies = null; }
+    try { state.labTests = await dataApi.getLabTests(); state.labRequests = await dataApi.getMyLabRequests(); state.prescriptions = await dataApi.getMyPrescriptions(); state.pharmacies = state.prescriptions ? await dataApi.getPharmacies() : null; const leftover = await dataApi.retryPendingFileCleanups(); if (leftover) showToast("ملف مرفوع من طلب فاشل لم يُحذف بعد. سنعيد المحاولة عند فتح التطبيق.", "error"); } catch { state.labTests = null; state.prescriptions = null; state.pharmacies = null; }
     if (!state.clinicDay) state.clinicDay = cairoDay(1);
     state.view = "orders";
   } catch (error) {
@@ -1725,6 +1775,30 @@ root.addEventListener("click", async (event) => {
         showToast("تم التحديث.", "success");
       });
       render();
+    } else if (action === "request-lab-test") {
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.requestLabTest(button.dataset.testId);
+        state.labRequests = await dataApi.getMyLabRequests();
+        showToast("تم إرسال الطلب.", "success");
+      });
+      render();
+    } else if (action === "cancel-lab-request") {
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.cancelLabRequest(button.dataset.requestId);
+        state.labRequests = await dataApi.getMyLabRequests();
+        showToast("تم إلغاء الطلب.", "success");
+      });
+      render();
+    } else if (action === "lab-sample-done") {
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.labMarkSampleDone(button.dataset.requestId);
+        state.labRequests = await dataApi.getMyLabRequests();
+        showToast("تم التحديث.", "success");
+      });
+      render();
     } else if (action === "toggle-lab-test") {
       await runWithBusyState(state, async () => {
         render();
@@ -2115,6 +2189,16 @@ root.addEventListener("submit", async (event) => {
         await dataApi.updateProduct(form.dataset.productId, { stock: data.get("stock") });
         await loadHealthWork();
         showToast("تم حفظ المخزون.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "lab-result") {
+      const data = new FormData(form);
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.labPublishResult(form.dataset.requestId, data.get("result"));
+        state.labRequests = await dataApi.getMyLabRequests();
+        showToast("تم نشر النتيجة.", "success");
       });
       render();
     }
