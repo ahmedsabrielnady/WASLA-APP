@@ -65,3 +65,12 @@ export function shouldAdoptGoogleName(profile, user) {
 export function shouldShowGoogleButton({ googleEnabled, isPublicPreview, register }) {
   return Boolean(googleEnabled) && !isPublicPreview && !register;
 }
+
+export function hasGoogleIdentity(user) {
+  return Array.isArray(user?.identities)
+    && user.identities.some((identity) => identity?.provider === "google");
+}
+
+export function shouldShowLinkGoogle({ googleEnabled, isPublicPreview, user }) {
+  return Boolean(googleEnabled) && !isPublicPreview && Boolean(user?.id) && !hasGoogleIdentity(user);
+}
