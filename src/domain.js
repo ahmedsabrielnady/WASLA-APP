@@ -1,12 +1,12 @@
 export const SECTORS = Object.freeze([
-  { code: "clinic", title: "العيادات", icon: "🩺", description: "حجز كشف ومتابعة طبية", mode: "review" },
-  { code: "nursing", title: "التمريض المنزلي", icon: "🧑‍⚕️", description: "يُتاح بعد استكمال متطلبات الخصوصية والبيانات الصحية", mode: "review" },
-  { code: "food", title: "المطاعم", icon: "🍽️", description: "مطاعم وأكلات محلية", mode: "soon" },
-  { code: "market", title: "الماركت", icon: "🛒", description: "احتياجات البيت والبقالة", mode: "soon" },
-  { code: "maintenance", title: "الصيانة المنزلية", icon: "🧰", description: "سباكة وكهرباء وخدمات منزلية", mode: "order" },
-  { code: "education", title: "التعليم", icon: "📚", description: "مدرسون ومتابعة تعليمية", mode: "soon" },
-  { code: "car", title: "خدمات السيارات", icon: "🚗", description: "غسيل وبطارية وخدمات للسيارة", mode: "order" },
-  { code: "delivery", title: "التوصيل", icon: "🚚", description: "توصيل الطلبات وتتبعها", mode: "review" }
+  { code: "clinic", title: "العيادات", description: "حجز كشف ومتابعة طبية", mode: "review" },
+  { code: "nursing", title: "التمريض المنزلي", description: "يُتاح بعد استكمال متطلبات الخصوصية والبيانات الصحية", mode: "review" },
+  { code: "food", title: "المطاعم", description: "مطاعم وأكلات محلية", mode: "soon" },
+  { code: "market", title: "الماركت", description: "احتياجات البيت والبقالة", mode: "soon" },
+  { code: "maintenance", title: "الصيانة المنزلية", description: "سباكة وكهرباء وخدمات منزلية", mode: "order" },
+  { code: "education", title: "التعليم", description: "مدرسون ومتابعة تعليمية", mode: "soon" },
+  { code: "car", title: "خدمات السيارات", description: "غسيل وبطارية وخدمات للسيارة", mode: "order" },
+  { code: "delivery", title: "التوصيل", description: "توصيل الطلبات وتتبعها", mode: "review" }
 ]);
 
 export const ORDERABLE_SECTORS = new Set(["maintenance", "car"]);
@@ -220,4 +220,43 @@ export async function runWithBusyState(state, operation) {
   } finally {
     state.busy = false;
   }
+}
+
+// Inline SVG icons. Emoji glyphs rendered as empty boxes on devices without an emoji font; SVG renders everywhere.
+const svg = (body) => `<svg class="svg-icon" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${body}</svg>`;
+export const ICON_SVG = Object.freeze({
+  clinic: svg('<path d="M12 6v12M6 12h12"/><rect x="3.5" y="3.5" width="17" height="17" rx="4"/>'),
+  nursing: svg('<circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6"/><path d="M12 15.5v3M10.5 17h3"/>'),
+  food: svg('<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10"/><path d="M17 21V3c-2.4 1.6-3.5 4.2-3.5 7.5V14H17"/>'),
+  market: svg('<path d="M3 4h2.4l2 10.2h9.4L19 7.5H6.3"/><circle cx="9" cy="19" r="1.4"/><circle cx="16.5" cy="19" r="1.4"/>'),
+  maintenance: svg('<path d="M14.5 6.2a4 4 0 0 0 4.8 4.8L11 19.3a2.1 2.1 0 0 1-3-3l8.3-8.3a4 4 0 0 0-1.8-1.8z"/>'),
+  education: svg('<path d="M3 9.5 12 5l9 4.5-9 4.5z"/><path d="M7 12v4.2c1.4 1.3 3.1 2 5 2s3.6-.7 5-2V12"/>'),
+  car: svg('<path d="M4 15v-3l1.7-4.4A2 2 0 0 1 7.6 6.3h8.8a2 2 0 0 1 1.9 1.3L20 12v3"/><path d="M3.5 15h17v2.5h-17z"/><circle cx="7.5" cy="17.5" r="1.4"/><circle cx="16.5" cy="17.5" r="1.4"/>'),
+  delivery: svg('<path d="M3 6h11v10H3z"/><path d="M14 9.5h4l3 3.2V16h-7z"/><circle cx="7" cy="17.5" r="1.5"/><circle cx="17" cy="17.5" r="1.5"/>'),
+  user: svg('<circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.7-3.7 3.4-5.8 7-5.8s6.3 2.1 7 5.8"/>'),
+  pin: svg('<path d="M12 21s6.5-5.6 6.5-11a6.5 6.5 0 0 0-13 0c0 5.4 6.5 11 6.5 11z"/><circle cx="12" cy="10" r="2.4"/>'),
+  spark: svg('<path d="M12 4l1.8 5.2L19 11l-5.2 1.8L12 18l-1.8-5.2L5 11l5.2-1.8z"/>')
+});
+export function sectorIconSvg(code) { return ICON_SVG[code] || ICON_SVG.spark; }
+
+// What a tap on a home sector card does. Pure, so it is testable. `present` is the set of section ids rendered on the customer page.
+// Honest states: no real provider is implied; an empty section says so.
+export const SECTOR_ANCHORS = Object.freeze({
+  clinic: ["clinic", "lab-prices", "prescriptions", "supplies", "health-timeline"],
+  nursing: ["nursing"],
+  food: ["food"],
+  market: ["store"],
+  education: ["education", "course-catalogue"],
+  delivery: ["store", "food"]
+});
+export function sectorEntryPlan({ code, signedIn, isCustomer, present = new Set() }) {
+  const sector = SECTORS.find((entry) => entry.code === code);
+  if (!sector) return { kind: "unknown" };
+  if (sector.mode === "order") return { kind: "services" };
+  if (!signedIn) return { kind: "login" };
+  if (!isCustomer) return { kind: "customer-only" };
+  const anchors = SECTOR_ANCHORS[code] || [];
+  const found = anchors.find((id) => present.has(id));
+  if (!found) return { kind: "unavailable" };
+  return { kind: "scroll", anchor: found, exact: found === anchors[0], delivery: code === "delivery" };
 }
