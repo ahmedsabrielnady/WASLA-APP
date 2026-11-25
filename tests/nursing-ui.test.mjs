@@ -152,7 +152,7 @@ test("notifications: generic text only, no health detail, read through RPC", () 
 
 test("notifications: shown above the orders list with order ref and a working open-order action", () => {
   const view = main.slice(main.indexOf("function ordersView"), main.indexOf("${clinicSection()}"));
-  assert.ok(view.indexOf("notificationsSection()") > 0 && view.indexOf("notificationsSection()") < view.indexOf("state.myOrders.map(orderCard)"));
+  assert.ok(view.indexOf("notificationsSection()") > 0 && view.indexOf("notificationsSection()") < view.indexOf(".map(orderCard)"));
   assert.match(main, /id="order-\$\{escapeHTML\(order\.id\)\}"/);
   assert.match(main, /data-action="open-notification-order"/);
   assert.match(main, /action === "open-notification-order"/);
