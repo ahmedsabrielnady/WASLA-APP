@@ -6,6 +6,7 @@ import { fetchTextWithTimeout } from "./network.js";
 const SESSION_KEY = "wasla.auth.session.v1";
 const PENDING_CONSENT_KEY = "wasla.pending-consent.v1";
 const OAUTH_VERIFIER_KEY = "wasla.auth.google-pkce-verifier.v1";
+const HEALTH_CONSENT_VERSION = "draft-2026-11-24.2";
 const POLICY_VERSION = "draft-2026-11-24.2";
 const API_ROOT = CONFIG.supabaseUrl.replace(/\/$/, "");
 
@@ -1105,6 +1106,20 @@ export const dataApi = {
     if (!Number.isInteger(Number(productId))) throw new Error("اختر المنتج.");
     const body = {};
     if (changes && "active" in changes) body.active = changes.active === true;
+    if (changes && "name" in changes) {
+      const name = String(changes.name || "").trim();
+      if (name.length < 2 || name.length > 120) throw new Error("اكتب اسم المنتج (من 2 إلى 120 حرفًا).");
+      body.name = name;
+    }
+    if (changes && "price" in changes) {
+      const price = Number(changes.price);
+      if (!Number.isInteger(price) || price < 1 || price > 100000) throw new Error("السعر من 1 إلى 100000 جنيه.");
+      body.price_egp = price;
+    }
+    if (changes && "category" in changes) {
+      if (!["market", "food", "supplies"].includes(changes.category)) throw new Error("اختر تصنيف المنتج.");
+      body.category = changes.category;
+    }
     if (changes && "stock" in changes) {
       const stock = Number(changes.stock);
       if (!Number.isInteger(stock) || stock < 0 || stock > 10000) throw new Error("المخزون من 0 إلى 10000.");
@@ -1297,6 +1312,33 @@ export const dataApi = {
       if (/permission denied/i.test(String(error?.message))) throw new Error("طلب المنتجات غير مفعل حاليًا.");
       throw error;
     }
+  },
+
+  async getNursingItems() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const query = new URLSearchParams({ select: "id,name,price_egp", sector: "eq.nursing", active: "eq.true", nursing_intake_open: "eq.true", order: "id.asc" });
+    return request(`/rest/v1/service_items?${query}`, { token: session.access_token });
+  },
+
+  // Health-data consent is separate from terms and privacy. It is asked at the nursing form, never silently.
+  async requestNursingVisit({ itemId, address, notes, consent, terms }) {
+    assertLiveWritesAllowed("طلب زيارة تمريض");
+    if (!Number.isInteger(Number(itemId))) throw new Error("اختر الخدمة.");
+    const a = String(address || "").trim();
+    if (a.length < 8) throw new Error("اكتب عنوان الزيارة بوضوح.");
+    if (terms !== true) throw new Error("لازم توافق على الشروط والخصوصية.");
+    if (consent !== true) throw new Error("لازم توافق على استخدام بياناتك الصحية لطلب التمريض.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    await this.acceptRequiredConsents();
+    await request("/rest/v1/rpc/accept_consent", { method: "POST", token: session.access_token, body: { p_kind: "health_data", p_version: HEALTH_CONSENT_VERSION } });
+    const rows = await request("/rest/v1/rpc/request_nursing_visit", {
+      method: "POST", token: session.access_token,
+      body: { p_item: Number(itemId), p_address: a, p_notes: String(notes || "").trim().slice(0, 300) || null, p_idempotency_key: crypto.randomUUID() }
+    });
+    if (!Array.isArray(rows) || rows.length !== 1) throw new Error("لم يتم إرسال الطلب.");
+    return rows[0];
   },
 
   async placeDeliveryRequest(pickup, dropoff, what) {
