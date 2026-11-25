@@ -182,7 +182,8 @@ test("merchant-kind draft: product orders need an approved active non-test merch
 
 test("food orders are labelled as restaurant orders in the order list", async () => {
   const js = await readFile(new URL("../src/main.js", import.meta.url), "utf8");
-  assert.match(js, /order\.product_category \|\| product\?\.category\) === "food" \? "المطعم" : sector/);
+  assert.match(js, /const cat = order\.product_category \|\| product\?\.category;/);
+  assert.match(js, /cat === "food" \? "المطعم" : cat === "supplies" \? "مستلزمات طبية" : sector/);
 });
 
 test("getMyOrders drops product_category and quote columns one by one on older schemas", async () => {
