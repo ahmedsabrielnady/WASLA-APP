@@ -129,7 +129,7 @@ function header() {
         ${authenticated && state.profile?.role === "customer" ? '<button class="nav-link" data-action="provider-invite">لديك دعوة مقدم خدمة؟</button>' : ""}
         ${authenticated
           ? `<button class="account-chip" data-action="account" title="الحساب">${icon(ICON_SVG.user)}<span>${escapeHTML(displayName)}</span></button><button class="btn btn-outline btn-small" data-action="logout">خروج</button>`
-          : '<button class="btn btn-primary btn-small" data-action="auth">دخول / حساب جديد</button>'}
+          : `<button class="btn btn-primary btn-small" data-action="auth">${CONFIG.isPublicPreview || CONFIG.isTestBackend ? "تسجيل الدخول" : "دخول / حساب جديد"}</button>`}
       </nav>
     </header>
   `;
