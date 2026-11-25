@@ -963,7 +963,7 @@ function deliverySection() {
       ${item.status === "new" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="customer-cancel-delivery" data-request-id="${escapeHTML(item.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>إلغاء الطلب قبل التعيين</button></div>` : ""}
     </article>`).join("");
   return `
-    <section class="page-panel delivery-panel">
+    <section class="page-panel delivery-panel" id="delivery-request">
       <div class="section-heading"><div><span class="eyebrow">توصيل</span><h2>اطلب توصيل</h2></div></div>
       <p>التوصيل مجاني للعميل. لا يتم تحصيل أي مبلغ داخل وصلة، والتنفيذ حسب توفر مندوب.</p>
       <form data-form="delivery-request" novalidate>
@@ -2130,7 +2130,8 @@ root.addEventListener("click", async (event) => {
       const customer = state.profile?.role === "customer";
       let plan = sectorEntryPlan({ code, signedIn: Boolean(state.user?.id), isCustomer: customer, present: new Set() });
       if (plan.kind === "services") {
-        (document.querySelector(`[data-sector-card="${code}"]`) || document.querySelector("#services"))?.scrollIntoView({ behavior: "smooth", block: "center" });
+        const card = document.querySelector(`[data-sector-card="${code}"]`) || document.querySelector("#services");
+        if (card) { card.style.scrollMarginTop = "110px"; card.scrollIntoView({ behavior: "smooth", block: "start" }); }
       } else if (plan.kind === "login") {
         showToast("سجّل دخولك الأول عشان تشوف المتاح في القطاع ده.", "info");
         openAuth("login");
@@ -2144,7 +2145,7 @@ root.addEventListener("click", async (event) => {
           const target = document.getElementById(plan.anchor);
           target.style.scrollMarginTop = "110px";
           target.scrollIntoView({ behavior: "smooth", block: "start" });
-          if (plan.delivery) showToast("التوصيل مجاني للعميل وبيتم مع طلبات الماركت والمطاعم. تتابعه من طلباتي.", "info");
+          if (plan.delivery) showToast("التوصيل مجاني للعميل. اطلب توصيل من هنا، وتتابعه من الأسفل.", "info");
           else if (!plan.exact) showToast("مواعيد العيادات لسه ما اتفعلتش. ده المتاح حاليًا في الصحة.", "info");
         } else {
           showToast("مفيش مقدمو خدمة معتمدون في القطاع ده دلوقتي. هنفعّله لما نعتمد مقدمي خدمة حقيقيين.", "info");
