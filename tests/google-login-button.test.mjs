@@ -36,3 +36,26 @@ test("name update is a conditional own-profile PATCH that never touches role", (
   assert.match(block, /full_name\.is\.null/);
   assert.doesNotMatch(block, /role/);
 });
+
+import { hasGoogleIdentity, shouldShowLinkGoogle } from "../src/auth-utils.js";
+
+test("Link Google shows only for signed-in users without a Google identity", () => {
+  const base = { googleEnabled: true, isPublicPreview: false };
+  assert.equal(shouldShowLinkGoogle({ ...base, user: { id: "u1", identities: [{ provider: "email" }] } }), true);
+  assert.equal(shouldShowLinkGoogle({ ...base, user: { id: "u1", identities: [{ provider: "email" }, { provider: "google" }] } }), false);
+  assert.equal(shouldShowLinkGoogle({ ...base, user: null }), false);
+  assert.equal(shouldShowLinkGoogle({ ...base, googleEnabled: false, user: { id: "u1", identities: [] } }), false);
+  assert.equal(shouldShowLinkGoogle({ ...base, isPublicPreview: true, user: { id: "u1", identities: [] } }), false);
+  assert.equal(hasGoogleIdentity({ identities: [{ provider: "google" }] }), true);
+});
+
+test("linkGoogle uses the signed-in token, PKCE and the identities endpoint, and never sends a password", () => {
+  const src = readFileSync(new URL("../src/supabase.js", import.meta.url), "utf8");
+  const block = src.slice(src.indexOf("async linkGoogle"), src.indexOf("async acceptOAuthFromUrl"));
+  assert.match(block, /\/auth\/v1\/user\/identities\/authorize/);
+  assert.match(block, /code_challenge_method: "s256"/);
+  assert.match(block, /token: session\.access_token/);
+  assert.doesNotMatch(block, /password/);
+  const main = readFileSync(new URL("../src/main.js", import.meta.url), "utf8");
+  assert.match(main, /action === "link-google"/);
+});
