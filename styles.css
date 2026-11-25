@@ -1139,3 +1139,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .health-panel, .education-panel, .delivery-panel { scroll-margin-top: 104px; }
 .health-panel form select, .health-panel form input[type=number] { max-width: 100%; box-sizing: border-box; }
 .health-panel form + form, .health-panel form + .orders-list { margin-top: 22px; }
+
+.change-requests { margin-top: 10px; display: grid; gap: 8px; }
+.change-request-form { display: grid; gap: 8px; }
+.change-request-form label { display: grid; gap: 4px; color: #61736a; font-size: 13px; font-weight: 800; }
+.change-request-form select, .change-request-form input { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid #c9d6d2; border-radius: 12px; background: #fff; font: inherit; box-sizing: border-box; }
+.change-request-form button { justify-self: start; }
