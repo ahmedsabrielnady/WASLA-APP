@@ -527,6 +527,12 @@ function merchantProductsSection() {
     <article class="order-card">
       <div class="order-card-top"><strong>${escapeHTML(p.name)}</strong><span class="status-pill">${p.active ? "ظاهر للعملاء" : "مخفي"}</span></div>
       <div class="order-meta"><span>${escapeHTML(PRODUCT_CATEGORY_LABELS[p.category] || p.category)} · المخزون ${escapeHTML(p.stock)}</span><strong>${escapeHTML(formatEGP(p.price_egp))}</strong></div>
+      <form data-form="product-edit" data-product-id="${escapeHTML(p.id)}" novalidate>
+        <label>الاسم<input name="name" maxlength="120" value="${escapeHTML(p.name)}" required></label>
+        <label>التصنيف<select name="category">${Object.entries(PRODUCT_CATEGORY_LABELS).map(([k, v]) => `<option value="${k}" ${k === p.category ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+        <label>السعر بالجنيه<input type="number" name="price" min="1" max="100000" value="${escapeHTML(p.price_egp)}" required></label>
+        <div class="order-card-actions"><button class="btn btn-outline btn-small" type="submit" ${disabled}>حفظ الاسم والسعر والتصنيف</button></div>
+      </form>
       <form data-form="product-stock" data-product-id="${escapeHTML(p.id)}" novalidate>
         <label>المخزون<input type="number" name="stock" min="0" max="10000" value="${escapeHTML(p.stock)}" required></label>
         <div class="order-card-actions"><button class="btn btn-outline btn-small" type="submit" ${disabled}>حفظ المخزون</button><button class="btn btn-outline btn-small" type="button" data-action="toggle-product" data-product-id="${escapeHTML(p.id)}" data-active="${p.active ? "no" : "yes"}" ${disabled}>${p.active ? "إخفاء" : "إظهار"}</button></div>
@@ -692,6 +698,25 @@ function storePanel(category, eyebrow, title, intro) {
     </section>`;
 }
 
+function nursingSection() {
+  if (!Array.isArray(state.nursingItems) || !state.nursingItems.length) return "";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const options = state.nursingItems.map((i) => `<option value="${escapeHTML(i.id)}">${escapeHTML(i.name)} - ${escapeHTML(formatEGP(i.price_egp))}</option>`).join("");
+  return `
+    <section class="page-panel health-panel" id="nursing">
+      <div class="section-heading"><div><span class="eyebrow">الصحة</span><h2>تمريض منزلي</h2></div></div>
+      <p class="deposit-note">الطلب يُراجع من فريق وصلة ويُسند لمقدم خدمة معتمد للتمريض فقط. المواعيد والإلغاء بيتم تأكيدها معاك مباشرة بعد التعيين. الدفع عند الزيارة.</p>
+      <form data-form="nursing-request" novalidate>
+        <label>الخدمة<select name="item" required>${options}</select></label>
+        <label>عنوان الزيارة<input name="address" maxlength="300" required></label>
+        <label>ملاحظات (اختياري)<input name="notes" maxlength="300"></label>
+        <label class="check-row"><input type="checkbox" name="terms" value="yes"><span>أوافق على <a href="./terms.html" target="_blank" rel="noopener">شروط الاستخدام (مسودة)</a> و<a href="./privacy.html" target="_blank" rel="noopener">سياسة الخصوصية (مسودة)</a>.</span></label>
+        <label class="check-row"><input type="checkbox" name="consent" value="yes"><span>أوافق على استخدام بياناتي الصحية لتنفيذ هذا الطلب فقط.</span></label>
+        <button class="btn btn-primary" type="submit" ${disabled}>أرسل طلب التمريض</button>
+      </form>
+    </section>`;
+}
+
 function storeSection() {
   return storePanel("market", "الماركت", "اطلب من الماركت", "منتجات البقالة واحتياجات البيت.")
     + storePanel("food", "المطاعم", "اطلب وجبة", "وجبات من مطاعم شبين القناطر.")
@@ -750,6 +775,7 @@ function ordersView() {
     ${educationSection()}
     ${courseCatalogueSection()}
     ${labPriceSection()}
+    ${nursingSection()}
     ${prescriptionSection()}
     ${medicalNotesSection()}
     ${deliverySection()}
@@ -1143,6 +1169,7 @@ async function refreshMyOrders() {
     try { state.sessions = await dataApi.getSessions(); state.enrollments = await dataApi.getMyEnrollments(); } catch { state.sessions = null; state.enrollments = null; }
     await loadMedicalNotes();
     await loadCourses();
+    try { state.nursingItems = await dataApi.getNursingItems(); } catch { state.nursingItems = null; }
     try { state.labTests = await dataApi.getLabTests(); state.prescriptions = await dataApi.getMyPrescriptions(); state.pharmacies = state.prescriptions ? await dataApi.getPharmacies() : null; const leftover = await dataApi.retryPendingFileCleanups(); if (leftover) showToast("ملف مرفوع من طلب فاشل لم يُحذف بعد. سنعيد المحاولة عند فتح التطبيق.", "error"); } catch { state.labTests = null; state.prescriptions = null; state.pharmacies = null; }
     if (!state.clinicDay) state.clinicDay = cairoDay(1);
     state.view = "orders";
@@ -1870,6 +1897,28 @@ root.addEventListener("submit", async (event) => {
         await dataApi.saveProduct({ name: data.get("name"), category: data.get("category"), price: data.get("price"), stock: data.get("stock") });
         await loadHealthWork();
         showToast("تمت إضافة المنتج.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "product-edit") {
+      if (CONFIG.isPublicPreview) throw new Error("التعديل متوقف في نسخة المعاينة.");
+      const data = new FormData(form);
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.updateProduct(form.dataset.productId, { name: data.get("name"), price: data.get("price"), category: data.get("category") });
+        await loadHealthWork();
+        showToast("تم حفظ بيانات المنتج.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "nursing-request") {
+      if (CONFIG.isPublicPreview) throw new Error("الطلب متوقف في نسخة المعاينة.");
+      const data = new FormData(form);
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.requestNursingVisit({ itemId: data.get("item"), address: data.get("address"), notes: data.get("notes"), consent: data.get("consent") === "yes", terms: data.get("terms") === "yes" });
+        state.myOrders = await dataApi.getMyOrders(state.user?.id);
+        showToast("تم إرسال طلب التمريض. هيتم تعيين ممرض معتمد وتأكيد الموعد معاك.", "success");
       });
       render();
     }
