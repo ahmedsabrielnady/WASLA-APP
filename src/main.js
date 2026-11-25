@@ -29,6 +29,7 @@ const state = {
   pendingAddress: "",
   search: "",
   myOrders: [],
+  nursingTimeRetry: null,
   deliveries: null,
   doctors: null,
   sessions: null,
@@ -711,7 +712,10 @@ function nursingSection() {
     <section class="page-panel health-panel" id="nursing">
       <div class="section-heading"><div><span class="eyebrow">الصحة</span><h2>تمريض منزلي</h2></div></div>
       <p class="deposit-note">الطلب يُراجع من فريق وصلة ويُسند لمقدم خدمة معتمد للتمريض فقط. المواعيد والإلغاء بيتم تأكيدها معاك مباشرة بعد التعيين. الدفع عند الزيارة.</p>
-      <form data-form="nursing-request" novalidate>
+      ${state.nursingTimeRetry ? `<div class="deposit-note" role="alert"><strong>طلبك ${escapeHTML(state.nursingTimeRetry.ref || "")} اتسجل، لكن الموعد المقترح ما اتحفظش.</strong> متبعتش الطلب تاني. اختار الموعد من هنا، أو اتخطاه وفريق وصلة هيتواصل معاك.
+        <form data-form="nursing-time-retry" novalidate><label>الموعد المقترح (مقترح فقط)<input type="datetime-local" name="preferred_at" required></label>
+        <button class="btn btn-primary" type="submit" ${disabled}>احفظ الموعد المقترح</button> <button class="btn btn-outline" type="button" data-action="nursing-time-skip">تخطي</button></form></div>` : ""}
+      <form data-form="nursing-request" novalidate ${state.nursingTimeRetry ? 'hidden aria-hidden="true"' : ""}>
         <label>الخدمة<select name="item" required>${options}</select></label>
         <label>عنوان الزيارة<input name="address" maxlength="300" required></label>
         <label>ملاحظات (اختياري)<input name="notes" maxlength="300"></label>
@@ -1446,6 +1450,7 @@ async function submitOrder(form) {
     } catch {
       ordersReloaded = false;
       state.myOrders = [];
+      state.nursingTimeRetry = null;
       state.trackingOrderId = "";
       state.trackingLoadingId = "";
       state.orderTracking = null;
@@ -1502,6 +1507,7 @@ root.addEventListener("click", async (event) => {
       await authApi.signOut();
       state.user = state.profile = state.session = null;
       state.myOrders = [];
+      state.nursingTimeRetry = null;
       state.trackingOrderId = "";
       state.trackingLoadingId = "";
       state.orderTracking = null;
@@ -1661,6 +1667,9 @@ root.addEventListener("click", async (event) => {
         state.deliveries = await dataApi.getMyDeliveries();
         showToast("تم إلغاء طلب التوصيل.", "success");
       });
+      render();
+    } else if (action === "nursing-time-skip") {
+      state.nursingTimeRetry = null;
       render();
     } else if (action === "customer-cancel-order") {
       if (!state.user?.id) throw new Error("سجل الدخول لإلغاء الطلب.");
@@ -1925,6 +1934,20 @@ root.addEventListener("submit", async (event) => {
       });
       render();
     }
+    if (form.dataset.form === "nursing-time-retry") {
+      if (CONFIG.isPublicPreview) throw new Error("الطلب متوقف في نسخة المعاينة.");
+      const pending = state.nursingTimeRetry;
+      if (!pending) return;
+      const data = new FormData(form);
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.setNursingPreferredTime({ orderId: pending.orderId, value: data.get("preferred_at") });
+        state.nursingTimeRetry = null;
+        state.myOrders = await dataApi.getMyOrders(state.user?.id);
+        showToast("تم حفظ الموعد المقترح. هيتأكد من فريق وصلة.", "success");
+      });
+      render();
+    }
     if (form.dataset.form === "nursing-request") {
       if (CONFIG.isPublicPreview) throw new Error("الطلب متوقف في نسخة المعاينة.");
       const data = new FormData(form);
@@ -1933,6 +1956,7 @@ root.addEventListener("submit", async (event) => {
         const sent = await dataApi.requestNursingVisit({ itemId: data.get("item"), address: data.get("address"), notes: data.get("notes"), consent: data.get("consent") === "yes", terms: data.get("terms") === "yes", preferredAt: data.get("preferred_at") || null });
         state.myOrders = await dataApi.getMyOrders(state.user?.id);
         if (sent && sent.preferredTimeSaved === false) {
+          state.nursingTimeRetry = { orderId: sent.out_order_id, ref: sent.out_ref };
           showToast("تم إرسال طلب التمريض لكن الموعد المقترح ما اتحفظش. متبعتش الطلب تاني، فريق وصلة هيتواصل معاك لتحديد الموعد.", "error");
         } else {
           showToast("تم إرسال طلب التمريض. هيتم تعيين ممرض معتمد وتأكيد الموعد معاك.", "success");
