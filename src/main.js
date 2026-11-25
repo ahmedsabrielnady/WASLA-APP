@@ -1,6 +1,6 @@
 import { CONFIG } from "./config.js";
 import { isPhoneAliasSignupReady, resolveAuthIdentifier } from "./auth-utils.js";
-import { SECTORS, sectorIconSvg, ICON_SVG, sectorEntryPlan, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, runWithBusyState, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
+import { SECTORS, stripPictographs, sectorIconSvg, ICON_SVG, sectorEntryPlan, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, runWithBusyState, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
 import { authApi, dataApi } from "./supabase.js";
 import { pushConfigured, pushSupported, enablePush, disablePush } from "./push.js";
 import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
@@ -94,7 +94,7 @@ function showToast(message, kind = "info") {
 function offerTicker() {
   const hasPublishedOffers = state.offers.length > 0;
   const messages = hasPublishedOffers
-    ? state.offers.map((offer) => offer.text)
+    ? state.offers.map((offer) => stripPictographs(offer.text)).filter(Boolean)
     : ["وصلة تجمع خدماتك المحلية في مكان واحد", "خدمات شبين القناطر أقرب وأسهل مع وصلة"];
 
   const text = messages.map((message) => escapeHTML(message)).join("　　•　　");
@@ -1081,14 +1081,16 @@ function roadmapView() {
 }
 
 function authModal() {
-  const register = state.authMode === "register";
+  // Signup is closed on the isolated test backend and on preview hosts: no registration copy or switch to it.
+  const signupClosed = CONFIG.isPublicPreview || CONFIG.isTestBackend;
+  const register = state.authMode === "register" && !signupClosed;
   return `
     <div class="modal-backdrop" data-action="backdrop">
       <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
         <button class="modal-close" data-action="close-modal" aria-label="إغلاق">×</button>
         <span class="eyebrow">حساب وصلة</span>
         <h2 id="auth-title">${register ? "إنشاء حساب جديد" : "مرحبًا بعودتك"}</h2>
-        <p class="modal-subtitle">${register ? "استخدم رقم موبايلك أو بريدك الإلكتروني لإنشاء الحساب." : "ادخل برقم الموبايل أو البريد الإلكتروني وكلمة المرور."}</p>
+        <p class="modal-subtitle">${register ? "استخدم رقم موبايلك أو بريدك الإلكتروني لإنشاء الحساب." : signupClosed ? "الدخول متاح بحسابات الاختبار فقط في هذه النسخة." : "ادخل برقم الموبايل أو البريد الإلكتروني وكلمة المرور."}</p>
         <form data-form="auth" novalidate>
           ${register ? `
             <label>الاسم بالكامل<input name="full_name" required minlength="2" maxlength="60" autocomplete="name" placeholder="الاسم بالكامل"></label>
@@ -1104,11 +1106,11 @@ function authModal() {
           ` : ""}
           <button class="btn btn-primary btn-block" type="submit" ${state.busy ? "disabled" : ""}>${state.busy ? "جارٍ التنفيذ..." : (register ? "إنشاء الحساب" : "تسجيل الدخول")}</button>
         </form>
-        ${!register && !CONFIG.isPublicPreview ? '<button class="switch-auth" data-action="forgot-password">استعادة حساب البريد الإلكتروني</button>' : ""}
-        ${!CONFIG.isPublicPreview && state.googleAuthEnabled ? '<button class="btn btn-outline btn-block" type="button" data-action="google-auth">المتابعة باستخدام Google</button>' : ""}
-        <p class="form-footnote">${state.phoneAuthReady ? "الدخول وإنشاء الحساب برقم الهاتف وكلمة مرور دون SMS. لا يمكن استعادة الحساب عبر الرقم وحده دون وسيلة موثقة." : "يمكنك الدخول برقم الهاتف للحسابات الموجودة دون SMS. تسجيل حساب جديد برقم الهاتف يحتاج إعدادًا إضافيًا؛ استخدم بريدًا إلكترونيًا حقيقيًا للتسجيل."}</p>
-        ${CONFIG.isPublicPreview
-          ? '<p class="form-footnote preview-auth-note">إنشاء الحسابات متوقف في نسخة المعاينة لحماية قاعدة البيانات الحية.</p>'
+        ${!register && !signupClosed ? '<button class="switch-auth" data-action="forgot-password">استعادة حساب البريد الإلكتروني</button>' : ""}
+        ${!signupClosed && state.googleAuthEnabled ? '<button class="btn btn-outline btn-block" type="button" data-action="google-auth">المتابعة باستخدام Google</button>' : ""}
+        ${signupClosed ? "" : `<p class="form-footnote">${state.phoneAuthReady ? "الدخول وإنشاء الحساب برقم الهاتف وكلمة مرور دون SMS. لا يمكن استعادة الحساب عبر الرقم وحده دون وسيلة موثقة." : "يمكنك الدخول برقم الهاتف للحسابات الموجودة دون SMS. تسجيل حساب جديد برقم الهاتف يحتاج إعدادًا إضافيًا؛ استخدم بريدًا إلكترونيًا حقيقيًا للتسجيل."}</p>`}
+        ${signupClosed
+          ? `<p class="form-footnote preview-auth-note">${CONFIG.isPublicPreview ? "إنشاء الحسابات متوقف في نسخة المعاينة لحماية قاعدة البيانات الحية." : "إنشاء الحسابات متوقف في بيئة الاختبار. الدخول بحسابات الاختبار فقط."}</p>`
           : `<button class="switch-auth" data-action="switch-auth">${register ? "لديك حساب بالفعل؟ تسجيل الدخول" : "ليس لديك حساب؟ إنشاء حساب جديد"}</button>`}
       </section>
     </div>
