@@ -2246,6 +2246,21 @@ root.addEventListener("submit", async (event) => {
       });
       render();
     }
+    if (form.dataset.form === "operations-schedule") {
+      if (CONFIG.isPublicPreview) throw new Error("التعديل متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بتحديد الموعد.");
+      const data = new FormData(form);
+      state.operationsSaving = true;
+      render();
+      try {
+        await dataApi.staffScheduleOrder({ orderId: form.dataset.orderId, value: data.get("scheduled_at") });
+        showToast("تم تحديد الموعد المؤكد.", "success");
+        await refreshOperations();
+      } finally {
+        state.operationsSaving = false;
+        render();
+      }
+    }
     if (form.dataset.form === "operations-assign") {
       if (CONFIG.isPublicPreview) throw new Error("التعيين متوقف في نسخة المعاينة.");
       if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح بتعيين مقدم الخدمة.");
