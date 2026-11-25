@@ -844,6 +844,81 @@ export const dataApi = {
     return request("/rest/v1/rpc/cancel_enrollment", { method: "POST", token: session.access_token, body: { p_enrollment: enrollmentId } });
   },
 
+  async getLabTests() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const query = new URLSearchParams({ select: "id,kind,name,price_egp,provider:providers(display_name)", active: "eq.true", order: "kind.asc,name.asc", limit: "100" });
+    try {
+      return await request(`/rest/v1/lab_tests?${query}`, { token: session.access_token });
+    } catch (error) {
+      if (/lab_tests|schema cache|relation/i.test(String(error?.message))) return null;
+      throw error;
+    }
+  },
+
+  async getPharmacies() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    try {
+      return await request("/rest/v1/rpc/list_pharmacies", { method: "POST", token: session.access_token, body: {} });
+    } catch (error) {
+      if (/list_pharmacies|schema cache/i.test(String(error?.message))) return null;
+      throw error;
+    }
+  },
+
+  async getMyPrescriptions() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const query = new URLSearchParams({
+      select: "id,note,status,expires_at,created_at,attachment_path,quotes:prescription_quotes(id,price_egp,note,delivery_available,eta_minutes,pharmacy:providers(display_name))",
+      status: "neq.closed", order: "created_at.desc", limit: "20"
+    });
+    try {
+      return await request(`/rest/v1/prescription_requests?${query}`, { token: session.access_token });
+    } catch (error) {
+      if (/prescription_requests|schema cache|relation/i.test(String(error?.message))) return null;
+      throw error;
+    }
+  },
+
+  async submitPrescription(values) {
+    assertLiveWritesAllowed("إرسال روشتة");
+    const note = String(values?.note || "").trim();
+    const pharmacies = [...new Set(values?.pharmacies || [])];
+    const file = values?.file && values.file.size ? values.file : null;
+    if (note.length < 5) throw new Error("اكتب أسماء الأدوية (5 حروف على الأقل).");
+    if (pharmacies.length < 1 || pharmacies.length > 5) throw new Error("اختر من صيدلية إلى 5 صيدليات.");
+    if (values?.consent !== true) throw new Error("وافق على مشاركة الروشتة مع الصيدليات المختارة.");
+    const types = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "application/pdf": "pdf" };
+    if (file && (!types[file.type] || file.size > 5 * 1024 * 1024)) throw new Error("الملف صورة JPG أو PNG أو WebP أو PDF بحد أقصى 5 ميجا.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const token = session.access_token;
+    const id = await request("/rest/v1/rpc/submit_prescription_request", { method: "POST", token, body: { p_note: note } });
+    try {
+      if (file) {
+        const path = `${id}/rx-${Date.now()}.${types[file.type]}`;
+        const upload = await fetch(`${API_ROOT}/storage/v1/object/prescriptions/${path}`, { method: "POST", headers: { apikey: CONFIG.supabasePublishableKey, Authorization: `Bearer ${token}`, "Content-Type": file.type }, body: file });
+        if (!upload.ok) throw new Error("تعذر رفع الملف.");
+        await request("/rest/v1/rpc/attach_prescription_file", { method: "POST", token, body: { p_request: id, p_path: path } });
+      }
+      await request("/rest/v1/rpc/rx_set_audience", { method: "POST", token, body: { p_request: id, p_pharmacies: pharmacies, p_consent: true } });
+    } catch (error) {
+      try { await request("/rest/v1/rpc/customer_close_prescription_request", { method: "POST", token, body: { p_request: id } }); } catch { /* best effort */ }
+      throw error;
+    }
+    return id;
+  },
+
+  async closePrescription(requestId) {
+    assertLiveWritesAllowed("إغلاق الطلب");
+    if (!requestId) throw new Error("اختر الطلب.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/customer_close_prescription_request", { method: "POST", token: session.access_token, body: { p_request: requestId } });
+  },
+
   async teacherCreateSession(values) {
     assertLiveWritesAllowed("إنشاء حصة");
     const title = String(values?.title || "").trim(), subject = String(values?.subject || "").trim();
