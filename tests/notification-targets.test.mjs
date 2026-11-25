@@ -24,3 +24,13 @@ test("labels come from the user's own loaded data, never from the notification p
   assert.match(main, /function notificationTargetLabel\(n\)/);
   assert.doesNotMatch(main, /n\.label|n\.title|n\.body/);
 });
+
+test("a notice whose source data is unavailable keeps an opaque non-clinical reference from the id", () => {
+  assert.match(main, /const opaque = n\.ref_id \? `#\$\{String\(n\.ref_id\)\.slice\(0, 4\)\.toUpperCase\(\)\}` : ""/);
+  assert.match(main, /targetLabel \|\| \(targetType \? opaque : ""\)/);
+});
+
+test("the registrations list shows only booked enrollments with a readable session", () => {
+  assert.match(main, /const liveEnrollments = \(state\.enrollments \|\| \[\]\)\.filter\(\(e\) => e\.status === "booked" && e\.session\?\.title\)/);
+  assert.match(main, /const mine = liveEnrollments\.map/);
+});
