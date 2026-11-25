@@ -1145,3 +1145,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .change-request-form label { display: grid; gap: 4px; color: #61736a; font-size: 13px; font-weight: 800; }
 .change-request-form select, .change-request-form input { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid #c9d6d2; border-radius: 12px; background: #fff; font: inherit; box-sizing: border-box; }
 .change-request-form button { justify-self: start; }
+
+.badge-count { display: inline-block; margin-inline-start: 8px; padding: 2px 10px; border-radius: 999px; background: #0a8f63; color: #fff; font-size: 13px; vertical-align: middle; }
+.notification-unread { border-inline-start: 4px solid #0a8f63; }
