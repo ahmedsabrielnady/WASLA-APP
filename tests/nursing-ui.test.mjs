@@ -110,3 +110,15 @@ test("nursing time: preferred time is labelled as a proposal and the agreed time
   assert.match(api, /preferredTimeSaved: false/);
   assert.doesNotMatch(main, /رسوم إلغاء|غرامة/);
 });
+
+test("staff scheduling: only open nursing orders get the form, the patient's time is shown as a proposal, input is Cairo-checked", () => {
+  const ops = readFileSync(new URL("../src/operations.js", import.meta.url), "utf8");
+  const api = readFileSync(new URL("../src/supabase.js", import.meta.url), "utf8");
+  assert.match(ops, /order\.sector === "nursing" && \["new", "confirmed"\]\.includes\(order\.status\)/);
+  assert.match(ops, /الموعد المقترح من المريض:[^`]*\(مقترح فقط\)/);
+  assert.match(ops, /الموعد المؤكد:/);
+  assert.match(main, /operations-schedule/);
+  assert.match(api, /staff_schedule_order/);
+  assert.match(api, /resolveCairoLocal\(value\)[\s\S]*staff_schedule_order/);
+  assert.match(api, /preferred_at/);
+});
