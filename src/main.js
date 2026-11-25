@@ -1,6 +1,6 @@
 import { CONFIG } from "./config.js";
 import { isPhoneAliasSignupReady, resolveAuthIdentifier } from "./auth-utils.js";
-import { SECTORS, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, runWithBusyState, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
+import { SECTORS, sectorIconSvg, ICON_SVG, sectorEntryPlan, canRequestService, filterOrderableServices, escapeHTML, formatDate, formatEGP, isEgyptianPhone, isValidAddress, isValidCoordinates, runWithBusyState, sectorLabel, statusLabel, validateRoadmapUpdate } from "./domain.js";
 import { authApi, dataApi } from "./supabase.js";
 import { pushConfigured, pushSupported, enablePush, disablePush } from "./push.js";
 import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
@@ -77,8 +77,8 @@ const state = {
   providerSaving: false
 };
 
-function icon(text) {
-  return `<span class="icon" aria-hidden="true">${text}</span>`;
+function icon(html) {
+  return `<span class="icon" aria-hidden="true">${html}</span>`;
 }
 
 function showToast(message, kind = "info") {
@@ -97,7 +97,7 @@ function offerTicker() {
     ? state.offers.map((offer) => offer.text)
     : ["وصلة تجمع خدماتك المحلية في مكان واحد", "خدمات شبين القناطر أقرب وأسهل مع وصلة"];
 
-  const text = messages.map((message) => escapeHTML(message)).join("　　✦　　");
+  const text = messages.map((message) => escapeHTML(message)).join("　　•　　");
   const note = hasPublishedOffers
     ? "الإعلانات نصوص منشورة من لوحة المنصة؛ لا يُحتسب خصم تلقائي قبل تفعيل محرك العروض."
     : "لا توجد عروض منشورة حاليًا؛ الرسائل المعروضة تعريفية فقط.";
@@ -128,11 +128,23 @@ function header() {
         ${isProvider ? '<button class="nav-link" data-action="provider">طلبات مقدم الخدمة</button>' : ""}
         ${authenticated && state.profile?.role === "customer" ? '<button class="nav-link" data-action="provider-invite">لديك دعوة مقدم خدمة؟</button>' : ""}
         ${authenticated
-          ? `<button class="account-chip" data-action="account" title="الحساب">${icon("👤")}<span>${escapeHTML(displayName)}</span></button><button class="btn btn-outline btn-small" data-action="logout">خروج</button>`
+          ? `<button class="account-chip" data-action="account" title="الحساب">${icon(ICON_SVG.user)}<span>${escapeHTML(displayName)}</span></button><button class="btn btn-outline btn-small" data-action="logout">خروج</button>`
           : '<button class="btn btn-primary btn-small" data-action="auth">دخول / حساب جديد</button>'}
       </nav>
     </header>
   `;
+}
+
+function sectorHasLiveData(code) {
+  const has = (list) => (Array.isArray(list) ? list.length > 0 : null);
+  const cat = (c) => (Array.isArray(state.products) ? state.products.some((p) => (p.category || "market") === c) : null);
+  if (code === "clinic") return has(state.doctors);
+  if (code === "nursing") return has(state.nursingItems);
+  if (code === "food") return cat("food");
+  if (code === "market") return cat("market");
+  if (code === "education") return has(state.sessions);
+  if (code === "delivery") return cat("market") === null ? null : (cat("market") || cat("food"));
+  return null;
 }
 
 function sectorCards() {
@@ -144,18 +156,25 @@ function sectorCards() {
     if (sector.mode === "order") {
       badge = count ? `${count} خدمات متاحة للطلب` : "قريبًا";
       if (!count && sector.code === "car") detail = "نفعّل خدمات السيارات بعد اعتماد مقدم خدمة متخصص";
-    } else if (sector.mode === "review") {
-      badge = "قيد استكمال التشغيل";
-      detail = sector.code === "clinic"
-        ? "لن نعرض مواعيد قبل اعتماد جداول العيادات"
-        : sector.code === "nursing"
-          ? "التفعيل بعد مراجعة الخصوصية ومتطلبات التعامل مع البيانات الصحية"
-          : "تفعيل التوصيل والتتبع بعد تجهيز دورة الشحنات";
+    } else {
+      if (sector.mode === "review") {
+        detail = sector.code === "clinic"
+          ? "لن نعرض مواعيد قبل اعتماد جداول العيادات"
+          : sector.code === "nursing"
+            ? "التفعيل بعد مراجعة الخصوصية ومتطلبات التعامل مع البيانات الصحية"
+            : "التوصيل مجاني للعميل ويتم مع طلبات الماركت والمطاعم";
+      }
+      if (!state.user?.id) badge = "سجّل دخولك لمعرفة المتاح";
+      else {
+        const live = sectorHasLiveData(sector.code);
+        badge = live === true ? "افتح القسم" : live === false ? "لا يوجد مقدمو خدمة معتمدون بعد" : "افتح لمعرفة المتاح";
+      }
     }
 
+    const soonStyle = sector.mode === "order" ? !count : state.user?.id ? sectorHasLiveData(sector.code) === false : true;
     return `
-      <button class="sector-card ${sector.mode === "soon" || (sector.mode === "order" && !count) ? "is-soon" : ""}" ${sector.mode === "order" && !count ? "disabled" : ""} data-action="sector" data-sector="${sector.code}">
-        <span class="sector-icon">${sector.icon}</span>
+      <button class="sector-card ${soonStyle ? "is-soon" : ""}" ${sector.mode === "order" && !count ? "disabled" : ""} data-action="sector" data-sector="${sector.code}">
+        <span class="sector-icon">${sectorIconSvg(sector.code)}</span>
         <strong>${escapeHTML(sector.title)}</strong>
         <span class="sector-description">${escapeHTML(detail)}</span>
         <span class="sector-badge">${escapeHTML(badge)}</span>
@@ -187,7 +206,7 @@ function serviceCards() {
 
   return filtered.map((item) => {
     const canOrder = canRequestService(item);
-    const iconBySector = SECTORS.find((sector) => sector.code === item.sector)?.icon ?? "✦";
+    const iconBySector = sectorIconSvg(item.sector);
     const action = canOrder ? "request-service" : (item.sector === "clinic" ? "clinic-info" : "coming-soon");
     const buttonText = canOrder ? "اطلب الخدمة" : (item.sector === "clinic" ? "الحجز قيد التجهيز" : "قريبًا");
     const price = formatEGP(item.price_egp);
@@ -226,9 +245,9 @@ function homeView() {
       <div class="hero-art" aria-hidden="true">
         <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
         <div class="hero-logo"><span class="hero-monogram">W</span><span class="hero-wordmark">WASLA</span><span class="hero-arabic">كل اللي محتاجه، قريب منك.</span></div>
-        <span class="float-icon float-one">🩺</span><span class="float-icon float-two">🚗</span><span class="float-icon float-three">🧰</span>
+        <span class="float-icon float-one">${ICON_SVG.clinic}</span><span class="float-icon float-two">${ICON_SVG.car}</span><span class="float-icon float-three">${ICON_SVG.maintenance}</span>
       </div>
-      <div class="hero-location">📍 شبين القناطر · القليوبية</div>
+      <div class="hero-location">${ICON_SVG.pin} شبين القناطر · القليوبية</div>
     </section>
 
     ${offerTicker()}
@@ -311,7 +330,7 @@ function orderCard(order) {
       ${order.preferred_at && !order.scheduled_at ? `<div class="order-meta"><span>الموعد المقترح منك: ${escapeHTML(formatAppointment(order.preferred_at))} (مقترح فقط، لسه متأكدش)</span></div>` : ""}
       ${order.status === "quoted" ? `<div class="quote-box"><strong>عرض سعر: ${escapeHTML(formatEGP(order.quote_price_egp))}</strong><p>هذا السعر المقترح من فريق وصلة. لن يبدأ التنفيذ ولن يُسجل أي التزام إلا بعد موافقتك. لا يتم تحصيل أي مبلغ داخل وصلة.</p><div class="order-card-actions"><button class="btn btn-primary btn-small" data-action="respond-quote" data-decision="accept" data-order-id="${escapeHTML(order.id)}" data-version="${escapeHTML(order.quote_version)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>أوافق على السعر</button><button class="btn btn-outline btn-small" data-action="respond-quote" data-decision="decline" data-order-id="${escapeHTML(order.id)}" data-version="${escapeHTML(order.quote_version)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>أرفض وألغي الطلب</button></div></div>` : ""}
       ${Number(order.deposit_egp) > 0 ? `<p class="deposit-note">عربون مسجل: ${escapeHTML(formatEGP(order.deposit_egp))} · ${order.deposit_paid ? "مدفوع" : "غير مسدد"}</p>` : ""}
-      ${order.lat != null && order.lng != null && Number.isFinite(Number(order.lat)) && Number.isFinite(Number(order.lng)) ? '<p class="location-note">📍 تم تسجيل إحداثيات موقع التنفيذ</p>' : ""}
+      ${order.lat != null && order.lng != null && Number.isFinite(Number(order.lat)) && Number.isFinite(Number(order.lng)) ? `<p class="location-note">${ICON_SVG.pin} تم تسجيل إحداثيات موقع التنفيذ</p>` : ""}
       ${changeRequestPanel(order)}
       <div class="order-card-actions">
         <button class="btn btn-outline btn-small" data-action="track-order" data-order-id="${escapeHTML(order.id)}" ${state.trackingLoadingId === order.id ? "disabled" : ""}>${state.trackingOrderId === order.id ? "إخفاء التفاصيل" : "متابعة الطلب"}</button>
@@ -1162,7 +1181,7 @@ function orderModal() {
         <h2 id="order-title">طلب خدمة: ${escapeHTML(item.name)}</h2>
         <p class="modal-subtitle">السعر المعروض من قاعدة البيانات: <strong>${escapeHTML(formatEGP(item.price_egp))}</strong></p>
         <form data-form="order" novalidate>
-          <button class="btn btn-outline btn-block location-button" type="button" data-action="get-location" ${state.busy ? "disabled" : ""}>📍 استخدم موقعي الحالي</button>
+          <button class="btn btn-outline btn-block location-button" type="button" data-action="get-location" ${state.busy ? "disabled" : ""}>${ICON_SVG.pin} استخدم موقعي الحالي</button>
           <p class="location-help">${state.pendingLocation
             ? `تم تحديد موقعك بدقة تقريبية ${Math.round(state.pendingLocation.accuracy)} متر. يمكنك تعديل العنوان.`
             : "يمكنك استخدام GPS لتسجيل موقع تنفيذ الخدمة دون كتابة عنوان تفصيلي."}</p>
@@ -2098,11 +2117,29 @@ root.addEventListener("click", async (event) => {
     } else if (action === "coming-soon") {
       showToast("هذا القطاع لم يكتمل تشغيله بعد.", "info");
     } else if (action === "sector") {
-      const sector = SECTORS.find((entry) => entry.code === button.dataset.sector);
-      if (sector?.mode === "soon") {
-        showToast("هذا القطاع قيد التجهيز وسيظهر عند توفر مقدمي خدمة فعليين.", "info");
-      } else {
+      const code = button.dataset.sector;
+      const customer = state.profile?.role === "customer";
+      let plan = sectorEntryPlan({ code, signedIn: Boolean(state.user?.id), isCustomer: customer, present: new Set() });
+      if (plan.kind === "services") {
         document.querySelector("#services")?.scrollIntoView({ behavior: "smooth" });
+      } else if (plan.kind === "login") {
+        showToast("سجّل دخولك الأول عشان تشوف المتاح في القطاع ده.", "info");
+        openAuth("login");
+      } else if (plan.kind === "customer-only") {
+        showToast("أقسام الخدمات دي بتظهر لحسابات العملاء.", "info");
+      } else {
+        if (state.view !== "orders") await refreshMyOrders();
+        const present = new Set([...document.querySelectorAll("section[id], div[id]")].map((el) => el.id));
+        plan = sectorEntryPlan({ code, signedIn: true, isCustomer: customer, present });
+        if (plan.kind === "scroll") {
+          const target = document.getElementById(plan.anchor);
+          target.style.scrollMarginTop = "110px";
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+          if (plan.delivery) showToast("التوصيل مجاني للعميل وبيتم مع طلبات الماركت والمطاعم. تتابعه من طلباتي.", "info");
+          else if (!plan.exact) showToast("مواعيد العيادات لسه ما اتفعلتش. ده المتاح حاليًا في الصحة.", "info");
+        } else {
+          showToast("مفيش مقدمو خدمة معتمدون في القطاع ده دلوقتي. هنفعّله لما نعتمد مقدمي خدمة حقيقيين.", "info");
+        }
       }
     } else if (action === "reload") {
       await loadCatalog();
