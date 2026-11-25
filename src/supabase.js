@@ -504,15 +504,27 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول لعرض لوحة التشغيل.");
 
-    const query = new URLSearchParams({
-      select: "id,ref,sector,status,price_egp,deposit_egp,deposit_paid,created_at,updated_at,scheduled_at,address,provider_id,item_id,product_id,quantity",
-      order: "created_at.desc",
-      limit: "50"
-    });
+    const build = (select) => new URLSearchParams({ select, order: "created_at.desc", limit: "50" });
+    const base = "id,ref,sector,status,price_egp,deposit_egp,deposit_paid,created_at,updated_at,scheduled_at,address,provider_id,item_id,product_id,quantity";
+    try {
+      return await request(`/rest/v1/orders?${build(base + ",preferred_at")}`, { token: session.access_token });
+    } catch (error) {
+      if (!/preferred_at/.test(String(error?.message))) throw error;
+      return request(`/rest/v1/orders?${build(base)}`, { token: session.access_token });
+    }
+  },
 
-    return request(`/rest/v1/orders?${query}`, {
-      token: session.access_token
-    });
+  // Staff fix the agreed visit time. The server only accepts open nursing orders; the time is read as Cairo wall-clock time.
+  async staffScheduleOrder({ orderId, value }) {
+    assertLiveWritesAllowed("تحديد موعد الزيارة");
+    const r = resolveCairoLocal(value);
+    if (r.status === "gap") throw new Error("الوقت ده مش موجود بسبب تغيير الساعة. اختار وقت تاني.");
+    if (r.status === "ambiguous") throw new Error("الوقت ده بيتكرر بسبب تغيير الساعة. اختار وقت تاني.");
+    if (r.status !== "ok") throw new Error("الموعد غير صالح.");
+    if (r.date.getTime() < Date.now() || r.date.getTime() > Date.now() + 60 * 86400000) throw new Error("الموعد لازم يكون في المستقبل وخلال ٦٠ يوم.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    await request("/rest/v1/rpc/staff_schedule_order", { method: "POST", token: session.access_token, body: { p_order: orderId, p_at: r.date.toISOString() } });
   },
 
   async getOperationsProviders() {
