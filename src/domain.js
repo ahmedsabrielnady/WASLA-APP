@@ -193,9 +193,21 @@ export function validateRoadmapUpdate(status, progressPercent, testStatus) {
  */
 const APPROVED_WRITE_HOSTS = new Set(["wasla-app-gg2f.vercel.app"]);
 
-export function isPreviewHost(hostname) {
+const PRODUCTION_BACKEND = "https://yfgvimcqbtthnrbzbhft.supabase.co";
+export const TEST_BACKEND = "https://mekeirlgmergmzsdkaon.supabase.co";
+/**
+ * Isolated test preview. The test backend may be written from exactly one
+ * host: the Cloudflare Pages project host that serves the dev branch (per-deployment hosts stay read-only). Empty means no host may write (fail closed).
+ * Only that alias is switched to the test backend (see config.js); every other host keeps the production backend and the production rule above.
+ */
+export const TEST_WRITE_HOST = "wasla-app-d5v.pages.dev";
+
+export function isPreviewHost(hostname, backendUrl = PRODUCTION_BACKEND) {
   const host = String(hostname ?? "").trim().toLowerCase();
-  return !APPROVED_WRITE_HOSTS.has(host);
+  const backend = String(backendUrl ?? "").trim().replace(/\/+$/, "");
+  if (backend === TEST_BACKEND) return !TEST_WRITE_HOST || host !== TEST_WRITE_HOST;
+  if (backend === PRODUCTION_BACKEND) return !APPROVED_WRITE_HOSTS.has(host);
+  return true;
 }
 
 
