@@ -35,6 +35,8 @@ Behavior verified on the TEST project:
 - The login form shows the Google button whenever the provider is enabled, including when new signups are closed. It is never shown in register mode or in the public preview.
 - Supabase links a Google sign-in to an existing account only when the account has the same verified email (default). With signups closed, only an existing account with that email can sign in with Google; otherwise Supabase rejects it.
 - After a Google login the app copies the Google name into the profile only when the profile name is blank or the default "مستخدم". It never overwrites an edited name and never changes the role.
+- Signed-in users without a Google identity get a "ربط حساب Google" header button (manual linking). It requires "Allow manual linking" in Supabase Auth settings. Supabase refuses to attach a Google identity that already belongs to another user; the app shows the error and does not redirect.
+- Verification limit: the link and collision paths are covered by mocked tests (tests/link-google-collision.mock.test.mjs) only. A live positive link and a live collision check were deliberately not run, because the only Google account available is the owner's own and must not be bound to or merged with a test account. Run them with a disposable Google account before relying on this for recovery.
 - Google may ask the account owner for its own security check (phone prompt or on-device code). Wasla cannot remove that.
 
 ## Verification checklist
