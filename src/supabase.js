@@ -818,6 +818,65 @@ export const dataApi = {
     }
   },
 
+  async getCourses(teacherId = null) {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const query = new URLSearchParams({
+      select: "id,title,subject,description,lessons,mode,price_egp,active,teacher_id,teacher:providers(display_name)",
+      order: "created_at.desc", limit: "50"
+    });
+    if (teacherId) query.set("teacher_id", `eq.${teacherId}`); else query.set("active", "eq.true");
+    try {
+      return await request(`/rest/v1/courses?${query}`, { token: session.access_token });
+    } catch (error) {
+      if (/courses|schema cache|relation/i.test(String(error?.message))) return null;
+      throw error;
+    }
+  },
+
+  async getMyTutorProfile(teacherId) {
+    const session = await getValidSession();
+    if (!session?.access_token || !teacherId) return null;
+    try {
+      const rows = await request(`/rest/v1/tutor_profiles?${new URLSearchParams({ select: "headline,bio,subjects", teacher_id: `eq.${teacherId}`, limit: "1" })}`, { token: session.access_token });
+      return rows?.[0] || null;
+    } catch { return null; }
+  },
+
+  async teacherSaveProfile(values) {
+    assertLiveWritesAllowed("حفظ الملف التعريفي");
+    const headline = String(values?.headline || "").trim(), bio = String(values?.bio || "").trim();
+    const subjects = String(values?.subjects || "").split(/[,،]/).map((s) => s.trim()).filter((s) => s.length >= 2 && s.length <= 40).slice(0, 8);
+    if (headline.length < 3 || headline.length > 100) throw new Error("العنوان التعريفي من 3 إلى 100 حرف.");
+    if (bio.length > 1000) throw new Error("النبذة حتى 1000 حرف.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/teacher_upsert_profile", { method: "POST", token: session.access_token, body: { p_headline: headline, p_bio: bio, p_subjects: subjects } });
+  },
+
+  async teacherCreateCourse(values) {
+    assertLiveWritesAllowed("إضافة دورة");
+    const title = String(values?.title || "").trim(), subject = String(values?.subject || "").trim(), description = String(values?.description || "").trim();
+    const lessons = Number(values?.lessons), price = values?.price === "" || values?.price == null ? 0 : Number(values.price);
+    if (title.length < 3 || title.length > 120) throw new Error("عنوان الدورة من 3 إلى 120 حرف.");
+    if (subject.length < 2 || subject.length > 60) throw new Error("اكتب المادة.");
+    if (description.length > 1000) throw new Error("الوصف حتى 1000 حرف.");
+    if (!Number.isInteger(lessons) || lessons < 1 || lessons > 200) throw new Error("عدد الحصص من 1 إلى 200.");
+    if (!Number.isInteger(price) || price < 0 || price > 20000) throw new Error("السعر من 0 إلى 20000.");
+    if (!["online", "in_person"].includes(values?.mode)) throw new Error("اختر نوع الدورة.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/teacher_create_course", { method: "POST", token: session.access_token, body: { p_title: title, p_subject: subject, p_description: description, p_lessons: lessons, p_mode: values.mode, p_price: price } });
+  },
+
+  async teacherSetCourseActive(courseId, active) {
+    assertLiveWritesAllowed("تغيير ظهور الدورة");
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(courseId || ""))) throw new Error("دورة غير معروفة.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/teacher_set_course_active", { method: "POST", token: session.access_token, body: { p_course: courseId, p_active: active === true } });
+  },
+
   async getSessions(teacherId = null) {
     const session = await getValidSession();
     if (!session?.access_token) return null;
