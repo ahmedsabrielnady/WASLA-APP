@@ -15,3 +15,14 @@ test("draft 1500 keeps nursing closed by default and requires every consent and 
   assert.match(sql, /revoke all on function public\.request_nursing_visit\(integer,text,text,text\) from public, anon/);
   assert.doesNotMatch(sql, /update public\.service_items|insert into public\.service_items/);
 });
+
+test("draft 1600 gates nursing providers on a staff-set credential through every path", async () => {
+  const name = (await readdir(drafts)).find((f) => f.includes("nursing_credential_gate"));
+  const sql = await readFile(new URL(name, drafts), "utf8");
+  assert.match(sql, /nursing_credential_verified boolean not null default false/);
+  assert.match(sql, /current_user in \('authenticated','anon'\) and not coalesce\(public\.is_staff\(\), false\)/);
+  assert.match(sql, /before insert or update of provider_id on public\.orders/);
+  assert.match(sql, /p\.nursing_credential_verified and p\.approved and p\.active and not p\.is_test/);
+  assert.match(sql, /pr\.nursing_credential_verified\) then raise exception/);
+  assert.match(sql, /revoke all on function public\.staff_set_nursing_credential\(uuid, boolean\) from public, anon/);
+});
