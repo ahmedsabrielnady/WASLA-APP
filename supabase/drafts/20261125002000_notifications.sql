@@ -35,9 +35,10 @@ create trigger orders_notify after update of status, scheduled_at on public.orde
 create or replace function public.notify_change_request_resolved() returns trigger
 language plpgsql security definer set search_path to 'public' as $$
 begin
-  if old.status = 'open' and new.status in ('applied','declined') then
-    insert into public.notifications(user_id, kind, ref_id)
-    values (new.customer_id, case new.status when 'applied' then 'change_request_applied' else 'change_request_declined' end, new.order_id);
+  -- 'applied' needs no row of its own: it is only accepted after the order really changed, and that change already notified the customer
+  -- (order_status or order_scheduled). Only a decline is new information.
+  if old.status = 'open' and new.status = 'declined' then
+    insert into public.notifications(user_id, kind, ref_id) values (new.customer_id, 'change_request_declined', new.order_id);
   end if;
   return new;
 end $$;
