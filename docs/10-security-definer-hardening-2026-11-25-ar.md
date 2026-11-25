@@ -49,7 +49,7 @@
 
 - أعيد تشغيل Supabase Security Advisor بتاريخ 25 نوفمبر 2026؛ النتائج ما زالت: 22 تحذيرًا لدوال `SECURITY DEFINER` القابلة للاستدعاء من `authenticated`، وملاحظة RLS معلوماتية واحدة على `public.order_status_transitions`، وتحذير حماية كلمات المرور المسرّبة.
 - فُحصت أجسام الدوال القابلة للاستدعاء. الدوال التي لا تحتوي مباشرة على `auth.uid()` هي `approve_provider` و`is_staff` (تعتمدان على دالة تحقق الدور)، و`clinic_available_slots` (تعرض مواعيد متاحة فقط لطبيب معتمد ونشط وغير تجريبي). لا يُعد غياب النص `auth.uid()` وحده ثغرة إذا كان التفويض مفوضًا بأمان لدالة أخرى أو كانت الدالة للبيانات العامة.
-- اختبارات رفض صلاحيات داخل معاملة تنتهي بـ `ROLLBACK` باستخدام حساب `customer`: رُفضت محاولات استدعاء `admin_update_service_item_price` و`approve_provider` و`create_invite('staff')` و`quote_order` بصلاحية غير كافية. لم تُحفظ أي تغييرات.
+- اختبارات رفض صلاحيات داخل معاملات تنتهي بـ `ROLLBACK` باستخدام حساب `customer`: رُفضت محاولات استدعاء `admin_update_service_item_price` و`approve_provider` و`create_invite('staff')` و`quote_order` و`admin_set_provider_service_coverage` و`crm_create_ticket` و`crm_update_ticket` و`assign_order_v2` و`staff_set_order_status_v2` و`provider_set_order_status_v2`. كما رُفض إلغاء طلب يخص عميلًا آخر وتغيير موقعه. لم تُحفظ أي تغييرات.
 - ظهرت نقطة تحقق إضافية في `place_order_v2`: الدالة كانت لا تتحقق من حدود إحداثيات `latitude/longitude` ولا من تقديمهما معًا. تم إصلاح ذلك مباشرة على قاعدة الإنتاج، مع الحفاظ على إمكانية ترك الموقع فارغًا بإرسال القيمتين `NULL`.
 - `clinic_available_slots` متاحة عمدًا للمستخدمين المسجلين لعرض المواعيد، وتتحقق من أن الطبيب معتمد ونشط وغير تجريبي. لا ينبغي سحب صلاحيتها آليًا قبل مراجعة اعتماد الواجهة عليها.
 
