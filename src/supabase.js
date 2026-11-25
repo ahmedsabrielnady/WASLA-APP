@@ -454,14 +454,15 @@ export const dataApi = {
 
     // Optional columns exist only after the draft migrations (quote acceptance, product category
     // snapshot). Older schemas drop them one at a time and keep the base columns.
-    const optional = { quote: true, category: true };
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      const select = [base, optional.quote ? "quote_price_egp,quote_version" : "", optional.category ? "product_category" : ""].filter(Boolean).join(",");
+    const optional = { quote: true, category: true, preferred: true };
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const select = [base, optional.quote ? "quote_price_egp,quote_version" : "", optional.category ? "product_category" : "", optional.preferred ? "preferred_at" : ""].filter(Boolean).join(",");
       try {
         return await request(`/rest/v1/orders?${build(select)}`, { token: session.access_token });
       } catch (error) {
         const message = String(error?.message);
-        if (optional.category && /product_category/.test(message)) optional.category = false;
+        if (optional.preferred && /preferred_at/.test(message)) optional.preferred = false;
+        else if (optional.category && /product_category/.test(message)) optional.category = false;
         else if (optional.quote && /quote_price_egp|quote_version/.test(message)) optional.quote = false;
         else throw error;
       }
@@ -1349,7 +1350,7 @@ export const dataApi = {
   },
 
   // Health-data consent is separate from terms and privacy. It is asked at the nursing form, never silently.
-  async requestNursingVisit({ itemId, address, notes, consent, terms }) {
+  async requestNursingVisit({ itemId, address, notes, consent, terms, preferredAt }) {
     assertLiveWritesAllowed("طلب زيارة تمريض");
     if (!Number.isInteger(Number(itemId))) throw new Error("اختر الخدمة.");
     const a = String(address || "").trim();
@@ -1365,6 +1366,14 @@ export const dataApi = {
       body: { p_item: Number(itemId), p_address: a, p_notes: String(notes || "").trim().slice(0, 300) || null, p_idempotency_key: crypto.randomUUID() }
     });
     if (!Array.isArray(rows) || rows.length !== 1) throw new Error("لم يتم إرسال الطلب.");
+    // The preferred time is only a proposal. A failure here must not lose the order that was already created.
+    const when = preferredAt ? new Date(preferredAt) : null;
+    if (when && Number.isFinite(when.getTime())) {
+      try {
+        await request("/rest/v1/rpc/set_nursing_preferred_time", { method: "POST", token: session.access_token, body: { p_order: rows[0].out_order_id, p_at: when.toISOString() } });
+      } catch { return { ...rows[0], preferredTimeSaved: false }; }
+      return { ...rows[0], preferredTimeSaved: true };
+    }
     return rows[0];
   },
 
