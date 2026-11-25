@@ -507,6 +507,11 @@ export const dataApi = {
     const build = (select) => new URLSearchParams({ select, order: "created_at.desc", limit: "50" });
     const base = "id,ref,sector,status,price_egp,deposit_egp,deposit_paid,created_at,updated_at,scheduled_at,address,provider_id,item_id,product_id,quantity";
     try {
+      try {
+        return await request(`/rest/v1/orders?${build(base + ",preferred_at,quote_price_egp")}`, { token: session.access_token });
+      } catch (quoteError) {
+        if (!/quote_price_egp/.test(String(quoteError?.message))) throw quoteError;
+      }
       return await request(`/rest/v1/orders?${build(base + ",preferred_at")}`, { token: session.access_token });
     } catch (error) {
       if (!/preferred_at/.test(String(error?.message))) throw error;
