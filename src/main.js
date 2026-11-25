@@ -31,6 +31,7 @@ const state = {
   myOrders: [],
   nursingTimeRetry: null,
   changeRequests: [],
+  notifications: [],
   opsChangeRequests: [],
   deliveries: null,
   doctors: null,
@@ -431,6 +432,25 @@ async function loadMedicalNotes() {
   try { state.medicalNotes = await dataApi.getMedicalNotes(); } catch { state.medicalNotes = null; }
 }
 
+const NOTIFICATION_TEXT = {
+  order_status: "حالة طلبك اتغيرت. افتح الطلب لتشوف التفاصيل.",
+  order_scheduled: "موعد طلبك اتحدد أو اتغير. افتح الطلب لتشوف الموعد.",
+  change_request_applied: "تم تنفيذ طلبك.",
+  change_request_declined: "تمت مراجعة طلبك بدون تغيير."
+};
+
+function notificationsSection() {
+  const list = (state.notifications || []).filter((n) => NOTIFICATION_TEXT[n.kind]);
+  if (!list.length) return "";
+  const unread = list.filter((n) => !n.read_at).length;
+  return `
+    <section class="page-panel" id="my-notifications">
+      <div class="section-heading"><div><span class="eyebrow">تنبيهات</span><h2>آخر التنبيهات${unread ? ` <span class="badge-count">${unread} جديد</span>` : ""}</h2></div></div>
+      ${unread ? '<button class="btn btn-outline btn-small" data-action="mark-notifications-read">تمت قراءة الكل</button>' : ""}
+      <div class="orders-list">${list.slice(0, 8).map((n) => `<article class="order-card${n.read_at ? "" : " notification-unread"}"><div class="order-card-top"><strong>${escapeHTML(NOTIFICATION_TEXT[n.kind])}</strong></div><div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span></div></article>`).join("")}</div>
+    </section>`;
+}
+
 function medicalNotesSection() {
   const data = state.medicalNotes;
   if (!data) return "";
@@ -812,6 +832,7 @@ function ordersView() {
     ${labPriceSection()}
     ${nursingSection()}
     ${prescriptionSection()}
+    ${notificationsSection()}
     ${medicalNotesSection()}
     ${deliverySection()}
   `;
@@ -1200,6 +1221,7 @@ async function refreshMyOrders() {
   try {
     state.myOrders = await dataApi.getMyOrders(state.user.id);
     state.changeRequests = await dataApi.getMyChangeRequests();
+    state.notifications = await dataApi.getMyNotifications();
     try { state.deliveries = await dataApi.getMyDeliveries(); } catch { state.deliveries = null; }
     try { state.doctors = await dataApi.getDoctors(); } catch { state.doctors = null; }
     try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
@@ -1552,6 +1574,10 @@ root.addEventListener("click", async (event) => {
       await refreshRoadmap();
     } else if (action === "orders" || action === "reload-orders") {
       await refreshMyOrders();
+    } else if (action === "mark-notifications-read") {
+      await dataApi.markNotificationsRead();
+      state.notifications = await dataApi.getMyNotifications();
+      render();
     } else if (action === "track-order") {
       if (!state.user?.id) throw new Error("سجل الدخول لمتابعة الطلب.");
       const orderId = button.dataset.orderId;
