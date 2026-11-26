@@ -191,7 +191,8 @@ export function validateRoadmapUpdate(status, progressPercent, testStatus) {
  * deployment-specific Vercel URLs, localhost, and unknown hosts are read-only.
  * Add a custom domain here only after it is verified and protected.
  */
-const APPROVED_WRITE_HOSTS = new Set(["wasla-app-gg2f.vercel.app"]);
+// Approved 26 Nov 2026 (owner, Telegram 22051051): Cloudflare Pages primary and Netlify standby, free default URLs only. Per-deployment hosts stay read-only.
+const APPROVED_WRITE_HOSTS = new Set(["wasla-app-gg2f.vercel.app", "wasla-prod.pages.dev", "wasla2026.netlify.app"]);
 
 const PRODUCTION_BACKEND = "https://yfgvimcqbtthnrbzbhft.supabase.co";
 export const TEST_BACKEND = "https://mekeirlgmergmzsdkaon.supabase.co";
