@@ -773,7 +773,7 @@ export const dataApi = {
     }
 
     const orderQuery = new URLSearchParams({
-      select: "id,ref,sector,status,price_egp,deposit_egp,created_at,updated_at,scheduled_at,address,notes,quantity",
+      select: "id,ref,sector,status,price_egp,deposit_egp,created_at,updated_at,scheduled_at,address,notes,quantity,product_id,product_category",
       provider_id: `eq.${provider.id}`,
       order: "created_at.desc",
       limit: "100"
@@ -781,7 +781,16 @@ export const dataApi = {
     const orders = await request(`/rest/v1/orders?${orderQuery}`, {
       token: session.access_token
     });
-    return { provider, orders: Array.isArray(orders) ? orders : [] };
+    const list = Array.isArray(orders) ? orders : [];
+    const ids = [...new Set(list.map((o) => o.product_id).filter((id) => id != null).map(Number).filter(Number.isInteger))];
+    if (ids.length) {
+      try {
+        const names = await request(`/rest/v1/products?${new URLSearchParams({ select: "id,name", id: `in.(${ids.join(",")})` })}`, { token: session.access_token });
+        const byId = new Map((Array.isArray(names) ? names : []).map((row) => [String(row.id), row.name]));
+        list.forEach((o) => { if (o.product_id != null) o.product_name = byId.get(String(o.product_id)) || null; });
+      } catch { /* the order list still works without product names */ }
+    }
+    return { provider, orders: list };
   },
 
   async providerSetOrderStatus(orderId, status, note = null) {
