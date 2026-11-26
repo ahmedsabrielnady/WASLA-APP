@@ -137,7 +137,9 @@ export const APPROVAL_SECTORS = Object.freeze({
   clinic: { label: "العيادات", kinds: ["doctor"], specialties: ["باطنة", "أطفال", "نساء وتوليد", "عظام", "أسنان", "جلدية"] },
   education: { label: "التعليم", kinds: ["teacher"], specialties: ["رياضيات", "لغة عربية", "لغة إنجليزية", "علوم"] },
   delivery: { label: "التوصيل", kinds: ["courier"], specialties: ["مندوب توصيل"] },
-  food: { label: "المطاعم", kinds: ["merchant", "courier"], specialties: ["مطعم", "مطبخ منزلي"] }
+  food: { label: "المطاعم", kinds: ["merchant", "courier"], specialties: ["مطعم", "مطبخ منزلي"] },
+  nursing: { label: "التمريض المنزلي", kinds: ["doctor", "technician"], specialties: ["تغيير على جرح", "رعاية مسنين (بالساعة)", "سحب عينات"] },
+  market: { label: "الماركت", kinds: ["merchant"], specialties: ["بقالة وسوبرماركت", "خضار وفاكهة", "مخبز"] }
 });
 
 export function approvalSectorsFor(kind) {
