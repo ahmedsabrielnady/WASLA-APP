@@ -29,6 +29,7 @@ const state = {
   pendingService: null,
   pendingLocation: null,
   activeSector: "",
+  sectorLoading: false,
   geoForm: { landmark: "", phone: "", make: "", model: "", plate: "", color: "", consent: false },
   geoCards: {},
   locatedOrderIds: [],
@@ -305,9 +306,9 @@ function sectorView() {
   if (!sector) return homeView();
   const body = sector.mode === "order"
     ? `<label class="search-box"><span aria-hidden="true">⌕</span><input data-search type="search" value="${escapeHTML(state.search)}" placeholder="ابحث عن خدمة..." autocomplete="off"></label><div class="service-grid">${serviceCards(sector.code)}</div>`
-    : (sectorPanels(sector.code).trim() || '<div class="empty-state"><strong>لا يوجد مقدمو خدمة معتمدون في هذا القسم الآن</strong><p>سيظهر محتوى القسم هنا عند اعتماد مقدمي خدمة حقيقيين.</p></div>');
+    : (state.sectorLoading ? '<div class="empty-state" role="status"><strong>جارٍ تحميل القسم...</strong></div>' : sectorPanels(sector.code).trim()) || (state.sectorLoading ? '' : '<div class="empty-state"><strong>لا يوجد مقدمو خدمة معتمدون في هذا القسم الآن</strong><p>سيظهر محتوى القسم هنا عند اعتماد مقدمي خدمة حقيقيين.</p></div>');
   return `
-    <section class="page-panel sector-page" id="sector-${escapeHTML(sector.code)}" data-sector-page="${escapeHTML(sector.code)}">
+    <section class="sector-page" id="sector-${escapeHTML(sector.code)}" data-sector-page="${escapeHTML(sector.code)}">
       <div class="section-heading">
         <div><span class="eyebrow">قسم</span><h1>${escapeHTML(sector.title)}</h1><p class="section-aside">${escapeHTML(sector.description)}</p></div>
         <button class="btn btn-outline btn-small" data-action="home">← كل الأقسام</button>
@@ -1481,7 +1482,7 @@ async function refreshMyOrders() {
     try { state.nursingItems = await dataApi.getNursingItems(); } catch { state.nursingItems = null; }
     try { state.labTests = await dataApi.getLabTests(); state.labRequests = await dataApi.getMyLabRequests(); state.prescriptions = await dataApi.getMyPrescriptions(); state.pharmacies = state.prescriptions ? await dataApi.getPharmacies() : null; const leftover = await dataApi.retryPendingFileCleanups(); if (leftover) showToast("ملف مرفوع من طلب فاشل لم يُحذف بعد. سنعيد المحاولة عند فتح التطبيق.", "error"); } catch { state.labTests = null; state.prescriptions = null; state.pharmacies = null; }
     if (!state.clinicDay) state.clinicDay = cairoDay(1);
-    state.view = "orders";
+    if (state.view !== "sector") state.view = "orders";
   } catch (error) {
     showToast(error.message, "error");
   }
@@ -2347,8 +2348,10 @@ root.addEventListener("click", async (event) => {
       } else if (plan.kind === "customer-only") {
         showToast("أقسام الخدمات دي بتظهر لحسابات العملاء.", "info");
       } else {
-        if (state.view !== "orders") await refreshMyOrders();
         openSectorPage(code);
+        state.sectorLoading = true;
+        render();
+        try { await refreshMyOrders(); } finally { state.sectorLoading = false; render(); }
       }
     } else if (action === "reload") {
       await loadCatalog();
