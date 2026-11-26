@@ -1805,6 +1805,18 @@ export const dataApi = {
     });
   },
 
+  async approveProviderWithService(providerId, { sector, specialty, displayName, price }) {
+    assertLiveWritesAllowed("اعتماد مقدمي الخدمة");
+    if (!providerId) throw new Error("مقدم الخدمة غير محدد.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/admin_approve_provider_with_service", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_provider: providerId, p_sector: sector, p_specialty: String(specialty).trim(), p_display_name: String(displayName).trim(), p_price: Math.round(Number(price)) }
+    });
+  },
+
   async acceptRequiredConsents() {
     assertLiveWritesAllowed("حفظ الموافقات");
     const session = await getValidSession();
