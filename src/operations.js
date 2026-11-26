@@ -130,7 +130,61 @@ function formatCairoTime(value) {
   } catch { return "غير محدد"; }
 }
 
-function renderPendingProvider(provider, canWrite) {
+// Founder approval: section first, then specialty, then provider name and service price. The database re-checks kind and specialty.
+export const APPROVAL_SECTORS = Object.freeze({
+  maintenance: { label: "الصيانة المنزلية", kinds: ["technician"], specialties: ["سباكة", "كهرباء", "نجارة", "تنظيف", "مكافحة حشرات"] },
+  car: { label: "خدمات السيارات", kinds: ["technician"], specialties: ["غسيل سيارات", "ميكانيكا سيارات", "بطاريات سيارات", "إطارات سيارات"] },
+  clinic: { label: "العيادات", kinds: ["doctor"], specialties: ["باطنة", "أطفال", "نساء وتوليد", "عظام", "أسنان", "جلدية"] },
+  education: { label: "التعليم", kinds: ["teacher"], specialties: ["رياضيات", "لغة عربية", "لغة إنجليزية", "علوم"] },
+  delivery: { label: "التوصيل", kinds: ["courier"], specialties: ["مندوب توصيل"] },
+  food: { label: "المطاعم", kinds: ["merchant", "courier"], specialties: ["مطعم", "مطبخ منزلي"] }
+});
+
+export function approvalSectorsFor(kind) {
+  return Object.entries(APPROVAL_SECTORS).filter(([, def]) => def.kinds.includes(kind)).map(([code, def]) => ({ code, ...def }));
+}
+
+function renderGuidedApproval(provider, canWrite, draft = {}) {
+  const sectors = approvalSectorsFor(provider.kind);
+  if (!sectors.length) {
+    return `<p class="ops-muted">نوع مقدم الخدمة هذا (${escapeHTML(kindLabel(provider.kind))}) لا يملك قسم اعتماد موجّه بعد.</p>`;
+  }
+  const sector = sectors.find((entry) => entry.code === draft.sector) || null;
+  return `
+    <form class="ops-action-form approval-form" data-form="approve-provider-service" data-provider-id="${escapeHTML(provider.id)}">
+      <label>1. القسم
+        <select name="sector" data-approval-sector data-provider-id="${escapeHTML(provider.id)}" required>
+          <option value="">اختر القسم</option>
+          ${sectors.map((entry) => `<option value="${escapeHTML(entry.code)}" ${sector?.code === entry.code ? "selected" : ""}>${escapeHTML(entry.label)}</option>`).join("")}
+        </select>
+      </label>
+      <label>2. التخصص
+        <select name="specialty" required ${sector ? "" : "disabled"}>
+          <option value="">${sector ? "اختر التخصص" : "اختر القسم أولًا"}</option>
+          ${(sector?.specialties || []).map((name) => `<option value="${escapeHTML(name)}" ${draft.specialty === name ? "selected" : ""}>${escapeHTML(name)}</option>`).join("")}
+        </select>
+      </label>
+      <label>3. اسم مقدم الخدمة
+        <input name="display_name" required minlength="2" maxlength="60" value="${escapeHTML(draft.display_name ?? provider.display_name ?? "")}">
+      </label>
+      <label>4. سعر الخدمة (ج.م)
+        <input name="price" type="number" inputmode="numeric" min="0" max="10000000" step="1" required value="${escapeHTML(draft.price ?? "")}">
+      </label>
+      <button class="btn btn-primary btn-small" type="submit" ${canWrite && sector ? "" : "disabled"}>اعتماد وتفعيل الخدمة</button>
+    </form>`;
+}
+
+function renderPendingProvider(provider, canWrite, role = "staff", draft = {}) {
+  if (role === "admin") {
+    return `
+    <article class="ops-provider-card approval-card">
+      <div><strong>${escapeHTML(provider.display_name)}</strong>
+        <span>${escapeHTML(kindLabel(provider.kind))}</span>
+        <small>${escapeHTML(provider.specialty || provider.area || "بيانات مهنية لم تكتمل")}</small>
+      </div>
+      ${renderGuidedApproval(provider, canWrite, draft)}
+    </article>`;
+  }
   return `
     <article class="ops-provider-card">
       <div><strong>${escapeHTML(provider.display_name)}</strong>
@@ -299,6 +353,7 @@ export function renderOperationsView(options = {}) {
   const changeRequests = Array.isArray(options.changeRequests) ? options.changeRequests : [];
   const preview = Boolean(options.preview);
   const saving = Boolean(options.saving);
+  const approvalDrafts = options.approvalDrafts || {};
   const role = profile?.role;
 
   if (!["staff", "admin"].includes(role)) {
@@ -326,6 +381,12 @@ export function renderOperationsView(options = {}) {
         <div class="stat-card"><span>طلبات اعتماد جديدة</span><strong>${pendingProviders.length}</strong></div>
       </div>
       ${preview ? '<p class="roadmap-lock-note">هذه نسخة معاينة للقراءة فقط. أدوات تغيير الحالات والأسعار والتعيين والاعتماد متوقفة لحماية قاعدة الإنتاج.</p>' : ""}
+      <section class="ops-section">
+        <div class="section-heading"><div><span class="eyebrow">مراجعة مقدمي الخدمة</span><h2>طلبات الانضمام</h2></div></div>
+        ${pendingProviders.length
+          ? `<div class="ops-provider-list">${pendingProviders.map((provider) => renderPendingProvider(provider, canWrite, role, approvalDrafts[provider.id] || {})).join("")}</div>`
+          : '<p class="ops-muted">لا توجد طلبات انضمام تنتظر الاعتماد.</p>'}
+      </section>
       ${role === "admin" ? `
         <section class="ops-section">
           <div class="section-heading"><div><span class="eyebrow">إدارة الكتالوج</span><h2>أسعار الخدمات</h2></div></div>
@@ -337,12 +398,6 @@ export function renderOperationsView(options = {}) {
       ${renderChangeRequests(changeRequests, orders, canWrite)}
       ${renderNursingCredentialManager(providers, canWrite)}
       ${renderProviderInviteManager(latestInviteCode, canWrite)}
-      <section class="ops-section">
-        <div class="section-heading"><div><span class="eyebrow">مراجعة مقدمي الخدمة</span><h2>طلبات الانضمام</h2></div></div>
-        ${pendingProviders.length
-          ? `<div class="ops-provider-list">${pendingProviders.map((provider) => renderPendingProvider(provider, canWrite)).join("")}</div>`
-          : '<p class="ops-muted">لا توجد طلبات انضمام تنتظر الاعتماد.</p>'}
-      </section>
       <section class="ops-section">
         <div class="section-heading"><div><span class="eyebrow">إدارة الطلبات</span><h2>الطلبات الواردة</h2></div></div>
         ${orders.length
