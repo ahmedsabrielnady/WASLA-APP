@@ -21,5 +21,7 @@ export const CONFIG = Object.freeze({
   appCity: "شبين القناطر",
   appRegion: "القليوبية",
   isTestBackend: ON_TEST_ALIAS,
+  // Clinic booking needs book_clinic_slot, which is revoked on production on purpose. Closed there until a reviewed replacement is applied.
+  clinicBookingEnabled: ON_TEST_ALIAS,
   isPublicPreview: isPreviewHost(window.location.hostname, SUPABASE_URL)
 });
