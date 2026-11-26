@@ -1193,3 +1193,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .geo-card dd { margin: 0; font-weight: 600; }
 .vehicle-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .vehicle-fields label:last-child { grid-column: 1 / -1; }
+.sector-page { padding: 28px 0 8px; }
+.sector-page .section-heading { align-items: flex-start; }
+.sector-page h1 { margin: 0; color: var(--navy); font-size: 28px; }
+@media (max-width: 640px) { .sector-page { padding-top: 18px; } .sector-page h1 { font-size: 22px; } }
