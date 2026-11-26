@@ -1,4 +1,4 @@
-const CACHE_NAME = "wasla-shell-v5";
+const CACHE_NAME = "wasla-shell-v6";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -13,6 +13,7 @@ const APP_SHELL = [
   "./src/crm.js",
   "./src/provider.js",
   "./src/push.js",
+  "./src/geo.js",
   "./src/main.js"
 ];
 
