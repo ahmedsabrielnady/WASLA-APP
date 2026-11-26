@@ -343,6 +343,35 @@ function renderProviderCoverageManager(providers, services, coverage, canWrite) 
   `;
 }
 
+const OFFER_SECTORS = Object.freeze([
+  ["", "بدون قسم (إعلان فقط)"], ["clinic", "العيادات"], ["nursing", "التمريض المنزلي"], ["food", "المطاعم"],
+  ["market", "الماركت"], ["maintenance", "الصيانة المنزلية"], ["education", "التعليم"], ["car", "خدمات السيارات"], ["delivery", "التوصيل"]
+]);
+
+function renderOfferForm(offer, canWrite) {
+  const o = offer || { id: "", text: "", sector: "", active: true, sort_order: 0 };
+  const options = OFFER_SECTORS.map(([code, label]) => `<option value="${code}"${(o.sector || "") === code ? " selected" : ""}>${label}</option>`).join("");
+  return `
+    <form class="ops-offer-form${o.id && !o.active ? " is-off" : ""}" data-form="save-offer" data-offer-id="${escapeHTML(String(o.id))}">
+      <label>نص الإعلان<input name="text" maxlength="140" required value="${escapeHTML(o.text || "")}"></label>
+      <label>القسم الذي يفتحه<select name="sector">${options}</select></label>
+      <label>الترتيب<input name="sort_order" type="number" min="0" step="1" value="${Number(o.sort_order) || 0}"></label>
+      <label class="ops-offer-active"><input name="active" type="checkbox"${o.active ? " checked" : ""}> ظاهر في البانر</label>
+      <button class="btn btn-primary btn-small" type="submit"${canWrite ? "" : " disabled"}>${o.id ? "حفظ" : "إضافة الإعلان"}</button>
+    </form>`;
+}
+
+function renderOfferManager(offers, canWrite) {
+  return `
+    <section class="ops-section" data-offer-manager>
+      <div class="section-heading"><div><span class="eyebrow">الإعلانات</span><h2>بانر العروض</h2></div></div>
+      <p class="ops-muted">الإعلانات الظاهرة تتحرك في أعلى الصفحة الرئيسية. عند اختيار قسم، يفتح الضغط على الإعلان صفحة هذا القسم مع الإعلان ظاهرًا فيها. لا يُحتسب خصم تلقائي.</p>
+      <div class="ops-offer-list">${offers.map((offer) => renderOfferForm(offer, canWrite)).join("")}</div>
+      <h3>إعلان جديد</h3>
+      ${renderOfferForm(null, canWrite)}
+    </section>`;
+}
+
 export function renderOperationsView(options = {}) {
   const profile = options.profile || null;
   const orders = Array.isArray(options.orders) ? options.orders : [];
@@ -354,6 +383,7 @@ export function renderOperationsView(options = {}) {
   const preview = Boolean(options.preview);
   const saving = Boolean(options.saving);
   const approvalDrafts = options.approvalDrafts || {};
+  const offers = Array.isArray(options.offers) ? options.offers : [];
   const role = profile?.role;
 
   if (!["staff", "admin"].includes(role)) {
@@ -394,6 +424,7 @@ export function renderOperationsView(options = {}) {
           ${renderServicePriceManager(services, canWrite)}
         </section>
       ` : ""}
+      ${role === "admin" ? renderOfferManager(offers, canWrite) : ""}
       ${role === "admin" ? renderProviderCoverageManager(providers, services, coverage, canWrite) : ""}
       ${renderChangeRequests(changeRequests, orders, canWrite)}
       ${renderNursingCredentialManager(providers, canWrite)}
