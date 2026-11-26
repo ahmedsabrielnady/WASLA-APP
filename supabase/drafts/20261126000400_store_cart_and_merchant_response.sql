@@ -27,7 +27,7 @@ begin
            from jsonb_array_elements(p_lines) e group by 1 order by 1 loop
     if r.qty < 1 or r.qty > 20 then raise exception 'الكمية لازم تكون من 1 لـ 20' using errcode = '22023'; end if;
     select * into v_p from public.products where id = r.pid for update;
-    if not found or not v_p.active or v_p.category not in ('market','food') then raise exception 'منتج في السلة مش متاح' using errcode = '22023'; end if;
+    if not found or not v_p.active or v_p.category not in ('market','food','supplies') then raise exception 'منتج في السلة مش متاح' using errcode = '22023'; end if;
     if not exists (select 1 from public.providers m where m.id = v_p.merchant_id and m.kind = 'merchant' and m.approved and m.active and not m.is_test) then
       raise exception 'منتج في السلة مش متاح' using errcode = '22023'; end if;
     if exists (select 1 from public.providers m where m.id = v_p.merchant_id and m.user_id = v_uid) then
