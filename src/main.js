@@ -1089,11 +1089,6 @@ function nursingSection() {
     </section>`;
 }
 
-function storeSection() {
-  return storePanel("market", "الماركت", "اطلب من الماركت", "منتجات البقالة واحتياجات البيت.")
-    + storePanel("food", "المطاعم", "اطلب وجبة", "وجبات من مطاعم شبين القناطر.")
-    + storePanel("supplies", "الصحة", "مستلزمات طبية", "كمامات وشاش وأجهزة قياس منزلية.");
-}
 
 async function loadClinicSlots() {
   state.clinicSlots = [];
@@ -1169,7 +1164,6 @@ function ordersView() {
         : '<div class="empty-state"><strong>لا توجد طلبات بعد</strong><p>عندما ترسل أول طلب ستظهر حالته هنا.</p><button class="btn btn-primary" data-action="home">اكتشف الخدمات</button></div>'}
     </section>
     ${clinicSection()}
-    ${storeSection()}
     ${educationSection()}
     ${courseCatalogueSection()}
     ${labPriceSection()}
