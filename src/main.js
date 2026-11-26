@@ -33,6 +33,8 @@ const state = {
   sectorLoading: false,
   geoForm: { landmark: "", phone: "", make: "", model: "", plate: "", color: "", consent: false },
   geoCards: {},
+  clinicLocations: {},
+  clinicDraft: null,
   locatedOrderIds: [],
   pendingAddress: "",
   search: "",
@@ -461,6 +463,7 @@ function clinicSection() {
           <option value="">اختر الطبيب</option>
           ${state.doctors.map((d) => `<option value="${escapeHTML(d.id)}" ${d.id === state.clinicDoctorId ? "selected" : ""}>${escapeHTML(d.display_name)}${d.specialty ? " · " + escapeHTML(d.specialty) : ""}</option>`).join("")}
         </select></label>
+        ${state.clinicDoctorId ? clinicLocationInfo(state.clinicDoctorId) : ""}
         <label>اليوم<input type="date" name="day" data-clinic-pick="day" value="${escapeHTML(state.clinicDay)}" min="${cairoDay(0)}" max="${cairoDay(30)}" required></label>
         <label>الموعد<select name="slot" required>
           <option value="">${state.clinicDoctorId ? (state.clinicSlots.length ? "اختر الموعد" : "لا توجد مواعيد في هذا اليوم") : "اختر الطبيب أولًا"}</option>
@@ -1140,7 +1143,8 @@ function providerView() {
     preview: CONFIG.isPublicPreview,
     saving: state.providerSaving,
     error: state.providerError,
-    geoCards: state.geoCards
+    geoCards: state.geoCards,
+    clinicDraft: state.clinicDraft
   }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + teacherSection() + teacherCatalogueSection() + merchantProductsSection() + healthProviderSection() + medicalNotesSection();
 }
 
@@ -1491,6 +1495,7 @@ async function refreshMyOrders() {
     state.notifications = await dataApi.getMyNotifications();
     try { state.deliveries = await dataApi.getMyDeliveries(); } catch { state.deliveries = null; }
     try { state.doctors = await dataApi.getDoctors(); } catch { state.doctors = null; }
+    try { state.clinicLocations = Object.fromEntries((await dataApi.getClinicLocations()).map((row) => [row.provider_id, row])); } catch { state.clinicLocations = {}; }
     try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
     try { state.sessions = await dataApi.getSessions(); state.enrollments = await dataApi.getMyEnrollments(); await loadSessionLinks(); } catch { state.sessions = null; state.enrollments = null; }
     await loadMedicalNotes();
@@ -1543,6 +1548,7 @@ async function refreshProvider() {
     const result = await dataApi.getProviderWorkspace();
     state.providerRecord = result.provider || null;
     state.providerOrders = Array.isArray(result.orders) ? result.orders : [];
+    await loadClinicDraft();
     state.deliveryQueue = null;
     if (state.profile?.role === "courier") {
       try { state.deliveryQueue = await dataApi.getDeliveryQueue(); } catch { state.deliveryQueue = null; }
@@ -1701,7 +1707,36 @@ function syncGeoForm(scope = root) {
   });
 }
 
+async function loadClinicDraft() {
+  const provider = state.providerRecord;
+  if (!provider || provider.kind !== "doctor") { state.clinicDraft = null; return; }
+  if (state.clinicDraft && state.clinicDraft.providerId === provider.id) return;
+  let saved = null;
+  try { saved = (await dataApi.getClinicLocations()).find((row) => row.provider_id === provider.id) || null; } catch { saved = null; }
+  state.clinicDraft = saved
+    ? { providerId: provider.id, lat: saved.lat, lng: saved.lng, address: saved.address, saved: true }
+    : { providerId: provider.id, lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng, address: "", saved: false };
+}
+
+function clinicLocationInfo(doctorId) {
+  const loc = state.clinicLocations[doctorId];
+  if (!loc || !isValidPoint(loc.lat, loc.lng)) return "";
+  const links = directionsLinks(loc.lat, loc.lng);
+  return `<div class="geo-card clinic-info" data-clinic-info><strong>موقع العيادة</strong><p>${escapeHTML(loc.address)}</p>
+    <div class="geo-map" data-geo-view data-lat="${escapeHTML(String(loc.lat))}" data-lng="${escapeHTML(String(loc.lng))}" aria-label="خريطة العيادة"></div>
+    <div class="geo-actions"><a class="btn btn-outline btn-small" href="${escapeHTML(links.google)}" target="_blank" rel="noopener">الاتجاهات في Google Maps</a><a class="btn btn-outline btn-small" href="${escapeHTML(links.osm)}" target="_blank" rel="noopener">OpenStreetMap</a></div></div>`;
+}
+
 function mountGeoWidgets() {
+  const clinicPicker = root.querySelector("[data-clinic-picker]");
+  if (clinicPicker && state.clinicDraft) {
+    mountMap(clinicPicker, {
+      lat: state.clinicDraft.lat,
+      lng: state.clinicDraft.lng,
+      editable: true,
+      onChange: (point) => { state.clinicDraft.lat = point.lat; state.clinicDraft.lng = point.lng; }
+    });
+  }
   const picker = root.querySelector("[data-geo-picker]");
   if (picker && state.pendingLocation) {
     mountMap(picker, {
@@ -1916,6 +1951,23 @@ root.addEventListener("click", async (event) => {
     }
     else if (action === "geo-open") await loadProviderGeo(button.dataset.orderId);
     else if (action === "provider-contact") await loadCustomerProviderContact(button.dataset.orderId);
+    else if (action === "clinic-use-gps") {
+      if (!navigator.geolocation) throw new Error("المتصفح لا يدعم تحديد الموقع. حرّك الدبوس على الخريطة.");
+      const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, () => reject(new Error("تعذر تحديد موقعك. اسمح بالوصول للموقع أو حرّك الدبوس يدويًا.")), { enableHighAccuracy: true, timeout: 12000 }));
+      state.clinicDraft = { ...state.clinicDraft, lat: pos.coords.latitude, lng: pos.coords.longitude };
+      render();
+    }
+    else if (action === "clinic-save-location") {
+      const draft = state.clinicDraft;
+      const address = (root.querySelector("[data-clinic-address]")?.value ?? "").trim();
+      if (!draft || !isValidPoint(draft.lat, draft.lng)) throw new Error("حدد موقع العيادة على الخريطة أولًا.");
+      if (address.length < 4) throw new Error("اكتب عنوان العيادة (4 أحرف على الأقل).");
+      await dataApi.setClinicLocation({ lat: draft.lat, lng: draft.lng, address });
+      state.clinicDraft = { ...draft, address, saved: true };
+      if (state.providerRecord?.id) state.clinicLocations[state.providerRecord.id] = { provider_id: state.providerRecord.id, lat: draft.lat, lng: draft.lng, address };
+      showToast("تم حفظ موقع العيادة.", "success");
+      render();
+    }
     else if (action === "save-provider-phone") {
       const phone = root.querySelector('input[name="provider-phone"]')?.value ?? "";
       if (!isValidEgyptPhone(phone)) throw new Error("رقم الموبايل غير صحيح. اكتب 11 رقمًا يبدأ بـ 01.");
@@ -3024,6 +3076,7 @@ async function init() {
     });
     state.providerRecord = result.provider || null;
     state.providerOrders = Array.isArray(result.orders) ? result.orders : [];
+    await loadClinicDraft();
   } else if (state.view === "provider") {
     state.view = "home";
   }
