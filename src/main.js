@@ -57,6 +57,8 @@ const state = {
   operationsOrders: [],
   operationsServices: [],
   operationsCoverage: [],
+  operationsOffers: [],
+  activeOffer: null,
   operationsSaving: false,
   latestInviteCode: "",
   providerInviteSaving: false,
@@ -101,10 +103,12 @@ function showToast(message, kind = "info") {
 function offerTicker() {
   const hasPublishedOffers = state.offers.length > 0;
   const messages = hasPublishedOffers
-    ? state.offers.map((offer) => stripPictographs(offer.text)).filter(Boolean)
-    : ["وصلة تجمع خدماتك المحلية في مكان واحد", "خدمات شبين القناطر أقرب وأسهل مع وصلة"];
+    ? state.offers.map((offer) => ({ id: offer.id, sector: offer.sector, text: stripPictographs(offer.text) })).filter((m) => m.text)
+    : [{ text: "وصلة تجمع خدماتك المحلية في مكان واحد" }, { text: "خدمات شبين القناطر أقرب وأسهل مع وصلة" }];
 
-  const text = messages.map((message) => escapeHTML(message)).join("　　•　　");
+  const text = messages.map((m) => m.sector
+    ? `<button type="button" class="ticker-offer" data-action="offer" data-offer-id="${escapeHTML(String(m.id))}" data-sector="${escapeHTML(m.sector)}">${escapeHTML(m.text)} ←</button>`
+    : escapeHTML(m.text)).join("　　•　　");
   const note = hasPublishedOffers
     ? "الإعلانات نصوص منشورة من لوحة المنصة؛ لا يُحتسب خصم تلقائي قبل تفعيل محرك العروض."
     : "لا توجد عروض منشورة حاليًا؛ الرسائل المعروضة تعريفية فقط.";
@@ -308,12 +312,16 @@ function sectorView() {
   const body = sector.mode === "order"
     ? `<label class="search-box"><span aria-hidden="true">⌕</span><input data-search type="search" value="${escapeHTML(state.search)}" placeholder="ابحث عن خدمة..." autocomplete="off"></label><div class="service-grid">${serviceCards(sector.code)}</div>`
     : (state.sectorLoading ? '<div class="empty-state" role="status"><strong>جارٍ تحميل القسم...</strong></div>' : sectorPanels(sector.code).trim()) || (state.sectorLoading ? '' : '<div class="empty-state"><strong>لا يوجد مقدمو خدمة معتمدون في هذا القسم الآن</strong><p>سيظهر محتوى القسم هنا عند اعتماد مقدمي خدمة حقيقيين.</p></div>');
+  const offerBanner = state.activeOffer && state.activeOffer.sector === sector.code
+    ? `<div class="sector-offer" role="note"><span class="eyebrow">عرض</span><strong>${escapeHTML(stripPictographs(state.activeOffer.text))}</strong></div>`
+    : "";
   return `
     <section class="sector-page" id="sector-${escapeHTML(sector.code)}" data-sector-page="${escapeHTML(sector.code)}">
       <div class="section-heading">
         <div><span class="eyebrow">قسم</span><h1>${escapeHTML(sector.title)}</h1><p class="section-aside">${escapeHTML(sector.description)}</p></div>
         <button class="btn btn-outline btn-small" data-action="home">← كل الأقسام</button>
       </div>
+      ${offerBanner}
     </section>
     ${body}
   `;
@@ -1095,7 +1103,8 @@ function operationsView() {
     changeRequests: state.opsChangeRequests,
     preview: CONFIG.isPublicPreview,
     saving: state.operationsSaving,
-    approvalDrafts: state.approvalDrafts
+    approvalDrafts: state.approvalDrafts,
+    offers: state.operationsOffers
   }) + deliveryQueueSection("staff");
 }
 
@@ -1507,6 +1516,7 @@ async function refreshOperations() {
     state.operationsProviders = Array.isArray(providers) ? providers : [];
     state.operationsServices = Array.isArray(services) ? services : [];
     state.operationsCoverage = Array.isArray(coverage) ? coverage : [];
+    try { state.operationsOffers = state.profile?.role === "admin" ? await dataApi.getOperationsOffers() : []; } catch { state.operationsOffers = []; }
     try { state.deliveryQueue = await dataApi.getDeliveryQueue(); } catch { state.deliveryQueue = null; }
     state.opsChangeRequests = await dataApi.getMyChangeRequests();
     state.view = "operations";
@@ -2338,8 +2348,9 @@ root.addEventListener("click", async (event) => {
       showToast("حجز العيادات سيتاح بعد اعتماد جداول العمل الحقيقية.", "info");
     } else if (action === "coming-soon") {
       showToast("هذا القطاع لم يكتمل تشغيله بعد.", "info");
-    } else if (action === "sector") {
+    } else if (action === "sector" || action === "offer") {
       const code = button.dataset.sector;
+      state.activeOffer = action === "offer" ? (state.offers.find((o) => String(o.id) === button.dataset.offerId) || null) : null;
       const customer = state.profile?.role === "customer";
       let plan = sectorEntryPlan({ code, signedIn: Boolean(state.user?.id), isCustomer: customer, present: new Set() });
       if (plan.kind === "services") {
@@ -2748,6 +2759,21 @@ root.addEventListener("submit", async (event) => {
         render();
       }
     }
+    if (form.dataset.form === "save-offer") {
+      if (CONFIG.isPublicPreview) throw new Error("إدارة الإعلانات متوقفة في نسخة المعاينة.");
+      if (state.profile?.role !== "admin") throw new Error("إدارة الإعلانات مخصصة للمؤسس فقط.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      state.operationsSaving = true;
+      render();
+      try {
+        await dataApi.adminSaveOffer({ id: form.dataset.offerId, text: values.text, sector: values.sector, active: values.active === "on", sortOrder: values.sort_order });
+        await Promise.all([refreshOperations(), loadCatalog()]);
+        showToast("تم حفظ الإعلان.", "success");
+      } finally {
+        state.operationsSaving = false;
+        render();
+      }
+    }
     if (form.dataset.form === "approve-provider-service") {
       if (CONFIG.isPublicPreview) throw new Error("الاعتماد متوقف في نسخة المعاينة.");
       if (state.profile?.role !== "admin") throw new Error("اعتماد مقدم الخدمة بالسعر والتخصص مخصص للمؤسس فقط.");
@@ -2975,6 +3001,7 @@ async function init() {
       state.operationsProviders = Array.isArray(providers) ? providers : [];
       state.operationsServices = Array.isArray(services) ? services : [];
       state.operationsCoverage = Array.isArray(coverage) ? coverage : [];
+      try { state.operationsOffers = state.profile?.role === "admin" ? await dataApi.getOperationsOffers() : []; } catch { state.operationsOffers = []; }
     } catch (error) {
       showToast(error.message, "error");
     }
