@@ -1197,3 +1197,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .sector-page .section-heading { align-items: flex-start; }
 .sector-page h1 { margin: 0; color: var(--navy); font-size: 28px; }
 @media (max-width: 640px) { .sector-page { padding-top: 18px; } .sector-page h1 { font-size: 22px; } }
+
+/* Banner offers: tappable, pause the marquee while pressed */
+.ticker-offer { font: inherit; font-weight: 800; font-size: 12px; background: transparent; border: 0; padding: 4px 2px; color: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; min-height: 28px; }
+.ticker:hover .ticker-track, .ticker:focus-within .ticker-track, .ticker:active .ticker-track { animation-play-state: paused; }
+.sector-offer { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: #e8f7f0; border: 1px solid #c8eadb; color: #087653; }
+.ops-offer-list { display: grid; gap: 12px; margin-bottom: 14px; }
+.ops-offer-form { display: grid; grid-template-columns: 2fr 1.2fr 90px auto auto; gap: 10px; align-items: end; padding: 12px; border: 1px solid var(--line, #e3e8e5); border-radius: 14px; }
+.ops-offer-form.is-off { opacity: .6; }
+.ops-offer-form label { display: grid; gap: 4px; font-size: 12px; font-weight: 700; }
+.ops-offer-form .ops-offer-active { display: flex; align-items: center; gap: 6px; }
+@media (max-width: 720px) { .ops-offer-form { grid-template-columns: 1fr; } }
