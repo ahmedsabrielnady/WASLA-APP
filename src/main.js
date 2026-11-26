@@ -29,6 +29,7 @@ const state = {
   pendingService: null,
   pendingLocation: null,
   activeSector: "",
+  approvalDrafts: {},
   sectorLoading: false,
   geoForm: { landmark: "", phone: "", make: "", model: "", plate: "", color: "", consent: false },
   geoCards: {},
@@ -1093,7 +1094,8 @@ function operationsView() {
     coverage: state.operationsCoverage,
     changeRequests: state.opsChangeRequests,
     preview: CONFIG.isPublicPreview,
-    saving: state.operationsSaving
+    saving: state.operationsSaving,
+    approvalDrafts: state.approvalDrafts
   }) + deliveryQueueSection("staff");
 }
 
@@ -2746,6 +2748,26 @@ root.addEventListener("submit", async (event) => {
         render();
       }
     }
+    if (form.dataset.form === "approve-provider-service") {
+      if (CONFIG.isPublicPreview) throw new Error("الاعتماد متوقف في نسخة المعاينة.");
+      if (state.profile?.role !== "admin") throw new Error("اعتماد مقدم الخدمة بالسعر والتخصص مخصص للمؤسس فقط.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      const price = Number(values.price);
+      if (!values.sector || !values.specialty) throw new Error("اختر القسم ثم التخصص.");
+      if (!Number.isInteger(price) || price < 0) throw new Error("اكتب سعرًا صحيحًا بالجنيه.");
+      if (!window.confirm(`اعتماد ${values.display_name} في ${values.specialty} بسعر ${price} ج.م؟`)) return;
+      state.operationsSaving = true;
+      render();
+      try {
+        await dataApi.approveProviderWithService(form.dataset.providerId, { sector: values.sector, specialty: values.specialty, displayName: values.display_name, price });
+        delete state.approvalDrafts[form.dataset.providerId];
+        await Promise.all([refreshOperations(), loadCatalog()]);
+        showToast("تم اعتماد مقدم الخدمة وتفعيل الخدمة بسعرها.", "success");
+      } finally {
+        state.operationsSaving = false;
+        render();
+      }
+    }
     if (form.dataset.form === "operations-provider-coverage") {
       if (CONFIG.isPublicPreview) throw new Error("إدارة التغطية متوقفة في نسخة المعاينة.");
       if (state.profile?.role !== "admin") throw new Error("إدارة التغطية مخصصة للمؤسس فقط.");
@@ -2855,6 +2877,14 @@ root.addEventListener("submit", async (event) => {
 });
 
 root.addEventListener("change", async (event) => {
+  const approvalSector = event.target.closest?.("[data-approval-sector]");
+  if (approvalSector) {
+    const form = approvalSector.closest("form");
+    const id = approvalSector.dataset.providerId;
+    state.approvalDrafts[id] = { sector: approvalSector.value, display_name: form.elements.display_name?.value, price: form.elements.price?.value };
+    render();
+    return;
+  }
   const pick = event.target.closest?.("[data-clinic-pick]");
   if (!pick) return;
   if (state.busy) return;
