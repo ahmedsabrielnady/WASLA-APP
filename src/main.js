@@ -35,7 +35,7 @@ const state = {
   geoCards: {},
   clinicLocations: {},
   deliveryPins: { pickup: null, dropoff: null, share: false },
-  cart: [],
+  carts: { market: [], food: [], supplies: [] },
   merchantNames: {},
   deliveryRoutes: {},
   clinicDraft: null,
@@ -971,36 +971,42 @@ function teacherSection() {
     </section>`;
 }
 
-const CART_STORAGE_PREFIX = "wasla.cart.v1:";
-function cartKey() { return state.user?.id ? CART_STORAGE_PREFIX + state.user.id : null; }
-function persistCart() {
-  const key = cartKey();
+// One cart per section. Market, food and medical supplies never share a cart, a checkout or a storage key.
+const CART_CATEGORIES = ["market", "food", "supplies"];
+const CART_STORAGE_PREFIX = "wasla.cart.v2:";
+function cartKey(category) { return state.user?.id && CART_CATEGORIES.includes(category) ? `${CART_STORAGE_PREFIX}${state.user.id}:${category}` : null; }
+function persistCart(category) {
+  const key = cartKey(category);
   if (!key) return;
+  const lines = state.carts?.[category] || [];
   try {
-    if (state.cart?.length) localStorage.setItem(key, JSON.stringify(state.cart.map((line) => ({ id: Number(line.id), qty: Number(line.qty) }))));
+    if (lines.length) localStorage.setItem(key, JSON.stringify(lines.map((line) => ({ id: Number(line.id), qty: Number(line.qty) }))));
     else localStorage.removeItem(key);
   } catch { /* private mode: the cart simply stays in memory */ }
 }
 // Only product ids and quantities are stored. Prices and stock are re-read live and checked again by the database at checkout.
-function restoreCart() {
-  const key = cartKey();
-  state.cart = [];
-  if (!key || !Array.isArray(state.products)) return;
-  let saved = [];
-  try { saved = JSON.parse(localStorage.getItem(key) || "[]"); } catch { saved = []; }
-  const lines = [];
-  for (const entry of Array.isArray(saved) ? saved : []) {
-    const product = state.products.find((p) => Number(p.id) === Number(entry?.id));
-    if (!product || lines.some((line) => Number(line.id) === Number(product.id))) continue;
-    const qty = Math.min(Number(entry.qty) || 0, 20, Number(product.stock) || 0);
-    if (qty >= 1 && lines.length < 10) lines.push({ id: product.id, qty });
+function restoreCarts() {
+  state.carts = { market: [], food: [], supplies: [] };
+  if (!state.user?.id || !Array.isArray(state.products)) return;
+  try { localStorage.removeItem("wasla.cart.v1:" + state.user.id); } catch { /* old mixed cart format is dropped */ }
+  for (const category of CART_CATEGORIES) {
+    const key = cartKey(category);
+    let saved = [];
+    try { saved = JSON.parse(localStorage.getItem(key) || "[]"); } catch { saved = []; }
+    const lines = [];
+    for (const entry of Array.isArray(saved) ? saved : []) {
+      const product = state.products.find((p) => Number(p.id) === Number(entry?.id) && (p.category || "market") === category);
+      if (!product || lines.some((line) => Number(line.id) === Number(product.id))) continue;
+      const qty = Math.min(Number(entry.qty) || 0, 20, Number(product.stock) || 0);
+      if (qty >= 1 && lines.length < 10) lines.push({ id: product.id, qty });
+    }
+    state.carts[category] = lines;
+    persistCart(category);
   }
-  state.cart = lines;
-  persistCart();
 }
 
-function cartLines() {
-  return (state.cart || []).map((line) => {
+function cartLines(category) {
+  return (state.carts?.[category] || []).map((line) => {
     const product = (state.products || []).find((p) => String(p.id) === String(line.id));
     if (!product) return null;
     const unit = product.discount_price_egp ?? product.price_egp;
@@ -1008,8 +1014,8 @@ function cartLines() {
   }).filter(Boolean);
 }
 
-function cartPanel() {
-  const lines = cartLines();
+function cartPanel(category) {
+  const lines = cartLines(category);
   if (!lines.length) return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
   const groups = new Map();
@@ -1021,19 +1027,19 @@ function cartPanel() {
     const subtotal = rows.reduce((sum, row) => sum + row.total, 0);
     return `<div class="cart-group" data-cart-merchant="${escapeHTML(merchant)}"><strong>${escapeHTML(name)}</strong>
       ${rows.map((row) => `<div class="cart-line"><span>${escapeHTML(row.product.name)} × ${escapeHTML(String(row.qty))}</span><span>${escapeHTML(formatEGP(row.total))}</span>
-        <button class="btn btn-outline btn-small" type="button" data-action="cart-remove" data-product="${escapeHTML(row.product.id)}">حذف</button></div>`).join("")}
+        <button class="btn btn-outline btn-small" type="button" data-action="cart-remove" data-category="${category}" data-product="${escapeHTML(row.product.id)}">حذف</button></div>`).join("")}
       <div class="cart-subtotal"><span>إجمالي ${escapeHTML(name)}</span><strong>${escapeHTML(formatEGP(subtotal))}</strong></div></div>`;
   }).join("");
   const grand = lines.reduce((sum, row) => sum + row.total, 0);
-  return `<div class="cart-panel" id="cart"><h3>سلتك</h3>${blocks}
+  return `<div class="cart-panel" id="cart-${category}" data-cart-category="${category}"><h3>سلتك</h3>${blocks}
     <p class="deposit-note">كل متجر يستلم طلبًا منفصلًا. السعر النهائي يحسبه النظام عند التأكيد، والدفع عند الاستلام. لو أي صنف غير متوفر، لا يُسجل أي طلب.</p>
     <div class="cart-total"><span>الإجمالي</span><strong>${escapeHTML(formatEGP(grand))}</strong></div>
-    <form data-form="cart-checkout" novalidate>
+    <form data-form="cart-checkout" data-category="${category}" novalidate>
       <label>عنوان التسليم<input name="address" maxlength="255" required></label>
       <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على <a href="./terms.html" target="_blank" rel="noopener">شروط الاستخدام (مسودة)</a>.</span></label>
       <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على <a href="./privacy.html" target="_blank" rel="noopener">سياسة الخصوصية (مسودة)</a>.</span></label>
       <button class="btn btn-primary" type="submit" ${disabled}>تأكيد طلب السلة</button>
-      <button class="btn btn-outline" type="button" data-action="cart-clear">إفراغ السلة</button>
+      <button class="btn btn-outline" type="button" data-action="cart-clear" data-category="${category}">إفراغ السلة</button>
     </form></div>`;
 }
 
@@ -1047,7 +1053,7 @@ function storePanel(category, eyebrow, title, intro, showCart = true) {
     <section class="page-panel store-panel" id="${category === "food" ? "food" : category === "supplies" ? "supplies" : "store"}">
       <div class="section-heading"><div><span class="eyebrow">${eyebrow}</span><h2>${title}</h2></div></div>
       <p>${intro} التوصيل مجاني للعميل. الدفع عند الاستلام ولا يتم تحصيل أي مبلغ داخل وصلة. السعر النهائي يحسبه النظام.</p>
-      <form data-form="cart-add" novalidate>
+      <form data-form="cart-add" data-category="${category}" novalidate>
         <label>${noun}<select name="product" required>
           <option value="">اختر ${noun}</option>
           ${items.map((p) => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.name)} · ${escapeHTML(formatEGP(p.discount_price_egp ?? p.price_egp))} (متوفر ${escapeHTML(p.stock)})</option>`).join("")}
@@ -1055,7 +1061,7 @@ function storePanel(category, eyebrow, title, intro, showCart = true) {
         <label>الكمية<input type="number" name="qty" min="1" max="20" value="1" required></label>
         <button class="btn btn-primary" type="submit" ${disabled}>أضف إلى السلة</button>
       </form>
-      ${showCart ? cartPanel() : ""}
+      ${cartPanel(category)}
     </section>`;
   }
 }
@@ -1084,18 +1090,9 @@ function nursingSection() {
 }
 
 function storeSection() {
-  const panels = [
-    ["market", "الماركت", "اطلب من الماركت", "منتجات البقالة واحتياجات البيت."],
-    ["food", "المطاعم", "اطلب وجبة", "وجبات من مطاعم شبين القناطر."],
-    ["supplies", "الصحة", "مستلزمات طبية", "كمامات وشاش وأجهزة قياس منزلية."]
-  ];
-  let cartShown = false;
-  return panels.map(([category, eyebrow, title, intro]) => {
-    const hasItems = (state.products || []).some((p) => (p.category || "market") === category);
-    const showCart = hasItems && !cartShown;
-    if (hasItems) cartShown = true;
-    return storePanel(category, eyebrow, title, intro, showCart);
-  }).join("");
+  return storePanel("market", "الماركت", "اطلب من الماركت", "منتجات البقالة واحتياجات البيت.")
+    + storePanel("food", "المطاعم", "اطلب وجبة", "وجبات من مطاعم شبين القناطر.")
+    + storePanel("supplies", "الصحة", "مستلزمات طبية", "كمامات وشاش وأجهزة قياس منزلية.");
 }
 
 async function loadClinicSlots() {
@@ -1544,7 +1541,7 @@ async function loadAccount() {
     }
   } catch (error) {
     state.user = null;
-    state.cart = [];
+    state.carts = { market: [], food: [], supplies: [] };
     state.profile = null;
     state.session = null;
     if (String(error.message).includes("الاتصال")) showToast(error.message, "error");
@@ -1608,8 +1605,8 @@ async function refreshMyOrders() {
     try { state.doctors = await dataApi.getDoctors(); } catch { state.doctors = null; }
     try { state.clinicLocations = Object.fromEntries((await dataApi.getClinicLocations()).map((row) => [row.provider_id, row])); } catch { state.clinicLocations = {}; }
     try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
-    restoreCart();
-    try { const ids = cartLines().map((line) => line.merchant).filter(Boolean); if (ids.length) state.merchantNames = { ...state.merchantNames, ...(await dataApi.getMerchantNames(ids)) }; } catch { /* names are cosmetic */ }
+    restoreCarts();
+    try { const ids = CART_CATEGORIES.flatMap((category) => cartLines(category)).map((line) => line.merchant).filter(Boolean); if (ids.length) state.merchantNames = { ...state.merchantNames, ...(await dataApi.getMerchantNames(ids)) }; } catch { /* names are cosmetic */ }
     try { state.sessions = await dataApi.getSessions(); state.enrollments = await dataApi.getMyEnrollments(); await loadSessionLinks(); } catch { state.sessions = null; state.enrollments = null; }
     await loadMedicalNotes();
     await loadCourses();
@@ -2473,12 +2470,16 @@ root.addEventListener("click", async (event) => {
         render();
       }
     } else if (action === "cart-remove") {
-      state.cart = (state.cart || []).filter((line) => String(line.id) !== String(button.dataset.product));
-      persistCart();
+      const category = button.dataset.category;
+      if (!CART_CATEGORIES.includes(category)) throw new Error("قسم السلة غير صالح.");
+      state.carts[category] = (state.carts[category] || []).filter((line) => String(line.id) !== String(button.dataset.product));
+      persistCart(category);
       render();
     } else if (action === "cart-clear") {
-      state.cart = [];
-      persistCart();
+      const category = button.dataset.category;
+      if (!CART_CATEGORIES.includes(category)) throw new Error("قسم السلة غير صالح.");
+      state.carts[category] = [];
+      persistCart(category);
       render();
     } else if (action === "store-respond") {
       if (CONFIG.isPublicPreview) throw new Error("الرد متوقف في نسخة المعاينة.");
@@ -2823,19 +2824,23 @@ root.addEventListener("submit", async (event) => {
     if (form.dataset.form === "cart-add") {
       if (CONFIG.isPublicPreview) throw new Error("الطلب متوقف في نسخة المعاينة.");
       if (state.profile?.role !== "customer") throw new Error("الطلب متاح لحسابات العملاء فقط.");
+      const category = form.dataset.category;
+      if (!CART_CATEGORIES.includes(category)) throw new Error("قسم السلة غير صالح.");
       const values = Object.fromEntries(new FormData(form).entries());
       const product = (state.products || []).find((p) => String(p.id) === String(values.product));
       if (!product) throw new Error("اختر المنتج.");
+      if ((product.category || "market") !== category) throw new Error("هذا المنتج ليس من هذا القسم.");
       const qty = Number(values.qty);
       if (!Number.isInteger(qty) || qty < 1 || qty > 20) throw new Error("الكمية من 1 إلى 20.");
-      const existing = (state.cart || []).find((line) => String(line.id) === String(product.id));
+      const lines = state.carts[category] || [];
+      const existing = lines.find((line) => String(line.id) === String(product.id));
       const next = (existing?.qty || 0) + qty;
       if (next > 20) throw new Error("الحد الأقصى 20 من نفس الصنف.");
       if (next > Number(product.stock)) throw new Error("الكمية المطلوبة غير متوفرة. المتوفر " + product.stock + ".");
-      if (!existing && (state.cart || []).length >= 10) throw new Error("السلة تتسع لـ 10 أصناف.");
-      state.cart = existing ? state.cart.map((line) => (line === existing ? { ...line, qty: next } : line)) : [...(state.cart || []), { id: product.id, qty }];
-      persistCart();
-      const ids = cartLines().map((line) => line.merchant).filter((id) => id && !state.merchantNames[id]);
+      if (!existing && lines.length >= 10) throw new Error("السلة تتسع لـ 10 أصناف.");
+      state.carts[category] = existing ? lines.map((line) => (line === existing ? { ...line, qty: next } : line)) : [...lines, { id: product.id, qty }];
+      persistCart(category);
+      const ids = cartLines(category).map((line) => line.merchant).filter((id) => id && !state.merchantNames[id]);
       if (ids.length) state.merchantNames = { ...state.merchantNames, ...(await dataApi.getMerchantNames(ids)) };
       render();
       showToast("تمت الإضافة إلى السلة.", "success");
@@ -2846,15 +2851,17 @@ root.addEventListener("submit", async (event) => {
       if (state.profile?.role !== "customer") throw new Error("الطلب متاح لحسابات العملاء فقط.");
       const values = Object.fromEntries(new FormData(form).entries());
       if (values.terms !== "on" || values.privacy !== "on") throw new Error("يجب الموافقة على الشروط وسياسة الخصوصية.");
-      const lines = (state.cart || []).map((line) => ({ product: line.id, qty: line.qty }));
+      const category = form.dataset.category;
+      if (!CART_CATEGORIES.includes(category)) throw new Error("قسم السلة غير صالح.");
+      const lines = (state.carts[category] || []).map((line) => ({ product: line.id, qty: line.qty }));
       if (!lines.length) throw new Error("السلة فارغة.");
       let placed = [];
       await runWithBusyState(state, async () => {
         render();
         await dataApi.acceptRequiredConsents();
         placed = await dataApi.placeCartOrder(lines, values.address, null);
-        state.cart = [];
-        persistCart();
+        state.carts[category] = [];
+        persistCart(category);
         try { state.myOrders = await dataApi.getMyOrders(state.user.id); } catch { /* refreshed on next load */ }
         try { state.products = await dataApi.getProducts(); } catch { /* keep current list */ }
         const count = Array.isArray(placed) ? placed.length : 0;
