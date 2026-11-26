@@ -70,7 +70,12 @@ export function renderProviderView(options = {}) {
       : order.status === "in_progress"
         ? ["done", "تأكيد إتمام الخدمة"]
         : null;
-    const actionMarkup = action
+    const isNewStore = order.sector === "store" && order.product_id != null && order.status === "new";
+    const storeMarkup = isNewStore
+      ? '<button class="btn btn-primary btn-small" data-action="store-respond" data-accept="yes" data-order-id="' + e(order.id) + '"' + (preview || saving ? " disabled" : "") + '>قبول الطلب</button> ' +
+        '<button class="btn btn-outline btn-small" data-action="store-respond" data-accept="no" data-order-id="' + e(order.id) + '"' + (preview || saving ? " disabled" : "") + '>رفض الطلب</button>'
+      : "";
+    const actionMarkup = storeMarkup ? storeMarkup : action
       ? '<button class="btn btn-primary btn-small" data-action="provider-set-status" data-kind="' + (isClinic ? "clinic" : "order") + '" data-order-id="' + e(order.id) + '" data-status="' + action[0] + '"' + (preview || saving ? " disabled" : "") + '>' + action[1] + '</button>'
       : "";
 
