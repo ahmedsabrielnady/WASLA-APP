@@ -75,7 +75,7 @@ export function renderProviderView(options = {}) {
       : "";
 
     return '<article class="provider-order-card">' +
-      '<div class="provider-order-head"><div><strong>' + e(order.ref || "طلب وصلة") + '</strong><small>' + e(sectorLabel(order.sector)) + '</small></div>' +
+      '<div class="provider-order-head"><div><strong>' + e(order.ref || "طلب وصلة") + '</strong><small>' + e(sectorLabel(order.sector)) + '</small>' + (order.product_id != null ? '<small class="provider-order-product">' + e(order.product_name || "منتج") + ' × ' + e(String(Number(order.quantity) || 1)) + '</small>' : "") + '</div>' +
       '<span class="status-pill">' + e(statusLabel(order.status)) + '</span></div>' +
       '<div class="provider-order-meta">' +
       '<span>تاريخ الطلب: ' + e(formatDate(order.created_at)) + '</span>' +
@@ -91,7 +91,7 @@ export function renderProviderView(options = {}) {
     '<div class="section-heading"><div><span class="eyebrow">مساحة مقدم الخدمة</span><h1>أهلًا ' + e(provider.display_name) + '</h1>' +
     '<p class="provider-subtitle">' + e(KIND_LABELS[provider.kind] || "مقدم خدمة") + ' · ' + e(provider.specialty || provider.area || "وصلة") + '</p></div>' +
     '<button class="btn btn-outline btn-small" data-action="reload-provider">تحديث الطلبات</button></div>' +
-    '<div class="geo-card"><label>رقم موبايل التواصل (يظهر للعميل أثناء تنفيذ طلبه فقط)<input name="provider-phone" inputmode="tel" maxlength="11" placeholder="01XXXXXXXXX"></label><button class="btn btn-outline btn-small" data-action="save-provider-phone"' + (preview || saving ? " disabled" : "") + '>حفظ الرقم</button></div>' +
+    '<div class="geo-card geo-phone"><label>رقم موبايل التواصل (يظهر للعميل أثناء تنفيذ طلبه فقط)<input name="provider-phone" inputmode="tel" maxlength="11" placeholder="01XXXXXXXXX"></label><button class="btn btn-outline btn-small" data-action="save-provider-phone"' + (preview || saving ? " disabled" : "") + '>حفظ الرقم</button></div>' +
     clinicLocationCard(provider, options.clinicDraft, preview || saving) +
     '<p class="notice">تظهر هنا الطلبات المسندة إلى حسابك فقط. تحديث الحالة يُسجل في سجل الطلب.</p>' +
     (preview ? '<p class="roadmap-lock-note">هذه نسخة معاينة للقراءة فقط؛ تحديث حالات الطلبات متوقف.</p>' : "") +
