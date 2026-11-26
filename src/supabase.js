@@ -1585,13 +1585,50 @@ export const dataApi = {
     if (!session?.access_token) return null;
     const build = (select) => new URLSearchParams({ select, active: "eq.true", stock: "gt.0", order: "id.asc", limit: "50" });
     try {
-      return await request(`/rest/v1/products?${build("id,name,price_egp,discount_price_egp,stock,category")}`, { token: session.access_token });
+      return await request(`/rest/v1/products?${build("id,name,price_egp,discount_price_egp,stock,category,merchant_id")}`, { token: session.access_token });
     } catch (error) {
       // Before the category draft is applied every product is a market product.
       if (!/category/.test(String(error?.message))) throw error;
       const rows = await request(`/rest/v1/products?${build("id,name,price_egp,discount_price_egp,stock")}`, { token: session.access_token });
       return Array.isArray(rows) ? rows.map((row) => ({ ...row, category: "market" })) : rows;
     }
+  },
+
+  async getMerchantNames(ids) {
+    const list = [...new Set((ids || []).map(String).filter((id) => /^[0-9a-f-]{36}$/i.test(id)))];
+    if (!list.length) return {};
+    const session = await getValidSession();
+    if (!session?.access_token) return {};
+    try {
+      const rows = await request(`/rest/v1/providers?${new URLSearchParams({ select: "id,display_name", id: `in.(${list.join(",")})` })}`, { token: session.access_token });
+      return Object.fromEntries((Array.isArray(rows) ? rows : []).map((row) => [String(row.id), row.display_name]));
+    } catch { return {}; }
+  },
+
+  async placeCartOrder(lines, address, notes) {
+    assertLiveWritesAllowed("طلب منتجات");
+    const clean = (Array.isArray(lines) ? lines : []).map((line) => ({ product: Number(line.product), qty: Number(line.qty) }));
+    if (!clean.length || clean.length > 10) throw new Error("السلة من 1 إلى 10 أصناف.");
+    if (clean.some((line) => !Number.isInteger(line.product) || !Number.isInteger(line.qty) || line.qty < 1 || line.qty > 20)) throw new Error("الكمية من 1 إلى 20.");
+    const a = String(address || "").trim();
+    if (a.length < 5) throw new Error("اكتب عنوان التسليم بوضوح.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/place_cart_order", {
+      method: "POST", token: session.access_token,
+      body: { p_lines: clean, p_address: a, p_notes: String(notes || "").trim().slice(0, 300) || null, p_source: "web" }
+    });
+  },
+
+  async merchantRespondStoreOrder(orderId, accept, note = null) {
+    assertLiveWritesAllowed("الرد على طلب متجر");
+    if (!orderId || typeof accept !== "boolean") throw new Error("بيانات الرد غير صالحة.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/merchant_respond_store_order", {
+      method: "POST", token: session.access_token,
+      body: { p_order: orderId, p_accept: accept, p_note: note ? String(note).slice(0, 300) : null }
+    });
   },
 
   async placeProductOrder(productId, qty, address, notes) {
