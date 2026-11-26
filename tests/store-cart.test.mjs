@@ -42,3 +42,9 @@ test("medical supplies use the same cart and RPC as market and food", () => {
   assert.match(sql, /category not in \('market','food','supplies'\)/);
   assert.match(main, /\["supplies", "الصحة", "مستلزمات طبية"/);
 });
+
+test("order status notifications say accepted or cancelled instead of a generic change", () => {
+  assert.match(main, /function orderStatusNotificationText/);
+  assert.match(main, /التاجر قبل طلبك/);
+  assert.match(main, /orderStatusNotificationText\(order\)\) \|\| NOTIFICATION_TEXT\[n\.kind\]/);
+});
