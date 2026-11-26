@@ -127,7 +127,10 @@ test("only the canonical production host can write to the live database", () => 
   assert.equal(isPreviewHost("localhost"), true);
   assert.equal(isPreviewHost("127.0.0.1"), true);
   assert.equal(isPreviewHost("deploy-preview-8--wasla2026.netlify.app"), true);
-  assert.equal(isPreviewHost("wasla2026.netlify.app"), true);
+  assert.equal(isPreviewHost("wasla2026.netlify.app"), false, "approved standby host");
+  assert.equal(isPreviewHost("wasla-prod.pages.dev"), false, "approved Cloudflare primary host");
+  assert.equal(isPreviewHost("abc123.wasla-prod.pages.dev"), true, "per-deployment host stays read-only");
+  assert.equal(isPreviewHost("wasla-prod.pages.dev", "https://mekeirlgmergmzsdkaon.supabase.co"), true, "approved production host with the test backend stays read-only");
   assert.equal(isPreviewHost("ahmedsabrielnady.github.io"), true);
   assert.equal(isPreviewHost("wasla-app-git-feature-p0-crm-live-dashboard-ahmedsabrielnady.vercel.app"), true);
   assert.equal(isPreviewHost("wasla-app-gg2f-1faosz77c-ahmedsabrielnady.vercel.app"), true);
