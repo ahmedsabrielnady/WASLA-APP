@@ -35,6 +35,8 @@ const state = {
   geoCards: {},
   clinicLocations: {},
   deliveryPins: { pickup: null, dropoff: null, share: false },
+  cart: [],
+  merchantNames: {},
   deliveryRoutes: {},
   clinicDraft: null,
   locatedOrderIds: [],
@@ -957,10 +959,64 @@ function teacherSection() {
     </section>`;
 }
 
-function storePanel(category, eyebrow, title, intro) {
+function cartLines() {
+  return (state.cart || []).map((line) => {
+    const product = (state.products || []).find((p) => String(p.id) === String(line.id));
+    if (!product) return null;
+    const unit = product.discount_price_egp ?? product.price_egp;
+    return { product, qty: line.qty, unit, total: unit * line.qty, merchant: String(product.merchant_id || "") };
+  }).filter(Boolean);
+}
+
+function cartPanel() {
+  const lines = cartLines();
+  if (!lines.length) return "";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const groups = new Map();
+  lines.forEach((line) => { if (!groups.has(line.merchant)) groups.set(line.merchant, []); groups.get(line.merchant).push(line); });
+  let index = 0;
+  const blocks = [...groups.entries()].map(([merchant, rows]) => {
+    index += 1;
+    const name = state.merchantNames?.[merchant] || `متجر ${index}`;
+    const subtotal = rows.reduce((sum, row) => sum + row.total, 0);
+    return `<div class="cart-group" data-cart-merchant="${escapeHTML(merchant)}"><strong>${escapeHTML(name)}</strong>
+      ${rows.map((row) => `<div class="cart-line"><span>${escapeHTML(row.product.name)} × ${escapeHTML(String(row.qty))}</span><span>${escapeHTML(formatEGP(row.total))}</span>
+        <button class="btn btn-outline btn-small" type="button" data-action="cart-remove" data-product="${escapeHTML(row.product.id)}">حذف</button></div>`).join("")}
+      <div class="cart-subtotal"><span>إجمالي ${escapeHTML(name)}</span><strong>${escapeHTML(formatEGP(subtotal))}</strong></div></div>`;
+  }).join("");
+  const grand = lines.reduce((sum, row) => sum + row.total, 0);
+  return `<div class="cart-panel" id="cart"><h3>سلتك</h3>${blocks}
+    <p class="deposit-note">كل متجر يستلم طلبًا منفصلًا. السعر النهائي يحسبه النظام عند التأكيد، والدفع عند الاستلام. لو أي صنف غير متوفر، لا يُسجل أي طلب.</p>
+    <div class="cart-total"><span>الإجمالي</span><strong>${escapeHTML(formatEGP(grand))}</strong></div>
+    <form data-form="cart-checkout" novalidate>
+      <label>عنوان التسليم<input name="address" maxlength="255" required></label>
+      <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على <a href="./terms.html" target="_blank" rel="noopener">شروط الاستخدام (مسودة)</a>.</span></label>
+      <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على <a href="./privacy.html" target="_blank" rel="noopener">سياسة الخصوصية (مسودة)</a>.</span></label>
+      <button class="btn btn-primary" type="submit" ${disabled}>تأكيد طلب السلة</button>
+      <button class="btn btn-outline" type="button" data-action="cart-clear">إفراغ السلة</button>
+    </form></div>`;
+}
+
+function storePanel(category, eyebrow, title, intro, showCart = true) {
   const items = (state.products || []).filter((p) => (p.category || "market") === category);
   if (!items.length) return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  if (category === "market" || category === "food") {
+    return `
+    <section class="page-panel store-panel" id="${category === "food" ? "food" : "store"}">
+      <div class="section-heading"><div><span class="eyebrow">${eyebrow}</span><h2>${title}</h2></div></div>
+      <p>${intro} التوصيل مجاني للعميل. الدفع عند الاستلام ولا يتم تحصيل أي مبلغ داخل وصلة. السعر النهائي يحسبه النظام.</p>
+      <form data-form="cart-add" novalidate>
+        <label>${category === "food" ? "الوجبة" : "المنتج"}<select name="product" required>
+          <option value="">${category === "food" ? "اختر الوجبة" : "اختر المنتج"}</option>
+          ${items.map((p) => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.name)} · ${escapeHTML(formatEGP(p.discount_price_egp ?? p.price_egp))} (متوفر ${escapeHTML(p.stock)})</option>`).join("")}
+        </select></label>
+        <label>الكمية<input type="number" name="qty" min="1" max="20" value="1" required></label>
+        <button class="btn btn-primary" type="submit" ${disabled}>أضف إلى السلة</button>
+      </form>
+      ${showCart ? cartPanel() : ""}
+    </section>`;
+  }
   return `
     <section class="page-panel store-panel" id="${category === "food" ? "food" : category === "supplies" ? "supplies" : "store"}">
       <div class="section-heading"><div><span class="eyebrow">${eyebrow}</span><h2>${title}</h2></div></div>
@@ -1003,8 +1059,8 @@ function nursingSection() {
 }
 
 function storeSection() {
-  return storePanel("market", "الماركت", "اطلب من الماركت", "منتجات البقالة واحتياجات البيت.")
-    + storePanel("food", "المطاعم", "اطلب وجبة", "وجبات من مطاعم شبين القناطر.")
+  return storePanel("market", "الماركت", "اطلب من الماركت", "منتجات البقالة واحتياجات البيت.", true)
+    + storePanel("food", "المطاعم", "اطلب وجبة", "وجبات من مطاعم شبين القناطر.", false)
     + storePanel("supplies", "الصحة", "مستلزمات طبية", "كمامات وشاش وأجهزة قياس منزلية.");
 }
 
@@ -2379,6 +2435,27 @@ root.addEventListener("click", async (event) => {
         state.operationsSaving = false;
         render();
       }
+    } else if (action === "cart-remove") {
+      state.cart = (state.cart || []).filter((line) => String(line.id) !== String(button.dataset.product));
+      render();
+    } else if (action === "cart-clear") {
+      state.cart = [];
+      render();
+    } else if (action === "store-respond") {
+      if (CONFIG.isPublicPreview) throw new Error("الرد متوقف في نسخة المعاينة.");
+      if (state.profile?.role !== "merchant") throw new Error("غير مصرح بالرد على الطلب.");
+      const accept = button.dataset.accept === "yes";
+      if (!window.confirm(accept ? "هل تريد قبول الطلب؟" : "هل تريد رفض الطلب؟ سيعود المخزون تلقائيًا.")) return;
+      state.providerSaving = true;
+      render();
+      try {
+        await dataApi.merchantRespondStoreOrder(button.dataset.orderId, accept, null);
+        showToast(accept ? "تم قبول الطلب." : "تم رفض الطلب.", "success");
+        await refreshProvider();
+      } finally {
+        state.providerSaving = false;
+        render();
+      }
     } else if (action === "provider-set-status") {
       if (CONFIG.isPublicPreview) throw new Error("تحديث الحالات متوقف في نسخة المعاينة.");
       if (!["doctor", "technician", "teacher", "courier", "merchant"].includes(state.profile?.role)) throw new Error("غير مصرح بتحديث الطلب.");
@@ -2703,6 +2780,47 @@ root.addEventListener("submit", async (event) => {
         showToast("تمت إضافة الحصة.", "success");
       });
       render();
+    }
+    if (form.dataset.form === "cart-add") {
+      if (CONFIG.isPublicPreview) throw new Error("الطلب متوقف في نسخة المعاينة.");
+      if (state.profile?.role !== "customer") throw new Error("الطلب متاح لحسابات العملاء فقط.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      const product = (state.products || []).find((p) => String(p.id) === String(values.product));
+      if (!product) throw new Error("اختر المنتج.");
+      const qty = Number(values.qty);
+      if (!Number.isInteger(qty) || qty < 1 || qty > 20) throw new Error("الكمية من 1 إلى 20.");
+      const existing = (state.cart || []).find((line) => String(line.id) === String(product.id));
+      const next = (existing?.qty || 0) + qty;
+      if (next > 20) throw new Error("الحد الأقصى 20 من نفس الصنف.");
+      if (next > Number(product.stock)) throw new Error("الكمية المطلوبة غير متوفرة. المتوفر " + product.stock + ".");
+      if (!existing && (state.cart || []).length >= 10) throw new Error("السلة تتسع لـ 10 أصناف.");
+      state.cart = existing ? state.cart.map((line) => (line === existing ? { ...line, qty: next } : line)) : [...(state.cart || []), { id: product.id, qty }];
+      const ids = cartLines().map((line) => line.merchant).filter((id) => id && !state.merchantNames[id]);
+      if (ids.length) state.merchantNames = { ...state.merchantNames, ...(await dataApi.getMerchantNames(ids)) };
+      render();
+      showToast("تمت الإضافة إلى السلة.", "success");
+      return;
+    }
+    if (form.dataset.form === "cart-checkout") {
+      if (CONFIG.isPublicPreview) throw new Error("الطلب متوقف في نسخة المعاينة.");
+      if (state.profile?.role !== "customer") throw new Error("الطلب متاح لحسابات العملاء فقط.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      if (values.terms !== "on" || values.privacy !== "on") throw new Error("يجب الموافقة على الشروط وسياسة الخصوصية.");
+      const lines = (state.cart || []).map((line) => ({ product: line.id, qty: line.qty }));
+      if (!lines.length) throw new Error("السلة فارغة.");
+      let placed = [];
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.acceptRequiredConsents();
+        placed = await dataApi.placeCartOrder(lines, values.address, null);
+        state.cart = [];
+        try { state.myOrders = await dataApi.getMyOrders(state.user.id); } catch { /* refreshed on next load */ }
+        try { state.products = await dataApi.getProducts(); } catch { /* keep current list */ }
+        const count = Array.isArray(placed) ? placed.length : 0;
+        showToast(`تم استلام ${count} طلب (طلب لكل متجر/صنف). الدفع عند الاستلام.`, "success");
+      });
+      render();
+      return;
     }
     if (form.dataset.form === "store-order") {
       if (CONFIG.isPublicPreview) throw new Error("الطلب متوقف في نسخة المعاينة.");
