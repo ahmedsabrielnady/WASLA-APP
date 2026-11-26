@@ -1179,3 +1179,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   label:has(input[type="checkbox"]) { display: flex; align-items: center; gap: 10px; min-height: 44px; }
   label a, .page-panel p a { padding-block: 12px; }
 }
+
+/* Geolocation (free OpenStreetMap tiles via vendored Leaflet) */
+.geo-map { height: 240px; border-radius: 14px; overflow: hidden; border: 1px solid var(--line, #d9e2dd); margin: 8px 0; background: #eef3f0; direction: ltr; }
+.geo-map .leaflet-control-attribution { font-size: 10px; }
+.geo-pin span { display: block; width: 28px; height: 28px; background: #087b61; border: 3px solid #fff; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+.geo-map-fallback, .geo-hint { font-size: 13px; color: #55645d; margin: 6px 0; }
+.geo-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.geo-actions a.btn { text-decoration: none; text-align: center; }
+.geo-card { border: 1px solid var(--line, #d9e2dd); border-radius: 14px; padding: 10px; margin-top: 10px; background: #fafcfb; }
+.geo-card dl { margin: 6px 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.geo-card dt { color: #55645d; }
+.geo-card dd { margin: 0; font-weight: 600; }
+.vehicle-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vehicle-fields label:last-child { grid-column: 1 / -1; }
