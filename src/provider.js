@@ -20,6 +20,18 @@ function geoCardHtml(card) {
   return card.html || "";
 }
 
+function clinicLocationCard(provider, draft, disabled) {
+  if (!provider || provider.kind !== "doctor") return "";
+  const d = draft || { lat: "", lng: "", address: "", saved: false };
+  return '<div class="geo-card clinic-location-card" data-clinic-location>' +
+    '<strong>موقع العيادة</strong>' +
+    '<p class="geo-hint">' + (d.saved ? "هذا الموقع يظهر للعملاء عند اختيارك للحجز. اسحب الدبوس أو اضغط على الخريطة لتعديله." : "لم تحدد موقع العيادة بعد. استخدم موقعك الحالي أو حرّك الدبوس على الخريطة، ثم اكتب العنوان واحفظ.") + '</p>' +
+    '<div class="geo-map geo-picker" data-clinic-picker aria-label="خريطة موقع العيادة"></div>' +
+    '<label>عنوان العيادة<input data-clinic-address maxlength="255" value="' + e(d.address) + '" placeholder="الشارع، المنطقة، علامة مميزة"></label>' +
+    '<div class="geo-actions"><button class="btn btn-outline btn-small" data-action="clinic-use-gps"' + (disabled ? " disabled" : "") + '>استخدم موقعي الحالي</button>' +
+    '<button class="btn btn-primary btn-small" data-action="clinic-save-location"' + (disabled ? " disabled" : "") + '>حفظ موقع العيادة</button></div></div>';
+}
+
 export function renderProviderView(options = {}) {
   const profile = options.profile || null;
   const provider = options.provider || null;
@@ -80,6 +92,7 @@ export function renderProviderView(options = {}) {
     '<p class="provider-subtitle">' + e(KIND_LABELS[provider.kind] || "مقدم خدمة") + ' · ' + e(provider.specialty || provider.area || "وصلة") + '</p></div>' +
     '<button class="btn btn-outline btn-small" data-action="reload-provider">تحديث الطلبات</button></div>' +
     '<div class="geo-card"><label>رقم موبايل التواصل (يظهر للعميل أثناء تنفيذ طلبه فقط)<input name="provider-phone" inputmode="tel" maxlength="11" placeholder="01XXXXXXXXX"></label><button class="btn btn-outline btn-small" data-action="save-provider-phone"' + (preview || saving ? " disabled" : "") + '>حفظ الرقم</button></div>' +
+    clinicLocationCard(provider, options.clinicDraft, preview || saving) +
     '<p class="notice">تظهر هنا الطلبات المسندة إلى حسابك فقط. تحديث الحالة يُسجل في سجل الطلب.</p>' +
     (preview ? '<p class="roadmap-lock-note">هذه نسخة معاينة للقراءة فقط؛ تحديث حالات الطلبات متوقف.</p>' : "") +
     (error ? '<p class="form-error">' + e(error) + '</p>' : "") +
