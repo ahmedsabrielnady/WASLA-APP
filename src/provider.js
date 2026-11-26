@@ -13,6 +13,13 @@ function e(value) {
   return escapeHTML(value == null ? "" : value);
 }
 
+function geoCardHtml(card) {
+  if (!card) return "";
+  if (card.loading) return '<p class="geo-hint">جارٍ تحميل الموقع...</p>';
+  if (card.error) return '<p class="form-error">' + e(card.error) + '</p>';
+  return card.html || "";
+}
+
 export function renderProviderView(options = {}) {
   const profile = options.profile || null;
   const provider = options.provider || null;
@@ -21,6 +28,7 @@ export function renderProviderView(options = {}) {
   const preview = Boolean(options.preview);
   const saving = Boolean(options.saving);
   const error = String(options.error || "");
+  const geoCards = options.geoCards || {};
 
   if (!PROVIDER_ROLES.has(profile?.role)) {
     return '<section class="page-panel"><h1>مساحة مقدم الخدمة</h1><div class="empty-state"><strong>غير مصرح</strong><p>هذه المساحة مخصصة لحسابات مقدمي الخدمة المسجلة.</p></div></section>';
@@ -63,7 +71,7 @@ export function renderProviderView(options = {}) {
       '<span>السعر: ' + (order.price_egp == null ? "غير محدد" : e(formatEGP(order.price_egp))) + '</span>' +
       (order.scheduled_at ? '<span>الموعد: ' + e(formatDate(order.scheduled_at)) + '</span>' : "") +
       (order.notes ? '<span>ملاحظات العميل: ' + e(order.notes) + '</span>' : "") +
-      '</div>' + (actionMarkup ? '<div class="provider-order-actions">' + actionMarkup + '</div>' : "") +
+      '</div>' + (!["done", "cancelled"].includes(order.status) && order.sector !== "clinic" ? '<div class="provider-order-actions"><button class="btn btn-outline btn-small" data-action="geo-open" data-order-id="' + e(order.id) + '">موقع العميل والاتجاهات</button></div>' + geoCardHtml(geoCards[order.id]) : "") + (actionMarkup ? '<div class="provider-order-actions">' + actionMarkup + '</div>' : "") +
       '</article>';
   }).join("") + (ordersPage.remaining ? '<button class="btn btn-outline btn-small" data-action="more-list" data-list-key="providerOrders">عرض ' + ordersPage.remaining + ' أخرى</button>' : "");
 
@@ -71,6 +79,7 @@ export function renderProviderView(options = {}) {
     '<div class="section-heading"><div><span class="eyebrow">مساحة مقدم الخدمة</span><h1>أهلًا ' + e(provider.display_name) + '</h1>' +
     '<p class="provider-subtitle">' + e(KIND_LABELS[provider.kind] || "مقدم خدمة") + ' · ' + e(provider.specialty || provider.area || "وصلة") + '</p></div>' +
     '<button class="btn btn-outline btn-small" data-action="reload-provider">تحديث الطلبات</button></div>' +
+    '<div class="geo-card"><label>رقم موبايل التواصل (يظهر للعميل أثناء تنفيذ طلبه فقط)<input name="provider-phone" inputmode="tel" maxlength="11" placeholder="01XXXXXXXXX"></label><button class="btn btn-outline btn-small" data-action="save-provider-phone"' + (preview || saving ? " disabled" : "") + '>حفظ الرقم</button></div>' +
     '<p class="notice">تظهر هنا الطلبات المسندة إلى حسابك فقط. تحديث الحالة يُسجل في سجل الطلب.</p>' +
     (preview ? '<p class="roadmap-lock-note">هذه نسخة معاينة للقراءة فقط؛ تحديث حالات الطلبات متوقف.</p>' : "") +
     (error ? '<p class="form-error">' + e(error) + '</p>' : "") +
