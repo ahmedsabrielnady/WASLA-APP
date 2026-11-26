@@ -1,3 +1,4 @@
+-- SUPERSEDED 26 Nov by 20261126000000a_order_locations_core.sql and 20261126000000b_delivery_locations.sql. This combined file needs delivery_requests (Tier B) and must not be applied to production.
 -- wasla-test ONLY. Draft: precise location for orders, vehicle details, clinic locations and delivery points. NOT a production migration.
 -- Privacy design: exact coordinates live in separate tables, readable only by the owner, the provider assigned to that order while it is active, and staff.
 -- orders.lat/lng are legacy: a trigger now forces them to NULL so a provider can no longer read coordinates through orders_read.
