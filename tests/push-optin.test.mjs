@@ -23,7 +23,7 @@ test("service worker shows one fixed generic line and never reads the payload", 
   assert.match(push, /عندك إشعار جديد في وصلة/);
   assert.doesNotMatch(push, /event\.data/);
   assert.doesNotMatch(push, /\.json\(\)|\.text\(\)/);
-  assert.match(sw, /wasla-shell-v6/);
+  assert.match(sw, /wasla-shell-v7/);
 });
 
 test("support check needs service worker, PushManager and Notification", () => {
