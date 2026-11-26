@@ -7,6 +7,7 @@ import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
 import { renderOperationsView } from "./operations.js";
 import { renderCrmView } from "./crm.js";
 import { renderProviderView } from "./provider.js";
+import { DEFAULT_CENTER, directionsLinks, isValidEgyptPhone, isValidPoint, mountMap, telHref, validateVehicle } from "./geo.js";
 
 const root = document.querySelector("#app");
 const PENDING_ORDER_SERVICE_KEY = "wasla.pending-order-service.v1";
@@ -27,6 +28,9 @@ const state = {
   phoneAuthReady: false,
   pendingService: null,
   pendingLocation: null,
+  geoForm: { landmark: "", phone: "", make: "", model: "", plate: "", color: "", consent: false },
+  geoCards: {},
+  locatedOrderIds: [],
   pendingAddress: "",
   search: "",
   myOrders: [],
@@ -330,7 +334,8 @@ function orderCard(order) {
       ${order.preferred_at && !order.scheduled_at ? `<div class="order-meta"><span>الموعد المقترح منك: ${escapeHTML(formatAppointment(order.preferred_at))} (مقترح فقط، لسه متأكدش)</span></div>` : ""}
       ${order.status === "quoted" ? `<div class="quote-box"><strong>عرض سعر: ${escapeHTML(formatEGP(order.quote_price_egp))}</strong><p>هذا السعر المقترح من فريق وصلة. لن يبدأ التنفيذ ولن يُسجل أي التزام إلا بعد موافقتك. لا يتم تحصيل أي مبلغ داخل وصلة.</p><div class="order-card-actions"><button class="btn btn-primary btn-small" data-action="respond-quote" data-decision="accept" data-order-id="${escapeHTML(order.id)}" data-version="${escapeHTML(order.quote_version)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>أوافق على السعر</button><button class="btn btn-outline btn-small" data-action="respond-quote" data-decision="decline" data-order-id="${escapeHTML(order.id)}" data-version="${escapeHTML(order.quote_version)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>أرفض وألغي الطلب</button></div></div>` : ""}
       ${Number(order.deposit_egp) > 0 ? `<p class="deposit-note">عربون مسجل: ${escapeHTML(formatEGP(order.deposit_egp))} · ${order.deposit_paid ? "مدفوع" : "غير مسدد"}</p>` : ""}
-      ${order.lat != null && order.lng != null && Number.isFinite(Number(order.lat)) && Number.isFinite(Number(order.lng)) ? `<p class="location-note">${ICON_SVG.pin} تم تسجيل إحداثيات موقع التنفيذ</p>` : ""}
+      ${state.locatedOrderIds.includes(order.id) ? `<p class="location-note">${ICON_SVG.pin} تم تسجيل موقع التنفيذ</p>` : ""}
+      ${["confirmed", "in_progress"].includes(order.status) ? `<button class="btn btn-outline btn-small" data-action="provider-contact" data-order-id="${escapeHTML(order.id)}">بيانات التواصل مع مقدم الخدمة</button>${geoCardMarkup(state.geoCards[`c-${order.id}`])}` : ""}
       ${changeRequestPanel(order)}
       <div class="order-card-actions">
         <button class="btn btn-outline btn-small" data-action="track-order" data-order-id="${escapeHTML(order.id)}" ${state.trackingLoadingId === order.id ? "disabled" : ""}>${state.trackingOrderId === order.id ? "إخفاء التفاصيل" : "متابعة الطلب"}</button>
@@ -1085,7 +1090,8 @@ function providerView() {
     limit: (state.listLimits && state.listLimits.providerOrders) || ORDERS_PAGE_SIZE,
     preview: CONFIG.isPublicPreview,
     saving: state.providerSaving,
-    error: state.providerError
+    error: state.providerError,
+    geoCards: state.geoCards
   }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + teacherSection() + teacherCatalogueSection() + merchantProductsSection() + healthProviderSection() + medicalNotesSection();
 }
 
@@ -1203,10 +1209,24 @@ function orderModal() {
         <h2 id="order-title">طلب خدمة: ${escapeHTML(item.name)}</h2>
         <p class="modal-subtitle">السعر المعروض من قاعدة البيانات: <strong>${escapeHTML(formatEGP(item.price_egp))}</strong></p>
         <form data-form="order" novalidate>
-          <button class="btn btn-outline btn-block location-button" type="button" data-action="get-location" ${state.busy ? "disabled" : ""}>${ICON_SVG.pin} استخدم موقعي الحالي</button>
+          ${item.sector === "clinic" ? '<p class="geo-hint">موقع العيادة يظهر للمريض بعد تأكيد الموعد، والكشف يتم في عيادة الطبيب.</p>' : `
+          <div class="geo-actions">
+            <button class="btn btn-outline location-button" type="button" data-action="get-location" ${state.busy ? "disabled" : ""}>${ICON_SVG.pin} استخدم موقعي الحالي</button>
+            <button class="btn btn-outline" type="button" data-action="pick-on-map" ${state.busy ? "disabled" : ""}>حدد على الخريطة</button>
+          </div>
           <p class="location-help">${state.pendingLocation
-            ? `تم تحديد موقعك بدقة تقريبية ${Math.round(state.pendingLocation.accuracy)} متر. يمكنك تعديل العنوان.`
-            : "يمكنك استخدام GPS لتسجيل موقع تنفيذ الخدمة دون كتابة عنوان تفصيلي."}</p>
+            ? (state.pendingLocation.accuracy ? `تم تحديد موقعك بدقة تقريبية ${Math.round(state.pendingLocation.accuracy)} متر. اسحب الدبوس أو اضغط على الخريطة لتعديله.` : "اسحب الدبوس أو اضغط على الخريطة لتحديد مكان التنفيذ بدقة.")
+            : "حدد موقع تنفيذ الخدمة على الخريطة ليصل إليك مقدم الخدمة بسهولة."}</p>
+          ${state.pendingLocation ? `<div class="geo-map" data-geo-picker aria-label="خريطة تحديد الموقع"></div>
+          <label>علامة مميزة قريبة (اختياري)<input data-geo="landmark" maxlength="200" value="${escapeHTML(state.geoForm.landmark)}" placeholder="مثال: بجوار مسجد الرحمة"></label>
+          <label>رقم موبايل للتواصل مع مقدم الخدمة<input data-geo="phone" inputmode="tel" maxlength="11" value="${escapeHTML(state.geoForm.phone)}" placeholder="01XXXXXXXXX"></label>
+          <label class="check-row"><input type="checkbox" data-geo="consent" ${state.geoForm.consent ? "checked" : ""}><span>أوافق على مشاركة موقعي الدقيق ورقم موبايلي مع مقدم الخدمة المسند للطلب فقط أثناء تنفيذه. يُحذف الموقع بعد 30 يومًا من انتهاء الطلب.</span></label>` : ""}`}
+          ${item.sector === "car" ? `<fieldset class="vehicle-fields"><legend>بيانات السيارة</legend>
+            <label>الماركة<input data-geo="make" maxlength="40" value="${escapeHTML(state.geoForm.make)}" placeholder="تويوتا"></label>
+            <label>الموديل<input data-geo="model" maxlength="40" value="${escapeHTML(state.geoForm.model)}" placeholder="كورولا"></label>
+            <label>رقم اللوحة<input data-geo="plate" maxlength="20" value="${escapeHTML(state.geoForm.plate)}" placeholder="أ ب ج 1234"></label>
+            <label>اللون (اختياري)<input data-geo="color" maxlength="30" value="${escapeHTML(state.geoForm.color)}"></label>
+          </fieldset>` : ""}
           <label>عنوان تنفيذ الخدمة<input name="address" required minlength="4" maxlength="255" autocomplete="street-address" value="${escapeHTML(state.pendingAddress || (state.pendingLocation ? "موقعي الحالي" : ""))}" placeholder="الشارع والمنطقة ورقم العقار"></label>
           <label>ملاحظات إضافية<textarea name="notes" maxlength="500" rows="3" placeholder="تفاصيل تساعد مقدم الخدمة"></textarea></label>
           <div class="consent-panel">
@@ -1251,6 +1271,7 @@ function render() {
     </footer>
     ${modalView()}
   `;
+  mountGeoWidgets();
 }
 
 async function loadCatalog() {
@@ -1407,6 +1428,7 @@ async function refreshMyOrders() {
   }
   try {
     state.myOrders = await dataApi.getMyOrders(state.user.id);
+    state.locatedOrderIds = await dataApi.getLocatedOrderIds();
     state.changeRequests = await dataApi.getMyChangeRequests();
     state.notifications = await dataApi.getMyNotifications();
     try { state.deliveries = await dataApi.getMyDeliveries(); } catch { state.deliveries = null; }
@@ -1610,6 +1632,82 @@ async function submitAuth(form) {
   });
 }
 
+function resetGeoForm() {
+  state.geoForm = { landmark: "", phone: "", make: "", model: "", plate: "", color: "", consent: false };
+}
+
+function syncGeoForm(scope = root) {
+  scope.querySelectorAll("[data-geo]").forEach((el) => {
+    state.geoForm[el.dataset.geo] = el.type === "checkbox" ? el.checked : el.value;
+  });
+}
+
+function mountGeoWidgets() {
+  const picker = root.querySelector("[data-geo-picker]");
+  if (picker && state.pendingLocation) {
+    mountMap(picker, {
+      lat: state.pendingLocation.lat,
+      lng: state.pendingLocation.lng,
+      editable: true,
+      onChange: (point) => { state.pendingLocation = { lat: point.lat, lng: point.lng, accuracy: 0 }; }
+    });
+  }
+  root.querySelectorAll("[data-geo-view]").forEach((el) => {
+    mountMap(el, { lat: el.dataset.lat, lng: el.dataset.lng, editable: false });
+  });
+}
+
+function geoCardMarkup(card) {
+  if (!card) return "";
+  if (card.loading) return '<p class="geo-hint">جارٍ تحميل الموقع...</p>';
+  if (card.error) return `<p class="form-error">${escapeHTML(card.error)}</p>`;
+  return card.html || "";
+}
+
+async function loadProviderGeo(orderId) {
+  state.geoCards[orderId] = { loading: true };
+  render();
+  try {
+    const row = await dataApi.getProviderOrderLocation(orderId);
+    if (!row || !isValidPoint(row.out_lat, row.out_lng)) {
+      state.geoCards[orderId] = { error: "لم يحدد العميل موقعه لهذا الطلب." };
+    } else {
+      const links = directionsLinks(row.out_lat, row.out_lng);
+      const tel = telHref(row.out_customer_phone);
+      const vehicle = row.out_vehicle_plate ? `<dt>السيارة</dt><dd>${escapeHTML(row.out_vehicle_make)} ${escapeHTML(row.out_vehicle_model)}${row.out_vehicle_color ? ` · ${escapeHTML(row.out_vehicle_color)}` : ""} · ${escapeHTML(row.out_vehicle_plate)}</dd>` : "";
+      state.geoCards[orderId] = { html: `<div class="geo-card">
+        <div class="geo-map" data-geo-view data-lat="${escapeHTML(row.out_lat)}" data-lng="${escapeHTML(row.out_lng)}"></div>
+        <dl>${row.out_landmark ? `<dt>علامة مميزة</dt><dd>${escapeHTML(row.out_landmark)}</dd>` : ""}${vehicle}</dl>
+        <div class="geo-actions">
+          <a class="btn btn-primary btn-small" href="${escapeHTML(links.google)}" target="_blank" rel="noopener noreferrer">الاتجاهات (Google Maps)</a>
+          <a class="btn btn-outline btn-small" href="${escapeHTML(links.osm)}" target="_blank" rel="noopener noreferrer">الاتجاهات (OpenStreetMap)</a>
+          <a class="btn btn-outline btn-small" href="${escapeHTML(links.geo)}">فتح في تطبيق الخرائط</a>
+          ${tel ? `<a class="btn btn-outline btn-small" href="${escapeHTML(tel)}">اتصال بالعميل</a>` : '<span class="geo-hint">لم يضف العميل رقم موبايل.</span>'}
+        </div></div>` };
+    }
+  } catch (error) {
+    state.geoCards[orderId] = { error: error.message || "تعذر تحميل الموقع." };
+  }
+  render();
+}
+
+async function loadCustomerProviderContact(orderId) {
+  const key = `c-${orderId}`;
+  state.geoCards[key] = { loading: true };
+  render();
+  try {
+    const row = await dataApi.getMyProviderContact(orderId);
+    if (!row) state.geoCards[key] = { error: "لم يُسند الطلب لمقدم خدمة بعد، أو انتهى الطلب." };
+    else {
+      const tel = telHref(row.out_provider_phone);
+      state.geoCards[key] = { html: `<div class="geo-card"><strong>${escapeHTML(row.out_provider_name || "مقدم الخدمة")}</strong>${tel ? `<div class="geo-actions"><a class="btn btn-primary btn-small" href="${escapeHTML(tel)}">اتصال بمقدم الخدمة</a></div>` : '<p class="geo-hint">لم يضف مقدم الخدمة رقم تواصل بعد.</p>'}</div>` };
+    }
+  } catch (error) {
+    state.geoCards[key] = { error: error.message || "تعذر تحميل بيانات التواصل." };
+  }
+  render();
+}
+
 async function captureDeviceLocation() {
   if (!navigator.geolocation) {
     throw new Error("المتصفح لا يدعم تحديد الموقع.");
@@ -1635,6 +1733,7 @@ async function captureDeviceLocation() {
     throw new Error("إحداثيات الموقع التي أرجعها الجهاز غير صالحة.");
   }
 
+  syncGeoForm();
   state.pendingLocation = {
     lat: latitude,
     lng: longitude,
@@ -1661,6 +1760,18 @@ async function submitOrder(form) {
   if (values.terms !== "on" || values.privacy !== "on") {
     throw new Error("يجب الموافقة على الشروط وسياسة الخصوصية.");
   }
+  syncGeoForm(form);
+  const geo = state.geoForm;
+  const location = state.pendingService.sector === "clinic" ? null : state.pendingLocation;
+  if (state.pendingService.sector === "car") {
+    const vehicleError = validateVehicle(geo);
+    if (vehicleError) throw new Error(vehicleError);
+  }
+  if (location) {
+    if (!isValidPoint(location.lat, location.lng)) throw new Error("موقع الخريطة غير صالح.");
+    if (!geo.consent) throw new Error("وافق على مشاركة موقعك مع مقدم الخدمة أو احذف الموقع المحدد.");
+    if (geo.phone && !isValidEgyptPhone(geo.phone)) throw new Error("رقم الموبايل غير صحيح. اكتب 11 رقمًا يبدأ بـ 01.");
+  }
 
   await runWithBusyState(state, async () => {
     render();
@@ -1669,21 +1780,35 @@ async function submitOrder(form) {
     const result = await dataApi.createServiceOrder(state.pendingService, {
       address: values.address,
       notes: values.notes,
-      location: state.pendingLocation,
       idempotencyKey: state.pendingOrderIdempotencyKey
     });
     const record = Array.isArray(result) ? result[0] : result;
+    let geoSaveError = "";
+    if (record?.out_order_id) {
+      try {
+        if (location) {
+          await dataApi.saveOrderLocation(record.out_order_id, { lat: location.lat, lng: location.lng, accuracy: location.accuracy || null, landmark: geo.landmark, contactPhone: geo.phone, consent: true });
+        }
+        if (state.pendingService.sector === "car") {
+          await dataApi.saveOrderVehicle(record.out_order_id, { make: geo.make, model: geo.model, plate: geo.plate, color: geo.color });
+        }
+      } catch (error) {
+        geoSaveError = error.message || "تعذر حفظ الموقع أو بيانات السيارة.";
+      }
+    }
     state.pendingOrderIdempotencyKey = "";
 
     state.modal = null;
     localStorage.removeItem(PENDING_ORDER_SERVICE_KEY);
     state.pendingService = null;
     state.pendingLocation = null;
+    resetGeoForm();
     state.pendingAddress = "";
     state.pendingOrderIdempotencyKey = "";
     let ordersReloaded = true;
     try {
       state.myOrders = await dataApi.getMyOrders(state.user.id);
+      state.locatedOrderIds = await dataApi.getLocatedOrderIds();
     } catch {
       ordersReloaded = false;
       state.myOrders = [];
@@ -1697,6 +1822,10 @@ async function submitOrder(form) {
     render();
 
     const ref = record?.out_ref ? `رقم ${record.out_ref}` : "طلبك";
+    if (geoSaveError) {
+      showToast(`تم استلام ${ref}، لكن لم يُحفظ الموقع أو بيانات السيارة: ${geoSaveError}`, "error");
+      return;
+    }
     showToast(
       ordersReloaded
         ? `تم استلام ${ref}`
@@ -1720,12 +1849,27 @@ root.addEventListener("click", async (event) => {
       state.pendingAddress = currentAddress;
       await captureDeviceLocation();
     }
+    else if (action === "pick-on-map") {
+      syncGeoForm();
+      state.pendingAddress = root.querySelector('input[name="address"]')?.value ?? state.pendingAddress;
+      if (!state.pendingLocation) state.pendingLocation = { lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng, accuracy: 0 };
+      render();
+    }
+    else if (action === "geo-open") await loadProviderGeo(button.dataset.orderId);
+    else if (action === "provider-contact") await loadCustomerProviderContact(button.dataset.orderId);
+    else if (action === "save-provider-phone") {
+      const phone = root.querySelector('input[name="provider-phone"]')?.value ?? "";
+      if (!isValidEgyptPhone(phone)) throw new Error("رقم الموبايل غير صحيح. اكتب 11 رقمًا يبدأ بـ 01.");
+      await dataApi.setProviderPhone(phone);
+      showToast("تم حفظ رقم التواصل.", "success");
+    }
     else if (action === "close-modal" || action === "backdrop") {
       state.modal = null;
       if (state.pendingService) {
         localStorage.removeItem(PENDING_ORDER_SERVICE_KEY);
         state.pendingService = null;
         state.pendingLocation = null;
+        resetGeoForm();
         state.pendingAddress = "";
         state.pendingOrderIdempotencyKey = "";
       }
@@ -2688,6 +2832,11 @@ root.addEventListener("change", async (event) => {
 });
 
 root.addEventListener("input", (event) => {
+  if (event.target.matches?.("[data-geo]")) {
+    const el = event.target;
+    state.geoForm[el.dataset.geo] = el.type === "checkbox" ? el.checked : el.value;
+    return;
+  }
   if (event.target.matches('input[name="address"]')) {
     state.pendingAddress = event.target.value;
     return;
