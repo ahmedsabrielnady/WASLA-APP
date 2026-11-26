@@ -145,7 +145,7 @@ function header() {
       </a>
       <nav class="top-actions" aria-label="القائمة الرئيسية">
         ${canSeeRoadmap() ? '<button class="nav-link" data-action="roadmap">خطة الإنجاز</button>' : ""}
-        ${authenticated && state.profile?.role === "customer" ? '<button class="nav-link" data-action="orders">طلباتي</button>' : ""}
+        ${authenticated && state.profile?.role === "customer" ? '<button class="nav-link" data-action="orders">سلتي وطلباتي</button>' : ""}
         ${isStaff ? '<button class="nav-link" data-action="operations">التشغيل</button><button class="nav-link" data-action="crm">CRM</button>' : ""}
         ${isProvider ? '<button class="nav-link" data-action="provider">طلبات مقدم الخدمة</button>' : ""}
         ${authenticated && state.profile?.role === "customer" ? '<button class="nav-link" data-action="provider-invite">لديك دعوة مقدم خدمة؟</button>' : ""}
@@ -1144,6 +1144,14 @@ function deliverySection() {
     </section>`;
 }
 
+// Overview only: every section keeps its own cart and its own checkout. Nothing here merges carts.
+const CART_SECTION_TITLES = { market: "سلة الماركت", food: "سلة المطاعم", supplies: "سلة المستلزمات الطبية" };
+function pendingCartsOverview() {
+  const open = CART_CATEGORIES.filter((category) => cartLines(category).length);
+  if (!open.length) return "";
+  return `<div class="pending-carts"><h3>سلاتي الحالية</h3><p class="muted">كل قسم له سلة ودفع منفصلين.</p>${open.map((category) => `<h4>${CART_SECTION_TITLES[category]}</h4>${cartPanel(category)}`).join("")}</div>`;
+}
+
 function ordersView() {
   if (!state.user) {
     return '<section class="page-panel"><h1>طلباتي</h1><p>سجل الدخول لمشاهدة طلباتك.</p><button class="btn btn-primary" data-action="auth">تسجيل الدخول</button></section>';
@@ -1155,6 +1163,7 @@ function ordersView() {
       ${appointmentAlert()}
       ${pushSection()}
       ${notificationsSection()}
+      ${pendingCartsOverview()}
       ${state.myOrders.length
         ? (() => { const page = pageSlice(state.myOrders, state.ordersLimit || ORDERS_PAGE_SIZE); return `<div class="orders-list">${page.items.map(orderCard).join("")}</div>${page.remaining ? `<button class="btn btn-outline btn-small" data-action="more-orders">عرض ${page.remaining} طلب آخر</button>` : ""}`; })()
         : '<div class="empty-state"><strong>لا توجد طلبات بعد</strong><p>عندما ترسل أول طلب ستظهر حالته هنا.</p><button class="btn btn-primary" data-action="home">اكتشف الخدمات</button></div>'}
