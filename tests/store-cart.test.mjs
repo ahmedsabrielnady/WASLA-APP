@@ -61,3 +61,9 @@ test("orders page shows an overview of the pending carts per section without mer
   assert.match(main, /\$\{pendingCartsOverview\(\)\}/);
   assert.match(main, /سلتي وطلباتي/);
 });
+
+test("the orders page does not render any section's product forms", () => {
+  assert.doesNotMatch(main, /storeSection/);
+  const ordersView = main.slice(main.indexOf("function ordersView()"), main.indexOf("function ordersView()") + 1800);
+  assert.doesNotMatch(ordersView, /storePanel\(/);
+});
