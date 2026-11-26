@@ -505,11 +505,29 @@ export const dataApi = {
 
   async getOffers() {
     const query = new URLSearchParams({
-      select: "id,text,sort_order",
+      select: "id,text,sort_order,sector",
       active: "eq.true",
       order: "sort_order.asc,id.asc"
     });
     return request(`/rest/v1/offers?${query}`);
+  },
+
+  async getOperationsOffers() {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const query = new URLSearchParams({ select: "id,text,sort_order,sector,active", order: "sort_order.asc,id.asc" });
+    return request(`/rest/v1/offers?${query}`, { token: session.access_token });
+  },
+
+  async adminSaveOffer({ id = null, text, sector = "", active = true, sortOrder = 0 }) {
+    assertLiveWritesAllowed("إدارة إعلانات البانر");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/admin_save_offer", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_id: id ? Number(id) : null, p_text: text, p_sector: sector || null, p_active: Boolean(active), p_sort: Number(sortOrder) || 0 }
+    });
   },
 
   async getMyOrderTracking(orderId) {
