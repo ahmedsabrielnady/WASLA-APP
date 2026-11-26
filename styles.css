@@ -1208,3 +1208,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .ops-offer-form label { display: grid; gap: 4px; font-size: 12px; font-weight: 700; }
 .ops-offer-form .ops-offer-active { display: flex; align-items: center; gap: 6px; }
 @media (max-width: 720px) { .ops-offer-form { grid-template-columns: 1fr; } }
+
+/* Operations page: let grid children shrink so forms wrap at phone width instead of widening the page */
+.operations-page { grid-template-columns: minmax(0, 1fr); }
+.operations-page > * { min-width: 0; }
+.ops-action-form, .approval-form { flex-wrap: wrap; }
+.ops-action-form label, .approval-form label { min-width: 0; flex: 1 1 140px; }
+.ops-action-form input, .ops-action-form select { max-width: 100%; min-width: 0; }
