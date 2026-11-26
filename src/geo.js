@@ -90,3 +90,25 @@ export async function mountMap(el, { lat, lng, editable = false, onChange = null
     return null;
   }
 }
+
+// Read-only map with a pickup and a drop-off marker (courier and staff view).
+export async function mountRouteMap(el, { pickup, dropoff } = {}) {
+  if (!el || !pickup || !dropoff || !isValidPoint(pickup.lat, pickup.lng) || !isValidPoint(dropoff.lat, dropoff.lng)) return null;
+  try {
+    const L = await loadLeaflet();
+    if (!el.isConnected) return null;
+    el.textContent = "";
+    const a = [Number(pickup.lat), Number(pickup.lng)];
+    const b = [Number(dropoff.lat), Number(dropoff.lng)];
+    const map = L.map(el, { scrollWheelZoom: false, attributionControl: true });
+    L.tileLayer(TILE_URL, { maxZoom: 19, attribution: TILE_ATTRIBUTION, crossOrigin: false }).addTo(map);
+    L.marker(a, { icon: pinIcon(L), title: "الاستلام" }).addTo(map).bindTooltip("الاستلام", { permanent: true, direction: "top", offset: [0, -34] });
+    L.marker(b, { icon: pinIcon(L), title: "التسليم" }).addTo(map).bindTooltip("التسليم", { permanent: true, direction: "top", offset: [0, -34] });
+    L.polyline([a, b], { color: "#087653", weight: 3, dashArray: "6 8" }).addTo(map);
+    map.fitBounds(L.latLngBounds([a, b]), { padding: [40, 40], maxZoom: 17 });
+    return { map };
+  } catch {
+    if (el.isConnected) el.innerHTML = '<p class="geo-map-fallback">تعذر تحميل الخريطة. يمكنك استخدام روابط الاتجاهات.</p>';
+    return null;
+  }
+}
