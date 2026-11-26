@@ -30,3 +30,15 @@ test("merchant accept or reject is limited to the assigned merchant's new store 
   assert.match(sql, /v_o\.status <> 'new'/);
   assert.match(sql, /insert into public\.order_events/);
 });
+
+test("cart persists per user in local storage and is re-validated against live products", () => {
+  assert.match(main, /wasla\.cart\.v1:/);
+  assert.match(main, /function restoreCart/);
+  assert.match(main, /Math\.min\(Number\(entry\.qty\) \|\| 0, 20, Number\(product\.stock\)/);
+  assert.match(main, /localStorage\.setItem\(key, JSON\.stringify\(state\.cart\.map\(\(line\) => \(\{ id: Number\(line\.id\), qty: Number\(line\.qty\) \}\)\)\)\)/);
+});
+
+test("medical supplies use the same cart and RPC as market and food", () => {
+  assert.match(sql, /category not in \('market','food','supplies'\)/);
+  assert.match(main, /\["supplies", "الصحة", "مستلزمات طبية"/);
+});
