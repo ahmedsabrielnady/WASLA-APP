@@ -31,16 +31,22 @@ test("merchant accept or reject is limited to the assigned merchant's new store 
   assert.match(sql, /insert into public\.order_events/);
 });
 
-test("cart persists per user in local storage and is re-validated against live products", () => {
-  assert.match(main, /wasla\.cart\.v1:/);
-  assert.match(main, /function restoreCart/);
+test("each section has its own cart and storage key, restored and re-validated against live products", () => {
+  assert.match(main, /wasla\.cart\.v2:/);
+  assert.match(main, /function restoreCarts/);
+  assert.match(main, /carts: \{ market: \[\], food: \[\], supplies: \[\] \}/);
+  assert.match(main, /\(p\.category \|\| "market"\) === category\)/);
   assert.match(main, /Math\.min\(Number\(entry\.qty\) \|\| 0, 20, Number\(product\.stock\)/);
-  assert.match(main, /localStorage\.setItem\(key, JSON\.stringify\(state\.cart\.map\(\(line\) => \(\{ id: Number\(line\.id\), qty: Number\(line\.qty\) \}\)\)\)\)/);
+  assert.match(main, /هذا المنتج ليس من هذا القسم/);
+  assert.match(main, /data-form="cart-checkout" data-category="\$\{category\}"/);
+  assert.doesNotMatch(main, /state\.cart\b(?!s)/);
 });
 
-test("medical supplies use the same cart and RPC as market and food", () => {
+test("medical supplies use the cart RPC but never share a cart with market or food", () => {
+  assert.match(sql, /السلة لازم تكون من قسم واحد/);
+  assert.match(sql, /count\(distinct pr\.category\)/);
   assert.match(sql, /category not in \('market','food','supplies'\)/);
-  assert.match(main, /\["supplies", "الصحة", "مستلزمات طبية"/);
+  assert.match(main, /storePanel\("supplies", "الصحة", "مستلزمات طبية"/);
 });
 
 test("order status notifications say accepted or cancelled instead of a generic change", () => {
