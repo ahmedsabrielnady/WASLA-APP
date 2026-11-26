@@ -2164,6 +2164,8 @@ root.addEventListener("click", async (event) => {
       if (!canSeeRoadmap()) return;
       await refreshRoadmap();
     } else if (action === "orders" || action === "reload-orders") {
+      // From a section page the nav entry must leave the section and open the cart and orders overview.
+      if (action === "orders" && state.user?.id && state.profile?.role === "customer") state.view = "orders";
       await refreshMyOrders();
     } else if (action === "open-notification-order") {
       const card = document.getElementById(`order-${button.dataset.orderId}`);
