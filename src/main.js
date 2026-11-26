@@ -7,7 +7,7 @@ import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
 import { renderOperationsView } from "./operations.js";
 import { renderCrmView } from "./crm.js";
 import { renderProviderView } from "./provider.js";
-import { DEFAULT_CENTER, directionsLinks, isValidEgyptPhone, isValidPoint, mountMap, telHref, validateVehicle } from "./geo.js";
+import { DEFAULT_CENTER, directionsLinks, isValidEgyptPhone, isValidPoint, mountMap, mountRouteMap, telHref, validateVehicle } from "./geo.js";
 
 const root = document.querySelector("#app");
 const PENDING_ORDER_SERVICE_KEY = "wasla.pending-order-service.v1";
@@ -34,6 +34,8 @@ const state = {
   geoForm: { landmark: "", phone: "", make: "", model: "", plate: "", color: "", consent: false },
   geoCards: {},
   clinicLocations: {},
+  deliveryPins: { pickup: null, dropoff: null, share: false },
+  deliveryRoutes: {},
   clinicDraft: null,
   locatedOrderIds: [],
   pendingAddress: "",
@@ -1040,6 +1042,13 @@ function deliverySection() {
         <label>عنوان الاستلام<input name="pickup" maxlength="255" required></label>
         <label>عنوان التسليم<input name="dropoff" maxlength="255" required></label>
         <label>ما الذي سيتم توصيله؟<input name="what" maxlength="300" required></label>
+        <fieldset class="geo-card delivery-pins">
+          <legend>الموقع على الخريطة (اختياري)</legend>
+          <label class="check-row"><input type="checkbox" name="share_locations" data-delivery-share ${state.deliveryPins.share ? "checked" : ""}><span>أوافق على مشاركة موقعي الاستلام والتسليم مع المندوب المسند فقط.</span></label>
+          ${state.deliveryPins.share ? `<p class="geo-hint">حرّك كل دبوس إلى مكانه. الاستلام ثم التسليم.</p>
+          <span class="geo-label">الاستلام</span><div class="geo-map geo-picker" data-delivery-picker="pickup"></div>
+          <span class="geo-label">التسليم</span><div class="geo-map geo-picker" data-delivery-picker="dropoff"></div>` : ""}
+        </fieldset>
         <label class="check-row"><input type="checkbox" name="terms" required><span>أوافق على <a href="./terms.html" target="_blank" rel="noopener">شروط الاستخدام (مسودة)</a>.</span></label>
         <label class="check-row"><input type="checkbox" name="privacy" required><span>أوافق على <a href="./privacy.html" target="_blank" rel="noopener">سياسة الخصوصية (مسودة)</a>.</span></label>
         <button class="btn btn-primary" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>إرسال طلب التوصيل</button>
@@ -1090,7 +1099,18 @@ function deliveryQueueCards(role) {
     if (role === "courier" && item.status === "picked_up") {
       action = `<button class="btn btn-primary btn-small" data-action="courier-delivery" data-to="delivered" data-request-id="${escapeHTML(item.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>تم التسليم</button>`;
     }
-    return `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(item.ref)}</strong><span class="status-pill">${escapeHTML(statusLabel(item.status))}</span></div><div class="order-name">${escapeHTML(item.what_to_deliver)}</div><div class="order-meta"><span>من: ${escapeHTML(item.pickup_address)}</span></div><div class="order-meta"><span>إلى: ${escapeHTML(item.dropoff_address)}</span></div>${action}</article>`;
+    let mapBlock = "";
+    if (["assigned", "picked_up"].includes(item.status) && (role === "courier" || role === "staff")) {
+      const route = state.deliveryRoutes[item.id];
+      if (route && route.none) mapBlock = '<p class="geo-hint">لم يحدد العميل موقعًا على الخريطة لهذا الطلب.</p>';
+      else if (route && route.pickup) {
+        const to = directionsLinks(route.dropoff.lat, route.dropoff.lng);
+        const from = directionsLinks(route.pickup.lat, route.pickup.lng);
+        mapBlock = `<div class="geo-card"><div class="geo-map" data-route-map="${escapeHTML(item.id)}" aria-label="خريطة الاستلام والتسليم"></div><div class="geo-actions"><a class="btn btn-outline btn-small" href="${escapeHTML(from.google)}" target="_blank" rel="noopener">اتجاهات للاستلام</a><a class="btn btn-outline btn-small" href="${escapeHTML(to.google)}" target="_blank" rel="noopener">اتجاهات للتسليم</a></div></div>`;
+      } else if (route && route.error) mapBlock = `<p class="form-error">${escapeHTML(route.error)}</p>`;
+      else mapBlock = `<button class="btn btn-outline btn-small" data-action="delivery-map" data-request-id="${escapeHTML(item.id)}">عرض الاستلام والتسليم على الخريطة</button>`;
+    }
+    return `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(item.ref)}</strong><span class="status-pill">${escapeHTML(statusLabel(item.status))}</span></div><div class="order-name">${escapeHTML(item.what_to_deliver)}</div>${mapBlock}<div class="order-meta"><span>من: ${escapeHTML(item.pickup_address)}</span></div><div class="order-meta"><span>إلى: ${escapeHTML(item.dropoff_address)}</span></div>${action}</article>`;
   }).join("");
 }
 
@@ -1728,6 +1748,19 @@ function clinicLocationInfo(doctorId) {
 }
 
 function mountGeoWidgets() {
+  if (state.deliveryPins.share) {
+    ["pickup", "dropoff"].forEach((key) => {
+      const el = root.querySelector(`[data-delivery-picker="${key}"]`);
+      if (!el) return;
+      const start = state.deliveryPins[key] || { lat: DEFAULT_CENTER.lat + (key === "dropoff" ? 0.004 : 0), lng: DEFAULT_CENTER.lng + (key === "dropoff" ? 0.004 : 0) };
+      state.deliveryPins[key] = start;
+      mountMap(el, { lat: start.lat, lng: start.lng, editable: true, zoom: 15, onChange: (point) => { state.deliveryPins[key] = { lat: point.lat, lng: point.lng }; } });
+    });
+  }
+  root.querySelectorAll("[data-route-map]").forEach((el) => {
+    const route = state.deliveryRoutes[el.dataset.routeMap];
+    if (route && route.pickup) mountRouteMap(el, route);
+  });
   const clinicPicker = root.querySelector("[data-clinic-picker]");
   if (clinicPicker && state.clinicDraft) {
     mountMap(clinicPicker, {
@@ -1951,6 +1984,18 @@ root.addEventListener("click", async (event) => {
     }
     else if (action === "geo-open") await loadProviderGeo(button.dataset.orderId);
     else if (action === "provider-contact") await loadCustomerProviderContact(button.dataset.orderId);
+    else if (action === "delivery-map") {
+      const id = button.dataset.requestId;
+      try {
+        const row = await dataApi.getDeliveryLocations(id);
+        state.deliveryRoutes[id] = row && isValidPoint(row.out_pickup_lat, row.out_pickup_lng)
+          ? { pickup: { lat: row.out_pickup_lat, lng: row.out_pickup_lng }, dropoff: { lat: row.out_dropoff_lat, lng: row.out_dropoff_lng } }
+          : { none: true };
+      } catch (error) {
+        state.deliveryRoutes[id] = { error: error.message || "تعذر تحميل الخريطة." };
+      }
+      render();
+    }
     else if (action === "clinic-use-gps") {
       if (!navigator.geolocation) throw new Error("المتصفح لا يدعم تحديد الموقع. حرّك الدبوس على الخريطة.");
       const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, () => reject(new Error("تعذر تحديد موقعك. اسمح بالوصول للموقع أو حرّك الدبوس يدويًا.")), { enableHighAccuracy: true, timeout: 12000 }));
@@ -2451,9 +2496,14 @@ root.addEventListener("submit", async (event) => {
       await runWithBusyState(state, async () => {
         render();
         await dataApi.acceptRequiredConsents();
-        await dataApi.placeDeliveryRequest(values.pickup, values.dropoff, values.what);
+        const requestId = await dataApi.placeDeliveryRequest(values.pickup, values.dropoff, values.what);
+        let pinsSaved = true;
+        if (state.deliveryPins.share && state.deliveryPins.pickup && state.deliveryPins.dropoff) {
+          try { await dataApi.saveDeliveryLocations(String(requestId).replace(/"/g, ""), state.deliveryPins.pickup, state.deliveryPins.dropoff, true); } catch { pinsSaved = false; }
+        }
+        state.deliveryPins = { pickup: null, dropoff: null, share: false };
         state.deliveries = await dataApi.getMyDeliveries();
-        showToast("تم استلام طلب التوصيل.", "success");
+        showToast(pinsSaved ? "تم استلام طلب التوصيل." : "تم استلام طلب التوصيل، لكن تعذر حفظ الموقع على الخريطة.", pinsSaved ? "success" : "info");
       });
       render();
     }
@@ -2967,6 +3017,16 @@ root.addEventListener("change", async (event) => {
     const id = approvalSector.dataset.providerId;
     state.approvalDrafts[id] = { sector: approvalSector.value, display_name: form.elements.display_name?.value, price: form.elements.price?.value };
     render();
+    return;
+  }
+  if (event.target.matches?.("[data-delivery-share]")) {
+    state.deliveryPins.share = event.target.checked;
+    if (!event.target.checked) { state.deliveryPins.pickup = null; state.deliveryPins.dropoff = null; }
+    const form = event.target.closest("form");
+    state.deliveryDraft = form ? Object.fromEntries(new FormData(form).entries()) : null;
+    render();
+    const f = root.querySelector('form[data-form="delivery-request"]');
+    if (f && state.deliveryDraft) ["pickup", "dropoff", "what"].forEach((k) => { if (f.elements[k]) f.elements[k].value = state.deliveryDraft[k] || ""; });
     return;
   }
   const pick = event.target.closest?.("[data-clinic-pick]");
