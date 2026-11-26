@@ -1232,3 +1232,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .geo-phone label { display: grid; gap: 6px; }
 .geo-phone input { width: 100%; }
 .provider-order-product { display: block; font-weight: 800; color: #087653; }
+
+/* Store cart */
+.cart-panel { margin-top: 16px; border: 1px solid var(--line, #d9e2dd); border-radius: 16px; padding: 14px; background: #fafcfb; display: grid; gap: 10px; }
+.cart-panel h3 { margin: 0; }
+.cart-group { border: 1px solid var(--line, #d9e2dd); border-radius: 12px; padding: 10px; background: #fff; display: grid; gap: 6px; }
+.cart-line { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; font-size: 14px; }
+.cart-subtotal, .cart-total { display: flex; justify-content: space-between; font-weight: 800; }
+.cart-total { font-size: 17px; }
+.cart-panel input[name="address"] { width: 100%; }
