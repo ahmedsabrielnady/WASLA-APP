@@ -20,6 +20,9 @@ begin
              where jsonb_typeof(e) <> 'object' or jsonb_typeof(e->'product') <> 'number' or jsonb_typeof(e->'qty') <> 'number'
                 or (e->>'product') !~ '^[0-9]{1,9}$' or (e->>'qty') !~ '^[0-9]{1,3}$') then
     raise exception 'السلة غير صالحة' using errcode = '22023'; end if;
+  -- one section per cart: market, food and medical supplies never mix in a single checkout
+  if (select count(distinct pr.category) from public.products pr where pr.id in (select (e->>'product')::int from jsonb_array_elements(p_lines) e)) > 1 then
+    raise exception 'السلة لازم تكون من قسم واحد' using errcode = '22023'; end if;
   select count(*) into v_recent from public.orders where customer_id = v_uid and created_at > now() - interval '10 minutes';
   if v_recent + v_n > 20 then raise exception 'طلبات كتير في وقت قصير، استنى شوية' using errcode = '53400'; end if;
   -- one row per product, locked in product-id order so two carts cannot deadlock; any error rolls back every line
