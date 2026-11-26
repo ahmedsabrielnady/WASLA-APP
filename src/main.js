@@ -28,6 +28,7 @@ const state = {
   phoneAuthReady: false,
   pendingService: null,
   pendingLocation: null,
+  activeSector: "",
   geoForm: { landmark: "", phone: "", make: "", model: "", plate: "", color: "", consent: false },
   geoCards: {},
   locatedOrderIds: [],
@@ -187,13 +188,14 @@ function sectorCards() {
   }).join("");
 }
 
-function serviceCards() {
+function serviceCards(onlySector = null) {
   if (!state.catalogLoaded) {
     return '<div class="empty-state" role="status"><strong>جارٍ تحميل الخدمات...</strong><p>نحمّل الخدمات المتاحة من قاعدة بيانات وصلة.</p></div>';
   }
 
   const search = state.search.trim().toLocaleLowerCase("ar");
   const filtered = filterOrderableServices(state.services).filter((item) => {
+    if (onlySector && item.sector !== onlySector) return false;
     const matchesSearch = !search
       || String(item.name).toLocaleLowerCase("ar").includes(search)
       || sectorLabel(item.sector).toLocaleLowerCase("ar").includes(search);
@@ -282,6 +284,36 @@ function homeView() {
       <div><strong>تتبع الطلب</strong><span>سجل الطلبات متاح بعد تسجيل الدخول.</span></div>
       <div><strong>صلاحيات محمية</strong><span>التحقق من الصلاحيات يتم في قاعدة البيانات.</span></div>
     </section>
+  `;
+}
+
+// A section page shows only that section's content (Telegram 20474355: tapping a section opens its own page, no scrolling down the home page).
+function sectorPanels(code) {
+  switch (code) {
+    case "clinic": return clinicSection() + labPriceSection() + labRequestsSection() + healthTimelineSection() + prescriptionSection() + medicalNotesSection() + storePanel("supplies", "الصحة", "مستلزمات طبية", "كمامات وشاش وأجهزة قياس منزلية.");
+    case "nursing": return nursingSection();
+    case "food": return storePanel("food", "المطاعم", "اطلب وجبة", "وجبات من مطاعم شبين القناطر.");
+    case "market": return storePanel("market", "الماركت", "اطلب من الماركت", "منتجات البقالة واحتياجات البيت.");
+    case "education": return educationSection() + courseCatalogueSection();
+    case "delivery": return deliverySection();
+    default: return "";
+  }
+}
+
+function sectorView() {
+  const sector = SECTORS.find((entry) => entry.code === state.activeSector);
+  if (!sector) return homeView();
+  const body = sector.mode === "order"
+    ? `<label class="search-box"><span aria-hidden="true">⌕</span><input data-search type="search" value="${escapeHTML(state.search)}" placeholder="ابحث عن خدمة..." autocomplete="off"></label><div class="service-grid">${serviceCards(sector.code)}</div>`
+    : (sectorPanels(sector.code).trim() || '<div class="empty-state"><strong>لا يوجد مقدمو خدمة معتمدون في هذا القسم الآن</strong><p>سيظهر محتوى القسم هنا عند اعتماد مقدمي خدمة حقيقيين.</p></div>');
+  return `
+    <section class="page-panel sector-page" id="sector-${escapeHTML(sector.code)}" data-sector-page="${escapeHTML(sector.code)}">
+      <div class="section-heading">
+        <div><span class="eyebrow">قسم</span><h1>${escapeHTML(sector.title)}</h1><p class="section-aside">${escapeHTML(sector.description)}</p></div>
+        <button class="btn btn-outline btn-small" data-action="home">← كل الأقسام</button>
+      </div>
+    </section>
+    ${body}
   `;
 }
 
@@ -1256,6 +1288,7 @@ function render() {
     : state.view === "operations" ? operationsView()
     : state.view === "crm" ? crmView()
     : state.view === "provider" ? providerView()
+    : state.view === "sector" ? sectorView()
     : state.view === "roadmap" ? roadmapView()
     : homeView();
 
@@ -1415,6 +1448,14 @@ function openOrder(item) {
   state.modal = "order";
   render();
   root.querySelector('input[name="address"]')?.focus();
+}
+
+function openSectorPage(code) {
+  state.activeSector = code;
+  state.search = "";
+  state.view = "sector";
+  render();
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 async function refreshMyOrders() {
@@ -2299,8 +2340,7 @@ root.addEventListener("click", async (event) => {
       const customer = state.profile?.role === "customer";
       let plan = sectorEntryPlan({ code, signedIn: Boolean(state.user?.id), isCustomer: customer, present: new Set() });
       if (plan.kind === "services") {
-        const card = document.querySelector(`[data-sector-card="${code}"]`) || document.querySelector("#services");
-        if (card) { card.style.scrollMarginTop = "110px"; card.scrollIntoView({ behavior: "smooth", block: "start" }); }
+        openSectorPage(code);
       } else if (plan.kind === "login") {
         showToast("سجّل دخولك الأول عشان تشوف المتاح في القطاع ده.", "info");
         openAuth("login");
@@ -2308,17 +2348,7 @@ root.addEventListener("click", async (event) => {
         showToast("أقسام الخدمات دي بتظهر لحسابات العملاء.", "info");
       } else {
         if (state.view !== "orders") await refreshMyOrders();
-        const present = new Set([...document.querySelectorAll("section[id], div[id]")].map((el) => el.id));
-        plan = sectorEntryPlan({ code, signedIn: true, isCustomer: customer, present });
-        if (plan.kind === "scroll") {
-          const target = document.getElementById(plan.anchor);
-          target.style.scrollMarginTop = "110px";
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-          if (plan.delivery) showToast("التوصيل مجاني للعميل. اطلب توصيل من هنا، وتتابعه من الأسفل.", "info");
-          else if (!plan.exact) showToast("مواعيد العيادات لسه ما اتفعلتش. ده المتاح حاليًا في الصحة.", "info");
-        } else {
-          showToast("مفيش مقدمو خدمة معتمدون في القطاع ده دلوقتي. هنفعّله لما نعتمد مقدمي خدمة حقيقيين.", "info");
-        }
+        openSectorPage(code);
       }
     } else if (action === "reload") {
       await loadCatalog();
