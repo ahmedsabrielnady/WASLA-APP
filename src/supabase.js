@@ -1959,6 +1959,24 @@ export const dataApi = {
     }
   },
 
+  async getClinicLocations() {
+    const session = await getValidSession();
+    if (!session?.access_token) return [];
+    const rows = await request("/rest/v1/clinic_locations?select=provider_id,lat,lng,address&limit=200", { token: session.access_token });
+    return Array.isArray(rows) ? rows : [];
+  },
+
+  async setClinicLocation({ lat, lng, address }) {
+    assertLiveWritesAllowed("حفظ موقع العيادة");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("انتهت جلسة الدخول. سجل الدخول مرة أخرى.");
+    return request("/rest/v1/rpc/provider_set_clinic_location", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_lat: Number(lat), p_lng: Number(lng), p_address: String(address || "").trim() }
+    });
+  },
+
   async setProviderPhone(phone) {
     assertLiveWritesAllowed("حفظ رقم التواصل");
     const session = await getValidSession();
