@@ -5,8 +5,9 @@ import { APPROVAL_SECTORS, approvalSectorsFor, renderOperationsView } from "../s
 const read = (p) => readFileSync(new URL(p, import.meta.url), "utf8");
 
 test("sections offered depend on the provider kind", () => {
-  assert.deepEqual(approvalSectorsFor("doctor").map((s) => s.code), ["clinic"]);
-  assert.deepEqual(approvalSectorsFor("technician").map((s) => s.code).sort(), ["car", "maintenance"]);
+  assert.deepEqual(approvalSectorsFor("doctor").map((s) => s.code).sort(), ["clinic", "nursing"]);
+  assert.deepEqual(approvalSectorsFor("technician").map((s) => s.code).sort(), ["car", "maintenance", "nursing"]);
+  assert.deepEqual(approvalSectorsFor("merchant").map((s) => s.code).sort(), ["food", "market"]);
   assert.deepEqual(approvalSectorsFor("teacher").map((s) => s.code), ["education"]);
   assert.equal(approvalSectorsFor("nobody").length, 0);
   for (const def of Object.values(APPROVAL_SECTORS)) assert.ok(def.specialties.length > 0);
