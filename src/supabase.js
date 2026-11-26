@@ -1664,6 +1664,24 @@ export const dataApi = {
     });
   },
 
+  async saveDeliveryLocations(requestId, pickup, dropoff, consent) {
+    assertLiveWritesAllowed("حفظ مواقع التوصيل");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/save_delivery_locations", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_request: requestId, p_pickup_lat: Number(pickup.lat), p_pickup_lng: Number(pickup.lng), p_dropoff_lat: Number(dropoff.lat), p_dropoff_lng: Number(dropoff.lng), p_consent: Boolean(consent) }
+    });
+  },
+
+  async getDeliveryLocations(requestId) {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const rows = await request("/rest/v1/rpc/courier_get_delivery_locations", { method: "POST", token: session.access_token, body: { p_request: requestId } });
+    return Array.isArray(rows) ? (rows[0] || null) : rows;
+  },
+
   async cancelDelivery(requestId) {
     assertLiveWritesAllowed("إلغاء طلب التوصيل");
     const session = await getValidSession();
