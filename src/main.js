@@ -100,6 +100,11 @@ function showToast(message, kind = "info") {
   showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 3600);
 }
 
+// The internal build-progress plan is for the team. Customers and visitors do not see it (product choice, reversible here).
+function canSeeRoadmap() {
+  return ["staff", "admin"].includes(state.profile?.role);
+}
+
 function offerTicker() {
   const hasPublishedOffers = state.offers.length > 0;
   const messages = hasPublishedOffers
@@ -133,7 +138,7 @@ function header() {
         <span class="brand-copy"><strong>WASLA</strong><small>وصلة · كل اللي محتاجه، قريب منك.</small></span>
       </a>
       <nav class="top-actions" aria-label="القائمة الرئيسية">
-        <button class="nav-link" data-action="roadmap">خطة الإنجاز</button>
+        ${canSeeRoadmap() ? '<button class="nav-link" data-action="roadmap">خطة الإنجاز</button>' : ""}
         ${authenticated && state.profile?.role === "customer" ? '<button class="nav-link" data-action="orders">طلباتي</button>' : ""}
         ${isStaff ? '<button class="nav-link" data-action="operations">التشغيل</button><button class="nav-link" data-action="crm">CRM</button>' : ""}
         ${isProvider ? '<button class="nav-link" data-action="provider">طلبات مقدم الخدمة</button>' : ""}
@@ -263,7 +268,7 @@ function homeView() {
     </section>
 
     ${offerTicker()}
-    ${renderRoadmapHome(state.roadmapItems, state.roadmapError, !state.roadmapLoaded)}
+    ${canSeeRoadmap() ? renderRoadmapHome(state.roadmapItems, state.roadmapError, !state.roadmapLoaded) : ""}
 
     <section class="section-block">
       <div class="section-heading">
@@ -1301,7 +1306,7 @@ function render() {
     : state.view === "crm" ? crmView()
     : state.view === "provider" ? providerView()
     : state.view === "sector" ? sectorView()
-    : state.view === "roadmap" ? roadmapView()
+    : state.view === "roadmap" && canSeeRoadmap() ? roadmapView()
     : homeView();
 
   root.innerHTML = `
@@ -1966,6 +1971,7 @@ root.addEventListener("click", async (event) => {
       render();
       showToast("تم تسجيل الخروج.", "success");
     } else if (action === "roadmap" || action === "reload-roadmap") {
+      if (!canSeeRoadmap()) return;
       await refreshRoadmap();
     } else if (action === "orders" || action === "reload-orders") {
       await refreshMyOrders();
