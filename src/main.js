@@ -389,6 +389,13 @@ function appointmentAlert() {
 
 function clinicSection() {
   if (!Array.isArray(state.doctors) || !state.doctors.length) return "";
+  if (!CONFIG.clinicBookingEnabled) {
+    return `
+    <section class="page-panel clinic-panel" id="clinic" data-capability="clinic-booking-unavailable">
+      <div class="section-heading"><div><span class="eyebrow">العيادات</span><h2>حجز المواعيد غير متاح حاليًا</h2></div></div>
+      <p>خدمة حجز العيادات لم تُفعّل بعد. سنعلن عند توفرها.</p>
+    </section>`;
+  }
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
   const slotOptions = state.clinicSlots.length
     ? state.clinicSlots.map((slot) => `<option value="${escapeHTML(slot)}">${escapeHTML(formatAppointment(slot))}</option>`).join("")
@@ -2202,6 +2209,7 @@ root.addEventListener("submit", async (event) => {
       });
       render();
     }
+    if (form.dataset.form === "clinic-book" && !CONFIG.clinicBookingEnabled) { showToast("حجز العيادات غير متاح حاليًا.", "error"); return; }
     if (form.dataset.form === "clinic-book") {
       if (CONFIG.isPublicPreview) throw new Error("الحجز متوقف في نسخة المعاينة.");
       if (state.profile?.role !== "customer") throw new Error("الحجز متاح لحسابات العملاء فقط.");
