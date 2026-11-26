@@ -567,13 +567,25 @@ function notificationTargetLabel(n) {
   return "";
 }
 
+// The text follows the order's current status, so a late reader never sees an outdated claim.
+function orderStatusNotificationText(order) {
+  const isStore = order?.sector === "store" && order.product_id != null;
+  switch (order?.status) {
+    case "confirmed": return isStore ? "التاجر قبل طلبك." : "تم تأكيد طلبك.";
+    case "cancelled": return isStore ? "تم إلغاء طلبك. التاجر رفضه أو تم إلغاؤه، والمخزون رجع." : "تم إلغاء طلبك.";
+    case "in_progress": return "طلبك قيد التنفيذ.";
+    case "done": return "تم إتمام طلبك.";
+    default: return null;
+  }
+}
+
 function notificationItem(n) {
   const order = (state.myOrders || []).find((o) => o.id === n.ref_id);
   const targetType = NOTIFICATION_TARGET[n.kind];
   const targetLabel = targetType ? notificationTargetLabel(n) : "";
   const opaque = n.ref_id ? `#${String(n.ref_id).slice(0, 4).toUpperCase()}` : "";
   const ref = order ? escapeHTML(order.ref || "") : escapeHTML(targetLabel || (targetType ? opaque : ""));
-  return `<article class="order-card${n.read_at ? "" : " notification-unread"}"><div class="order-card-top"><strong>${escapeHTML(NOTIFICATION_TEXT[n.kind])}</strong>${ref ? `<span class="status-pill">${ref}</span>` : ""}</div><div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span>${order ? `<button class="btn btn-outline btn-small" data-action="open-notification-order" data-order-id="${escapeHTML(order.id)}">فتح الطلب</button>` : ""}${targetType ? `<button class="btn btn-outline btn-small" data-action="open-notification-target" data-target-type="${targetType}" data-target-id="${escapeHTML(n.ref_id)}" data-kind="${escapeHTML(n.kind)}">فتح</button>` : ""}</div></article>`;
+  return `<article class="order-card${n.read_at ? "" : " notification-unread"}"><div class="order-card-top"><strong>${escapeHTML((n.kind === "order_status" && orderStatusNotificationText(order)) || NOTIFICATION_TEXT[n.kind])}</strong>${ref ? `<span class="status-pill">${ref}</span>` : ""}</div><div class="order-meta"><span>${escapeHTML(formatDate(n.created_at))}</span>${order ? `<button class="btn btn-outline btn-small" data-action="open-notification-order" data-order-id="${escapeHTML(order.id)}">فتح الطلب</button>` : ""}${targetType ? `<button class="btn btn-outline btn-small" data-action="open-notification-target" data-target-type="${targetType}" data-target-id="${escapeHTML(n.ref_id)}" data-kind="${escapeHTML(n.kind)}">فتح</button>` : ""}</div></article>`;
 }
 
 // Opt-in device alerts. Hidden unless a VAPID public key is configured and the browser supports push, so today it renders nothing.
