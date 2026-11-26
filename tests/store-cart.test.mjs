@@ -1,0 +1,32 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+const read = (p) => readFileSync(new URL(p, import.meta.url), "utf8");
+const main = read("../src/main.js");
+const api = read("../src/supabase.js");
+const provider = read("../src/provider.js");
+const sql = read("../supabase/drafts/20261126000400_store_cart_and_merchant_response.sql");
+
+test("market and food use a cart grouped per merchant with one checkout", () => {
+  assert.match(main, /data-form="cart-add"/);
+  assert.match(main, /data-form="cart-checkout"/);
+  assert.match(main, /data-cart-merchant/);
+  assert.match(main, /placeCartOrder\(lines, values\.address/);
+  assert.match(api, /rpc\/place_cart_order/);
+});
+
+test("cart RPC is atomic, bounded and locks products in id order", () => {
+  assert.match(sql, /order by 1 loop/);
+  assert.match(sql, /for update/);
+  assert.match(sql, /v_n > 10/);
+  assert.match(sql, /not m\.is_test/);
+  assert.match(sql, /revoke execute on function public\.place_cart_order\(jsonb,text,text,text\) from public, anon/);
+});
+
+test("merchant accept or reject is limited to the assigned merchant's new store orders", () => {
+  assert.match(provider, /data-action="store-respond"/);
+  assert.match(api, /rpc\/merchant_respond_store_order/);
+  assert.match(sql, /v_o\.provider_id is distinct from v_pid/);
+  assert.match(sql, /v_o\.status <> 'new'/);
+  assert.match(sql, /insert into public\.order_events/);
+});
