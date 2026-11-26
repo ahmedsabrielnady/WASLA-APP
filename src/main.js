@@ -1597,6 +1597,7 @@ async function refreshMyOrders() {
     try { state.clinicLocations = Object.fromEntries((await dataApi.getClinicLocations()).map((row) => [row.provider_id, row])); } catch { state.clinicLocations = {}; }
     try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
     restoreCart();
+    try { const ids = cartLines().map((line) => line.merchant).filter(Boolean); if (ids.length) state.merchantNames = { ...state.merchantNames, ...(await dataApi.getMerchantNames(ids)) }; } catch { /* names are cosmetic */ }
     try { state.sessions = await dataApi.getSessions(); state.enrollments = await dataApi.getMyEnrollments(); await loadSessionLinks(); } catch { state.sessions = null; state.enrollments = null; }
     await loadMedicalNotes();
     await loadCourses();
