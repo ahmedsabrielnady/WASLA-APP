@@ -54,3 +54,10 @@ test("order status notifications say accepted or cancelled instead of a generic 
   assert.match(main, /التاجر قبل طلبك/);
   assert.match(main, /orderStatusNotificationText\(order\)\) \|\| NOTIFICATION_TEXT\[n\.kind\]/);
 });
+
+test("orders page shows an overview of the pending carts per section without merging them", () => {
+  assert.match(main, /function pendingCartsOverview/);
+  assert.match(main, /CART_CATEGORIES\.filter\(\(category\) => cartLines\(category\)\.length\)/);
+  assert.match(main, /\$\{pendingCartsOverview\(\)\}/);
+  assert.match(main, /سلتي وطلباتي/);
+});
