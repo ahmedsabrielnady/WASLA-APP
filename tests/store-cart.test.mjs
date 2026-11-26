@@ -67,3 +67,7 @@ test("the orders page does not render any section's product forms", () => {
   const ordersView = main.slice(main.indexOf("function ordersView()"), main.indexOf("function ordersView()") + 1800);
   assert.doesNotMatch(ordersView, /storePanel\(/);
 });
+
+test("the cart and orders nav entry leaves a section page", () => {
+  assert.match(main, /if \(action === "orders" && state\.user\?\.id && state\.profile\?\.role === "customer"\) state\.view = "orders";/);
+});
