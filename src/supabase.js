@@ -528,7 +528,7 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول لعرض طلباتك.");
 
-    const base = "id,ref,sector,status,price_egp,deposit_egp,deposit_paid,created_at,scheduled_at,lat,lng,item_id,product_id,quantity";
+    const base = "id,ref,sector,status,price_egp,deposit_egp,deposit_paid,created_at,scheduled_at,item_id,product_id,quantity";
     const build = (select) => new URLSearchParams({
       select,
       customer_id: `eq.${userId}`,
@@ -1864,20 +1864,79 @@ export const dataApi = {
     await this.acceptRequiredConsents();
   },
 
-  async setOrderLocation(orderId, { lat, lng, address = null }) {
-    assertLiveWritesAllowed("حفظ إحداثيات الطلب");
+  // Exact coordinates live in order_locations (not on orders). Saved after the order exists, with explicit consent.
+  async saveOrderLocation(orderId, { lat, lng, accuracy = null, landmark = null, contactPhone = null, consent = false }) {
+    assertLiveWritesAllowed("حفظ موقع الطلب");
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("انتهت جلسة الدخول. سجل الدخول مرة أخرى.");
-
-    return request("/rest/v1/rpc/set_order_location", {
+    return request("/rest/v1/rpc/save_order_location", {
       method: "POST",
       token: session.access_token,
       body: {
         p_order: orderId,
         p_lat: Number(lat),
         p_lng: Number(lng),
-        p_address: address ? String(address).trim() : null
+        p_accuracy: Number.isFinite(Number(accuracy)) && accuracy !== null ? Math.round(Number(accuracy)) : null,
+        p_landmark: landmark ? String(landmark).trim() : null,
+        p_contact_phone: contactPhone ? String(contactPhone).trim() : null,
+        p_consent: consent === true
       }
+    });
+  },
+
+  async saveOrderVehicle(orderId, { make, model, plate, color = null }) {
+    assertLiveWritesAllowed("حفظ بيانات السيارة");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("انتهت جلسة الدخول. سجل الدخول مرة أخرى.");
+    return request("/rest/v1/rpc/save_order_vehicle", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_order: orderId, p_make: make, p_model: model, p_plate: plate, p_color: color ? String(color).trim() : null }
+    });
+  },
+
+  // Assigned provider only, active orders only (enforced in the database).
+  async getProviderOrderLocation(orderId) {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("انتهت جلسة الدخول. سجل الدخول مرة أخرى.");
+    const rows = await request("/rest/v1/rpc/provider_get_order_location", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_order: orderId }
+    });
+    return Array.isArray(rows) ? (rows[0] ?? null) : (rows ?? null);
+  },
+
+  async getMyProviderContact(orderId) {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("انتهت جلسة الدخول. سجل الدخول مرة أخرى.");
+    const rows = await request("/rest/v1/rpc/customer_get_provider_contact", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_order: orderId }
+    });
+    return Array.isArray(rows) ? (rows[0] ?? null) : (rows ?? null);
+  },
+
+  async getLocatedOrderIds() {
+    const session = await getValidSession();
+    if (!session?.access_token) return [];
+    try {
+      const rows = await request("/rest/v1/order_locations?select=order_id&limit=100", { token: session.access_token });
+      return Array.isArray(rows) ? rows.map((row) => row.order_id) : [];
+    } catch {
+      return [];
+    }
+  },
+
+  async setProviderPhone(phone) {
+    assertLiveWritesAllowed("حفظ رقم التواصل");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("انتهت جلسة الدخول. سجل الدخول مرة أخرى.");
+    return request("/rest/v1/rpc/provider_set_phone", {
+      method: "POST",
+      token: session.access_token,
+      body: { p_phone: String(phone).trim() }
     });
   },
 
@@ -1904,8 +1963,8 @@ export const dataApi = {
         p_notes: String(notes ?? "").trim() || null,
         p_source: "web",
         p_idempotency_key: key,
-        p_lat: location?.lat == null ? null : Number(location.lat),
-        p_lng: location?.lng == null ? null : Number(location.lng)
+        p_lat: null,
+        p_lng: null
       }
     });
   }
