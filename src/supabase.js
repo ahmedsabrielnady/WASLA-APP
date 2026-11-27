@@ -413,6 +413,8 @@ export function cairoLocalProblem(value) {
   return "";
 }
 
+const DELIVERY_FEE_COLUMNS = ",customer_fee_egp,list_fee_egp,promo_applied,courier_pay_egp,order_id,area";
+
 export const dataApi = {
   async getProfile(userId) {
     const session = await getValidSession();
@@ -999,12 +1001,18 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) return null;
     const query = new URLSearchParams({
-      select: "id,ref,pickup_address,dropoff_address,what_to_deliver,status,created_at",
+      select: "id,ref,pickup_address,dropoff_address,what_to_deliver,status,created_at" + DELIVERY_FEE_COLUMNS,
       order: "created_at.desc",
       limit: "20"
     });
     try {
-      return await request(`/rest/v1/delivery_requests?${query}`, { token: session.access_token });
+      try {
+        return await request(`/rest/v1/delivery_requests?${query}`, { token: session.access_token });
+      } catch (inner) {
+        if (!/customer_fee_egp|promo_applied|courier_pay_egp|order_id|area/.test(String(inner?.message))) throw inner;
+        query.set("select", "id,ref,pickup_address,dropoff_address,what_to_deliver,status,created_at");
+        return await request(`/rest/v1/delivery_requests?${query}`, { token: session.access_token });
+      }
     } catch (error) {
       // Table absent (schema not migrated): hide the delivery section instead of failing the page.
       if (/delivery_requests/.test(String(error?.message))) return null;
@@ -1537,11 +1545,100 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) return null;
     const query = new URLSearchParams({
-      select: "id,display_name,specialty,area",
+      select: "id,display_name,specialty,area,clinic_fee_egp",
       kind: "eq.doctor", approved: "eq.true", active: "eq.true", is_test: "eq.false",
       order: "display_name.asc", limit: "20"
     });
-    return request(`/rest/v1/providers?${query}`, { token: session.access_token });
+    try {
+      return await request(`/rest/v1/providers?${query}`, { token: session.access_token });
+    } catch (error) {
+      // Per-doctor fee column exists only after the fee draft.
+      if (!/clinic_fee_egp/.test(String(error?.message))) throw error;
+      query.set("select", "id,display_name,specialty,area");
+      return request(`/rest/v1/providers?${query}`, { token: session.access_token });
+    }
+  },
+
+  async getClinicFees() {
+    const session = await getValidSession();
+    if (!session?.access_token) return {};
+    const rows = await request(`/rest/v1/providers?${new URLSearchParams({ select: "id,clinic_fee_egp", kind: "eq.doctor", limit: "100" })}`, { token: session.access_token });
+    return Object.fromEntries((Array.isArray(rows) ? rows : []).map((r) => [r.id, r.clinic_fee_egp]));
+  },
+
+  async adminSetClinicFee(providerId, fee) {
+    assertLiveWritesAllowed("سعر الكشف");
+    const n = Number(fee);
+    if (!Number.isInteger(n) || n < 1 || n > 100000) throw new Error("اكتب سعر كشف صحيح بالجنيه.");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/admin_set_clinic_fee", { method: "POST", token: session.access_token, body: { p_provider: providerId, p_fee: n } });
+  },
+
+  async getMySchedule(providerId) {
+    const session = await getValidSession();
+    if (!session?.access_token || !providerId) return [];
+    const rows = await request(`/rest/v1/provider_schedules?${new URLSearchParams({ select: "weekday,start_time,end_time,slot_minutes,active", provider_id: `eq.${providerId}`, order: "weekday.asc", limit: "20" })}`, { token: session.access_token });
+    return Array.isArray(rows) ? rows : [];
+  },
+
+  async doctorSetSchedule(weekday, start, end, slot) {
+    assertLiveWritesAllowed("جدول المواعيد");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/doctor_set_schedule", { method: "POST", token: session.access_token, body: { p_weekday: Number(weekday), p_start: start, p_end: end, p_slot: Number(slot) } });
+  },
+
+  async doctorClearScheduleDay(weekday) {
+    assertLiveWritesAllowed("جدول المواعيد");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/doctor_clear_schedule_day", { method: "POST", token: session.access_token, body: { p_weekday: Number(weekday) } });
+  },
+
+  async getDeliveryPromo() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const rows = await request("/rest/v1/rpc/delivery_promo_public", { method: "POST", token: session.access_token, body: {} });
+    return Array.isArray(rows) ? (rows[0] || null) : rows;
+  },
+
+  async getDeliveryAreas() {
+    const session = await getValidSession();
+    if (!session?.access_token) return [];
+    const rows = await request("/rest/v1/rpc/delivery_areas_public", { method: "POST", token: session.access_token, body: {} });
+    return Array.isArray(rows) ? rows.map((r) => r.out_name) : [];
+  },
+
+  async getDeliveryPromoStatus() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const rows = await request("/rest/v1/rpc/admin_delivery_promo_status", { method: "POST", token: session.access_token, body: {} });
+    return Array.isArray(rows) ? (rows[0] || null) : rows;
+  },
+
+  async adminSetDeliveryPromo(v) {
+    assertLiveWritesAllowed("عرض التوصيل");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const int = (x) => (x === "" || x == null ? null : Number(x));
+    return request("/rest/v1/rpc/admin_set_delivery_promo", { method: "POST", token: session.access_token, body: {
+      p_enabled: v.enabled === true, p_list_fee: int(v.listFee), p_starts: v.starts || null, p_ends: v.ends || null,
+      p_max_free: int(v.maxFree), p_per_customer: int(v.perCustomer), p_courier_pay: int(v.courierPay), p_budget: int(v.budget) } });
+  },
+
+  async adminSetDeliveryAreas(names) {
+    assertLiveWritesAllowed("مناطق التوصيل");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/admin_set_delivery_areas", { method: "POST", token: session.access_token, body: { p_names: names } });
+  },
+
+  async staffDispatchOrder(orderId, area) {
+    assertLiveWritesAllowed("تحويل الطلب لمندوب");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/staff_dispatch_order", { method: "POST", token: session.access_token, body: area ? { p_order: orderId, p_area: area } : { p_order: orderId } });
   },
 
   async getClinicSlots(providerId, day) {
@@ -1696,7 +1793,7 @@ export const dataApi = {
     await request("/rest/v1/rpc/set_nursing_preferred_time", { method: "POST", token: session.access_token, body: { p_order: orderId, p_at: cairoLocalToDate(value).toISOString() } });
   },
 
-  async placeDeliveryRequest(pickup, dropoff, what) {
+  async placeDeliveryRequest(pickup, dropoff, what, area) {
     assertLiveWritesAllowed("طلب التوصيل");
     const p = String(pickup || "").trim(), q = String(dropoff || "").trim(), w = String(what || "").trim();
     if (p.length < 4 || q.length < 4) throw new Error("اكتب عنوان الاستلام وعنوان التسليم بوضوح.");
@@ -1706,7 +1803,7 @@ export const dataApi = {
     return request("/rest/v1/rpc/place_delivery_request", {
       method: "POST",
       token: session.access_token,
-      body: { p_pickup: p, p_dropoff: q, p_what: w }
+      body: area ? { p_pickup: p, p_dropoff: q, p_what: w, p_area: String(area) } : { p_pickup: p, p_dropoff: q, p_what: w }
     });
   },
 
@@ -1743,12 +1840,19 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) return null;
     const query = new URLSearchParams({
-      select: "id,ref,pickup_address,dropoff_address,what_to_deliver,status,courier_id,created_at",
+      select: "id,ref,pickup_address,dropoff_address,what_to_deliver,status,courier_id,created_at" + DELIVERY_FEE_COLUMNS,
       order: "created_at.desc",
       limit: "50"
     });
     try {
-      return await request(`/rest/v1/delivery_requests?${query}`, { token: session.access_token });
+      try {
+        return await request(`/rest/v1/delivery_requests?${query}`, { token: session.access_token });
+      } catch (inner) {
+        // Fee columns exist only after the promo draft; fall back to the base columns.
+        if (!/customer_fee_egp|promo_applied|courier_pay_egp|order_id|area/.test(String(inner?.message))) throw inner;
+        query.set("select", "id,ref,pickup_address,dropoff_address,what_to_deliver,status,courier_id,created_at");
+        return await request(`/rest/v1/delivery_requests?${query}`, { token: session.access_token });
+      }
     } catch (error) {
       if (/delivery_requests/.test(String(error?.message))) return null;
       throw error;
