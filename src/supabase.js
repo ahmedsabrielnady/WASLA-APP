@@ -1871,6 +1871,44 @@ export const dataApi = {
     });
   },
 
+  async getCashSummary() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const rows = await request("/rest/v1/rpc/courier_cash_summary", { method: "POST", token: session.access_token, body: {} });
+    return Array.isArray(rows) && rows[0] ? { pending: rows[0].out_pending, holding: rows[0].out_holding_egp, remitted: rows[0].out_remitted_egp, notCollected: rows[0].out_not_collected } : null;
+  },
+
+  async getCourierCollections() {
+    const session = await getValidSession();
+    if (!session?.access_token) return [];
+    const rows = await request("/rest/v1/rpc/courier_my_collections", { method: "POST", token: session.access_token, body: {} });
+    return Array.isArray(rows) ? rows.map((r) => ({ delivery: r.out_delivery, ref: r.out_ref, due: r.out_due, status: r.out_status, collected: r.out_collected, remitted: r.out_remitted })) : [];
+  },
+
+  async courierRecordCollection(deliveryId, collected, amount, note) {
+    assertLiveWritesAllowed("تسجيل التحصيل");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    const body = { p_delivery: deliveryId, p_collected: Boolean(collected) };
+    if (collected && Number.isFinite(Number(amount)) && String(amount).trim() !== "") body.p_amount = Math.round(Number(amount));
+    if (String(note || "").trim()) body.p_note = String(note).trim();
+    return request("/rest/v1/rpc/courier_record_collection", { method: "POST", token: session.access_token, body });
+  },
+
+  async getStaffCashLedger() {
+    const session = await getValidSession();
+    if (!session?.access_token) return [];
+    const rows = await request("/rest/v1/rpc/staff_cash_ledger", { method: "POST", token: session.access_token, body: {} });
+    return Array.isArray(rows) ? rows.map((r) => ({ courier: r.out_courier, name: r.out_name, pending: r.out_pending, holding: r.out_holding_egp, remitted: r.out_remitted_egp, notCollected: r.out_not_collected, waived: r.out_waived })) : [];
+  },
+
+  async staffRecordRemittance(courierId, amount) {
+    assertLiveWritesAllowed("تسجيل التوريد");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/staff_record_remittance", { method: "POST", token: session.access_token, body: { p_courier: courierId, p_amount: Math.round(Number(amount)) } });
+  },
+
   async courierSetDeliveryStatus(requestId, status) {
     assertLiveWritesAllowed("تحديث حالة التوصيل");
     const session = await getValidSession();
