@@ -1371,6 +1371,20 @@ export const dataApi = {
     return rows[0];
   },
 
+  async importProducts(rows, commit) {
+    if (commit) assertLiveWritesAllowed("استيراد منتجات");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/merchant_import_products", { method: "POST", token: session.access_token, body: { p_rows: rows, p_commit: commit === true } });
+  },
+
+  async staffImportProducts(merchantId, rows, commit) {
+    if (commit) assertLiveWritesAllowed("استيراد منتجات");
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
+    return request("/rest/v1/rpc/staff_import_products", { method: "POST", token: session.access_token, body: { p_merchant: merchantId, p_rows: rows, p_commit: commit === true } });
+  },
+
   async updateProduct(productId, changes) {
     assertLiveWritesAllowed("تعديل منتج");
     if (!Number.isInteger(Number(productId))) throw new Error("اختر المنتج.");
