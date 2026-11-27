@@ -201,7 +201,7 @@ export const TEST_BACKEND = "https://mekeirlgmergmzsdkaon.supabase.co";
  * host: the Cloudflare Pages project host that serves the dev branch (per-deployment hosts stay read-only). Empty means no host may write (fail closed).
  * Only that alias is switched to the test backend (see config.js); every other host keeps the production backend and the production rule above.
  */
-export const TEST_WRITE_HOST = "wasla-app-d5v.pages.dev";
+export const TEST_WRITE_HOST = "test-delivery-dispatch.wasla-app-d5v.pages.dev";
 
 export function isPreviewHost(hostname, backendUrl = PRODUCTION_BACKEND) {
   const host = String(hostname ?? "").trim().toLowerCase();
