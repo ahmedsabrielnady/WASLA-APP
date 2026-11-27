@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { parseCsv, rowsFromCsv, templateCsv, chunkRows, mergeImportResults, arabicDigitsToLatin } from "../src/product-import.js";
+import { roundPrices, parseCsv, rowsFromCsv, templateCsv, chunkRows, mergeImportResults, arabicDigitsToLatin } from "../src/product-import.js";
 
 test("template parses back with its own headers", () => {
   const { rows, error } = rowsFromCsv(templateCsv());
@@ -29,3 +29,6 @@ test("chunking and merge map rows back to sheet rows", () => {
   assert.equal(merged.errors, 1);
 });
 test("digits", () => assert.equal(arabicDigitsToLatin("٣٫٥"), "3.5"));
+test("roundPrices rounds piasters only", () => {
+  assert.deepEqual(roundPrices([{ price: "12.5" }, { price: "12.4" }, { price: "30" }, { price: "abc" }, { price: "" }]).map((r) => r.price), ["13", "12", "30", "abc", ""]);
+});
