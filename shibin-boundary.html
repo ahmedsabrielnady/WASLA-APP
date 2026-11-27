@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>وصلة | ارسم حدود شبين القناطر</title>
+<link rel="stylesheet" href="./vendor/leaflet/leaflet.css">
+<style>
+ *{box-sizing:border-box} html,body{margin:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:#0b1f1a;color:#fff}
+ body{display:flex;flex-direction:column}
+ header{padding:10px 14px;background:#0b7a5a;font-size:15px;line-height:1.5}
+ header b{display:block;font-size:17px}
+ #map{flex:1;min-height:0;direction:ltr}
+ .bar{padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:#fff;color:#12332b;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+ .bar .info{flex:1 1 100%;font-size:14px}
+ button{font:inherit;font-size:16px;padding:12px 14px;border-radius:12px;border:1px solid #0b7a5a;background:#fff;color:#0b7a5a;min-height:46px;flex:1 1 auto}
+ button.main{background:#0b7a5a;color:#fff}
+ button:disabled{opacity:.45}
+ textarea{flex:1 1 100%;height:84px;direction:ltr;font-size:12px;font-family:ui-monospace,Menlo,monospace;border-radius:10px;border:1px solid #9bb;padding:6px;display:none}
+ textarea.on{display:block}
+ .vtx{width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#e8590c;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+ .vtx.first{background:#0b7a5a}
+ .toast{position:fixed;top:70px;inset-inline:16px;background:#12332b;color:#fff;padding:10px 14px;border-radius:12px;text-align:center;font-size:15px;z-index:9999;display:none}
+</style>
+</head>
+<body>
+<header><b>ارسم حدود شبين القناطر</b>اضغط على الخريطة لتحديد نقطة على الحدود، واحدة ورا التانية حوالين المنطقة. اسحب أي نقطة لتعديلها.</header>
+<div id="map" aria-label="خريطة شبين القناطر"></div>
+<div class="bar">
+ <div class="info" id="info">لسه ما حددتش أي نقطة (محتاج 3 نقط على الأقل)</div>
+ <button id="undo" disabled>تراجع</button>
+ <button id="clear" disabled>مسح الكل</button>
+ <button id="locate">موقعي</button>
+ <button id="copy" class="main" disabled>نسخ الحدود</button>
+ <button id="share" class="main" disabled>مشاركة</button>
+ <textarea id="out" readonly aria-label="GeoJSON"></textarea>
+</div>
+<div class="toast" id="toast"></div>
+<script src="./vendor/leaflet/leaflet.js"></script>
+<script>
+(function(){
+ var CENTER=[30.3125,31.3176]; // Shebin el Qanater (OpenStreetMap town point)
+ var map=L.map('map',{center:CENTER,zoom:14,zoomControl:true});
+ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+ var pts=[],markers=[],poly=L.polygon([],{color:'#e8590c',weight:3,fillColor:'#e8590c',fillOpacity:.18}).addTo(map);
+ var $=function(i){return document.getElementById(i)};
+ function toast(t){var e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(function(){e.style.display='none'},2200)}
+ function geojson(){
+  var ring=pts.map(function(p){return [+p[1].toFixed(6),+p[0].toFixed(6)]});
+  ring.push(ring[0]);
+  return JSON.stringify({type:'Feature',properties:{name:'Shibin inside zone (drawn by owner)',points:pts.length},geometry:{type:'Polygon',coordinates:[ring]}});
+ }
+ function refresh(){
+  poly.setLatLngs(pts);
+  var ok=pts.length>=3;
+  $('undo').disabled=!pts.length;$('clear').disabled=!pts.length;$('copy').disabled=!ok;$('share').disabled=!ok;
+  $('info').textContent=ok?('تمام: '+pts.length+' نقطة. دوس "نسخ الحدود" وابعتها لوصلة.'):(pts.length?('نقط: '+pts.length+' (محتاج 3 على الأقل)'):'لسه ما حددتش أي نقطة (محتاج 3 نقط على الأقل)');
+  var o=$('out');if(ok){o.value=geojson();o.classList.add('on')}else{o.value='';o.classList.remove('on')}
+  markers.forEach(function(m,i){m.getElement()&&m.getElement().classList.toggle('first',i===0)});
+ }
+ function add(ll){
+  var i=pts.length;pts.push([ll.lat,ll.lng]);
+  var m=L.marker(ll,{draggable:true,icon:L.divIcon({className:'',html:'<div class="vtx'+(i===0?' first':'')+'"></div>',iconSize:[0,0]})}).addTo(map);
+  m.on('drag',function(){var k=markers.indexOf(m);var p=m.getLatLng();pts[k]=[p.lat,p.lng];poly.setLatLngs(pts)});
+  m.on('dragend',refresh);
+  markers.push(m);refresh();
+ }
+ map.on('click',function(e){add(e.latlng)});
+ $('undo').onclick=function(){if(!pts.length)return;pts.pop();map.removeLayer(markers.pop());refresh()};
+ $('clear').onclick=function(){if(pts.length&&!confirm('تمسح كل النقط؟'))return;pts=[];markers.forEach(function(m){map.removeLayer(m)});markers=[];refresh()};
+ $('locate').onclick=function(){
+  if(!navigator.geolocation){toast('الموقع مش متاح على الجهاز ده');return}
+  navigator.geolocation.getCurrentPosition(function(p){map.setView([p.coords.latitude,p.coords.longitude],16)},function(){toast('ما قدرتش أحدد موقعك. ممكن تحرك الخريطة بإيدك')},{timeout:8000});
+ };
+ $('copy').onclick=function(){
+  var t=geojson();
+  function fallback(){var o=$('out');o.value=t;o.classList.add('on');o.focus();o.select();try{document.execCommand('copy');toast('تم النسخ')}catch(e){toast('اضغط مطولا على النص واختار نسخ')}}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast('تم نسخ الحدود')},fallback)}else fallback();
+ };
+ $('share').onclick=function(){
+  var t=geojson();
+  if(navigator.share){navigator.share({title:'حدود شبين القناطر',text:t}).catch(function(){})}else{$('copy').click()}
+ };
+ window.__wasla={add:add,count:function(){return pts.length}};
+})();
+</script>
+</body>
+</html>
