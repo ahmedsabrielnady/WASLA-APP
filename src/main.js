@@ -1150,7 +1150,7 @@ function deliverySection() {
       <div class="section-heading"><div><span class="eyebrow">توصيل</span><h2>اطلب توصيل</h2></div></div>
       ${deliveryPromoBanner()}
       <form data-form="delivery-request" novalidate>
-        ${(state.deliveryAreas || []).length ? `<label>المنطقة<select name="area" required><option value="">اختر المنطقة</option>${state.deliveryAreas.map((a) => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join("")}</select></label>` : ""}
+        ${(state.deliveryAreas || []).length ? `<label>المنطقة<select name="area" required><option value="">اختر المنطقة</option>${state.deliveryAreas.map((a) => `<option value="${escapeHTML(a.name)}">${escapeHTML(a.name)}</option>`).join("")}</select></label>` : ""}
         <label>عنوان الاستلام<input name="pickup" maxlength="255" required></label>
         <label>عنوان التسليم<input name="dropoff" maxlength="255" required></label>
         <label>ما الذي سيتم توصيله؟<input name="what" maxlength="300" required></label>
@@ -1209,7 +1209,8 @@ function ordersView() {
 function deliveryMoneyLine(item, role) {
   if (role === "courier") return Number.isFinite(Number(item.courier_pay_egp)) ? `<div class="order-meta"><span>أجرك عن هذا التوصيل</span><strong>${escapeHTML(formatEGP(item.courier_pay_egp))}</strong></div>` : "";
   if (item.customer_fee_egp === undefined) return "";
-  const pay = Number.isFinite(Number(item.courier_pay_egp)) ? ` · أجر المندوب ${formatEGP(item.courier_pay_egp)}` : "";
+  const zoneLabel = item.zone === "outside" ? " (خارج شبين)" : item.zone === "inside" ? " (داخل شبين)" : "";
+  const pay = Number.isFinite(Number(item.courier_pay_egp)) ? ` · أجر المندوب ${formatEGP(item.courier_pay_egp)}${zoneLabel}` : "";
   return `<div class="order-meta"><span>${escapeHTML(deliveryFeeLabel(item))}${escapeHTML(pay)}${item.order_id ? " · طلب متجر" : ""}</span></div>`;
 }
 
@@ -1218,24 +1219,25 @@ function staffDeliveryTools() {
   const st = state.promoStatus;
   const dispatched = new Set((state.deliveryQueue || []).filter((d) => d.order_id && d.status !== "cancelled").map((d) => d.order_id));
   const ready = (state.operationsOrders || []).filter((o) => o.product_id && ["confirmed", "in_progress"].includes(o.status) && !dispatched.has(o.id));
-  const areaSelect = (state.deliveryAreas || []).length ? `<select name="area" required><option value="">المنطقة</option>${state.deliveryAreas.map((a) => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join("")}</select>` : "";
+  const areaSelect = (state.deliveryAreas || []).length ? `<select name="area" required><option value="">المنطقة</option>${state.deliveryAreas.map((a) => `<option value="${escapeHTML(a.name)}">${escapeHTML(a.name)}</option>`).join("")}</select>` : "";
   const dispatchCards = ready.map((o) => `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(o.ref)}</strong><span class="status-pill">${escapeHTML(statusLabel(o.status))}</span></div><div class="order-meta"><span>إلى: ${escapeHTML(o.address || "")}</span></div><form data-form="dispatch-order" data-order-id="${escapeHTML(o.id)}">${areaSelect}<button class="btn btn-primary btn-small" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>تحويل لمندوب توصيل</button></form></article>`).join("");
   const num = (v) => (v == null ? "" : escapeHTML(v));
   const promoPanel = !isAdmin ? "" : `
     <section class="page-panel delivery-panel" id="delivery-promo-admin">
       <div class="section-heading"><div><span class="eyebrow">عرض التوصيل</span><h2>التوصيل المجاني (بحد أقصى)</h2></div></div>
-      ${st ? `<p data-promo-status><strong>${st.out_open ? "العرض يعمل" : "العرض متوقف"}</strong> · المستخدم ${escapeHTML(st.out_free_used)} من ${escapeHTML(st.out_free_max)} توصيلة · الملتزم به ${escapeHTML(formatEGP(st.out_committed_egp))} من ${escapeHTML(formatEGP(st.out_budget_egp))} · المتبقي ${escapeHTML(formatEGP(st.out_remaining_egp))} · تم تسليم ${escapeHTML(st.out_delivered_free)}</p>` : ""}
+      ${st ? `<p data-promo-status><strong>${st.out_open ? "العرض يعمل" : "العرض متوقف"}</strong> · المستخدم ${escapeHTML(st.out_free_used)} من ${escapeHTML(st.out_free_max)} توصيلة · الملتزم به ${escapeHTML(formatEGP(st.out_committed_egp))} من ${escapeHTML(formatEGP(st.out_budget_egp))} · المتبقي ${escapeHTML(formatEGP(st.out_remaining_egp))} · تم تسليم ${escapeHTML(st.out_delivered_free)} · داخل شبين ${escapeHTML(st.out_free_inside)} / خارجها ${escapeHTML(st.out_free_outside)} · أقصى تكلفة محتملة ${escapeHTML(formatEGP(st.out_worst_case_egp))}</p>` : ""}
       <form data-form="delivery-promo">
         <label class="check-row"><input type="checkbox" name="enabled" ${st && st.out_enabled ? "checked" : ""}><span>تشغيل العرض</span></label>
         <label>السعر المعتاد (جنيه)<input name="listFee" type="number" min="0" max="500" value="${num(st ? st.out_list_fee : 20)}"></label>
-        <label>أجر المندوب لكل توصيلة (جنيه)<input name="courierPay" type="number" min="0" max="500" required></label>
+        <label>أجر المندوب داخل شبين (جنيه، اتجاه واحد)<input name="payInside" type="number" min="0" max="500" value="${num(st ? st.out_pay_inside : 20)}" required></label>
+        <label>أجر المندوب خارج شبين (جنيه، اتجاه واحد)<input name="payOutside" type="number" min="0" max="500" value="${num(st ? st.out_pay_outside : 35)}" required></label>
         <label>أقصى عدد توصيلات مجانية<input name="maxFree" type="number" min="1" max="100000" value="${num(st ? st.out_free_max : "")}" required></label>
         <label>الحد لكل عميل<input name="perCustomer" type="number" min="1" max="20" value="${num(st ? st.out_per_customer : 1)}" required></label>
-        <label>الميزانية القصوى (جنيه)<input name="budget" type="number" min="1" max="10000000" value="${num(st ? st.out_budget_egp : "")}" required></label>
+        <label>الميزانية القصوى (جنيه، حتى 5000)<input name="budget" type="number" min="1" max="5000" value="${num(st ? st.out_budget_egp : "")}" required></label>
         <label>ينتهي في (اختياري)<input name="ends" type="datetime-local"></label>
         <button class="btn btn-primary" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>حفظ العرض</button>
       </form>
-      <form data-form="delivery-areas"><label>مناطق التوصيل (واحدة في كل سطر، اتركها فارغة بدون تقييد)<textarea name="areas" rows="3">${escapeHTML((state.deliveryAreas || []).join("\n"))}</textarea></label><button class="btn btn-outline" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>حفظ المناطق</button></form>
+      <form data-form="delivery-areas"><p class="muted">المنطقة التي يختارها العميل (أو الموظف لطلبات المتجر) تحدد أجر المندوب: داخل شبين أو خارجها. بدون مناطق لا يمكن تشغيل العرض.</p><label>داخل شبين القناطر (واحدة في كل سطر)<textarea name="inside" rows="3">${escapeHTML((state.deliveryAreas || []).filter((a) => a.zone === "inside").map((a) => a.name).join("\n"))}</textarea></label><label>خارج شبين (واحدة في كل سطر)<textarea name="outside" rows="3">${escapeHTML((state.deliveryAreas || []).filter((a) => a.zone === "outside").map((a) => a.name).join("\n"))}</textarea></label><button class="btn btn-outline" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>حفظ المناطق</button></form>
     </section>`;
   const doctors = (state.operationsProviders || []).filter((p) => p.kind === "doctor" && p.approved);
   const feePanel = !isAdmin || !doctors.length ? "" : `
@@ -3255,7 +3257,7 @@ root.addEventListener("submit", async (event) => {
       const data = Object.fromEntries(new FormData(form).entries());
       await runWithBusyState(state, async () => {
         render();
-        await dataApi.adminSetDeliveryPromo({ enabled: data.enabled === "on", listFee: data.listFee, courierPay: data.courierPay, maxFree: data.maxFree, perCustomer: data.perCustomer, budget: data.budget, ends: data.ends ? new Date(data.ends).toISOString() : null });
+        await dataApi.adminSetDeliveryPromo({ enabled: data.enabled === "on", listFee: data.listFee, payInside: data.payInside, payOutside: data.payOutside, maxFree: data.maxFree, perCustomer: data.perCustomer, budget: data.budget, ends: data.ends ? new Date(data.ends).toISOString() : null });
         state.promoStatus = await dataApi.getDeliveryPromoStatus();
         showToast("تم حفظ عرض التوصيل.", "success");
       });
@@ -3263,10 +3265,11 @@ root.addEventListener("submit", async (event) => {
     }
     if (form.dataset.form === "delivery-areas") {
       if (state.profile?.role !== "admin") throw new Error("هذه العملية للمؤسس فقط.");
-      const names = String(new FormData(form).get("areas") || "").split("\n").map((x) => x.trim()).filter(Boolean);
+      const lines = (k) => String(new FormData(form).get(k) || "").split("\n").map((x) => x.trim()).filter(Boolean);
+      const inside = lines("inside"); const outside = lines("outside");
       await runWithBusyState(state, async () => {
         render();
-        await dataApi.adminSetDeliveryAreas(names);
+        await dataApi.adminSetDeliveryAreas(inside, outside);
         state.deliveryAreas = await dataApi.getDeliveryAreas();
         showToast("تم حفظ مناطق التوصيل.", "success");
       });
