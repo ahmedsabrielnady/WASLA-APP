@@ -1265,12 +1265,12 @@ function doctorScheduleSection() {
 }
 
 function cashBlock(item, role) {
-  if (role !== "courier" || item.status !== "delivered" || !(item.customer_fee_egp > 0)) return "";
+  if (role !== "courier" || !["picked_up", "delivered"].includes(item.status) || !(item.customer_fee_egp > 0)) return "";
   const c = (state.cash.rows || {})[item.id];
   if (!c) return "";
   if (c.status === "pending") {
     const off = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
-    return `<div class="geo-card cash-box" data-cash-box="${escapeHTML(item.id)}"><strong>تحصيل الرسوم: ${escapeHTML(formatEGP(c.due))}</strong><label>المبلغ الذي حصّلته<input name="cash_amount" type="number" min="0" max="5000" value="${escapeHTML(String(c.due))}"></label><label>ملاحظة (مطلوبة لو المبلغ مختلف أو لم تحصّل)<input name="cash_note" maxlength="200"></label><div class="geo-actions"><button class="btn btn-primary btn-small" data-action="courier-collect" data-collected="1" data-request-id="${escapeHTML(item.id)}" ${off}>تم التحصيل</button><button class="btn btn-outline btn-small" data-action="courier-collect" data-collected="0" data-request-id="${escapeHTML(item.id)}" ${off}>لم يتم التحصيل</button></div></div>`;
+    return `<div class="geo-card cash-box" data-cash-box="${escapeHTML(item.id)}"><strong>تحصيل الرسوم: ${escapeHTML(formatEGP(c.due))}</strong><span class="geo-hint">حصّل المبلغ من العميل قبل التحرك. لا يمكن تسليم الطلب قبل تسجيل التحصيل.</span><label>المبلغ الذي حصّلته<input name="cash_amount" type="number" min="0" max="5000" value="${escapeHTML(String(c.due))}"></label><label>ملاحظة (مطلوبة لو المبلغ مختلف أو لم تحصّل)<input name="cash_note" maxlength="200"></label><div class="geo-actions"><button class="btn btn-primary btn-small" data-action="courier-collect" data-collected="1" data-request-id="${escapeHTML(item.id)}" ${off}>تم التحصيل</button><button class="btn btn-outline btn-small" data-action="courier-collect" data-collected="0" data-request-id="${escapeHTML(item.id)}" ${off}>لم يتم التحصيل</button></div></div>`;
   }
   const label = c.status === "collected" ? `تم تحصيل ${formatEGP(c.collected)}${c.remitted ? " (تم توريده لوصلة)" : " (لم يتم توريده بعد)"}` : c.status === "waived" ? "تم التنازل عن الرسوم" : "لم يتم التحصيل";
   return `<p class="geo-hint">${escapeHTML(label)}</p>`;
@@ -1283,7 +1283,7 @@ function cashSummaryHtml(role) {
   }
   if (role === "staff" && Array.isArray(state.cash.ledger) && state.cash.ledger.length) {
     const off = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
-    return `<div class="geo-card cash-ledger"><strong>النقدية مع المناديب</strong>${state.cash.ledger.map((l) => `<div class="order-meta"><span>${escapeHTML(l.name)}: معه ${escapeHTML(formatEGP(l.holding))} · بانتظار التسجيل ${escapeHTML(String(l.pending))} · لم يحصّل ${escapeHTML(String(l.notCollected))} · تم توريد ${escapeHTML(formatEGP(l.remitted))}</span>${l.holding > 0 ? `<button class="btn btn-primary btn-small" data-action="staff-remit" data-courier="${escapeHTML(l.courier)}" data-amount="${escapeHTML(String(l.holding))}" ${off}>تسجيل توريد ${escapeHTML(formatEGP(l.holding))}</button>` : ""}</div>`).join("")}</div>`;
+    return `<div class="geo-card cash-ledger"><strong>النقدية مع المناديب</strong>${state.cash.ledger.map((l) => `<div class="order-meta"><span>${escapeHTML(l.name)}: معه ${escapeHTML(formatEGP(l.holding))} · بانتظار التسجيل ${escapeHTML(String(l.pending))} · لم يحصّل ${escapeHTML(String(l.notCollected))} · تم توريد ${escapeHTML(formatEGP(l.remitted))} · أجر المندوب ${escapeHTML(formatEGP(l.courierPay))} · صافي وصلة ${escapeHTML(formatEGP(l.share))}${l.subsidy > 0 ? ` (دعم ${escapeHTML(formatEGP(l.subsidy))})` : ""}</span>${l.holding > 0 ? `<button class="btn btn-primary btn-small" data-action="staff-remit" data-courier="${escapeHTML(l.courier)}" data-amount="${escapeHTML(String(l.holding))}" ${off}>تسجيل توريد ${escapeHTML(formatEGP(l.holding))}</button>` : ""}</div>`).join("")}</div>`;
   }
   return "";
 }
