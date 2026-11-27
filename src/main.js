@@ -41,6 +41,7 @@ const state = {
   carts: { market: [], food: [], supplies: [] },
   merchantNames: {},
   productImport: null,
+  storeSearch: {},
   deliveryRoutes: {},
   clinicDraft: null,
   locatedOrderIds: [],
@@ -1011,6 +1012,39 @@ function persistCart(category) {
   } catch { /* private mode: the cart simply stays in memory */ }
 }
 // Only product ids and quantities are stored. Prices and stock are re-read live and checked again by the database at checkout.
+function cartProductIds() {
+  const ids = [];
+  for (const category of CART_CATEGORIES) {
+    try { for (const entry of JSON.parse(localStorage.getItem(cartKey(category)) || "[]")) if (Number.isInteger(Number(entry?.id))) ids.push(Number(entry.id)); } catch { /* ignore */ }
+  }
+  return ids;
+}
+
+function mergeProducts(rows) {
+  if (!Array.isArray(state.products) || !Array.isArray(rows)) return;
+  const have = new Set(state.products.map((p) => Number(p.id)));
+  const add = rows.filter((p) => !have.has(Number(p.id)));
+  if (add.length) state.products = [...state.products, ...add];
+}
+
+async function runStoreSearch(category, reset) {
+  const prev = state.storeSearch[category] || {};
+  const q = reset ? String(root.querySelector(`[data-store-q="${category}"]`)?.value || "") : prev.q || "";
+  const aisle = reset ? String(root.querySelector(`[data-store-aisle="${category}"]`)?.value || "") : prev.aisle || "";
+  const offset = reset ? 0 : prev.offset || 0;
+  state.storeSearch[category] = { ...prev, q, aisle, loading: true, ids: reset ? prev.ids : prev.ids || [] };
+  render();
+  try {
+    const { rows, more } = await dataApi.searchProducts({ category, q, aisle, offset, limit: 24 });
+    mergeProducts(rows);
+    const ids = (reset ? [] : prev.ids || []).concat(rows.map((p) => Number(p.id)));
+    state.storeSearch[category] = { q, aisle, ids, offset: offset + rows.length, more, loading: false };
+  } catch (error) {
+    state.storeSearch[category] = { ...prev, q, aisle, loading: false, error: "تعذر البحث. جرّب تاني." };
+  }
+  render();
+}
+
 function restoreCarts() {
   state.carts = { market: [], food: [], supplies: [] };
   if (!state.user?.id || !Array.isArray(state.products)) return;
@@ -1070,20 +1104,33 @@ function cartPanel(category) {
 }
 
 function storePanel(category, eyebrow, title, intro, showCart = true) {
-  const items = (state.products || []).filter((p) => (p.category || "market") === category);
-  if (!items.length) return "";
+  const all = (state.products || []).filter((p) => (p.category || "market") === category);
+  const ss = state.storeSearch?.[category];
+  if (!all.length && !ss) return "";
+  const items = ss?.ids ? ss.ids.map((id) => all.find((p) => Number(p.id) === id)).filter(Boolean) : all.slice(0, 24);
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const searchBox = `<div class="store-search">
+        <label>بحث بالاسم<input type="search" data-store-q="${category}" maxlength="60" value="${escapeHTML(ss?.q || "")}" placeholder="اكتب اسم المنتج"></label>
+        ${category === "market" ? `<label>القسم<select data-store-aisle="${category}"><option value="">كل الأقسام</option>${PRODUCT_AISLES.map((a) => `<option value="${a[0]}" ${ss?.aisle === a[0] ? "selected" : ""}>${escapeHTML(a[1])}</option>`).join("")}</select></label>` : ""}
+        <button class="btn btn-outline btn-small" type="button" data-action="store-search" data-category="${category}" ${ss?.loading ? "disabled" : ""}>بحث</button>
+        ${ss?.error ? `<p class="form-error" role="alert">${escapeHTML(ss.error)}</p>` : ""}
+        ${ss?.loading ? '<p class="muted">جاري البحث...</p>' : ""}
+        ${ss?.ids && !items.length && !ss.loading ? '<p class="tracking-empty">مفيش نتائج. جرّب كلمة تانية أو قسم تاني.</p>' : ""}
+      </div>`;
+  const moreBtn = ss?.more && !ss.loading ? `<button class="btn btn-outline btn-small" type="button" data-action="store-more" data-category="${category}">عرض المزيد</button>` : "";
   {
     const noun = category === "food" ? "الوجبة" : category === "supplies" ? "المستلزم" : "المنتج";
     return `
     <section class="page-panel store-panel" id="${category === "food" ? "food" : category === "supplies" ? "supplies" : "store"}">
       <div class="section-heading"><div><span class="eyebrow">${eyebrow}</span><h2>${title}</h2></div></div>
       <p>${intro} التوصيل مجاني للعميل. الدفع عند الاستلام ولا يتم تحصيل أي مبلغ داخل وصلة. السعر النهائي يحسبه النظام.</p>
+      ${searchBox}
       <form data-form="cart-add" data-category="${category}" novalidate>
         <label>${noun}<select name="product" required>
           <option value="">اختر ${noun}</option>
           ${items.map((p) => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.name)} · ${escapeHTML(formatEGP(p.discount_price_egp ?? p.price_egp))} (متوفر ${escapeHTML(p.stock)})</option>`).join("")}
         </select></label>
+        ${moreBtn}
         <label>الكمية<input type="number" name="qty" min="1" max="20" value="1" required></label>
         <button class="btn btn-primary" type="submit" ${disabled}>أضف إلى السلة</button>
       </form>
@@ -1770,6 +1817,11 @@ async function fetchCustomerData() {
   })();
   const productsP = (async () => {
     try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
+    try {
+      const have = new Set((state.products || []).map((p) => Number(p.id)));
+      const missing = cartProductIds().filter((id) => !have.has(id));
+      if (missing.length && Array.isArray(state.products)) mergeProducts(await dataApi.getProductsByIds(missing));
+    } catch { /* the cart simply drops products it cannot find */ }
     restoreCarts();
     try { const ids = CART_CATEGORIES.flatMap((category) => cartLines(category)).map((line) => line.merchant).filter(Boolean); if (ids.length) state.merchantNames = { ...state.merchantNames, ...(await dataApi.getMerchantNames(ids)) }; } catch { /* names are cosmetic */ }
   })();
@@ -2496,6 +2548,10 @@ root.addEventListener("click", async (event) => {
         showToast("تم التحديث.", "success");
       });
       render();
+    } else if (action === "store-search") {
+      await runStoreSearch(button.dataset.category, true);
+    } else if (action === "store-more") {
+      await runStoreSearch(button.dataset.category, false);
     } else if (action === "import-template") {
       const url = URL.createObjectURL(new Blob([templateCsv()], { type: "text/csv;charset=utf-8" }));
       const a = document.createElement("a"); a.href = url; a.download = "wasla-products-template.csv"; document.body.appendChild(a); a.click(); a.remove();
@@ -3520,6 +3576,8 @@ root.addEventListener("submit", async (event) => {
 });
 
 root.addEventListener("change", async (event) => {
+  const aisleSel = event.target.matches?.("[data-store-aisle]") ? event.target : null;
+  if (aisleSel) { await runStoreSearch(aisleSel.dataset.storeAisle, true); return; }
   const productFile = event.target.matches?.("[data-product-file]") ? event.target : null;
   if (productFile) {
     const file = productFile.files?.[0];
