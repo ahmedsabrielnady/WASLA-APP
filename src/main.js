@@ -57,6 +57,7 @@ const state = {
   clinicSlots: [],
   products: null,
   deliveryQueue: null,
+  cash: { summary: null, rows: {}, ledger: null },
   deliveryPromo: null,
   deliveryAreas: [],
   promoStatus: null,
@@ -1263,6 +1264,42 @@ function doctorScheduleSection() {
   return `<section class="page-panel" id="doctor-schedule"><div class="section-heading"><div><span class="eyebrow">العيادة</span><h2>مواعيد الكشف الأسبوعية</h2></div></div><p>اختر ساعات عملك لكل يوم. المرضى يحجزون فقط داخل هذه الساعات.</p>${rows}</section>`;
 }
 
+function cashBlock(item, role) {
+  if (role !== "courier" || item.status !== "delivered" || !(item.customer_fee_egp > 0)) return "";
+  const c = (state.cash.rows || {})[item.id];
+  if (!c) return "";
+  if (c.status === "pending") {
+    const off = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+    return `<div class="geo-card cash-box" data-cash-box="${escapeHTML(item.id)}"><strong>تحصيل الرسوم: ${escapeHTML(formatEGP(c.due))}</strong><label>المبلغ الذي حصّلته<input name="cash_amount" type="number" min="0" max="5000" value="${escapeHTML(String(c.due))}"></label><label>ملاحظة (مطلوبة لو المبلغ مختلف أو لم تحصّل)<input name="cash_note" maxlength="200"></label><div class="geo-actions"><button class="btn btn-primary btn-small" data-action="courier-collect" data-collected="1" data-request-id="${escapeHTML(item.id)}" ${off}>تم التحصيل</button><button class="btn btn-outline btn-small" data-action="courier-collect" data-collected="0" data-request-id="${escapeHTML(item.id)}" ${off}>لم يتم التحصيل</button></div></div>`;
+  }
+  const label = c.status === "collected" ? `تم تحصيل ${formatEGP(c.collected)}${c.remitted ? " (تم توريده لوصلة)" : " (لم يتم توريده بعد)"}` : c.status === "waived" ? "تم التنازل عن الرسوم" : "لم يتم التحصيل";
+  return `<p class="geo-hint">${escapeHTML(label)}</p>`;
+}
+
+function cashSummaryHtml(role) {
+  if (role === "courier" && state.cash.summary) {
+    const s = state.cash.summary;
+    return `<div class="geo-card cash-summary"><strong>النقدية معك: ${escapeHTML(formatEGP(s.holding))}</strong><span>لم تُورَّد لوصلة بعد. بانتظار تسجيل التحصيل: ${escapeHTML(String(s.pending))}. تم توريده: ${escapeHTML(formatEGP(s.remitted))}.</span></div>`;
+  }
+  if (role === "staff" && Array.isArray(state.cash.ledger) && state.cash.ledger.length) {
+    const off = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+    return `<div class="geo-card cash-ledger"><strong>النقدية مع المناديب</strong>${state.cash.ledger.map((l) => `<div class="order-meta"><span>${escapeHTML(l.name)}: معه ${escapeHTML(formatEGP(l.holding))} · بانتظار التسجيل ${escapeHTML(String(l.pending))} · لم يحصّل ${escapeHTML(String(l.notCollected))} · تم توريد ${escapeHTML(formatEGP(l.remitted))}</span>${l.holding > 0 ? `<button class="btn btn-primary btn-small" data-action="staff-remit" data-courier="${escapeHTML(l.courier)}" data-amount="${escapeHTML(String(l.holding))}" ${off}>تسجيل توريد ${escapeHTML(formatEGP(l.holding))}</button>` : ""}</div>`).join("")}</div>`;
+  }
+  return "";
+}
+
+async function loadCash() {
+  const role = state.profile?.role;
+  try {
+    if (role === "courier") {
+      state.cash.summary = await dataApi.getCashSummary();
+      state.cash.rows = Object.fromEntries((await dataApi.getCourierCollections()).map((r) => [r.delivery, r]));
+    } else if (role === "admin" || role === "staff") {
+      state.cash.ledger = await dataApi.getStaffCashLedger();
+    }
+  } catch { state.cash = { summary: null, rows: {}, ledger: null }; }
+}
+
 function deliveryQueueCards(role) {
   return state.deliveryQueue.map((item) => {
     const couriers = (state.operationsProviders || []).filter((p) => p.kind === "courier" && p.approved && p.active && !p.is_test);
@@ -1287,14 +1324,14 @@ function deliveryQueueCards(role) {
       } else if (route && route.error) mapBlock = `<p class="form-error">${escapeHTML(route.error)}</p>`;
       else mapBlock = `<button class="btn btn-outline btn-small" data-action="delivery-map" data-request-id="${escapeHTML(item.id)}">عرض الاستلام والتسليم على الخريطة</button>`;
     }
-    return `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(item.ref)}</strong><span class="status-pill">${escapeHTML(statusLabel(item.status))}</span></div><div class="order-name">${escapeHTML(item.what_to_deliver)}</div>${mapBlock}<div class="order-meta"><span>من: ${escapeHTML(item.pickup_address)}</span></div><div class="order-meta"><span>إلى: ${escapeHTML(item.dropoff_address)}</span></div>${item.area ? `<div class="order-meta"><span>المنطقة: ${escapeHTML(item.area)}</span></div>` : ""}${deliveryMoneyLine(item, role)}${action}</article>`;
+    return `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(item.ref)}</strong><span class="status-pill">${escapeHTML(statusLabel(item.status))}</span></div><div class="order-name">${escapeHTML(item.what_to_deliver)}</div>${cashBlock(item, role)}${mapBlock}<div class="order-meta"><span>من: ${escapeHTML(item.pickup_address)}</span></div><div class="order-meta"><span>إلى: ${escapeHTML(item.dropoff_address)}</span></div>${item.area ? `<div class="order-meta"><span>المنطقة: ${escapeHTML(item.area)}</span></div>` : ""}${deliveryMoneyLine(item, role)}${action}</article>`;
   }).join("");
 }
 
 function deliveryQueueSection(role) {
   if (!Array.isArray(state.deliveryQueue)) return "";
   const cards = deliveryQueueCards(role);
-  return `<section class="page-panel delivery-panel"><div class="section-heading"><div><span class="eyebrow">توصيل</span><h2>${role === "staff" ? "طلبات التوصيل" : "توصيلاتي"}</h2></div></div>${cards || '<p class="tracking-empty">لا توجد طلبات توصيل.</p>'}</section>`;
+  return `<section class="page-panel delivery-panel"><div class="section-heading"><div><span class="eyebrow">توصيل</span><h2>${role === "staff" ? "طلبات التوصيل" : "توصيلاتي"}</h2></div></div>${cashSummaryHtml(role)}${cards || '<p class="tracking-empty">لا توجد طلبات توصيل.</p>'}</section>`;
 }
 
 function operationsView() {
@@ -1730,6 +1767,7 @@ async function refreshOperations() {
     state.operationsCoverage = Array.isArray(coverage) ? coverage : [];
     try { state.operationsOffers = state.profile?.role === "admin" ? await dataApi.getOperationsOffers() : []; } catch { state.operationsOffers = []; }
     try { state.deliveryQueue = await dataApi.getDeliveryQueue(); } catch { state.deliveryQueue = null; }
+    await loadCash();
     try { state.promoStatus = state.profile?.role === "admin" ? await dataApi.getDeliveryPromoStatus() : null; } catch { state.promoStatus = null; }
     try { state.deliveryAreas = await dataApi.getDeliveryAreas(); } catch { state.deliveryAreas = []; }
     try { state.clinicFees = state.profile?.role === "admin" ? await dataApi.getClinicFees() : {}; } catch { state.clinicFees = {}; }
@@ -1762,6 +1800,7 @@ async function refreshProvider() {
     state.deliveryQueue = null;
     if (state.profile?.role === "courier") {
       try { state.deliveryQueue = await dataApi.getDeliveryQueue(); } catch { state.deliveryQueue = null; }
+    await loadCash();
     }
     await loadHealthWork();
     state.teacherSessions = null;
@@ -2463,6 +2502,26 @@ root.addEventListener("click", async (event) => {
         await dataApi.teacherCancelSession(button.dataset.sessionId);
         state.teacherSessions = await dataApi.getSessions(state.providerRecord.id);
         showToast("تم إلغاء الحصة.", "success");
+      });
+      render();
+    } else if (action === "courier-collect") {
+      if (state.profile?.role !== "courier") throw new Error("هذه العملية للمندوب فقط.");
+      const box = button.closest("[data-cash-box]");
+      const collected = button.dataset.collected === "1";
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.courierRecordCollection(button.dataset.requestId, collected, box?.querySelector('[name="cash_amount"]')?.value, box?.querySelector('[name="cash_note"]')?.value);
+        await loadCash();
+        showToast("تم تسجيل التحصيل.", "success");
+      });
+      render();
+    } else if (action === "staff-remit") {
+      if (!["admin", "staff"].includes(state.profile?.role)) throw new Error("هذه العملية لفريق وصلة فقط.");
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.staffRecordRemittance(button.dataset.courier, button.dataset.amount);
+        await loadCash();
+        showToast("تم تسجيل التوريد.", "success");
       });
       render();
     } else if (action === "courier-delivery") {
