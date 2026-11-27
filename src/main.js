@@ -155,7 +155,7 @@ function header() {
         ${canSeeRoadmap() ? '<button class="nav-link" data-action="roadmap">خطة الإنجاز</button>' : ""}
         ${authenticated && state.profile?.role === "customer" ? '<button class="nav-link" data-action="orders">سلتي وطلباتي</button>' : ""}
         ${isStaff ? '<button class="nav-link" data-action="operations">التشغيل</button><button class="nav-link" data-action="crm">CRM</button>' : ""}
-        ${isProvider ? '<button class="nav-link" data-action="provider">طلبات مقدم الخدمة</button>' : ""}
+        ${isProvider ? `<button class="nav-link" data-action="provider">طلبات مقدم الخدمة${providerAlertCount() ? ` <span class="badge-count">${providerAlertCount()}</span>` : ""}</button>` : ""}
         ${authenticated && state.profile?.role === "customer" ? '<button class="nav-link" data-action="provider-invite">لديك دعوة مقدم خدمة؟</button>' : ""}
         ${authenticated
           ? `<button class="account-chip" data-action="account" title="الحساب">${icon(ICON_SVG.user)}<span>${escapeHTML(displayName)}</span></button>${shouldShowLinkGoogle({ googleEnabled: state.googleAuthEnabled, isPublicPreview: CONFIG.isPublicPreview, user: state.user }) ? '<button class="btn btn-outline btn-small" data-action="link-google">ربط حساب Google</button>' : ""}<button class="btn btn-outline btn-small" data-action="logout">خروج</button>`
@@ -535,6 +535,7 @@ const NOTIFICATION_TEXT = {
   delivery_status: "حالة طلب التوصيل اتغيرت.",
   delivery_new: "طلب توصيل جديد في انتظار تعيين مندوب.",
   delivery_assigned: "تم إسناد طلب توصيل لك. افتح توصيلاتي.",
+  provider_new_order: "طلب جديد اتسند لك. افتح لوحة مقدم الخدمة.",
   prescription_quote: "وصلك رد جديد على أحد طلباتك.",
   prescription_quote_revised: "تم تعديل رد على أحد طلباتك.",
   session_cancelled: "تم إلغاء إحدى حصصك.",
@@ -593,6 +594,10 @@ function notificationItem(n) {
 function pushSection() {
   if (!state.user?.id || !pushConfigured(CONFIG.pushPublicKey) || !pushSupported()) return "";
   return `<div class="notifications-box" id="push-optin"><p class="muted">تنبيه على جهازك بدون أي تفاصيل صحية. تقدر توقفه في أي وقت.</p><button class="btn btn-outline btn-small" data-action="enable-push">تفعيل التنبيهات على هذا الجهاز</button> <button class="btn btn-outline btn-small" data-action="disable-push">إيقاف التنبيهات</button></div>`;
+}
+
+function providerAlertCount() {
+  return (state.notifications || []).filter((n) => n.kind === "provider_new_order" && !n.read_at).length;
 }
 
 function notificationsSection() {
@@ -1380,7 +1385,7 @@ function providerView() {
     error: state.providerError,
     geoCards: state.geoCards,
     clinicDraft: state.clinicDraft
-  }) + (state.profile?.role === "courier" ? notificationsSection() + deliveryQueueSection("courier") : "") + doctorScheduleSection() + teacherSection() + teacherCatalogueSection() + merchantProductsSection() + healthProviderSection() + medicalNotesSection();
+  }) + notificationsSection() + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + doctorScheduleSection() + teacherSection() + teacherCatalogueSection() + merchantProductsSection() + healthProviderSection() + medicalNotesSection();
 }
 
 function roadmapView() {
