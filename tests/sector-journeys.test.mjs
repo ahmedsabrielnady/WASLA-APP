@@ -93,7 +93,7 @@ test("UI hides clinic and store sections unless the database returns data, and g
   const js = await readFile(new URL("../src/main.js", import.meta.url), "utf8");
   assert.match(js, /if \(!Array\.isArray\(state\.doctors\) \|\| !state\.doctors\.length\) return ""/);
   assert.match(js, /\(p\.category \|\| "market"\) === category/);
-  assert.match(js, /if \(!items\.length\) return ""/);
+  assert.match(js, /if \(!all\.length && !ss\) return ""/);
   assert.match(js, /الحجز متاح لحسابات العملاء فقط/);
   assert.match(js, /الطلب متاح لحسابات العملاء فقط/);
   assert.match(js, /dataApi\.acceptRequiredConsents\(\);\s*await dataApi\.bookClinicSlot/);
