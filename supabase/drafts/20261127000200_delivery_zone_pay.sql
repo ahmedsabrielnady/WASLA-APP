@@ -29,7 +29,7 @@ begin
  if coalesce(array_length(p_inside,1),0) + coalesce(array_length(p_outside,1),0) > 40 then raise exception 'عدد المناطق كبير' using errcode='22023'; end if;
  if exists (select 1 from unnest(coalesce(p_inside,'{}')) a(x) join unnest(coalesce(p_outside,'{}')) b(y) on trim(a.x) = trim(b.y)) then
   raise exception 'المنطقة لا يمكن أن تكون داخل شبين وخارجها معًا' using errcode='22023'; end if;
- delete from public.delivery_areas;
+ delete from public.delivery_areas where true;
  foreach n in array coalesce(p_inside,'{}') loop n := trim(n); if char_length(n) between 2 and 60 then insert into public.delivery_areas(name, zone) values (n, 'inside') on conflict do nothing; end if; end loop;
  foreach n in array coalesce(p_outside,'{}') loop n := trim(n); if char_length(n) between 2 and 60 then insert into public.delivery_areas(name, zone) values (n, 'outside') on conflict do nothing; end if; end loop;
 end $$;
