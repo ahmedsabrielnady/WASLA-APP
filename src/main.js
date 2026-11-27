@@ -41,6 +41,8 @@ const state = {
   carts: { market: [], food: [], supplies: [] },
   merchantNames: {},
   productImport: null,
+  staffImport: null,
+  staffImportMerchant: "",
   storeSearch: {},
   deliveryRoutes: {},
   clinicDraft: null,
@@ -754,28 +756,42 @@ async function loadHealthWork() {
 
 const PRODUCT_CATEGORY_LABELS = { market: "ماركت", food: "مطعم", supplies: "مستلزمات طبية" };
 
-async function runImportPreview(raw, round, fileName) {
+function importStateKey(scope) { return scope === "staff" ? "staffImport" : "productImport"; }
+
+async function runImportPreview(raw, round, fileName, scope = "self") {
   const rows = round ? roundPrices(raw) : raw;
   const chunks = chunkRows(rows);
+  const merchant = scope === "staff" ? String(root.querySelector("[data-staff-merchant]")?.value || state.staffImportMerchant || "") : "";
+  if (scope === "staff" && !merchant) throw new Error("اختر التاجر الأول.");
+  state.staffImportMerchant = merchant || state.staffImportMerchant;
   const results = [];
-  for (const chunk of chunks) results.push(await dataApi.importProducts(chunk, false));
-  state.productImport = { file: fileName, raw, round: Boolean(round), chunks, result: mergeImportResults(results) };
+  for (const chunk of chunks) results.push(scope === "staff" ? await dataApi.staffImportProducts(merchant, chunk, false) : await dataApi.importProducts(chunk, false));
+  state[importStateKey(scope)] = { file: fileName, raw, round: Boolean(round), chunks, merchant, result: mergeImportResults(results) };
 }
 
-function productImportCard(disabled) {
-  const imp = state.productImport;
+function staffProductImportSection() {
+  if (!["admin", "staff"].includes(state.profile?.role)) return "";
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  return `<section class="page-panel" id="staff-products">${productImportCard(disabled, "staff")}</section>`;
+}
+
+function productImportCard(disabled, scope = "self") {
+  const imp = state[importStateKey(scope)];
+  const staff = scope === "staff";
+  const merchants = staff ? (state.operationsProviders || []).filter((p) => p.kind === "merchant") : [];
   const res = imp?.result;
   const issues = res ? res.rows.slice(0, 30).map((x) => `<li class="${x.status === "error" ? "import-err" : "import-warn"}">صف ${escapeHTML(x.sheetRow)}: ${escapeHTML(x.msg)}</li>`).join("") : "";
-  const summary = res ? `<div class="notice" role="status"><strong>معاينة قبل الحفظ:</strong> ${res.total} صف · جديد ${res.new} · تحديث ${res.update} · أخطاء ${res.errors} · تنبيهات ${res.warnings}${res.errors ? ". صلّح الأخطاء وارفع الملف تاني. مفيش حاجة اتحفظت." : ". لسه ما اتحفظش حاجة."}</div>${issues ? `<ul class="import-issues">${issues}</ul>` : ""}${res.rows.length > 30 ? `<p class="muted">ظاهر أول 30 ملاحظة من ${res.rows.length}.</p>` : ""}<div class="order-card-actions"><button class="btn btn-primary" type="button" data-action="import-confirm" ${res.errors || disabled ? "disabled" : ""}>تأكيد الاستيراد (${res.new + res.update} منتج)</button><button class="btn btn-outline" type="button" data-action="import-cancel">إلغاء</button></div>` : "";
-  return `<div class="notifications-box" id="product-import">
-    <div class="section-heading"><div><span class="eyebrow">رفع بالجملة</span><h3>استيراد منتجات من ملف</h3></div></div>
+  const summary = res ? `<div class="notice" role="status"><strong>معاينة قبل الحفظ:</strong> ${res.total} صف · جديد ${res.new} · تحديث ${res.update} · أخطاء ${res.errors} · تنبيهات ${res.warnings}${res.errors ? ". صلّح الأخطاء وارفع الملف تاني. مفيش حاجة اتحفظت." : ". لسه ما اتحفظش حاجة."}</div>${issues ? `<ul class="import-issues">${issues}</ul>` : ""}${res.rows.length > 30 ? `<p class="muted">ظاهر أول 30 ملاحظة من ${res.rows.length}.</p>` : ""}<div class="order-card-actions"><button class="btn btn-primary" type="button" data-action="import-confirm" data-scope="${scope}" ${res.errors || disabled ? "disabled" : ""}>تأكيد الاستيراد (${res.new + res.update} منتج)</button><button class="btn btn-outline" type="button" data-action="import-cancel" data-scope="${scope}">إلغاء</button></div>` : "";
+  return `<div class="notifications-box" id="${staff ? "staff-product-import" : "product-import"}">
+    <div class="section-heading"><div><span class="eyebrow">رفع بالجملة</span><h3>${staff ? "استيراد منتجات لتاجر (موظف)" : "استيراد منتجات من ملف"}</h3></div></div>
+    ${staff ? `<label>التاجر<select data-staff-merchant><option value="">اختر التاجر</option>${merchants.map((m) => `<option value="${escapeHTML(m.id)}" ${state.staffImportMerchant === m.id ? "selected" : ""}>${escapeHTML(m.display_name || m.id)}</option>`).join("")}</select></label>` : ""}
     <p class="muted">حمّل النموذج، املاه من Excel، واحفظه CSV (UTF-8)، ثم ارفعه. بنراجع كل صف قبل ما نحفظ أي حاجة. المنتج الموجود (بنفس الباركود أو الاسم) بيتحدّث. السعر بالجنيه الصحيح.</p>
     <p class="muted">الأقسام المقبولة: ${PRODUCT_AISLES.map((a) => escapeHTML(a[1])).join("، ")}.</p>
-    <div class="order-card-actions"><button class="btn btn-outline btn-small" type="button" data-action="import-template">تحميل النموذج</button></div>
-    <label>ملف المنتجات (CSV)<input type="file" accept=".csv,text/csv,text/plain" data-product-file ${disabled}></label>
+    <div class="order-card-actions"><button class="btn btn-outline btn-small" type="button" data-action="import-template" data-scope="${scope}">تحميل النموذج</button></div>
+    <label>ملف المنتجات (CSV)<input type="file" accept=".csv,text/csv,text/plain" data-product-file="${scope}" ${disabled}></label>
     ${imp?.error ? `<p class="form-error" role="alert">${escapeHTML(imp.error)}</p>` : ""}
     ${imp?.working ? '<p class="muted">جاري المراجعة...</p>' : ""}
-    ${imp?.raw ? `<label class="check-row"><input type="checkbox" data-import-round ${imp.round ? "checked" : ""}><span>قرّب الأسعار لأقرب جنيه (12.5 تبقى 13)</span></label>` : ""}
+    ${imp?.raw ? `<label class="check-row"><input type="checkbox" data-import-round="${scope}" ${imp.round ? "checked" : ""}><span>قرّب الأسعار لأقرب جنيه (12.5 تبقى 13)</span></label>` : ""}
     ${summary}
   </div>`;
 }
@@ -1429,7 +1445,7 @@ function operationsView() {
     saving: state.operationsSaving,
     approvalDrafts: state.approvalDrafts,
     offers: state.operationsOffers
-  }) + notificationsSection() + deliveryQueueSection("staff") + staffDeliveryTools();
+  }) + staffProductImportSection() + notificationsSection() + deliveryQueueSection("staff") + staffDeliveryTools();
 }
 
 function crmView() {
@@ -2566,16 +2582,17 @@ root.addEventListener("click", async (event) => {
       const a = document.createElement("a"); a.href = url; a.download = "wasla-products-template.csv"; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
     } else if (action === "import-cancel") {
-      state.productImport = null;
+      state[importStateKey(button.dataset.scope)] = null;
       render();
     } else if (action === "import-confirm") {
-      const imp = state.productImport;
+      const scope = button.dataset.scope === "staff" ? "staff" : "self";
+      const imp = state[importStateKey(scope)];
       if (!imp?.chunks || imp.result?.errors) return;
       await runWithBusyState(state, async () => {
         render();
-        for (const chunk of imp.chunks) await dataApi.importProducts(chunk, true);
-        state.productImport = null;
-        await loadHealthWork();
+        for (const chunk of imp.chunks) await (scope === "staff" ? dataApi.staffImportProducts(imp.merchant, chunk, true) : dataApi.importProducts(chunk, true));
+        state[importStateKey(scope)] = null;
+        if (scope === "self") await loadHealthWork();
         showToast("تم استيراد المنتجات.", "success");
       });
       render();
@@ -3587,27 +3604,33 @@ root.addEventListener("submit", async (event) => {
 root.addEventListener("change", async (event) => {
   const aisleSel = event.target.matches?.("[data-store-aisle]") ? event.target : null;
   if (aisleSel) { await runStoreSearch(aisleSel.dataset.storeAisle, true); return; }
-  if (event.target.matches?.("[data-import-round]") && state.productImport?.raw) {
-    const imp = state.productImport;
-    state.productImport = { ...imp, working: true, round: event.target.checked };
+  if (event.target.matches?.("[data-import-round]")) {
+    const scope = event.target.dataset.importRound === "staff" ? "staff" : "self";
+    const imp = state[importStateKey(scope)];
+    if (!imp?.raw) return;
+    state[importStateKey(scope)] = { ...imp, working: true, round: event.target.checked };
     render();
-    try { await runImportPreview(imp.raw, event.target.checked, imp.file); } catch (error) { state.productImport = { ...imp, round: event.target.checked, error: error?.message || "تعذرت مراجعة الملف." }; }
+    try { await runImportPreview(imp.raw, event.target.checked, imp.file, scope); } catch (error) { state[importStateKey(scope)] = { ...imp, round: event.target.checked, error: error?.message || "تعذرت مراجعة الملف." }; }
     render();
     return;
   }
+  if (event.target.matches?.("[data-staff-merchant]")) { state.staffImportMerchant = event.target.value; state.staffImport = null; render(); return; }
   const productFile = event.target.matches?.("[data-product-file]") ? event.target : null;
   if (productFile) {
+    const scope = productFile.dataset.productFile === "staff" ? "staff" : "self";
+    const key = importStateKey(scope);
     const file = productFile.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { state.productImport = { error: "الملف أكبر من 5 ميجا." }; render(); return; }
-    state.productImport = { working: true, file: file.name };
+    if (scope === "staff" && !String(root.querySelector("[data-staff-merchant]")?.value || "")) { state.staffImport = { error: "اختر التاجر الأول." }; render(); return; }
+    if (file.size > 5 * 1024 * 1024) { state[key] = { error: "الملف أكبر من 5 ميجا." }; render(); return; }
+    state[key] = { working: true, file: file.name };
     render();
     try {
       const parsed = rowsFromCsv(await file.text());
-      if (parsed.error) { state.productImport = { error: parsed.error }; render(); return; }
-      await runImportPreview(parsed.rows, false, file.name);
+      if (parsed.error) { state[key] = { error: parsed.error }; render(); return; }
+      await runImportPreview(parsed.rows, false, file.name, scope);
     } catch (error) {
-      state.productImport = { error: error?.message || "تعذرت مراجعة الملف." };
+      state[key] = { error: error?.message || "تعذرت مراجعة الملف." };
     }
     render();
     return;
