@@ -1895,6 +1895,14 @@ export const dataApi = {
     return request("/rest/v1/rpc/courier_record_collection", { method: "POST", token: session.access_token, body });
   },
 
+  async getStaffBurn() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    const rows = await request("/rest/v1/rpc/staff_delivery_burn", { method: "POST", token: session.access_token, body: {} });
+    const r = Array.isArray(rows) ? rows[0] : null;
+    return r ? { freeCount: r.out_free_count, freeCost: r.out_free_cost_egp, subsidyCount: r.out_subsidy_count, subsidy: r.out_subsidy_egp, total: r.out_total_burn_egp, cap: r.out_cap_egp, remaining: r.out_remaining_egp } : null;
+  },
+
   async getStaffCashLedger() {
     const session = await getValidSession();
     if (!session?.access_token) return [];
