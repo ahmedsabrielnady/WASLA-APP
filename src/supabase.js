@@ -1899,7 +1899,7 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) return [];
     const rows = await request("/rest/v1/rpc/staff_cash_ledger", { method: "POST", token: session.access_token, body: {} });
-    return Array.isArray(rows) ? rows.map((r) => ({ courier: r.out_courier, name: r.out_name, pending: r.out_pending, holding: r.out_holding_egp, remitted: r.out_remitted_egp, notCollected: r.out_not_collected, waived: r.out_waived })) : [];
+    return Array.isArray(rows) ? rows.map((r) => ({ courier: r.out_courier, name: r.out_name, pending: r.out_pending, holding: r.out_holding_egp, remitted: r.out_remitted_egp, notCollected: r.out_not_collected, waived: r.out_waived, courierPay: r.out_courier_pay_egp, share: r.out_platform_share_egp, subsidy: r.out_subsidy_egp })) : [];
   },
 
   async staffRecordRemittance(courierId, amount) {
