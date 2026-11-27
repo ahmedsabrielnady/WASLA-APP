@@ -82,3 +82,11 @@ export function mergeImportResults(results, size = IMPORT_CHUNK) {
   });
   return total;
 }
+
+// Optional: round prices that have piasters to the nearest whole pound (12.5 becomes 13). Other values are left as typed.
+export function roundPrices(rows) {
+  return rows.map((r) => {
+    const n = Number(r.price);
+    return Number.isFinite(n) && String(r.price).trim() !== "" && !Number.isInteger(n) ? { ...r, price: String(Math.round(n)) } : r;
+  });
+}
