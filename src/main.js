@@ -7,6 +7,7 @@ import { renderRoadmapHome, renderRoadmapPage } from "./roadmap.js";
 import { renderOperationsView } from "./operations.js";
 import { renderCrmView } from "./crm.js";
 import { renderProviderView } from "./provider.js";
+import { PRODUCT_AISLES, rowsFromCsv, templateCsv, chunkRows, mergeImportResults } from "./product-import.js";
 import { DEFAULT_CENTER, directionsLinks, isValidEgyptPhone, isValidPoint, mountMap, mountRouteMap, telHref, validateVehicle } from "./geo.js";
 
 const root = document.querySelector("#app");
@@ -39,6 +40,7 @@ const state = {
   deliveryPins: { pickup: null, dropoff: null, share: false },
   carts: { market: [], food: [], supplies: [] },
   merchantNames: {},
+  productImport: null,
   deliveryRoutes: {},
   clinicDraft: null,
   locatedOrderIds: [],
@@ -751,6 +753,23 @@ async function loadHealthWork() {
 
 const PRODUCT_CATEGORY_LABELS = { market: "ماركت", food: "مطعم", supplies: "مستلزمات طبية" };
 
+function productImportCard(disabled) {
+  const imp = state.productImport;
+  const res = imp?.result;
+  const issues = res ? res.rows.slice(0, 30).map((x) => `<li class="${x.status === "error" ? "import-err" : "import-warn"}">صف ${escapeHTML(x.sheetRow)}: ${escapeHTML(x.msg)}</li>`).join("") : "";
+  const summary = res ? `<div class="notice" role="status"><strong>معاينة قبل الحفظ:</strong> ${res.total} صف · جديد ${res.new} · تحديث ${res.update} · أخطاء ${res.errors} · تنبيهات ${res.warnings}${res.errors ? ". صلّح الأخطاء وارفع الملف تاني. مفيش حاجة اتحفظت." : ". لسه ما اتحفظش حاجة."}</div>${issues ? `<ul class="import-issues">${issues}</ul>` : ""}${res.rows.length > 30 ? `<p class="muted">ظاهر أول 30 ملاحظة من ${res.rows.length}.</p>` : ""}<div class="order-card-actions"><button class="btn btn-primary" type="button" data-action="import-confirm" ${res.errors || disabled ? "disabled" : ""}>تأكيد الاستيراد (${res.new + res.update} منتج)</button><button class="btn btn-outline" type="button" data-action="import-cancel">إلغاء</button></div>` : "";
+  return `<div class="notifications-box" id="product-import">
+    <div class="section-heading"><div><span class="eyebrow">رفع بالجملة</span><h3>استيراد منتجات من ملف</h3></div></div>
+    <p class="muted">حمّل النموذج، املاه من Excel، واحفظه CSV (UTF-8)، ثم ارفعه. بنراجع كل صف قبل ما نحفظ أي حاجة. المنتج الموجود (بنفس الباركود أو الاسم) بيتحدّث. السعر بالجنيه الصحيح.</p>
+    <p class="muted">الأقسام المقبولة: ${PRODUCT_AISLES.map((a) => escapeHTML(a[1])).join("، ")}.</p>
+    <div class="order-card-actions"><button class="btn btn-outline btn-small" type="button" data-action="import-template">تحميل النموذج</button></div>
+    <label>ملف المنتجات (CSV)<input type="file" accept=".csv,text/csv,text/plain" data-product-file ${disabled}></label>
+    ${imp?.error ? `<p class="form-error" role="alert">${escapeHTML(imp.error)}</p>` : ""}
+    ${imp?.working ? '<p class="muted">جاري المراجعة...</p>' : ""}
+    ${summary}
+  </div>`;
+}
+
 function merchantProductsSection() {
   if (!Array.isArray(state.merchantProducts) || state.profile?.role !== "merchant") return "";
   const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
@@ -773,6 +792,7 @@ function merchantProductsSection() {
     <section class="page-panel health-panel" id="merchant-products">
       <div class="section-heading"><div><span class="eyebrow">التاجر</span><h2>منتجاتي</h2></div></div>
       <p class="deposit-note">أنت تحدد الاسم والسعر والمخزون. الدفع عند الاستلام ولا يتم تحصيل أي مبلغ داخل وصلة.</p>
+      ${productImportCard(disabled)}
       <form data-form="product-add" novalidate>
         <label>اسم المنتج<input name="name" maxlength="120" required></label>
         <label>التصنيف<select name="category" required><option value="market">ماركت</option><option value="food">مطعم</option><option value="supplies">مستلزمات طبية</option></select></label>
@@ -2476,6 +2496,24 @@ root.addEventListener("click", async (event) => {
         showToast("تم التحديث.", "success");
       });
       render();
+    } else if (action === "import-template") {
+      const url = URL.createObjectURL(new Blob([templateCsv()], { type: "text/csv;charset=utf-8" }));
+      const a = document.createElement("a"); a.href = url; a.download = "wasla-products-template.csv"; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } else if (action === "import-cancel") {
+      state.productImport = null;
+      render();
+    } else if (action === "import-confirm") {
+      const imp = state.productImport;
+      if (!imp?.chunks || imp.result?.errors) return;
+      await runWithBusyState(state, async () => {
+        render();
+        for (const chunk of imp.chunks) await dataApi.importProducts(chunk, true);
+        state.productImport = null;
+        await loadHealthWork();
+        showToast("تم استيراد المنتجات.", "success");
+      });
+      render();
     } else if (action === "toggle-product") {
       await runWithBusyState(state, async () => {
         render();
@@ -3482,6 +3520,26 @@ root.addEventListener("submit", async (event) => {
 });
 
 root.addEventListener("change", async (event) => {
+  const productFile = event.target.matches?.("[data-product-file]") ? event.target : null;
+  if (productFile) {
+    const file = productFile.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { state.productImport = { error: "الملف أكبر من 5 ميجا." }; render(); return; }
+    state.productImport = { working: true, file: file.name };
+    render();
+    try {
+      const parsed = rowsFromCsv(await file.text());
+      if (parsed.error) { state.productImport = { error: parsed.error }; render(); return; }
+      const chunks = chunkRows(parsed.rows);
+      const results = [];
+      for (const chunk of chunks) results.push(await dataApi.importProducts(chunk, false));
+      state.productImport = { file: file.name, chunks, result: mergeImportResults(results) };
+    } catch (error) {
+      state.productImport = { error: error?.message || "تعذرت مراجعة الملف." };
+    }
+    render();
+    return;
+  }
   const approvalSector = event.target.closest?.("[data-approval-sector]");
   if (approvalSector) {
     const form = approvalSector.closest("form");
