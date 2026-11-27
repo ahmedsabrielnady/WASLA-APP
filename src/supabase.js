@@ -7,6 +7,7 @@ const SESSION_KEY = "wasla.auth.session.v1";
 const PENDING_CONSENT_KEY = "wasla.pending-consent.v1";
 const OAUTH_VERIFIER_KEY = "wasla.auth.google-pkce-verifier.v1";
 const HEALTH_CONSENT_VERSION = "draft-2026-11-24.2";
+const PRODUCT_SELECT = "id,name,price_egp,discount_price_egp,stock,category,merchant_id,aisle,unit";
 const POLICY_VERSION = "draft-2026-11-24.2";
 const API_ROOT = CONFIG.supabaseUrl.replace(/\/$/, "");
 
@@ -1694,15 +1695,40 @@ export const dataApi = {
   async getProducts() {
     const session = await getValidSession();
     if (!session?.access_token) return null;
-    const build = (select) => new URLSearchParams({ select, active: "eq.true", stock: "gt.0", order: "id.asc", limit: "50" });
+    const build = (select, category) => { const p = new URLSearchParams({ select, active: "eq.true", stock: "gt.0", order: "id.asc", limit: "50" }); if (category) p.set("category", `eq.${category}`); return p; };
     try {
-      return await request(`/rest/v1/products?${build("id,name,price_egp,discount_price_egp,stock,category,merchant_id")}`, { token: session.access_token });
+      // One small page per category, so a big market catalogue cannot crowd out restaurants or supplies.
+      const pages = await Promise.all(["market", "food", "supplies"].map((c) => request(`/rest/v1/products?${build(PRODUCT_SELECT, c)}`, { token: session.access_token })));
+      return pages.flat();
     } catch (error) {
-      // Before the category draft is applied every product is a market product.
-      if (!/category/.test(String(error?.message))) throw error;
+      // Before the category/aisle drafts are applied the extra columns do not exist.
+      if (!/category|aisle|unit|image_url|barcode/.test(String(error?.message))) throw error;
       const rows = await request(`/rest/v1/products?${build("id,name,price_egp,discount_price_egp,stock")}`, { token: session.access_token });
       return Array.isArray(rows) ? rows.map((row) => ({ ...row, category: "market" })) : rows;
     }
+  },
+
+  // Server-side search and paging for big catalogues. Asks for one extra row to know whether more exist.
+  async searchProducts({ category, q, aisle, offset = 0, limit = 24 }) {
+    const session = await getValidSession();
+    if (!session?.access_token) return { rows: [], more: false };
+    if (!["market", "food", "supplies"].includes(category)) return { rows: [], more: false };
+    const p = new URLSearchParams({ select: PRODUCT_SELECT, active: "eq.true", stock: "gt.0", category: `eq.${category}`, order: "id.asc", limit: String(limit + 1), offset: String(Math.max(0, Number(offset) || 0)) });
+    const term = String(q || "").replace(/[%*,()\\]/g, " ").trim().slice(0, 60);
+    if (term) p.set("name", `ilike.*${term}*`);
+    if (aisle && /^[a-z]{3,12}$/.test(aisle)) p.set("aisle", `eq.${aisle}`);
+    const rows = await request(`/rest/v1/products?${p}`, { token: session.access_token });
+    const list = Array.isArray(rows) ? rows : [];
+    return { rows: list.slice(0, limit), more: list.length > limit };
+  },
+
+  async getProductsByIds(ids) {
+    const session = await getValidSession();
+    const list = [...new Set((ids || []).map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 30);
+    if (!session?.access_token || !list.length) return [];
+    const p = new URLSearchParams({ select: PRODUCT_SELECT, active: "eq.true", stock: "gt.0", id: `in.(${list.join(",")})` });
+    const rows = await request(`/rest/v1/products?${p}`, { token: session.access_token });
+    return Array.isArray(rows) ? rows : [];
   },
 
   async getMerchantNames(ids) {
