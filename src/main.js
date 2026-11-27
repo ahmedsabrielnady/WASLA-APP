@@ -1279,7 +1279,7 @@ function cashBlock(item, role) {
 function burnHtml() {
   const b = state.cash.burn;
   if (!b) return "";
-  return `<div class="geo-card cash-burn"><strong>تكلفة تسويق / اكتساب عملاء (التوصيل)، تراكمي: ${escapeHTML(formatEGP(b.total))}</strong><span>عروض مجانية: ${escapeHTML(String(b.freeCount))} طلب بتكلفة ${escapeHTML(formatEGP(b.freeCost))} · دعم التوصيل داخل شبين: ${escapeHTML(String(b.subsidyCount))} طلب بتكلفة ${escapeHTML(formatEGP(b.subsidy))} · سقف الميزانية ${escapeHTML(formatEGP(b.cap))} · المتبقي ${escapeHTML(formatEGP(b.remaining))}</span><span class="geo-hint">بند منفصل، لعرضه فقط. يُقابَل لاحقًا بعمولات الخدمات الأخرى، ولا توجد إيرادات أخرى حتى الآن.</span></div>`;
+  return `<div class="geo-card cash-burn"><strong>تكلفة تسويق / اكتساب عملاء (التوصيل)، تراكمي: ${escapeHTML(formatEGP(b.total))}</strong><span>عروض مجانية: ${escapeHTML(String(b.freeCount))} طلب بتكلفة ${escapeHTML(formatEGP(b.freeCost))} · دعم التوصيل داخل شبين: ${escapeHTML(String(b.subsidyCount))} طلب بتكلفة ${escapeHTML(formatEGP(b.subsidy))} ${b.cap > 0 ? `· سقف الميزانية ${escapeHTML(formatEGP(b.cap))} · المتبقي ${escapeHTML(formatEGP(b.remaining))}` : "· لا يوجد سقف ميزانية مفعّل"}</span><span class="geo-hint">بند منفصل، لعرضه فقط. يُقابَل لاحقًا بعمولات الخدمات الأخرى، ولا توجد إيرادات أخرى حتى الآن.</span></div>`;
 }
 
 function cashSummaryHtml(role) {
