@@ -31,6 +31,8 @@ const state = {
   activeSector: "",
   approvalDrafts: {},
   sectorLoading: false,
+  customerDataAt: 0,
+  customerDataPromise: null,
   geoForm: { landmark: "", phone: "", make: "", model: "", plate: "", color: "", consent: false },
   geoCards: {},
   clinicLocations: {},
@@ -316,7 +318,7 @@ function sectorView() {
   if (!sector) return homeView();
   const body = sector.mode === "order"
     ? `<label class="search-box"><span aria-hidden="true">⌕</span><input data-search type="search" value="${escapeHTML(state.search)}" placeholder="ابحث عن خدمة..." autocomplete="off"></label><div class="service-grid">${serviceCards(sector.code)}</div>`
-    : (state.sectorLoading ? '<div class="empty-state" role="status"><strong>جارٍ تحميل القسم...</strong></div>' : sectorPanels(sector.code).trim()) || (state.sectorLoading ? '' : '<div class="empty-state"><strong>لا يوجد مقدمو خدمة معتمدون في هذا القسم الآن</strong><p>سيظهر محتوى القسم هنا عند اعتماد مقدمي خدمة حقيقيين.</p></div>');
+    : (state.sectorLoading ? '<div class="skeleton-list" role="status" aria-label="جارٍ التحميل"><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>' : sectorPanels(sector.code).trim()) || (state.sectorLoading ? '' : '<div class="empty-state"><strong>لا يوجد مقدمو خدمة معتمدون في هذا القسم الآن</strong><p>سيظهر محتوى القسم هنا عند اعتماد مقدمي خدمة حقيقيين.</p></div>');
   const offerBanner = state.activeOffer && state.activeOffer.sector === sector.code
     ? `<div class="sector-offer" role="note"><span class="eyebrow">عرض</span><strong>${escapeHTML(stripPictographs(state.activeOffer.text))}</strong></div>`
     : "";
@@ -1713,6 +1715,81 @@ function openSectorPage(code) {
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
+// Customer data is loaded once, in parallel, and cached. Opening a section renders at once from the cache;
+// a stale cache is refreshed in the background. A first load shows a skeleton, never a blank wait.
+const CUSTOMER_DATA_TTL_MS = 45000;
+
+async function fetchCustomerData() {
+  const soft = (fn, fallback) => fn().catch(() => fallback);
+  const hard = Promise.all([
+    dataApi.getMyOrders(state.user.id),
+    dataApi.getLocatedOrderIds(),
+    dataApi.getMyChangeRequests(),
+    dataApi.getMyNotifications()
+  ]);
+  hard.catch(() => {});
+  const sessionsP = (async () => {
+    try {
+      const [sessions, enrollments] = await Promise.all([dataApi.getSessions(), dataApi.getMyEnrollments(), loadSessionLinks()]);
+      state.sessions = sessions; state.enrollments = enrollments;
+    } catch { state.sessions = null; state.enrollments = null; }
+  })();
+  const labP = (async () => {
+    try {
+      const [tests, requests, prescriptions] = await Promise.all([dataApi.getLabTests(), dataApi.getMyLabRequests(), dataApi.getMyPrescriptions()]);
+      state.labTests = tests; state.labRequests = requests; state.prescriptions = prescriptions;
+      state.pharmacies = prescriptions ? await dataApi.getPharmacies() : null;
+      const leftover = await dataApi.retryPendingFileCleanups();
+      if (leftover) showToast("ملف مرفوع من طلب فاشل لم يُحذف بعد. سنعيد المحاولة عند فتح التطبيق.", "error");
+    } catch { state.labTests = null; state.prescriptions = null; state.pharmacies = null; }
+  })();
+  const productsP = (async () => {
+    try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
+    restoreCarts();
+    try { const ids = CART_CATEGORIES.flatMap((category) => cartLines(category)).map((line) => line.merchant).filter(Boolean); if (ids.length) state.merchantNames = { ...state.merchantNames, ...(await dataApi.getMerchantNames(ids)) }; } catch { /* names are cosmetic */ }
+  })();
+  const rest = Promise.all([
+    soft(() => dataApi.getMyDeliveries(), null).then((v) => { state.deliveries = v; }),
+    soft(() => dataApi.getDeliveryPromo(), null).then((v) => { state.deliveryPromo = v; }),
+    soft(() => dataApi.getDeliveryAreas(), []).then((v) => { state.deliveryAreas = v; }),
+    soft(() => dataApi.getDoctors(), null).then((v) => { state.doctors = v; }),
+    soft(async () => Object.fromEntries((await dataApi.getClinicLocations()).map((row) => [row.provider_id, row])), {}).then((v) => { state.clinicLocations = v; }),
+    soft(() => dataApi.getNursingItems(), null).then((v) => { state.nursingItems = v; }),
+    loadMedicalNotes(), loadCourses(), sessionsP, labP, productsP
+  ]);
+  const [orders, located, changes, notifications] = await hard;
+  await rest;
+  state.myOrders = orders; state.locatedOrderIds = located; state.changeRequests = changes; state.notifications = notifications;
+  if (!state.clinicDay) state.clinicDay = cairoDay(1);
+  state.customerDataAt = Date.now();
+}
+
+function loadCustomerData() {
+  if (!state.customerDataPromise) {
+    const owner = state.user?.id;
+    state.customerDataPromise = fetchCustomerData().finally(() => { if (state.user?.id === owner) state.customerDataPromise = null; else state.customerDataPromise = null; });
+  }
+  return state.customerDataPromise;
+}
+
+// Re-render after a background refresh only when it cannot wipe what the user is typing.
+function renderIfIdle() {
+  const el = document.activeElement;
+  const typing = el && root.contains(el) && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+  if (typing || state.modal || state.busy) return;
+  if (state.view === "home" || state.view === "sector") {
+    const y = window.scrollY;
+    render();
+    window.scrollTo({ top: y, behavior: "auto" });
+  }
+}
+
+function prefetchCustomerData() {
+  if (!state.user?.id || state.profile?.role !== "customer") return;
+  if (state.customerDataAt && Date.now() - state.customerDataAt < CUSTOMER_DATA_TTL_MS) return;
+  loadCustomerData().then(renderIfIdle).catch(() => { /* the section open path reports errors */ });
+}
+
 async function refreshMyOrders() {
   if (!state.user?.id) {
     openAuth("login");
@@ -1723,24 +1800,7 @@ async function refreshMyOrders() {
     return;
   }
   try {
-    state.myOrders = await dataApi.getMyOrders(state.user.id);
-    state.locatedOrderIds = await dataApi.getLocatedOrderIds();
-    state.changeRequests = await dataApi.getMyChangeRequests();
-    state.notifications = await dataApi.getMyNotifications();
-    try { state.deliveries = await dataApi.getMyDeliveries(); } catch { state.deliveries = null; }
-    try { state.deliveryPromo = await dataApi.getDeliveryPromo(); } catch { state.deliveryPromo = null; }
-    try { state.deliveryAreas = await dataApi.getDeliveryAreas(); } catch { state.deliveryAreas = []; }
-    try { state.doctors = await dataApi.getDoctors(); } catch { state.doctors = null; }
-    try { state.clinicLocations = Object.fromEntries((await dataApi.getClinicLocations()).map((row) => [row.provider_id, row])); } catch { state.clinicLocations = {}; }
-    try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
-    restoreCarts();
-    try { const ids = CART_CATEGORIES.flatMap((category) => cartLines(category)).map((line) => line.merchant).filter(Boolean); if (ids.length) state.merchantNames = { ...state.merchantNames, ...(await dataApi.getMerchantNames(ids)) }; } catch { /* names are cosmetic */ }
-    try { state.sessions = await dataApi.getSessions(); state.enrollments = await dataApi.getMyEnrollments(); await loadSessionLinks(); } catch { state.sessions = null; state.enrollments = null; }
-    await loadMedicalNotes();
-    await loadCourses();
-    try { state.nursingItems = await dataApi.getNursingItems(); } catch { state.nursingItems = null; }
-    try { state.labTests = await dataApi.getLabTests(); state.labRequests = await dataApi.getMyLabRequests(); state.prescriptions = await dataApi.getMyPrescriptions(); state.pharmacies = state.prescriptions ? await dataApi.getPharmacies() : null; const leftover = await dataApi.retryPendingFileCleanups(); if (leftover) showToast("ملف مرفوع من طلب فاشل لم يُحذف بعد. سنعيد المحاولة عند فتح التطبيق.", "error"); } catch { state.labTests = null; state.prescriptions = null; state.pharmacies = null; }
-    if (!state.clinicDay) state.clinicDay = cairoDay(1);
+    await loadCustomerData();
     // No forced view switch here: a slow load must not pull the user back to "orders" after they navigated away. Callers that want the orders view set it before awaiting.
   } catch (error) {
     showToast(error.message, "error");
@@ -1888,6 +1948,7 @@ async function afterLogin() {
   } else {
     state.view = "home";
     render();
+    prefetchCustomerData();
   }
 }
 
@@ -2190,6 +2251,10 @@ async function submitOrder(form) {
   });
 }
 
+for (const type of ["pointerdown", "touchstart", "mouseover"]) {
+  root.addEventListener(type, (event) => { if (event.target.closest?.('[data-action="sector"]')) prefetchCustomerData(); }, { passive: true });
+}
+
 root.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-action]");
   if (!button) return;
@@ -2281,7 +2346,7 @@ root.addEventListener("click", async (event) => {
         } catch { /* best effort; logout must not fail */ }
       }
       await authApi.signOut();
-      state.user = state.profile = state.session = null;
+      state.user = state.profile = state.session = null; state.customerDataAt = 0; state.customerDataPromise = null;
       state.myOrders = [];
       state.nursingTimeRetry = null;
       state.trackingOrderId = "";
@@ -2753,10 +2818,15 @@ root.addEventListener("click", async (event) => {
       } else if (plan.kind === "customer-only") {
         showToast("أقسام الخدمات دي بتظهر لحسابات العملاء.", "info");
       } else {
+        // Open from the cache at once. Only a first load (nothing cached yet) shows a skeleton.
+        const cached = Boolean(state.customerDataAt);
+        state.sectorLoading = !cached;
         openSectorPage(code);
-        state.sectorLoading = true;
-        render();
-        try { await refreshMyOrders(); } finally { state.sectorLoading = false; render(); }
+        const stale = !cached || Date.now() - state.customerDataAt >= CUSTOMER_DATA_TTL_MS;
+        if (stale) {
+          try { await loadCustomerData(); } catch (error) { showToast(error.message, "error"); } finally { state.sectorLoading = false; }
+          if (state.view === "sector" && state.activeSector === code) { if (cached) renderIfIdle(); else render(); }
+        }
       }
     } else if (action === "reload") {
       await loadCatalog();
@@ -3073,7 +3143,7 @@ root.addEventListener("submit", async (event) => {
       if (password !== String(values.confirm_password || "")) throw new Error("تأكيد كلمة المرور غير مطابق.");
       await authApi.updatePassword(password);
       try { await authApi.signOut(); } catch { /* Password change already succeeded; local session is cleared in signOut's finally block. */ }
-      state.user = state.profile = state.session = null;
+      state.user = state.profile = state.session = null; state.customerDataAt = 0; state.customerDataPromise = null;
       state.modal = "auth";
       state.authMode = "login";
       render();
@@ -3540,6 +3610,7 @@ async function init() {
   }
 
   render();
+  prefetchCustomerData();
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("./sw.js").catch(() => {
