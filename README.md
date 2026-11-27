@@ -118,3 +118,4 @@ python -m http.server 8080
 - [اختبارات مساحة مقدم الخدمة](tests/provider.test.mjs)
 
 - [أرشيف قصر التسعير على الطلبات الجديدة](supabase/live-patches/20261123_quote_order_only_before_confirmation.sql)
+
