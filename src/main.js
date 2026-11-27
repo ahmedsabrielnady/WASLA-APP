@@ -57,6 +57,11 @@ const state = {
   clinicSlots: [],
   products: null,
   deliveryQueue: null,
+  deliveryPromo: null,
+  deliveryAreas: [],
+  promoStatus: null,
+  clinicFees: {},
+  mySchedule: null,
   trackingOrderId: "",
   trackingLoadingId: "",
   orderTracking: null,
@@ -465,8 +470,9 @@ function clinicSection() {
       <form data-form="clinic-book" novalidate>
         <label>الطبيب<select name="doctor" data-clinic-pick="doctor" required>
           <option value="">اختر الطبيب</option>
-          ${state.doctors.map((d) => `<option value="${escapeHTML(d.id)}" ${d.id === state.clinicDoctorId ? "selected" : ""}>${escapeHTML(d.display_name)}${d.specialty ? " · " + escapeHTML(d.specialty) : ""}</option>`).join("")}
+          ${state.doctors.map((d) => `<option value="${escapeHTML(d.id)}" ${d.id === state.clinicDoctorId ? "selected" : ""}>${escapeHTML(d.display_name)}${d.specialty ? " · " + escapeHTML(d.specialty) : ""}${d.clinic_fee_egp ? " · " + escapeHTML(formatEGP(d.clinic_fee_egp)) : ""}</option>`).join("")}
         </select></label>
+        ${(() => { const d = state.doctors.find((x) => x.id === state.clinicDoctorId); if (!d) return ""; return d.clinic_fee_egp ? `<p class="geo-hint" data-clinic-fee>سعر الكشف عند هذا الطبيب ${escapeHTML(formatEGP(d.clinic_fee_egp))}. الدفع في العيادة.</p>` : '<p class="geo-hint" data-clinic-fee>سعر الكشف لم يُحدد بعد لهذا الطبيب، والحجز غير متاح حاليًا.</p>'; })()}
         ${state.clinicDoctorId ? clinicLocationInfo(state.clinicDoctorId) : ""}
         <label>اليوم<input type="date" name="day" data-clinic-pick="day" value="${escapeHTML(state.clinicDay)}" min="${cairoDay(0)}" max="${cairoDay(30)}" required></label>
         <label>الموعد<select name="slot" required>
@@ -536,6 +542,8 @@ const NOTIFICATION_TEXT = {
   change_request_applied: "تم تنفيذ طلبك.",
   change_request_declined: "تمت مراجعة طلبك بدون تغيير.",
   delivery_status: "حالة طلب التوصيل اتغيرت.",
+  delivery_new: "طلب توصيل جديد في انتظار تعيين مندوب.",
+  delivery_assigned: "تم إسناد طلب توصيل لك. افتح توصيلاتي.",
   prescription_quote: "وصلك رد جديد على أحد طلباتك.",
   prescription_quote_revised: "تم تعديل رد على أحد طلباتك.",
   session_cancelled: "تم إلغاء إحدى حصصك.",
@@ -548,6 +556,8 @@ const NOTIFICATION_TEXT = {
 
 const NOTIFICATION_TARGET = {
   delivery_status: "delivery",
+  delivery_new: "delivery",
+  delivery_assigned: "delivery",
   prescription_quote: "rx",
   prescription_quote_revised: "rx",
   session_cancelled: "session",
@@ -1105,6 +1115,25 @@ function pagedRows(key, list, render) {
   return page.items.map(render).join("") + more;
 }
 
+function deliveryFeeLabel(item) {
+  if (item.promo_applied) return "مجاني (عرض)";
+  if (item.customer_fee_egp > 0) return `رسوم التوصيل ${formatEGP(item.customer_fee_egp)}`;
+  return "مجاني للعميل";
+}
+
+function deliveryPromoBanner() {
+  const p = state.deliveryPromo;
+  const fee = p && Number.isFinite(Number(p.out_list_fee)) ? Number(p.out_list_fee) : null;
+  if (p && p.out_open) {
+    const until = p.out_ends_at ? ` حتى ${escapeHTML(formatDate(p.out_ends_at))}` : "";
+    return `<p class="delivery-promo" data-delivery-promo="open"><strong>توصيل مجاني لفترة محدودة${until}.</strong> السعر المعتاد ${escapeHTML(formatEGP(fee ?? 20))}. العرض لعدد محدود من الطلبات.</p><p>لا يتم تحصيل أي مبلغ داخل وصلة، والتنفيذ حسب توفر مندوب.</p>`;
+  }
+  if (fee !== null) return `<p class="delivery-promo" data-delivery-promo="closed">رسوم التوصيل ${escapeHTML(formatEGP(fee))}. لا يتم تحصيل أي مبلغ داخل وصلة، وطريقة الدفع يحددها فريق وصلة قبل التنفيذ.</p>`;
+  return "<p>التوصيل مجاني للعميل. لا يتم تحصيل أي مبلغ داخل وصلة، والتنفيذ حسب توفر مندوب.</p>";
+}
+
+const WEEKDAYS_AR = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+
 function deliverySection() {
   if (!Array.isArray(state.deliveries)) return "";
   const cards = pagedRows("deliveries", state.deliveries, (item) => `
@@ -1113,14 +1142,15 @@ function deliverySection() {
       <div class="order-name">${escapeHTML(item.what_to_deliver)}</div>
       <div class="order-meta"><span>من: ${escapeHTML(item.pickup_address)}</span></div>
       <div class="order-meta"><span>إلى: ${escapeHTML(item.dropoff_address)}</span></div>
-      <div class="order-meta"><span>${escapeHTML(formatDate(item.created_at))}</span><strong>مجاني للعميل</strong></div>
+      <div class="order-meta"><span>${escapeHTML(formatDate(item.created_at))}</span><strong>${escapeHTML(deliveryFeeLabel(item))}</strong></div>
       ${item.status === "new" ? `<div class="order-card-actions"><button class="btn btn-outline btn-small" data-action="customer-cancel-delivery" data-request-id="${escapeHTML(item.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>إلغاء الطلب قبل التعيين</button></div>` : ""}
     </article>`);
   return `
     <section class="page-panel delivery-panel" id="delivery-request">
       <div class="section-heading"><div><span class="eyebrow">توصيل</span><h2>اطلب توصيل</h2></div></div>
-      <p>التوصيل مجاني للعميل. لا يتم تحصيل أي مبلغ داخل وصلة، والتنفيذ حسب توفر مندوب.</p>
+      ${deliveryPromoBanner()}
       <form data-form="delivery-request" novalidate>
+        ${(state.deliveryAreas || []).length ? `<label>المنطقة<select name="area" required><option value="">اختر المنطقة</option>${state.deliveryAreas.map((a) => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join("")}</select></label>` : ""}
         <label>عنوان الاستلام<input name="pickup" maxlength="255" required></label>
         <label>عنوان التسليم<input name="dropoff" maxlength="255" required></label>
         <label>ما الذي سيتم توصيله؟<input name="what" maxlength="300" required></label>
@@ -1176,6 +1206,61 @@ function ordersView() {
   `;
 }
 
+function deliveryMoneyLine(item, role) {
+  if (role === "courier") return Number.isFinite(Number(item.courier_pay_egp)) ? `<div class="order-meta"><span>أجرك عن هذا التوصيل</span><strong>${escapeHTML(formatEGP(item.courier_pay_egp))}</strong></div>` : "";
+  if (item.customer_fee_egp === undefined) return "";
+  const pay = Number.isFinite(Number(item.courier_pay_egp)) ? ` · أجر المندوب ${formatEGP(item.courier_pay_egp)}` : "";
+  return `<div class="order-meta"><span>${escapeHTML(deliveryFeeLabel(item))}${escapeHTML(pay)}${item.order_id ? " · طلب متجر" : ""}</span></div>`;
+}
+
+function staffDeliveryTools() {
+  const isAdmin = state.profile?.role === "admin";
+  const st = state.promoStatus;
+  const dispatched = new Set((state.deliveryQueue || []).filter((d) => d.order_id && d.status !== "cancelled").map((d) => d.order_id));
+  const ready = (state.operationsOrders || []).filter((o) => o.product_id && ["confirmed", "in_progress"].includes(o.status) && !dispatched.has(o.id));
+  const areaSelect = (state.deliveryAreas || []).length ? `<select name="area" required><option value="">المنطقة</option>${state.deliveryAreas.map((a) => `<option value="${escapeHTML(a)}">${escapeHTML(a)}</option>`).join("")}</select>` : "";
+  const dispatchCards = ready.map((o) => `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(o.ref)}</strong><span class="status-pill">${escapeHTML(statusLabel(o.status))}</span></div><div class="order-meta"><span>إلى: ${escapeHTML(o.address || "")}</span></div><form data-form="dispatch-order" data-order-id="${escapeHTML(o.id)}">${areaSelect}<button class="btn btn-primary btn-small" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>تحويل لمندوب توصيل</button></form></article>`).join("");
+  const num = (v) => (v == null ? "" : escapeHTML(v));
+  const promoPanel = !isAdmin ? "" : `
+    <section class="page-panel delivery-panel" id="delivery-promo-admin">
+      <div class="section-heading"><div><span class="eyebrow">عرض التوصيل</span><h2>التوصيل المجاني (بحد أقصى)</h2></div></div>
+      ${st ? `<p data-promo-status><strong>${st.out_open ? "العرض يعمل" : "العرض متوقف"}</strong> · المستخدم ${escapeHTML(st.out_free_used)} من ${escapeHTML(st.out_free_max)} توصيلة · الملتزم به ${escapeHTML(formatEGP(st.out_committed_egp))} من ${escapeHTML(formatEGP(st.out_budget_egp))} · المتبقي ${escapeHTML(formatEGP(st.out_remaining_egp))} · تم تسليم ${escapeHTML(st.out_delivered_free)}</p>` : ""}
+      <form data-form="delivery-promo">
+        <label class="check-row"><input type="checkbox" name="enabled" ${st && st.out_enabled ? "checked" : ""}><span>تشغيل العرض</span></label>
+        <label>السعر المعتاد (جنيه)<input name="listFee" type="number" min="0" max="500" value="${num(st ? st.out_list_fee : 20)}"></label>
+        <label>أجر المندوب لكل توصيلة (جنيه)<input name="courierPay" type="number" min="0" max="500" required></label>
+        <label>أقصى عدد توصيلات مجانية<input name="maxFree" type="number" min="1" max="100000" value="${num(st ? st.out_free_max : "")}" required></label>
+        <label>الحد لكل عميل<input name="perCustomer" type="number" min="1" max="20" value="${num(st ? st.out_per_customer : 1)}" required></label>
+        <label>الميزانية القصوى (جنيه)<input name="budget" type="number" min="1" max="10000000" value="${num(st ? st.out_budget_egp : "")}" required></label>
+        <label>ينتهي في (اختياري)<input name="ends" type="datetime-local"></label>
+        <button class="btn btn-primary" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>حفظ العرض</button>
+      </form>
+      <form data-form="delivery-areas"><label>مناطق التوصيل (واحدة في كل سطر، اتركها فارغة بدون تقييد)<textarea name="areas" rows="3">${escapeHTML((state.deliveryAreas || []).join("\n"))}</textarea></label><button class="btn btn-outline" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>حفظ المناطق</button></form>
+    </section>`;
+  const doctors = (state.operationsProviders || []).filter((p) => p.kind === "doctor" && p.approved);
+  const feePanel = !isAdmin || !doctors.length ? "" : `
+    <section class="page-panel" id="clinic-fees-admin"><div class="section-heading"><div><span class="eyebrow">العيادات</span><h2>سعر الكشف لكل طبيب</h2></div></div>
+      ${doctors.map((p) => `<form data-form="clinic-fee" data-provider-id="${escapeHTML(p.id)}"><label>${escapeHTML(p.display_name)}${p.is_test ? " (تجريبي)" : ""}<input name="fee" type="number" min="1" max="100000" value="${num(state.clinicFees[p.id])}" placeholder="غير محدد"></label><button class="btn btn-outline btn-small" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>حفظ السعر</button></form>`).join("")}
+    </section>`;
+  return promoPanel + `<section class="page-panel delivery-panel" id="dispatch-orders"><div class="section-heading"><div><span class="eyebrow">توصيل</span><h2>طلبات المتجر الجاهزة للتوصيل</h2></div></div>${dispatchCards || '<p class="tracking-empty">لا توجد طلبات متجر مؤكدة تنتظر مندوبًا.</p>'}</section>` + feePanel;
+}
+
+function doctorScheduleSection() {
+  if (state.profile?.role !== "doctor" || !state.providerRecord?.id || !Array.isArray(state.mySchedule)) return "";
+  const byDay = Object.fromEntries(state.mySchedule.map((r) => [r.weekday, r]));
+  const hm = (v) => String(v || "").slice(0, 5);
+  const rows = WEEKDAYS_AR.map((name, i) => {
+    const r = byDay[i];
+    return `<form class="schedule-row" data-form="doctor-schedule" data-weekday="${i}"><strong>${name}</strong>
+      <label>من<input name="start" type="time" value="${r ? hm(r.start_time) : ""}" required></label>
+      <label>إلى<input name="end" type="time" value="${r ? hm(r.end_time) : ""}" required></label>
+      <label>مدة الكشف (دقيقة)<input name="slot" type="number" min="10" max="120" value="${r ? r.slot_minutes : 30}" required></label>
+      <button class="btn btn-outline btn-small" type="submit" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>حفظ</button>
+      ${r ? `<button class="btn btn-outline btn-small" type="button" data-action="schedule-clear" data-weekday="${i}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>مسح اليوم</button>` : ""}</form>`;
+  }).join("");
+  return `<section class="page-panel" id="doctor-schedule"><div class="section-heading"><div><span class="eyebrow">العيادة</span><h2>مواعيد الكشف الأسبوعية</h2></div></div><p>اختر ساعات عملك لكل يوم. المرضى يحجزون فقط داخل هذه الساعات.</p>${rows}</section>`;
+}
+
 function deliveryQueueCards(role) {
   return state.deliveryQueue.map((item) => {
     const couriers = (state.operationsProviders || []).filter((p) => p.kind === "courier" && p.approved && p.active && !p.is_test);
@@ -1200,7 +1285,7 @@ function deliveryQueueCards(role) {
       } else if (route && route.error) mapBlock = `<p class="form-error">${escapeHTML(route.error)}</p>`;
       else mapBlock = `<button class="btn btn-outline btn-small" data-action="delivery-map" data-request-id="${escapeHTML(item.id)}">عرض الاستلام والتسليم على الخريطة</button>`;
     }
-    return `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(item.ref)}</strong><span class="status-pill">${escapeHTML(statusLabel(item.status))}</span></div><div class="order-name">${escapeHTML(item.what_to_deliver)}</div>${mapBlock}<div class="order-meta"><span>من: ${escapeHTML(item.pickup_address)}</span></div><div class="order-meta"><span>إلى: ${escapeHTML(item.dropoff_address)}</span></div>${action}</article>`;
+    return `<article class="order-card"><div class="order-card-top"><strong>${escapeHTML(item.ref)}</strong><span class="status-pill">${escapeHTML(statusLabel(item.status))}</span></div><div class="order-name">${escapeHTML(item.what_to_deliver)}</div>${mapBlock}<div class="order-meta"><span>من: ${escapeHTML(item.pickup_address)}</span></div><div class="order-meta"><span>إلى: ${escapeHTML(item.dropoff_address)}</span></div>${item.area ? `<div class="order-meta"><span>المنطقة: ${escapeHTML(item.area)}</span></div>` : ""}${deliveryMoneyLine(item, role)}${action}</article>`;
   }).join("");
 }
 
@@ -1223,7 +1308,7 @@ function operationsView() {
     saving: state.operationsSaving,
     approvalDrafts: state.approvalDrafts,
     offers: state.operationsOffers
-  }) + deliveryQueueSection("staff");
+  }) + deliveryQueueSection("staff") + staffDeliveryTools();
 }
 
 function crmView() {
@@ -1255,7 +1340,7 @@ function providerView() {
     error: state.providerError,
     geoCards: state.geoCards,
     clinicDraft: state.clinicDraft
-  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + teacherSection() + teacherCatalogueSection() + merchantProductsSection() + healthProviderSection() + medicalNotesSection();
+  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + doctorScheduleSection() + teacherSection() + teacherCatalogueSection() + merchantProductsSection() + healthProviderSection() + medicalNotesSection();
 }
 
 function roadmapView() {
@@ -1605,6 +1690,8 @@ async function refreshMyOrders() {
     state.changeRequests = await dataApi.getMyChangeRequests();
     state.notifications = await dataApi.getMyNotifications();
     try { state.deliveries = await dataApi.getMyDeliveries(); } catch { state.deliveries = null; }
+    try { state.deliveryPromo = await dataApi.getDeliveryPromo(); } catch { state.deliveryPromo = null; }
+    try { state.deliveryAreas = await dataApi.getDeliveryAreas(); } catch { state.deliveryAreas = []; }
     try { state.doctors = await dataApi.getDoctors(); } catch { state.doctors = null; }
     try { state.clinicLocations = Object.fromEntries((await dataApi.getClinicLocations()).map((row) => [row.provider_id, row])); } catch { state.clinicLocations = {}; }
     try { state.products = await dataApi.getProducts(); } catch { state.products = null; }
@@ -1641,6 +1728,9 @@ async function refreshOperations() {
     state.operationsCoverage = Array.isArray(coverage) ? coverage : [];
     try { state.operationsOffers = state.profile?.role === "admin" ? await dataApi.getOperationsOffers() : []; } catch { state.operationsOffers = []; }
     try { state.deliveryQueue = await dataApi.getDeliveryQueue(); } catch { state.deliveryQueue = null; }
+    try { state.promoStatus = state.profile?.role === "admin" ? await dataApi.getDeliveryPromoStatus() : null; } catch { state.promoStatus = null; }
+    try { state.deliveryAreas = await dataApi.getDeliveryAreas(); } catch { state.deliveryAreas = []; }
+    try { state.clinicFees = state.profile?.role === "admin" ? await dataApi.getClinicFees() : {}; } catch { state.clinicFees = {}; }
     state.opsChangeRequests = await dataApi.getMyChangeRequests();
     state.view = "operations";
   } catch (error) {
@@ -1662,6 +1752,10 @@ async function refreshProvider() {
     state.providerRecord = result.provider || null;
     state.providerOrders = Array.isArray(result.orders) ? result.orders : [];
     await loadClinicDraft();
+    state.mySchedule = null;
+    if (state.profile?.role === "doctor" && state.providerRecord?.id) {
+      try { state.mySchedule = await dataApi.getMySchedule(state.providerRecord.id); } catch { state.mySchedule = null; }
+    }
     state.deliveryQueue = null;
     if (state.profile?.role === "courier") {
       try { state.deliveryQueue = await dataApi.getDeliveryQueue(); } catch { state.deliveryQueue = null; }
@@ -2379,6 +2473,15 @@ root.addEventListener("click", async (event) => {
         showToast("تم تحديث حالة التوصيل.", "success");
       });
       render();
+    } else if (action === "schedule-clear") {
+      if (state.profile?.role !== "doctor") throw new Error("هذه العملية للطبيب فقط.");
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.doctorClearScheduleDay(button.dataset.weekday);
+        state.mySchedule = await dataApi.getMySchedule(state.providerRecord.id);
+        showToast("تم مسح اليوم.", "success");
+      });
+      render();
     } else if (action === "customer-cancel-delivery") {
       if (!state.user?.id) throw new Error("سجل الدخول لإلغاء الطلب.");
       if (!window.confirm("هل تريد إلغاء طلب التوصيل؟ يمكن الإلغاء قبل التعيين فقط.")) return;
@@ -2618,7 +2721,7 @@ root.addEventListener("submit", async (event) => {
       await runWithBusyState(state, async () => {
         render();
         await dataApi.acceptRequiredConsents();
-        const requestId = await dataApi.placeDeliveryRequest(values.pickup, values.dropoff, values.what);
+        const requestId = await dataApi.placeDeliveryRequest(values.pickup, values.dropoff, values.what, values.area);
         let pinsSaved = true;
         if (state.deliveryPins.share && state.deliveryPins.pickup && state.deliveryPins.dropoff) {
           try { await dataApi.saveDeliveryLocations(String(requestId).replace(/"/g, ""), state.deliveryPins.pickup, state.deliveryPins.dropoff, true); } catch { pinsSaved = false; }
@@ -3132,6 +3235,63 @@ root.addEventListener("submit", async (event) => {
         state.operationsSaving = false;
         render();
       }
+    }
+    if (form.dataset.form === "dispatch-order") {
+      if (CONFIG.isPublicPreview) throw new Error("التحويل متوقف في نسخة المعاينة.");
+      if (!["staff", "admin"].includes(state.profile?.role)) throw new Error("غير مصرح.");
+      const values = Object.fromEntries(new FormData(form).entries());
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.staffDispatchOrder(form.dataset.orderId, values.area);
+        state.deliveryQueue = await dataApi.getDeliveryQueue();
+        if (state.profile?.role === "admin") state.promoStatus = await dataApi.getDeliveryPromoStatus().catch(() => state.promoStatus);
+        showToast("تم تحويل الطلب لقائمة التوصيل.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "delivery-promo") {
+      if (state.profile?.role !== "admin") throw new Error("هذه العملية للمؤسس فقط.");
+      const data = Object.fromEntries(new FormData(form).entries());
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.adminSetDeliveryPromo({ enabled: data.enabled === "on", listFee: data.listFee, courierPay: data.courierPay, maxFree: data.maxFree, perCustomer: data.perCustomer, budget: data.budget, ends: data.ends ? new Date(data.ends).toISOString() : null });
+        state.promoStatus = await dataApi.getDeliveryPromoStatus();
+        showToast("تم حفظ عرض التوصيل.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "delivery-areas") {
+      if (state.profile?.role !== "admin") throw new Error("هذه العملية للمؤسس فقط.");
+      const names = String(new FormData(form).get("areas") || "").split("\n").map((x) => x.trim()).filter(Boolean);
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.adminSetDeliveryAreas(names);
+        state.deliveryAreas = await dataApi.getDeliveryAreas();
+        showToast("تم حفظ مناطق التوصيل.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "clinic-fee") {
+      if (state.profile?.role !== "admin") throw new Error("هذه العملية للمؤسس فقط.");
+      const data = Object.fromEntries(new FormData(form).entries());
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.adminSetClinicFee(form.dataset.providerId, data.fee);
+        state.clinicFees = await dataApi.getClinicFees();
+        showToast("تم حفظ سعر الكشف.", "success");
+      });
+      render();
+    }
+    if (form.dataset.form === "doctor-schedule") {
+      if (state.profile?.role !== "doctor") throw new Error("هذه العملية للطبيب فقط.");
+      const data = Object.fromEntries(new FormData(form).entries());
+      await runWithBusyState(state, async () => {
+        render();
+        await dataApi.doctorSetSchedule(form.dataset.weekday, data.start, data.end, data.slot);
+        state.mySchedule = await dataApi.getMySchedule(state.providerRecord.id);
+        showToast("تم حفظ الموعد.", "success");
+      });
+      render();
     }
     if (form.dataset.form === "delivery-assign") {
       if (CONFIG.isPublicPreview) throw new Error("التعيين متوقف في نسخة المعاينة.");
