@@ -1276,7 +1276,17 @@ function cashBlock(item, role) {
   return `<p class="geo-hint">${escapeHTML(label)}</p>`;
 }
 
+function burnHtml() {
+  const b = state.cash.burn;
+  if (!b) return "";
+  return `<div class="geo-card cash-burn"><strong>تكلفة خطة التوصيل (تراكمي): ${escapeHTML(formatEGP(b.total))}</strong><span>عروض مجانية: ${escapeHTML(String(b.freeCount))} طلب بتكلفة ${escapeHTML(formatEGP(b.freeCost))} · دعم التوصيل داخل شبين: ${escapeHTML(String(b.subsidyCount))} طلب بتكلفة ${escapeHTML(formatEGP(b.subsidy))} · سقف الميزانية ${escapeHTML(formatEGP(b.cap))} · المتبقي ${escapeHTML(formatEGP(b.remaining))}</span></div>`;
+}
+
 function cashSummaryHtml(role) {
+  return (role === "staff" ? burnHtml() : "") + cashSummaryInner(role);
+}
+
+function cashSummaryInner(role) {
   if (role === "courier" && state.cash.summary) {
     const s = state.cash.summary;
     return `<div class="geo-card cash-summary"><strong>النقدية معك: ${escapeHTML(formatEGP(s.holding))}</strong><span>لم تُورَّد لوصلة بعد. بانتظار تسجيل التحصيل: ${escapeHTML(String(s.pending))}. تم توريده: ${escapeHTML(formatEGP(s.remitted))}.</span></div>`;
@@ -1296,6 +1306,7 @@ async function loadCash() {
       state.cash.rows = Object.fromEntries((await dataApi.getCourierCollections()).map((r) => [r.delivery, r]));
     } else if (role === "admin" || role === "staff") {
       state.cash.ledger = await dataApi.getStaffCashLedger();
+      state.cash.burn = await dataApi.getStaffBurn();
     }
   } catch { state.cash = { summary: null, rows: {}, ledger: null }; }
 }
