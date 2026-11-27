@@ -1157,7 +1157,7 @@ function deliverySection() {
         <fieldset class="geo-card delivery-pins">
           <legend>الموقع على الخريطة (اختياري)</legend>
           <label class="check-row"><input type="checkbox" name="share_locations" data-delivery-share ${state.deliveryPins.share ? "checked" : ""}><span>أوافق على مشاركة موقعي الاستلام والتسليم مع المندوب المسند فقط.</span></label>
-          ${state.deliveryPins.share ? `<p class="geo-hint">حرّك كل دبوس إلى مكانه. الاستلام ثم التسليم.</p>
+          ${state.deliveryPins.share ? `<p class="geo-hint">حرّك كل دبوس إلى مكانه. الاستلام ثم التسليم. موضع دبوس التسليم يحدد داخل شبين ولا خارجها.</p>
           <span class="geo-label">الاستلام</span><div class="geo-map geo-picker" data-delivery-picker="pickup"></div>
           <span class="geo-label">التسليم</span><div class="geo-map geo-picker" data-delivery-picker="dropoff"></div>` : ""}
         </fieldset>
@@ -1944,7 +1944,7 @@ function mountGeoWidgets() {
       if (!el) return;
       const start = state.deliveryPins[key] || { lat: DEFAULT_CENTER.lat + (key === "dropoff" ? 0.004 : 0), lng: DEFAULT_CENTER.lng + (key === "dropoff" ? 0.004 : 0) };
       state.deliveryPins[key] = start;
-      mountMap(el, { lat: start.lat, lng: start.lng, editable: true, zoom: 15, onChange: (point) => { state.deliveryPins[key] = { lat: point.lat, lng: point.lng }; } });
+      mountMap(el, { lat: start.lat, lng: start.lng, editable: true, zoom: 15, onChange: (point) => { state.deliveryPins[key] = { lat: point.lat, lng: point.lng }; if (key === "dropoff") state.deliveryPins.dropoffMoved = true; } });
     });
   }
   root.querySelectorAll("[data-route-map]").forEach((el) => {
@@ -2724,7 +2724,7 @@ root.addEventListener("submit", async (event) => {
       await runWithBusyState(state, async () => {
         render();
         await dataApi.acceptRequiredConsents();
-        const requestId = await dataApi.placeDeliveryRequest(values.pickup, values.dropoff, values.what, values.area);
+        const requestId = await dataApi.placeDeliveryRequest(values.pickup, values.dropoff, values.what, values.area, state.deliveryPins.share && state.deliveryPins.dropoffMoved ? state.deliveryPins.dropoff : null);
         let pinsSaved = true;
         if (state.deliveryPins.share && state.deliveryPins.pickup && state.deliveryPins.dropoff) {
           try { await dataApi.saveDeliveryLocations(String(requestId).replace(/"/g, ""), state.deliveryPins.pickup, state.deliveryPins.dropoff, true); } catch { pinsSaved = false; }
