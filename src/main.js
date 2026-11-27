@@ -1311,7 +1311,7 @@ function deliveryQueueCards(role) {
       action = `<button class="btn btn-primary btn-small" data-action="courier-delivery" data-to="picked_up" data-request-id="${escapeHTML(item.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>تم الاستلام من المرسل</button>`;
     }
     if (role === "courier" && item.status === "picked_up") {
-      action = `<button class="btn btn-primary btn-small" data-action="courier-delivery" data-to="delivered" data-request-id="${escapeHTML(item.id)}" ${state.busy || CONFIG.isPublicPreview ? "disabled" : ""}>تم التسليم</button>`;
+      action = `<button class="btn btn-primary btn-small" data-action="courier-delivery" data-to="delivered" data-request-id="${escapeHTML(item.id)}" ${state.busy || CONFIG.isPublicPreview || (state.cash.rows || {})[item.id]?.status === "pending" ? "disabled" : ""}>تم التسليم</button>`;
     }
     let mapBlock = "";
     if (["assigned", "picked_up"].includes(item.status) && (role === "courier" || role === "staff")) {
@@ -2532,6 +2532,7 @@ root.addEventListener("click", async (event) => {
         render();
         await dataApi.courierSetDeliveryStatus(button.dataset.requestId, to);
         state.deliveryQueue = await dataApi.getDeliveryQueue();
+        await loadCash();
         showToast("تم تحديث حالة التوصيل.", "success");
       });
       render();
