@@ -25,7 +25,7 @@ test("write host for the test backend is the one configured alias; empty fails c
   if (!alias) {
     assert.equal(isPreviewHost("anything.pages.dev", TEST_BACKEND), true);
   } else {
-    assert.equal(alias, "wasla-app-d5v.pages.dev");
+    assert.equal(alias, "test-delivery-dispatch.wasla-app-d5v.pages.dev");
     assert.equal(isPreviewHost(alias, TEST_BACKEND), false, "alias may write to test backend");
     assert.equal(isPreviewHost(alias.toUpperCase(), TEST_BACKEND), false, "host compare is case-insensitive");
     assert.equal(isPreviewHost("79883eee.wasla-app-d5v.pages.dev", TEST_BACKEND), true, "per-deployment host is read-only");
