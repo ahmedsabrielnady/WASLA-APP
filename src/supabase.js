@@ -413,7 +413,7 @@ export function cairoLocalProblem(value) {
   return "";
 }
 
-const DELIVERY_FEE_COLUMNS = ",customer_fee_egp,list_fee_egp,promo_applied,courier_pay_egp,order_id,area";
+const DELIVERY_FEE_COLUMNS = ",customer_fee_egp,list_fee_egp,promo_applied,courier_pay_egp,order_id,area,zone";
 
 export const dataApi = {
   async getProfile(userId) {
@@ -1009,7 +1009,7 @@ export const dataApi = {
       try {
         return await request(`/rest/v1/delivery_requests?${query}`, { token: session.access_token });
       } catch (inner) {
-        if (!/customer_fee_egp|promo_applied|courier_pay_egp|order_id|area/.test(String(inner?.message))) throw inner;
+        if (!/customer_fee_egp|promo_applied|courier_pay_egp|order_id|area|zone/.test(String(inner?.message))) throw inner;
         query.set("select", "id,ref,pickup_address,dropoff_address,what_to_deliver,status,created_at");
         return await request(`/rest/v1/delivery_requests?${query}`, { token: session.access_token });
       }
@@ -1607,7 +1607,7 @@ export const dataApi = {
     const session = await getValidSession();
     if (!session?.access_token) return [];
     const rows = await request("/rest/v1/rpc/delivery_areas_public", { method: "POST", token: session.access_token, body: {} });
-    return Array.isArray(rows) ? rows.map((r) => r.out_name) : [];
+    return Array.isArray(rows) ? rows.map((r) => ({ name: r.out_name, zone: r.out_zone || "inside" })) : [];
   },
 
   async getDeliveryPromoStatus() {
@@ -1624,14 +1624,14 @@ export const dataApi = {
     const int = (x) => (x === "" || x == null ? null : Number(x));
     return request("/rest/v1/rpc/admin_set_delivery_promo", { method: "POST", token: session.access_token, body: {
       p_enabled: v.enabled === true, p_list_fee: int(v.listFee), p_starts: v.starts || null, p_ends: v.ends || null,
-      p_max_free: int(v.maxFree), p_per_customer: int(v.perCustomer), p_courier_pay: int(v.courierPay), p_budget: int(v.budget) } });
+      p_max_free: int(v.maxFree), p_per_customer: int(v.perCustomer), p_pay_inside: int(v.payInside), p_pay_outside: int(v.payOutside), p_budget: int(v.budget) } });
   },
 
-  async adminSetDeliveryAreas(names) {
+  async adminSetDeliveryAreas(inside, outside) {
     assertLiveWritesAllowed("مناطق التوصيل");
     const session = await getValidSession();
     if (!session?.access_token) throw new Error("سجل الدخول أولًا.");
-    return request("/rest/v1/rpc/admin_set_delivery_areas", { method: "POST", token: session.access_token, body: { p_names: names } });
+    return request("/rest/v1/rpc/admin_set_delivery_areas", { method: "POST", token: session.access_token, body: { p_inside: inside, p_outside: outside } });
   },
 
   async staffDispatchOrder(orderId, area) {
@@ -1849,7 +1849,7 @@ export const dataApi = {
         return await request(`/rest/v1/delivery_requests?${query}`, { token: session.access_token });
       } catch (inner) {
         // Fee columns exist only after the promo draft; fall back to the base columns.
-        if (!/customer_fee_egp|promo_applied|courier_pay_egp|order_id|area/.test(String(inner?.message))) throw inner;
+        if (!/customer_fee_egp|promo_applied|courier_pay_egp|order_id|area|zone/.test(String(inner?.message))) throw inner;
         query.set("select", "id,ref,pickup_address,dropoff_address,what_to_deliver,status,courier_id,created_at");
         return await request(`/rest/v1/delivery_requests?${query}`, { token: session.access_token });
       }
