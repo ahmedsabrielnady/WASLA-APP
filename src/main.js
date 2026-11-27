@@ -267,7 +267,7 @@ function homeView() {
         <h1>خدمات مدينتك،<br><em>في مكان واحد.</em></h1>
         <p>ابدأ بالخدمة التي تحتاجها. نعرض الخدمات الفعلية المسجلة، ونوضح ما لم يكتمل تشغيله بعد.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="#services">استكشف الخدمات <span>←</span></a>
+          <a class="btn btn-primary" href="#sectors">استكشف الخدمات <span>←</span></a>
           ${(!state.user || state.profile?.role === "customer") ? '<button class="btn btn-glass" data-action="orders">تابع طلباتك</button>' : ""}
         </div>
       </div>
@@ -282,24 +282,12 @@ function homeView() {
     ${offerTicker()}
     ${canSeeRoadmap() ? renderRoadmapHome(state.roadmapItems, state.roadmapError, !state.roadmapLoaded) : ""}
 
-    <section class="section-block">
+    <section class="section-block" id="sectors">
       <div class="section-heading">
         <div><span class="eyebrow">كل احتياجاتك</span><h2>قطاعات وصلة</h2></div>
         <span class="section-aside">الخدمات تتفعل تدريجيًا</span>
       </div>
       <div class="sector-grid">${sectorCards()}</div>
-    </section>
-
-    <section class="section-block" id="services">
-      <div class="section-heading">
-        <div><span class="eyebrow">من قاعدة البيانات</span><h2>الخدمات المتاحة حاليًا</h2></div>
-        <span class="live-indicator"><i></i> بيانات مباشرة</span>
-      </div>
-      <label class="search-box">
-        <span aria-hidden="true">⌕</span>
-        <input data-search type="search" value="${escapeHTML(state.search)}" placeholder="ابحث عن خدمة..." autocomplete="off">
-      </label>
-      <div class="service-grid">${serviceCards()}</div>
     </section>
 
     <section class="trust-strip">
@@ -1753,7 +1741,7 @@ async function refreshMyOrders() {
     try { state.nursingItems = await dataApi.getNursingItems(); } catch { state.nursingItems = null; }
     try { state.labTests = await dataApi.getLabTests(); state.labRequests = await dataApi.getMyLabRequests(); state.prescriptions = await dataApi.getMyPrescriptions(); state.pharmacies = state.prescriptions ? await dataApi.getPharmacies() : null; const leftover = await dataApi.retryPendingFileCleanups(); if (leftover) showToast("ملف مرفوع من طلب فاشل لم يُحذف بعد. سنعيد المحاولة عند فتح التطبيق.", "error"); } catch { state.labTests = null; state.prescriptions = null; state.pharmacies = null; }
     if (!state.clinicDay) state.clinicDay = cairoDay(1);
-    if (state.view !== "sector") state.view = "orders";
+    // No forced view switch here: a slow load must not pull the user back to "orders" after they navigated away. Callers that want the orders view set it before awaiting.
   } catch (error) {
     showToast(error.message, "error");
   }
@@ -2207,6 +2195,8 @@ root.addEventListener("click", async (event) => {
   if (!button) return;
 
   const action = button.dataset.action;
+  // The brand link points at "./"; without this a tap reloads the whole page (drops the cart and the open section).
+  if (action === "home" && button.tagName === "A") event.preventDefault();
   if (action === "backdrop" && event.target !== button) return;
 
   try {
