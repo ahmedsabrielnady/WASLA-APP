@@ -45,10 +45,10 @@ test("education, courses and nursing loaders either hide or throw into a caller 
     const r = await swallowed(fn);
     assert.ok(r === "threw" || r === null || (Array.isArray(r) && r.length === 0), name);
   }
-  assert.match(main, /try \{ state\.sessions = await dataApi\.getSessions\(\)/);
-  assert.match(main, /try \{ state\.nursingItems = await dataApi\.getNursingItems\(\)/);
+  assert.match(main, /try \{\n      const \[sessions, enrollments\] = await Promise\.all\(\[dataApi\.getSessions\(\)/);
+  assert.match(main, /soft\(\(\) => dataApi\.getNursingItems\(\), null\)/);
   assert.match(main, /try \{ state\.courses = await dataApi\.getCourses\(\)/);
-  assert.match(main, /try \{ state\.deliveries = await dataApi\.getMyDeliveries\(\)/);
+  assert.match(main, /soft\(\(\) => dataApi\.getMyDeliveries\(\), null\)/);
 });
 
 test("clinic booking is closed unless the TEST backend is active, and shows an honest unavailable notice", () => {
