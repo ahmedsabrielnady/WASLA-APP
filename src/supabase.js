@@ -1793,7 +1793,7 @@ export const dataApi = {
     await request("/rest/v1/rpc/set_nursing_preferred_time", { method: "POST", token: session.access_token, body: { p_order: orderId, p_at: cairoLocalToDate(value).toISOString() } });
   },
 
-  async placeDeliveryRequest(pickup, dropoff, what, area) {
+  async placeDeliveryRequest(pickup, dropoff, what, area, pin) {
     assertLiveWritesAllowed("طلب التوصيل");
     const p = String(pickup || "").trim(), q = String(dropoff || "").trim(), w = String(what || "").trim();
     if (p.length < 4 || q.length < 4) throw new Error("اكتب عنوان الاستلام وعنوان التسليم بوضوح.");
@@ -1803,7 +1803,7 @@ export const dataApi = {
     return request("/rest/v1/rpc/place_delivery_request", {
       method: "POST",
       token: session.access_token,
-      body: area ? { p_pickup: p, p_dropoff: q, p_what: w, p_area: String(area) } : { p_pickup: p, p_dropoff: q, p_what: w }
+      body: { p_pickup: p, p_dropoff: q, p_what: w, ...(area ? { p_area: String(area) } : {}), ...(pin && Number.isFinite(Number(pin.lat)) && Number.isFinite(Number(pin.lng)) ? { p_lat: Number(pin.lat), p_lng: Number(pin.lng) } : {}) }
     });
   },
 
