@@ -1308,7 +1308,7 @@ function operationsView() {
     saving: state.operationsSaving,
     approvalDrafts: state.approvalDrafts,
     offers: state.operationsOffers
-  }) + deliveryQueueSection("staff") + staffDeliveryTools();
+  }) + notificationsSection() + deliveryQueueSection("staff") + staffDeliveryTools();
 }
 
 function crmView() {
@@ -1340,7 +1340,7 @@ function providerView() {
     error: state.providerError,
     geoCards: state.geoCards,
     clinicDraft: state.clinicDraft
-  }) + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + doctorScheduleSection() + teacherSection() + teacherCatalogueSection() + merchantProductsSection() + healthProviderSection() + medicalNotesSection();
+  }) + (state.profile?.role === "courier" ? notificationsSection() + deliveryQueueSection("courier") : "") + doctorScheduleSection() + teacherSection() + teacherCatalogueSection() + merchantProductsSection() + healthProviderSection() + medicalNotesSection();
 }
 
 function roadmapView() {
@@ -1751,6 +1751,7 @@ async function refreshProvider() {
     const result = await dataApi.getProviderWorkspace();
     state.providerRecord = result.provider || null;
     state.providerOrders = Array.isArray(result.orders) ? result.orders : [];
+    try { state.notifications = await dataApi.getMyNotifications(); } catch { state.notifications = []; }
     await loadClinicDraft();
     state.mySchedule = null;
     if (state.profile?.role === "doctor" && state.providerRecord?.id) {
@@ -3451,6 +3452,7 @@ async function init() {
       state.operationsServices = Array.isArray(services) ? services : [];
       state.operationsCoverage = Array.isArray(coverage) ? coverage : [];
       try { state.operationsOffers = state.profile?.role === "admin" ? await dataApi.getOperationsOffers() : []; } catch { state.operationsOffers = []; }
+      try { state.notifications = await dataApi.getMyNotifications(); } catch { state.notifications = []; }
     } catch (error) {
       showToast(error.message, "error");
     }
@@ -3467,6 +3469,7 @@ async function init() {
     });
     state.providerRecord = result.provider || null;
     state.providerOrders = Array.isArray(result.orders) ? result.orders : [];
+    try { state.notifications = await dataApi.getMyNotifications(); } catch { state.notifications = []; }
     await loadClinicDraft();
   } else if (state.view === "provider") {
     state.view = "home";
