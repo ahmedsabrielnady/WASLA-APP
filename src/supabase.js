@@ -616,6 +616,25 @@ export const dataApi = {
     return request("/rest/v1/rpc/push_unsubscribe", { method: "POST", token: session.access_token, body: { p_endpoint: endpoint } });
   },
 
+  // Telegram alert link (TEST). The code is typed to the bot by the provider; the bot never receives anything from the site.
+  async telegramLinkCode() {
+    const session = await getValidSession();
+    if (!session?.access_token) throw new Error("سجل الدخول أولاً.");
+    return request("/rest/v1/rpc/provider_telegram_link_code", { method: "POST", token: session.access_token, body: {} });
+  },
+
+  async telegramStatus() {
+    const session = await getValidSession();
+    if (!session?.access_token) return false;
+    try { return (await request("/rest/v1/rpc/provider_telegram_status", { method: "POST", token: session.access_token, body: {} })) === true; } catch { return false; }
+  },
+
+  async telegramUnlink() {
+    const session = await getValidSession();
+    if (!session?.access_token) return null;
+    return request("/rest/v1/rpc/provider_telegram_unlink", { method: "POST", token: session.access_token, body: {} });
+  },
+
   async markNotificationsRead() {
     const session = await getValidSession();
     if (!session?.access_token) return 0;
