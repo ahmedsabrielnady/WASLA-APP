@@ -53,6 +53,8 @@ const state = {
   nursingTimeRetry: null,
   changeRequests: [],
   notifications: [],
+  tgLinked: false,
+  tgCode: "",
   opsChangeRequests: [],
   deliveries: null,
   doctors: null,
@@ -603,6 +605,19 @@ function pushSection() {
 
 function providerAlertCount() {
   return (state.notifications || []).filter((n) => n.kind === "provider_new_order" && !n.read_at).length;
+}
+
+function telegramCard() {
+  if (!state.providerRecord?.id) return "";
+  const linked = state.tgLinked === true;
+  const code = state.tgCode;
+  const disabled = state.busy || CONFIG.isPublicPreview ? "disabled" : "";
+  const body = linked
+    ? '<p class="muted">تليجرام مربوط. هيوصلك تنبيه لما يتسند لك طلب جديد (من غير أي تفاصيل).</p><button class="btn btn-outline btn-small" data-action="tg-unlink" ' + disabled + '>إلغاء الربط</button>'
+    : (code
+      ? '<p>ابعت الكود ده للبوت <strong>@WASLAA_BOT</strong> على تليجرام خلال 15 دقيقة:</p><p class="tg-code" dir="ltr"><strong>' + escapeHTML(code) + '</strong></p><button class="btn btn-outline btn-small" data-action="tg-refresh">تحديث الحالة</button>'
+      : '<p class="muted">اربط تليجرام عشان يوصلك تنبيه لما يتسند لك طلب جديد. التنبيه بدون أي بيانات للعميل.</p><button class="btn btn-primary btn-small" data-action="tg-link" ' + disabled + '>ربط تليجرام</button>');
+  return '<div class="notifications-box" id="provider-telegram"><div class="section-heading"><div><span class="eyebrow">تنبيهات</span><h2>تنبيه على تليجرام</h2></div></div>' + body + '</div>';
 }
 
 function notificationsSection() {
@@ -1477,7 +1492,7 @@ function providerView() {
     error: state.providerError,
     geoCards: state.geoCards,
     clinicDraft: state.clinicDraft
-  }) + notificationsSection() + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + doctorScheduleSection() + teacherSection() + teacherCatalogueSection() + merchantProductsSection() + healthProviderSection() + medicalNotesSection();
+  }) + notificationsSection() + telegramCard() + (state.profile?.role === "courier" ? deliveryQueueSection("courier") : "") + doctorScheduleSection() + teacherSection() + teacherCatalogueSection() + merchantProductsSection() + healthProviderSection() + medicalNotesSection();
 }
 
 function roadmapView() {
@@ -1953,6 +1968,7 @@ async function refreshProvider() {
     state.providerRecord = result.provider || null;
     state.providerOrders = Array.isArray(result.orders) ? result.orders : [];
     try { state.notifications = await dataApi.getMyNotifications(); } catch { state.notifications = []; }
+    try { state.tgLinked = await dataApi.telegramStatus(); } catch { state.tgLinked = false; }
     await loadClinicDraft();
     state.mySchedule = null;
     if (state.profile?.role === "doctor" && state.providerRecord?.id) {
@@ -2493,6 +2509,17 @@ root.addEventListener("click", async (event) => {
       const registration = await navigator.serviceWorker.ready;
       await disablePush({ registration, unsubscribeRpc: (e) => dataApi.pushUnsubscribe(e) });
       showToast("تم إيقاف التنبيهات على هذا الجهاز.");
+    } else if (action === "tg-link") {
+      state.tgCode = await dataApi.telegramLinkCode();
+      render();
+    } else if (action === "tg-refresh") {
+      state.tgLinked = await dataApi.telegramStatus();
+      if (state.tgLinked) state.tgCode = "";
+      render();
+    } else if (action === "tg-unlink") {
+      await dataApi.telegramUnlink();
+      state.tgLinked = false; state.tgCode = "";
+      render();
     } else if (action === "mark-notifications-read") {
       await dataApi.markNotificationsRead();
       state.notifications = await dataApi.getMyNotifications();
@@ -3762,6 +3789,7 @@ async function init() {
     state.providerRecord = result.provider || null;
     state.providerOrders = Array.isArray(result.orders) ? result.orders : [];
     try { state.notifications = await dataApi.getMyNotifications(); } catch { state.notifications = []; }
+    try { state.tgLinked = await dataApi.telegramStatus(); } catch { state.tgLinked = false; }
     await loadClinicDraft();
   } else if (state.view === "provider") {
     state.view = "home";
